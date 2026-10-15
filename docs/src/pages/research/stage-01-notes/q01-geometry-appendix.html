@@ -1,0 +1,158 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="沿途手记 Q01 技术附录：从中心、轴线、表面、几何基元的测量任务出发，考察真正有历史和工程价值的经典算法里程碑。"><title>Q01 附录 · 点云几何测量的里程碑｜沿途手记</title><style>
+:root{--bg:#faf9f5;--paper:#fffefa;--ink:#35453a;--muted:#6d7b70;--soft:#879388;--line:#e1e8de;--green:#537b64;--shadow:0 12px 34px rgba(50,73,53,.043)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.84 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}a{color:inherit;text-decoration:none}a:hover{color:#437459}::selection{background:#d7e8d9}strong{font-weight:720}button{font:inherit}
+.site-nav{max-width:1190px;margin:auto;padding:22px 27px;display:flex;justify-content:space-between;gap:16px;align-items:center;color:#77897b;font-size:13px}.logo{font-weight:760;color:#456a50}.nav-actions{display:flex;gap:20px;flex-wrap:wrap}
+.wrap{max-width:1190px;padding:0 27px 90px;margin:0 auto;display:grid;grid-template-columns:minmax(0,900px) 190px;gap:49px}.main{min-width:0}.aside{padding-top:310px}.sticky{position:sticky;top:32px;border-left:1px solid #dbe7d9;padding-left:18px}.sticky small{display:block;color:#a2ad9e;font-size:10px;letter-spacing:.12em;font-weight:700;margin-bottom:12px}.sticky a{display:block;font-size:12px;color:#8c9d8e;padding:0 0 13px;line-height:1.6}.sticky a:hover{color:#517b65}
+.hero{padding:50px 0 47px;border-bottom:1px solid var(--line)}.kicker{font-size:11px;color:#5d8d6d;letter-spacing:.13em;font-weight:760}.hero h1{font-size:clamp(34px,4.25vw,48px);line-height:1.38;letter-spacing:-.055em;margin:16px 0 18px;font-weight:790}.hero .lede{font-size:17px;color:#53695a;max-width:790px;margin:0;line-height:1.95}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:23px}.meta span{border:1px solid #e1e7dc;background:#f6f8f4;color:#829184;border-radius:20px;padding:4px 10px;font-size:11px}
+.intro-card{margin:34px 0 16px;padding:21px 24px;border:1px solid #e0e9de;border-radius:14px;background:linear-gradient(115deg,#f1f7ef,#fffdfa);color:#4f6655}.intro-card strong{color:#3d6d4a}.intro-card p{margin:6px 0 0;color:#66796b;font-size:14px;line-height:1.88}
+section{padding-top:60px;scroll-margin-top:32px}.eyebrow{font-size:11px;letter-spacing:.105em;color:#93a79a;font-weight:800;margin-bottom:6px}section h2{font-size:25px;margin:0 0 15px;letter-spacing:-.035em;line-height:1.48}p{color:#5d6b5e;margin:0 0 15px}.secdesc{font-size:15px;line-height:1.95}.sublabel{font-size:12px;color:#839385}
+.map{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:23px 20px 19px;box-shadow:var(--shadow)}.mapheader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.mapheader strong{font-size:15px}.mapheader span{color:#96a39a;font-size:11px}.mapgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.maplane{border:1px solid #e3e9e0;border-radius:12px;padding:16px 12px 13px;background:#fafbf8;min-width:0;transition:transform .2s,border-color .2s}.maplane:hover{transform:translateY(-2px);border-color:#b9cfbd}.maplane .code{color:#9da99b;font-size:10px;font-weight:800;letter-spacing:.11em}.maplane .name{font-weight:750;font-size:14px;color:#46634d;margin-top:6px}.maplane .question{font-size:11px;color:#87968a;line-height:1.6;min-height:40px;margin-top:6px}.ticks{border-top:1px solid #e2e8df;margin-top:15px;padding-top:11px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}.ticks em{font-size:10px;font-style:normal;color:#7d9b84;background:#eff5ef;border-radius:5px;padding:2px 5px}.mapfoot{font-size:12px;color:#8b998e;margin-top:16px;line-height:1.8}
+.track{--tint:#f0f5ee;--accent:#6d9376;--border:#d8e5d7}.track.blue{--tint:#f0f4f8;--accent:#718da6;--border:#dce5ec}.track.amber{--tint:#fbf5e9;--accent:#b6905e;--border:#ece0cc}.track.rose{--tint:#faf1ef;--accent:#ae7e75;--border:#e9dbd5}
+.trackhead{display:flex;gap:18px;align-items:flex-start;margin-bottom:26px}.tracknum{flex:0 0 56px;width:56px;height:56px;border-radius:14px;background:var(--tint);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:800}.trackhead .core{flex:1}.trackhead h2{margin:0 0 4px}.trackhead .en{color:#9aa89b;font-size:11px;font-weight:700;letter-spacing:.08em}.trackhead p{font-size:14px;line-height:1.95;margin:13px 0 0}.branch{border-radius:12px;border:1px solid var(--border);background:var(--tint);padding:12px 15px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin:0 0 24px}.branch b{font-size:12px;color:var(--accent)}.branch span{font-size:12px;color:#718073}
+.timeline{border-left:2px solid #dce9de;margin:4px 0 0 75px;padding:0 0 2px 26px}.event{position:relative;margin-bottom:16px;border:1px solid var(--line);border-radius:13px;background:var(--paper);box-shadow:var(--shadow);padding:17px 20px 17px}.event::before{content:"";position:absolute;left:-34px;top:26px;width:12px;height:12px;border-radius:50%;border:3px solid var(--accent);background:#fffefa;box-shadow:0 0 0 3px var(--bg)}.event-year{position:absolute;left:-98px;top:21px;width:55px;text-align:right;font-size:13px;font-weight:750;color:var(--accent)}.event-top{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;margin-bottom:8px}.event h3{font-size:16px;line-height:1.5;margin:0;color:#3d5544;font-weight:770}.event .type{font-size:10px;padding:3px 9px;background:var(--tint);color:var(--accent);border-radius:7px;border:1px solid var(--border)}.event .spark{margin:9px 0 13px;font-size:13px;line-height:1.85;color:#67766a}.event .spark strong{color:#4f735c}.event .facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0 11px}.fact{background:#fafbf8;border:1px solid #eff1eb;border-radius:9px;padding:11px 12px}.fact label{display:block;font-size:10px;font-weight:760;color:#93a397;letter-spacing:.05em;margin-bottom:3px}.fact div{font-size:12px;color:#607065;line-height:1.85}.event .note{font-size:12px;color:#7f8c81;border-top:1px dashed #e4eae0;padding-top:10px;margin-top:12px;line-height:1.9}.event .note b{color:#678570}.event-foot{margin-top:10px;font-size:11px;color:#829388;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}.strand{font-size:10px;color:#7c8c81;letter-spacing:.04em}.ref-link{text-decoration:underline;text-decoration-color:#bdcebe;text-underline-offset:3px;color:#63856b;font-size:11px}.ref-link:hover{color:#356f4c}
+.insight{margin:25px 0 0 76px;border-left:3px solid var(--accent);background:var(--tint);border-radius:0 10px 10px 0;padding:17px 21px}.insight b{font-size:12px;color:var(--accent)}.insight p{font-size:13px;line-height:1.9;margin:6px 0 0;color:#596e5f}
+.comparison{margin:22px 0 0 76px;background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:16px 17px}.comparison h4{font-size:12px;color:#56735c;margin:0 0 11px}.compgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.comp{border:1px solid #e6eae3;border-radius:9px;padding:11px}.comp b{font-size:12px;color:#43614b}.comp p{font-size:11px;line-height:1.72;color:#7f8b80;margin:6px 0 0}
+.engineering{margin-top:60px;padding:27px 25px 25px;border:1px solid #dce7da;border-radius:17px;background:linear-gradient(115deg,#f0f6ed,#fffdf7)}.engineering h2{margin:0 0 10px;font-size:22px}.engineering>p{font-size:13px;margin-bottom:21px;line-height:1.9}.toolgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.tool{background:#fffefa;border:1px solid #e4ebdd;border-radius:12px;padding:17px}.tool .toolyear{font-size:11px;color:#8d9d8e}.tool h3{font-size:16px;margin:4px 0 5px}.tool p{font-size:12px;line-height:1.88;margin:0 0 10px}.tool .ref-link{font-size:11px}
+.outro{margin-top:48px;padding:27px 26px 29px;background:#fffefa;border:1px solid var(--line);border-radius:16px}.outro h2{font-size:22px;margin:0 0 11px}.outro p{font-size:14px;line-height:1.94}.outro ul{margin:15px 0 0;padding-left:22px;color:#65766a;font-size:13px;line-height:2}.references{margin-top:41px;padding-top:25px;border-top:1px solid var(--line)}.references h2{font-size:18px;margin:0 0 10px}.references p{font-size:12px;color:#89958a}.refgrid{display:grid;grid-template-columns:1fr 1fr;column-gap:20px;row-gap:7px;margin-top:14px}.refgrid a{font-size:12px;color:#66816e;line-height:1.7;text-decoration:underline;text-decoration-color:#d6dfd1;text-underline-offset:3px}
+.bottomnav{padding:31px 0 0;margin-top:35px;border-top:1px solid var(--line);display:flex;gap:12px;justify-content:space-between}.bottomnav a{font-size:13px;border:1px solid var(--line);padding:9px 14px;border-radius:9px;background:var(--paper);color:#63826c}.foot{max-width:1190px;margin:0 auto;padding:0 27px 30px;font-size:11px;color:#9ba99a}
+@media(max-width:1080px){.wrap{grid-template-columns:1fr;max-width:940px}.aside{display:none}.site-nav{max-width:940px}}@media(max-width:690px){body{font-size:14px}.site-nav{padding:15px 17px}.nav-actions{gap:10px;font-size:11px}.wrap{padding:0 16px 65px}.hero{padding:34px 0 35px}.hero h1{font-size:33px}.hero .lede{font-size:15px}.mapgrid{grid-template-columns:1fr 1fr}.maplane .question{min-height:0}.map{padding:17px 12px}.mapheader{display:block}.mapheader span{display:block;margin-top:3px}.trackhead{gap:11px}.tracknum{flex-basis:43px;width:43px;height:43px;font-size:16px}.trackhead h2{font-size:21px}.timeline{margin-left:48px;padding-left:21px}.event{padding:14px}.event-year{left:-73px;width:33px;font-size:11px;text-align:right;top:22px}.event::before{left:-29px}.event h3{font-size:14px}.event .facts,.toolgrid,.refgrid{grid-template-columns:1fr}.insight,.comparison{margin-left:0}.compgrid{grid-template-columns:1fr}.outro{padding:20px}.bottomnav{flex-direction:column}.bottomnav a{text-align:center}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.maplane{transition:none}}
+</style></head><body>
+<header class="site-nav"><a class="logo" href="https://fishxddd.github.io/">🐟 沿途手记</a><div class="nav-actions"><a href="q01-geometry.html">← Q01 正文</a><a href="https://fishxddd.github.io/src/pages/research/route-1-1.html">研究路线 ↗</a></div></header>
+<div class="wrap"><main class="main"><header class="hero"><div class="kicker">Q01 · APPENDIX / GEOMETRIC MEASUREMENT</div><h1>测量一团点云，<br>原来有这么多好办法。</h1><p class="lede">正文里第一次发现 PCA、法线和 RANSAC 时，我只是觉得：原来一团点能量出这么多东西。翻得更深一点才发现，同一个测量问题背后，还有不同的解法与长期留下来的经典。</p><div class="meta"><span>Q01 的技术探索附录</span><span>经典算法与有价值的里程碑</span><span>4 条测量方向 · 10 个核心节点</span></div></header>
+<div class="intro-card"><strong>这份附录的选法：</strong>不是把论文从古至今排满。只挑<strong>改变了思想、形成主流技术路线，或者今天仍能指导实际测量</strong>的方法。年份标的是原始理论或代表论文的时间，不表示它当年就是为 RGB-D 点云或抓取发明的。<p>四条线是按“想量什么”分的，不是四个互相竞争的算法包；同一个方法可能跨越多个方向。历史相邻，也不代表彼此有直接继承关系。</p></div>
+<section id="map"><div class="eyebrow">01 / 总览</div><h2>先把值得看的四条路线放在一张地图里。</h2><div class="map"><div class="mapheader"><strong>从测量目标出发，而不是从算法名字出发</strong><span>点按任意方向跳转到独立时间线 ↓</span></div><div class="mapgrid">
+<a class="maplane" href="#center"><div class="code">A01</div><div class="name">中心与位置</div><div class="question">这团点，哪个位置最能代表它？</div><div class="ticks">
+<em>基础</em>
+<em>1937</em>
+</div></a>
+<a class="maplane" href="#axis"><div class="code">A02</div><div class="name">主轴与空间方向</div><div class="question">一团点为什么会表现出“朝向”？</div><div class="ticks">
+<em>1901</em>
+<em>1985</em>
+</div></a>
+<a class="maplane" href="#surface"><div class="code">A03</div><div class="name">表面与局部结构</div><div class="question">不看整个物体，能不能读懂它的一小块表面？</div><div class="ticks">
+<em>1992</em>
+<em>2006</em>
+<em>2012</em>
+</div></a>
+<a class="maplane" href="#primitive"><div class="code">A04</div><div class="name">几何基元与参数拟合</div><div class="question">如果它像一个平面或圆柱，能否直接量出参数？</div><div class="ticks">
+<em>1805</em>
+<em>1981</em>
+<em>2007</em>
+</div></a>
+</div><div class="mapfoot">横向比较各方向的用途，纵向阅读每个方向里的技术变化。实际使用时，它们往往组合工作，而不是非选其一。</div></div></section>
+<section class="track sage" id="center"><div class="eyebrow">A01 / CENTER & LOCATION</div><div class="trackhead"><div class="tracknum">01</div><div class="core"><h2>中心与位置</h2><div class="en">这团点，哪个位置最能代表它？</div><p>我原以为“求中心”就是取平均。再翻资料才意识到：平均位置、对离群点稳健的位置，甚至整个物体的真实中心，原来是三件不同的事。</p></div></div><div class="branch"><b>这条线里有几种思路</b><span>统计位置 / 鲁棒统计</span></div><div class="timeline">
+<article class="event">
+<div class="event-year">基础</div><div class="event-top"><h3>Centroid / Mean · 算术质心</h3><span class="type">基础测量</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 最直接的问题：一堆 XYZ 点，能不能压缩为一个三维位置？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>把观测到的点取平均。简单、快速、没有复杂参数，是最自然的空间统计起点。</div></div><div class="fact"><label>真正改变了什么</label><div>形成了可直接复用的参考位置，但估计目标明确地是“输入点集的均值”，而非隐藏背面的真实中心。</div></div></div>
+<div class="note"><b>今天的价值｜</b>首选基线；用于点云统计、粗定位、后续几何计算的参考原点。<br><b>需要警惕｜</b>对离群点、深度缺口和采样密度不均敏感；点云均值不能当作物理重心。</div>
+<div class="event-foot"><span class="strand">路线：统计估计</span>
+<span class="strand">基础测量概念 · 非单篇发明论文</span>
+</div></article>
+<article class="event">
+<div class="event-year">1937</div><div class="event-top"><h3>Weiszfeld · Geometric Median</h3><span class="type">鲁棒统计里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 如果某些杂点离得很远，均值容易被拖走，有没有更稳一点的中心？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>改为寻找“到所有点的距离之和最小”的位置；Weiszfeld 给出了经典迭代求解思路。</div></div><div class="fact"><label>真正改变了什么</label><div>从“平方偏差意义下的均值”转向“总距离意义下的鲁棒中心”；是一种不同的统计目标。</div></div></div>
+<div class="note"><b>今天的价值｜</b>值得掌握的稳健中心基线，但不必视作所有抓取场景的默认方法。<br><b>需要警惕｜</b>它仍然只看到输入点集；半边缺失导致的系统性偏差不会自动消失，迭代也有额外成本。</div>
+<div class="event-foot"><span class="strand">路线：鲁棒估计</span>
+<a href="https://arxiv.org/abs/1606.05225" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+</div>
+<div class="comparison"><h4>记清楚这三个“中心”不是一回事</h4><div class="compgrid"><div class="comp"><b>Visible-point Mean</b><p>相机看见的点集平均位置；最直接，但受采样与遮挡影响。</p></div><div class="comp"><b>Robust Center</b><p>对少量离群点更稳；并不会凭空恢复看不见的几何。</p></div><div class="comp"><b>Object / Mass Center</b><p>完整几何中心或物理重心，需要额外的形体或质量分布信息。</p></div></div></div>
+<div class="insight"><b>翻到这里，最该留下的一句话</b><p>最需要先说清楚的不是算法名，而是：求的是可见点的中心，还是目标的几何中心？</p></div></section>
+<section class="track blue" id="axis"><div class="eyebrow">A02 / AXIS & ORIENTATION</div><div class="trackhead"><div class="tracknum">02</div><div class="core"><h2>主轴与空间方向</h2><div class="en">一团点为什么会表现出“朝向”？</div><p>PCA 很妙：不用认出是什么物体，只看点如何散开，就能得到主方向。接着又发现，“主轴”“最小包围盒方向”“圆柱轴线”并不是同一个量。</p></div></div><div class="branch"><b>这条线里有几种思路</b><span>统计主轴 / 空间包围 / 模型轴线</span></div><div class="timeline">
+<article class="event">
+<div class="event-year">1901</div><div class="event-top"><h3>Pearson · PCA 的几何源头</h3><span class="type">经典理论里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 有很多离散点时，能不能不借助类别信息，直接找到一条最能解释其分布的方向？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>用最佳拟合直线/平面的思想分析点的整体分布；现代 PCA 主轴可由协方差矩阵的特征向量得到。</div></div><div class="fact"><label>真正改变了什么</label><div>方向不再依赖人工画线，而来自点集的统计变化。后续的整体主轴估计、局部法线估计都受益于这类思想。</div></div></div>
+<div class="note"><b>今天的价值｜</b>点云主方向估计、PCA-OBB 及局部 PCA 的长期常用基础。<br><b>需要警惕｜</b>主轴存在正负号歧义；高度对称、局部可见或采样不均时不等于物体固有轴线。</div>
+<div class="event-foot"><span class="strand">路线：统计主轴</span>
+<a href="https://doi.org/10.1080/14786440109462720" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+<article class="event">
+<div class="event-year">1985</div><div class="event-top"><h3>O’Rourke · Minimum-Volume Box</h3><span class="type">计算几何里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> PCA 能给出方向，但让盒子最贴合点集的方向，真的就是 PCA 的方向吗？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>直接以最小包围体积为目标，研究三维点集的最小体积包围盒问题。</div></div><div class="fact"><label>真正改变了什么</label><div>让 OBB 成为一个独立的几何优化问题，厘清了“PCA 近似 OBB”和“最小体积 OBB”的区别。</div></div></div>
+<div class="note"><b>今天的价值｜</b>理解各种 OBB 实现/参数为何不同；工程可根据速度与包围紧致性选近似或更精确的方法。<br><b>需要警惕｜</b>精确求解通常更复杂；无论哪一种盒子，描述的都只是当前观测点集，不自动代表遮挡背面的物体轮廓。</div>
+<div class="event-foot"><span class="strand">路线：空间包围</span>
+<a href="https://www.science.smith.edu/~jorourke/Papers/MinVolBox.pdf" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+</div>
+<div class="comparison"><h4>主方向其实有三种不同的“定义”</h4><div class="compgrid"><div class="comp"><b>统计主轴 · PCA</b><p>找点云分布最显著的方向，速度快，输入要求少。</p></div><div class="comp"><b>包围盒轴 · OBB</b><p>给观测点找到包围方向；PCA-OBB 与最小体积 OBB 并不相同。</p></div><div class="comp"><b>形状模型轴</b><p>拟合圆柱时得到圆柱的模型轴线；详见 A04 基元拟合。</p></div></div></div>
+<div class="insight"><b>翻到这里，最该留下的一句话</b><p>核心辨析：PCA 估计的是分布；OBB 优化的是包围；圆柱拟合依赖的是形状模型。三者不应混称“真实姿态”。</p></div></section>
+<section class="track amber" id="surface"><div class="eyebrow">A03 / SURFACE GEOMETRY</div><div class="trackhead"><div class="tracknum">03</div><div class="core"><h2>表面与局部结构</h2><div class="en">不看整个物体，能不能读懂它的一小块表面？</div><p>这一部分最有意思的变化是尺度：整体 PCA 在找主方向，局部邻域 PCA 却能估计切平面。然后法线还能帮助分面，RGB-D 有序结构还能让计算更快。</p></div></div><div class="branch"><b>这条线里有几种思路</b><span>局部法线 / 表面分区 / 有序点云加速</span></div><div class="timeline">
+<article class="event">
+<div class="event-year">1992</div><div class="event-top"><h3>Hoppe et al. · 局部切平面估计</h3><span class="type">点集表面研究里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 点云没有天然三角面片，怎样在一团无序点上理解“这里的表面朝哪里”？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>用局部邻域拟合切平面、建立方向一致性等几何信息；这是该论文更大点集表面研究中的关键环节。</div></div><div class="fact"><label>真正改变了什么</label><div>让“从离散点估计局部表面”成为可操作的几何步骤。此处只关心法线测量，不展开整套表面重建。</div></div></div>
+<div class="note"><b>今天的价值｜</b>Local PCA / Plane Fitting 的思想仍是点云法线估计的基本功。<br><b>需要警惕｜</b>深度边界、离群点、邻域尺度以及法线正负方向都可能影响结果。</div>
+<div class="event-foot"><span class="strand">路线：局部几何</span>
+<a href="https://www.hhoppe.com/proj/recon/" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+<article class="event">
+<div class="event-year">2006</div><div class="event-top"><h3>Rabbani et al. · Smoothness Region Growing</h3><span class="type">表面组织里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 如果相邻点的法线很相似，是否可以把它们视为同一片连续表面？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>利用点间邻接关系与法线平滑性，从局部开始生长为一片区域。</div></div><div class="fact"><label>真正改变了什么</label><div>从估计“每一点的局部方向”进一步走向识别“哪些点属于同一片表面”。</div></div></div>
+<div class="note"><b>今天的价值｜</b>适合规则表面提取与区域组织；PCL 仍有相关实现。<br><b>需要警惕｜</b>不是每个局部连续区域都对应一个语义物体；边缘与噪声会影响分区。</div>
+<div class="event-foot"><span class="strand">路线：表面分区</span>
+<a href="https://research.utwente.nl/en/publications/segmentation-of-point-clouds-using-smoothness-constraints/" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+<article class="event">
+<div class="event-year">2012</div><div class="event-top"><h3>Holzer et al. · Integral Image Normals</h3><span class="type">RGB-D 实时里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> RealSense 这类深度图本来就排在二维网格里，是否还要对每个点都做昂贵的通用邻域搜索？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>利用有组织点云的像素网格结构和积分图，加速局部法线计算，并考虑深度相关的邻域选择。</div></div><div class="fact"><label>真正改变了什么</label><div>把精力从“重新定义法线”转向“利用传感器的数据排列方式更快地估计法线”。</div></div></div>
+<div class="note"><b>今天的价值｜</b>RGB-D 视觉中非常值得知道的一条高效工程路线；PCL 有现成接口。<br><b>需要警惕｜</b>主要面向有序深度数据；深度跳变、缺失像素与物体边缘需谨慎处理。</div>
+<div class="event-foot"><span class="strand">路线：实时计算</span>
+<a href="https://portal.fis.tum.de/en/publications/adaptive-neighborhood-selection-for-real-time-surface-normal-esti/" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+</div>
+<div class="comparison"><h4>为什么这些算法可以同时成立？</h4><div class="compgrid"><div class="comp"><b>Local PCA</b><p>想知道一小片表面的朝向。</p></div><div class="comp"><b>Region Growing</b><p>想知道哪些点连成相对平滑的一片面。</p></div><div class="comp"><b>Integral Images</b><p>已经有规则的深度网格，想更快地估计法线。</p></div></div></div>
+<div class="insight"><b>翻到这里，最该留下的一句话</b><p>表面法线是局部信息；邻域半径越大不一定越好。跨越边缘时会把两个面混在一起，尺度选择很重要。</p></div></section>
+<section class="track rose" id="primitive"><div class="eyebrow">A04 / PRIMITIVE FITTING</div><div class="trackhead"><div class="tracknum">04</div><div class="core"><h2>几何基元与参数拟合</h2><div class="en">如果它像一个平面或圆柱，能否直接量出参数？</div><p>从一块平面，到瓶身的圆柱轴线：一旦对形状作出明确假设，测到的信息就不只有方向，还可以是半径、轴线和位移。关键是如何面对噪声与混杂点。</p></div></div><div class="branch"><b>这条线里有几种思路</b><span>最小二乘 / 鲁棒模型拟合 / 多形状检测</span></div><div class="timeline">
+<article class="event">
+<div class="event-year">1805</div><div class="event-top"><h3>Legendre · Least Squares</h3><span class="type">经典理论里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 重复测量的数据并不完全落在同一几何结构上，该怎样得到一个最合理的参数？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>寻找使残差平方和最小的参数；后来的直线、平面、圆柱等拟合都广泛利用这一思想。</div></div><div class="fact"><label>真正改变了什么</label><div>让“拟合”有了统一、可计算的优化准则。原方法来自测量与天文学，不是为点云发明的。</div></div></div>
+<div class="note"><b>今天的价值｜</b>几何参数估计的基础；当内点干净时通常既直接又高效。<br><b>需要警惕｜</b>大离群点会被平方损失放大；点集里混入背景时单独使用可能失稳。</div>
+<div class="event-foot"><span class="strand">路线：参数优化</span>
+<a href="https://www.york.ac.uk/depts/maths/histstat/legendre.htm" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+<article class="event">
+<div class="event-year">1981</div><div class="event-top"><h3>Fischler &amp; Bolles · RANSAC</h3><span class="type">鲁棒估计里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 假如点云里有背景、反光噪点和不属于目标的点，还能拟合出正确平面吗？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>用少量样本提出候选模型，再用更多点检验其一致性，寻找支持点最多的合理模型。</div></div><div class="fact"><label>真正改变了什么</label><div>把“先挑出可信点、再拟合模型”的问题变成一个鲁棒估计流程。最初论文并不是针对三维点云。</div></div></div>
+<div class="note"><b>今天的价值｜</b>平面分割、圆柱模型拟合等经典工程基线，应用广泛。<br><b>需要警惕｜</b>内点阈值、迭代数和模型条件会直接影响结果；多个相似结构可能竞争。</div>
+<div class="event-foot"><span class="strand">路线：鲁棒估计</span>
+<a href="https://doi.org/10.1145/358669.358692" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+<article class="event">
+<div class="event-year">2007</div><div class="event-top"><h3>Schnabel et al. · Efficient RANSAC</h3><span class="type">点云形状检测里程碑</span></div>
+<p class="spark"><strong>为什么值得看？</strong> 场景里不只一个平面，而是混着平面、球、圆柱……能不能高效找到多类规则结构？</p>
+<div class="facts"><div class="fact"><label>它是怎么想的</label><div>针对无组织点云高效检测多种几何基元，把点集归纳为若干可解释的形状。</div></div><div class="fact"><label>真正改变了什么</label><div>把通用鲁棒拟合进一步组织为点云中的多几何结构检测路线。</div></div></div>
+<div class="note"><b>今天的价值｜</b>规则工业零件、平面/圆柱类测量任务中有持续参考价值；不意味着所有复杂物体都适合基元化。<br><b>需要警惕｜</b>依赖目标确实近似这些简单形状；可见弧面太窄、形变太大时，形状参数不一定可靠。</div>
+<div class="event-foot"><span class="strand">路线：多基元检测</span>
+<a href="https://doi.org/10.1111/j.1467-8659.2007.01016.x" target="_blank" rel="noopener noreferrer" class="ref-link">查看原始资料 ↗</a>
+</div></article>
+</div>
+<div class="comparison"><h4>可以把这三代想法看成三个不同层次</h4><div class="compgrid"><div class="comp"><b>Least Squares</b><p>给定内点与模型，如何优化参数？</p></div><div class="comp"><b>RANSAC</b><p>有离群点时，哪些点真的支持模型？</p></div><div class="comp"><b>Multi-primitive</b><p>一个场景里，怎样找到多种不同的规则形状？</p></div></div></div>
+<div class="insight"><b>翻到这里，最该留下的一句话</b><p>RANSAC 是“在离群点中找到共识模型”的框架；平面或圆柱才是具体模型。假设形状不对，换采样策略也无济于事。</p></div></section>
+<div class="engineering" id="toolbox"><div class="eyebrow">落到工业与工具 / 不另造一条算法史</div><h2>真正落地时，很多经典方法早已被做成工具。</h2><p>这一部分不把软件包伪装成新的数学算法。它们的里程碑意义在于：过去散落在论文里的几何能力，有了可重复使用的工程接口。</p><div class="toolgrid"><div class="tool"><div class="toolyear">2011 · 工程基础设施里程碑</div><h3>PCL · Point Cloud Library</h3><p>法线、RANSAC 平面、圆柱模型、区域生长等经典管线，都有成熟的 C++ 接口。对 ROS 与点云工程而言，尤其值得认识。</p><a href="https://pointclouds.org/assets/pdf/pcl_icra2011.pdf" target="_blank" rel="noopener noreferrer" class="ref-link">原始论文 ↗</a> · <a href="https://pointclouds.org/documentation/tutorials/cylinder_segmentation.html" target="_blank" rel="noopener noreferrer" class="ref-link">圆柱拟合示例 ↗</a> · <a href="https://pcl.readthedocs.io/projects/tutorials/en/master/region_growing_segmentation.html" target="_blank" rel="noopener noreferrer" class="ref-link">区域生长 ↗</a></div><div class="tool"><div class="toolyear">2018 · 工程基础设施里程碑</div><h3>Open3D · 现代 3D 处理库</h3><p>Python / C++ 下做点云分析与可视化更方便。尤其值得对照 OBB 不同求解模式，避免把 PCA-OBB 当成最小体积包围盒。</p><a href="https://arxiv.org/abs/1801.09847" target="_blank" rel="noopener noreferrer" class="ref-link">原始论文 ↗</a> · <a href="https://www.open3d.org/docs/latest/python_api/open3d.t.geometry.OrientedBoundingBox.html" target="_blank" rel="noopener noreferrer" class="ref-link">OBB 实现差异 ↗</a></div></div></div>
+<div class="outro" id="takeaways"><div class="eyebrow">给以后回头翻的自己</div><h2>这段历史真正留下的，不是十个算法名字。</h2><p>原来三维几何测量至少有几种不同的想法：<strong>统计点的分布</strong>，<strong>对异常测量保持鲁棒</strong>，<strong>读局部表面</strong>，以及<strong>拿一个形状模型去解释观测</strong>。它们不是沿着一条“新算法不断淘汰旧算法”的直线前进。</p><p>真到 RGB-D 抓取场景时，先弄清楚<strong>要量的几何量是什么、点云看见了多少、形状假设是否成立</strong>，再选工具。这比背一个“万能方法”更靠谱。</p><ul><li>中心：先分清可见点中心与物体真实中心；稳健统计只能解决部分异常值问题。</li><li>轴线：PCA 主轴、OBB 方向和模型轴线的意义并不一样。</li><li>表面：局部法线、表面分区、实时计算效率可以并行研究。</li><li>拟合：最小二乘、RANSAC、多基元检测解决的是不同层次的问题。</li></ul></div>
+<section class="references" id="sources"><div class="eyebrow">REFERENCES / 可追溯的研究入口</div><h2>论文与工程文档</h2><p>节点的代表年份以论文正式出版或经典方法的公认原始文献为准。引用可直接点开；基础测量概念没有被强行贴上新年份。</p><div class="refgrid">
+<a href="https://www.york.ac.uk/depts/maths/histstat/legendre.htm" target="_blank" rel="noopener noreferrer">Legendre, 1805 · Least Squares 的早期出版 ↗</a>
+<a href="https://doi.org/10.1080/14786440109462720" target="_blank" rel="noopener noreferrer">Pearson, 1901 · On lines and planes of closest fit ↗</a>
+<a href="https://arxiv.org/abs/1606.05225" target="_blank" rel="noopener noreferrer">Weiszfeld, 1937 · Geometric Median；现代综述 ↗</a>
+<a href="https://www.science.smith.edu/~jorourke/Papers/MinVolBox.pdf" target="_blank" rel="noopener noreferrer">O’Rourke, 1985 · Finding Minimal Enclosing Boxes ↗</a>
+<a href="https://www.hhoppe.com/proj/recon/" target="_blank" rel="noopener noreferrer">Hoppe et al., 1992 · Surface Reconstruction from Unorganized Points ↗</a>
+<a href="https://research.utwente.nl/en/publications/segmentation-of-point-clouds-using-smoothness-constraints/" target="_blank" rel="noopener noreferrer">Rabbani et al., 2006 · Segmentation using smoothness constraints ↗</a>
+<a href="https://doi.org/10.1145/358669.358692" target="_blank" rel="noopener noreferrer">Fischler &amp; Bolles, 1981 · Random Sample Consensus ↗</a>
+<a href="https://doi.org/10.1111/j.1467-8659.2007.01016.x" target="_blank" rel="noopener noreferrer">Schnabel et al., 2007 · Efficient RANSAC for Point-Cloud Shape Detection ↗</a>
+<a href="https://portal.fis.tum.de/en/publications/adaptive-neighborhood-selection-for-real-time-surface-normal-esti/" target="_blank" rel="noopener noreferrer">Holzer et al., 2012 · Integral-image surface normals ↗</a>
+<a href="https://pointclouds.org/assets/pdf/pcl_icra2011.pdf" target="_blank" rel="noopener noreferrer">Rusu &amp; Cousins, 2011 · 3D is here: PCL ↗</a>
+<a href="https://arxiv.org/abs/1801.09847" target="_blank" rel="noopener noreferrer">Zhou, Park &amp; Koltun, 2018 · Open3D ↗</a>
+<a href="https://pointclouds.org/documentation/tutorials/normal_estimation.html" target="_blank" rel="noopener noreferrer">PCL · Estimating Surface Normals ↗</a>
+<a href="https://pointclouds.org/documentation/tutorials/normal_estimation_using_integral_images.html" target="_blank" rel="noopener noreferrer">PCL · Integral Image Normal Estimation ↗</a>
+<a href="https://pointclouds.org/documentation/tutorials/cylinder_segmentation.html" target="_blank" rel="noopener noreferrer">PCL · Cylinder model segmentation ↗</a>
+<a href="https://www.open3d.org/docs/latest/python_api/open3d.t.geometry.OrientedBoundingBox.html" target="_blank" rel="noopener noreferrer">Open3D · OBB methods and tradeoffs ↗</a>
+</div></section><div class="bottomnav"><a href="q01-geometry.html">← 回到 Q01 探索正文</a><a href="#map">↑ 回到这张路线地图</a></div></main><aside class="aside"><div class="sticky"><small>这一份技术附录</small><a href="#map">四条路线总览</a><a href="#center">01 · 中心与位置</a><a href="#axis">02 · 主轴与方向</a><a href="#surface">03 · 局部表面</a><a href="#primitive">04 · 几何拟合</a><a href="#toolbox">工业工具节点</a><a href="#takeaways">真正学到的东西</a><a href="#sources">论文与资料</a></div></aside></div><footer class="foot">🐟 沿途手记 · 不是算法百科，只记录值得反复回看的技术路标。</footer></body></html>
