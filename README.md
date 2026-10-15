@@ -1,45 +1,40 @@
 # 沿途手记
 
-纯 HTML、CSS 和 JavaScript 的个人网站，无需安装依赖或执行构建。
-
-## 目录
+网站源码集中在 `docs/`，仓库根目录不再放置页面内容。
 
 ```text
-docs/                              GitHub Pages 发布目录
-  index.html                       首页
-  stage-01-grasp-pose.html          第一站：抓取姿态
-  .nojekyll                        禁用 Jekyll 处理
-  assets/
-    css/home.css                   首页原有样式
-    css/research-map.css           研究地图原有样式
-    js/home-navigation.js          首页原有导航脚本
-archive/
-  stage-01-grasp-pose-standalone.html  原始内嵌样式版本，仅作备份
+docs/
+├── src/
+│   ├── pages/
+│   │   ├── index.html
+│   │   ├── journey.html
+│   │   ├── journal/
+│   │   │   ├── index.html
+│   │   │   └── entry-placeholder.html
+│   │   └── research/
+│   │       ├── stage-01-grasp-pose.html
+│   │       ├── route-1-1.html
+│   │       ├── route-1-2.html
+│   │       └── topics.html
+│   ├── content/
+│   │   ├── journal/
+│   │   └── research/
+│   └── components/
+│       ├── navigation.html
+│       └── card.html
+└── public/
+    ├── images/
+    └── assets/
+        ├── css/
+        └── js/
 ```
 
-## 发布到 GitHub Pages
+这是一次目录层面的轻量整理，目前仍为纯 HTML/CSS/JavaScript，尚未接入 Astro 构建流程。未完成的页面使用最小 HTML 占位，后续可逐步替换为 `.astro` 页面和 Markdown 内容集合。
 
-1. 将整个目录上传到 GitHub 仓库。
-2. 打开仓库 Settings → Pages。
-3. Source 选择 Deploy from a branch。
-4. 选择代码所在分支（通常为 main），目录选择 /docs，然后保存。
+本地查看首页：
 
-用户站点仓库名称为 用户名.github.io；普通项目仓库可使用 journey-notes。
-所有页面与资源采用相对路径，可兼容项目站点的仓库路径前缀。
-仅 docs/ 是网站发布目录，archive/ 不会随此配置发布。
+```bash
+python -m http.server 8000 --directory docs
+```
 
-## 本地预览
-
-在本目录执行 `python -m http.server 8000 --directory docs`，然后访问 http://localhost:8000。
-
-## 尚缺少的页面
-
-原始目录没有以下内容，整理时保留了现有链接，没有编造页面或修改可见文字：
-
-- docs/journal.html
-- docs/route-1-1.html
-- docs/route-1-2.html
-- docs/topics.html（需要 pointcloud、annotation、multiview 锚点）
-
-在这些文件补齐之前，相关链接会返回 404。
-备份文件保留原始引用，供恢复或对照使用，不作为正式发布入口。
+然后访问 `http://localhost:8000/src/pages/`。
