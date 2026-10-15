@@ -4,18 +4,22 @@
 
 ```text
 docs/
+├── index.html
 ├── src/
 │   ├── pages/
-│   │   ├── index.html
 │   │   ├── journey.html
 │   │   ├── journal/
 │   │   │   ├── index.html
 │   │   │   └── entry-placeholder.html
 │   │   └── research/
-│   │       ├── stage-01-grasp-pose.html
-│   │       ├── route-1-1.html
-│   │       ├── route-1-2.html
-│   │       └── topics.html
+│   │       ├── stage-01-grasp-pose-cards.html
+│   │       └── stage-01-notes/
+│   │           ├── q01-geometry.html
+│   │           ├── q02-known-reference.html
+│   │           ├── q03-target-in-2d.html
+│   │           ├── q04-from-2d-to-3d.html
+│   │           ├── q05-learning-spatial-clues.html
+│   │           └── q06-direct-grasp-pose.html
 │   ├── content/
 │   │   ├── journal/
 │   │   └── research/
@@ -37,4 +41,4 @@ docs/
 python -m http.server 8000 --directory docs
 ```
 
-然后访问 `http://localhost:8000/src/pages/`。
+然后访问 `http://localhost:8000/`。

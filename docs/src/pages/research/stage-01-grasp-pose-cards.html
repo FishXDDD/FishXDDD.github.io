@@ -1,251 +1,272 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fcfbf7">
-  <meta name="description" content="沿途手记 · Stage 01：先把 Pose 算出来。几何求解、视觉辅助，以及这两条路线为什么会出现。">
-  <title>Stage 01 · 先把 Pose 算出来｜沿途手记</title>
-  <style>
-    /* 与首页 index.html 使用同一套基础颜色、字体、导航与间距气质 */
-    :root{--paper:#fcfbf7;--ink:#3e5042;--text:#546357;--muted:#839085;--line:#e7e9df;--green:#61836b;--light:#edf4eb;--cream:#fff4e2;--blue:#e8f0f4;--lavender:#f0ebf5;--peach:#f8ede5}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.85}
-    a{color:inherit;text-decoration:none}
-    a:focus-visible{outline:3px solid #a5baa9;outline-offset:4px;border-radius:5px}
-    .shell{max-width:1040px;padding:0 35px;margin:auto}
-    .nav{height:82px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
-    .brand{font-weight:750;font-size:18px;letter-spacing:.025em;color:#4a6751;display:flex;align-items:center;gap:10px}
-    .brand-mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#e6f0e4;border-radius:13px;font-size:18px}
-    .links{display:flex;gap:27px;align-items:center;font-size:13px;color:#7a877c}
-    .links a:hover,.link:hover,.crumb a:hover{color:#477653}
-
-    /* 笔记页比首页收敛：没有大宣传图，保留首页的留白与暖绿。 */
-    .article{max-width:795px;margin:auto;padding-top:66px;padding-bottom:88px}
-    .crumb{font-size:12px;color:#8fa18f;margin-bottom:30px}
-    .crumb .sep{padding:0 9px;color:#c3cec0}
-    .note-head{display:grid;grid-template-columns:minmax(0,1fr) 144px;gap:20px;align-items:center;padding-bottom:48px}
-    .eyebrow{font-size:11px;letter-spacing:.11em;color:#91a593;font-weight:700;margin:0 0 13px}
-    h1,h2,h3,p{margin-top:0}
-    h1{font-size:clamp(30px,4vw,41px);letter-spacing:-.025em;line-height:1.4;margin:0 0 17px;font-weight:760;color:#45654d}
-    .lead{font-size:15px;line-height:2.0;color:#627466;margin:0;max-width:615px}
-    .info{margin-top:18px;color:#9aa69a;font-size:12px}
-    .sketch{width:145px;max-width:100%;opacity:.9}
-    .contents{border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;gap:15px 30px;flex-wrap:wrap;padding:18px 0;color:#7b8d7e;font-size:12px}
-    .contents a:hover{color:var(--green)}
-    .section{padding:58px 0 53px;border-bottom:1px solid var(--line)}
-    .section:last-of-type{border-bottom:0;padding-bottom:40px}
-    .section-head{display:flex;align-items:baseline;gap:15px;margin-bottom:21px}
-    .section-no{font-size:12px;color:#9eaf9d;font-weight:750;letter-spacing:.035em}
-    .section h2{font-size:22px;color:#4b6952;letter-spacing:-.02em;margin:0;line-height:1.55;font-weight:750}
-    .prose p{font-size:14px;line-height:2.12;color:var(--text);margin:0 0 16px}
-    .prose strong{color:#486550;font-weight:730}
-    .prose p:last-child{margin-bottom:0}
-    .mini-note{border-left:3px solid #bbd0b9;background:#f5f8f2;padding:13px 19px;margin:26px 0 0;border-radius:0 9px 9px 0;color:#5c7461;font-size:13px;line-height:1.95}
-    .mini-note strong{color:#4d7055}
-    .known{margin-top:25px;padding:17px 22px;background:#f7f8f2;border:1px solid #e8eade;border-radius:13px}
-    .known p{font-size:13px;color:#6c806f;margin:0;line-height:2}
-    .known b{font-weight:730;color:#55725c}
-    .known .dot{padding:0 9px;color:#bdcabc}
-    .turn{margin:25px 0 25px;padding:2px 0 2px 20px;border-left:2px solid #d9e5d7}
-    .turn small{display:block;color:#8aa18e;font-weight:700;font-size:11px;letter-spacing:.04em;margin:0 0 6px}
-    .turn p{font-size:14px;line-height:2;color:#566d5b;margin:0}
-    .route-list{margin:29px 0 22px}
-    .route{display:grid;grid-template-columns:57px minmax(0,1fr);gap:20px;padding:26px 0;border-top:1px solid var(--line)}
-    .route:last-child{border-bottom:1px solid var(--line)}
-    .route-number{width:44px;height:44px;border-radius:15px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:12px;color:#6d8b70;font-weight:750}
-    .route:nth-child(2) .route-number{background:var(--cream);color:#aa895e}
-    .route-kicker{font-size:11px;color:#9eaa9e;letter-spacing:.06em;margin:0 0 3px}
-    .route h3{font-size:18px;line-height:1.55;margin:0 0 9px;font-weight:730;color:#4e6b54}
-    .route p{font-size:13px;color:#687b6b;line-height:1.98;margin:0 0 8px}
-    .route .tech{font-size:12px;color:#99a79a;margin-top:10px}
-    .link{display:inline-block;font-size:12px;color:#598264;font-weight:700;margin-top:8px}
-    .small-thought{font-size:13px;color:#778779;line-height:2;margin-top:22px}
-    .end-question{margin-top:24px;border-radius:13px;background:#fff9ed;border:1px solid #f0e8d8;padding:18px 22px;color:#82795f;font-size:13px;line-height:2}
-    .end-question b{color:#6e6c4f}
-    .next{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-top:28px;font-size:13px;color:#61836b}
-    .next .next-label{font-size:12px;color:#a2afa2}
-    footer{border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:15px;align-items:center;padding-top:26px;padding-bottom:34px;color:#a0a89e;font-size:12px}
-    @media(max-width:740px){.shell{padding-left:23px;padding-right:23px}.nav{height:68px}.links{gap:14px;font-size:12px}.article{padding-top:42px;padding-bottom:60px}.note-head{grid-template-columns:1fr;padding-bottom:33px}.sketch{display:none}.section{padding:41px 0 36px}.section h2{font-size:20px}.route{grid-template-columns:47px 1fr;gap:12px;padding:22px 0}.route-number{width:40px;height:40px}.contents{gap:11px 18px}.next{flex-direction:column;gap:3px}footer{font-size:11px}}
-    @media(max-width:380px){.links{gap:11px}.nav .links a:first-child{display:none}.brand{font-size:16px}h1{font-size:30px}.known .dot{padding:0 4px}}
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="抓法定好了，Pose 怎么算？从现场几何、模板、2D、深度一路想过来，再记录规则的适用条件、学习式空间线索和受约束的抓取位姿。" name="description"/>
+<title>Stage 01 · 抓法定了，Pose 怎么算？｜沿途手记</title>
+<style>
+    :root{--bg:#faf9f5;--paper:#fffefb;--ink:#273936;--sub:#64736e;--faint:#8f9b96;--line:#e3e9e1;--sage:#e7efe8;--pine:#3b7062;--peach:#f9eadf;--blue:#e8f0f7;--violet:#f0edf7;--gold:#fff4db;--shadow:0 12px 35px rgba(39,57,54,.045)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font:15px/1.9 -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:radial-gradient(#9fac9f .45px,transparent .6px);background-size:16px 16px;z-index:-1}
+    a{color:inherit;text-decoration:none}a:hover{color:var(--pine)}a:focus-visible,button:focus-visible{outline:3px solid #79b29e;outline-offset:3px}
+    .wrap{max-width:1080px;margin:auto;padding:0 30px}.nav{height:76px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);gap:16px}.logo{font-family:Georgia,serif;font-size:19px;font-weight:700;letter-spacing:.03em}.navlinks{display:flex;align-items:center;gap:26px;font-size:13px;color:var(--sub)}.navlinks a:hover{color:var(--pine)}
+    .breadcrumb{font-size:12px;color:var(--faint);padding-top:35px}.breadcrumb a{text-decoration:underline;text-underline-offset:4px;text-decoration-color:#c3d1c7}
+    .hero{padding:38px 0 44px;border-bottom:1px solid var(--line)}.eyebrow{font-size:12px;color:var(--pine);letter-spacing:.16em;font-weight:750}.hero h1{font-family:Georgia,"Noto Serif CJK SC","Songti SC",serif;line-height:1.32;font-size:clamp(34px,5vw,56px);font-weight:650;margin:15px 0 15px;letter-spacing:-.045em}.hero .lead{font-size:17px;max-width:790px;color:#53645d;line-height:1.95}.hero .lead b{color:var(--ink);font-weight:700}.hero-foot{display:flex;gap:12px;flex-wrap:wrap;margin-top:27px}.stamp{font-size:12px;border:1px solid #dce6dc;border-radius:99px;background:#fffefa;padding:4px 13px;color:#687971}.stamp.strong{background:#eaf3e9;color:#3c745c}
+    main section{padding:55px 0;border-bottom:1px solid var(--line)}.sec-head{display:flex;align-items:flex-start;gap:20px;margin-bottom:24px}.num{font:italic 24px Georgia,serif;color:#a5b8a8;min-width:44px}.section-title{font-size:26px;letter-spacing:-.03em;line-height:1.4;margin:0 0 8px;font-weight:720}.section-desc{margin:0;max-width:760px;color:var(--sub)}.subtle{font-size:12px;color:var(--faint)}
+    .thought{margin-top:17px;border-left:3px solid #95bda4;padding:5px 0 5px 20px;color:#51695c;background:linear-gradient(90deg,#edf4e9,transparent)}.thought p{margin:4px 0}.thought strong{color:#345a49}
+    .rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:24px 0 0}.rule-card{border:1px solid var(--line);border-radius:15px;padding:23px 25px;background:var(--paper)}.rule-card.in{background:#edf4ec}.rule-card small{color:var(--pine);font-size:12px;letter-spacing:.04em}.rule-card h3{font-size:19px;margin:8px 0}.rule-card p{color:var(--sub);margin:0}.marker{display:inline-block;margin-top:13px;font-size:12px;color:#51725e;background:#e3eddf;border-radius:99px;padding:2px 12px}.rule-card.out .marker{background:#f2f0ec;color:#8b8b7b}
+    .flowviz{border:1px solid #e2e9e0;background:#fffefb;border-radius:20px;padding:24px;margin-top:26px;box-shadow:var(--shadow)}.flow-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:21px}.flow-title strong{font-size:15px}.flow-title span{font-size:12px;color:var(--faint)}.node{border:1px solid #d9e6dc;border-radius:12px;padding:14px 16px;background:#f5f9f5}.node b{display:block;font-size:14px}.node p{margin:2px 0 0;font-size:12px;color:#718178}.node.center{text-align:center}.flow-row{display:grid;grid-template-columns:1fr 42px 1.15fr 42px 1fr;gap:10px;align-items:center}.arrow{text-align:center;font-size:23px;font-weight:300;color:#9bb4a2}.modes{display:grid;grid-template-columns:1fr 1fr;gap:9px}.mode{min-height:76px;border-radius:10px;padding:11px 12px;border:1px solid #dce4dc}.mode b{display:block;font-size:13px}.mode small{display:block;font-size:11px;color:var(--sub);line-height:1.5;margin-top:3px}.a{background:#edf4ed}.b{background:#fef1e7}.c{background:#edf2f9}.d{background:#f1eef9}.viz-foot{border-top:1px dashed #d9e5da;margin-top:18px;padding-top:13px;color:#6a7b71;font-size:12px}
+    .aside-rail{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px}.rail{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px 16px}.rail .t{font-size:11px;color:var(--pine);font-weight:bold;letter-spacing:.09em}.rail b{font-size:14px;display:block;margin-top:4px}.rail p{font-size:12px;color:var(--sub);margin:5px 0 0;line-height:1.65}
+    .routes{display:grid;grid-template-columns:1fr 1fr;gap:17px}.route{border:1px solid var(--line);border-radius:17px;background:var(--paper);padding:23px 25px;box-shadow:var(--shadow);position:relative;overflow:hidden}.route:before{content:"";position:absolute;height:4px;left:0;right:0;top:0;background:#92b49e}.route.rt2:before{background:#dbb699}.route.rt3:before{background:#a7bfd9}.route.rt4:before{background:#b9abd7}.route-top{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#829489;font-size:11px;font-weight:750;letter-spacing:.09em}.route-top .kind{padding:2px 10px;border:1px solid var(--line);border-radius:99px;letter-spacing:0;font-weight:400;font-size:11px}.route h3{font-size:20px;margin:17px 0 8px;line-height:1.55}.route .question{font-size:14px;color:#3f6f58;font-weight:650;line-height:1.65;margin:0 0 10px}.route p{font-size:13px;color:var(--sub);line-height:1.8}.route .method{padding:11px 13px;background:#f6f7f3;border-radius:9px;margin:13px 0;font-size:12px;color:#516258;line-height:1.75}.method b{color:#3d584c}.route .limit{font-size:12px;color:#866950;border-top:1px dashed var(--line);padding-top:10px;margin-top:14px}.route .ref{font-size:12px;margin-top:9px}.route .ref a{text-decoration:underline;text-underline-offset:3px;color:#3c6e5b}.route .ref span{color:#95a19a}
+    .compare{width:100%;border-collapse:collapse;font-size:13px;margin:24px 0 6px}.compare th{text-align:left;color:#6b8074;font-weight:650;border-bottom:2px solid #dee7dc;padding:11px}.compare td{vertical-align:top;border-bottom:1px solid #e5e9e2;padding:13px 11px}.compare tr:hover td{background:#f7faf5}.compare td:first-child{font-weight:650;white-space:nowrap}.smallnote{margin-top:13px;color:#8b968e;font-size:12px}
+    .examples{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.example{border:1px solid var(--line);background:#fffefc;border-radius:14px;padding:21px}.example .emoji{font-size:21px}.example h3{font-size:16px;margin:10px 0 8px}.example p{font-size:13px;color:var(--sub);margin:8px 0;line-height:1.8}.example .name{font-size:11px;color:#3b7160;font-weight:700;letter-spacing:.04em}
+    details{background:var(--paper);border:1px solid var(--line);border-radius:13px;margin:9px 0;overflow:hidden}summary{cursor:pointer;padding:14px 19px;font-weight:650;list-style:none}summary::-webkit-details-marker{display:none}summary:after{content:"＋";float:right;color:#839e8d}details[open] summary:after{content:"－"}details .inner{padding:0 20px 17px;color:var(--sub);font-size:13px;line-height:1.9}details .inner p{margin:4px 0 9px}
+    .takeaway{padding:28px 30px;background:#ecf3e9;border:1px solid #dbe8d7;border-radius:18px}.takeaway .minor{letter-spacing:.12em;font-size:11px;color:#567d66;font-weight:700}.takeaway h3{font-family:Georgia,"Noto Serif CJK SC",serif;font-size:22px;margin:8px 0 10px;font-weight:650}.takeaway p{color:#526a5c;margin:0;line-height:1.9}.footer{padding:30px 0 45px;display:flex;align-items:center;justify-content:space-between;gap:20px;color:var(--faint);font-size:12px}.footer a{text-decoration:underline;text-underline-offset:4px}
+    @media(max-width:780px){.wrap{padding:0 18px}.nav{height:auto;min-height:68px}.navlinks{gap:12px;font-size:12px}.hero{padding-top:30px}.hero .lead{font-size:15px}.sec-head{gap:9px}.num{min-width:35px}.section-title{font-size:22px}.flow-row{display:flex;flex-direction:column}.flow-row>.node,.flow-row>.modes{width:100%}.arrow{transform:rotate(90deg);line-height:1}.routes,.rule-grid{grid-template-columns:1fr}.aside-rail{grid-template-columns:1fr}.examples{grid-template-columns:1fr}.flow-title{display:block}.flow-title span{display:block}.compare-wrap{overflow-x:auto}.compare{min-width:710px}.footer{flex-wrap:wrap}.modes{gap:7px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
-    /* 随手记：只为重要信息使用轻量卡片；保留首页的暖绿与留白 */
-    .question-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:25px 0 19px}
-    .question-tile{border:1px solid #e7e9df;border-radius:16px;background:#fffefb;padding:22px 23px;min-height:148px}
-    .question-tile.active{background:#f0f5ed;border-color:#dbe7d9}
-    .tile-meta{font-size:11px;color:#8f9e8e;font-weight:700;letter-spacing:.025em;margin:0 0 9px}
-    .question-tile.active .tile-meta{color:#6d9776}
-    .question-tile h3{font-size:17px;color:#4d6752;font-weight:750;line-height:1.55;margin:0 0 9px}
-    .question-tile p{font-size:12px;color:#79887b;line-height:1.85;margin:0}
-    .emphasis-line{padding:15px 19px;background:#f7f9f4;border-left:3px solid #8fac92;border-radius:0 10px 10px 0;font-size:13px;line-height:1.95;color:#637767;margin:19px 0 0}
-    .emphasis-line strong{color:#436c4b}
-    .spec-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:15px;color:#748675;font-size:12px}
-    .spec-row span{display:inline-block;padding:5px 12px;background:#fafbf7;border:1px solid #e5eadf;border-radius:99px}
-    .spec-row b{color:#5a795f;font-weight:700}
-    .step-note{margin:23px 0;padding:20px 23px;border-radius:15px;background:#fff8ea;border:1px solid #f0e6d4}
-    .step-note .note-tag{font-size:11px;letter-spacing:.035em;color:#a58b5e;font-weight:700;display:block;margin-bottom:5px}
-    .step-note p{font-size:14px;line-height:1.95;color:#716b59;margin:0}
-    .step-note strong{color:#79653e}
-    .route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:25px 0 17px}
-    .route-card{border:1px solid #dde8db;border-radius:17px;background:#f2f7f0;padding:24px;display:flex;flex-direction:column;min-height:265px;transition:transform .18s ease,border-color .18s ease}
-    .route-card:nth-child(2){background:#fff9ed;border-color:#f0e5cf}
-    .route-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .route-index{font-size:11px;color:#749078;font-weight:750;letter-spacing:.07em}
-    .route-card:nth-child(2) .route-index{color:#a48b62}
-    .route-symbol{display:grid;place-items:center;width:36px;height:36px;background:#e1ede0;color:#6a8b71;border-radius:12px;font-size:15px}
-    .route-card:nth-child(2) .route-symbol{background:#faecd6;color:#a5895d}
-    .route-card h3{font-size:19px;line-height:1.45;color:#486d51;margin:0 0 8px;font-weight:750}
-    .route-card:nth-child(2) h3{color:#89724b}
-    .route-card .route-core{font-size:13px;color:#566e5b;font-weight:700;margin:0 0 13px;line-height:1.8}
-    .route-card:nth-child(2) .route-core{color:#806d50}
-    .route-card .route-desc{font-size:13px;color:#718374;line-height:1.95;margin:0 0 13px;flex:1}
-    .route-card:nth-child(2) .route-desc{color:#8d806d}
-    .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-    .tag{font-size:11px;line-height:1.4;padding:4px 8px;background:#ffffffa8;border:1px solid #dfe6da;border-radius:6px;color:#7d9180}
-    .route-card:nth-child(2) .tag{border-color:#ede1ce;color:#95816a}
-    .route-card .link{margin-top:6px;align-self:flex-start;font-size:12px}
-    .route-card:nth-child(2) .link{color:#917343}
-    .relation{padding:18px 22px;border:1px dashed #d9e4d7;border-radius:14px;background:#fafbf7;margin:15px 0 12px}
-    .relation-title{font-size:12px;color:#7b927e;font-weight:720;margin:0 0 11px}
-    .relation-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
-    .relation-node{font-size:12px;color:#56755e;background:#eef5eb;border-radius:8px;padding:7px 12px}
-    .relation-node:last-child{background:#e4efe2;color:#496d52;font-weight:730}
-    .relation-arrow{color:#adbdad;font-size:16px}
-    .relation p{font-size:12px;color:#8b998b;line-height:1.8;margin:12px 0 0}
-    .understanding{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0 18px}
-    .takeaway{padding:21px 23px;border-radius:15px;background:#f2f7f0;border:1px solid #e0eade}
-    .takeaway.limit{background:#fff9ed;border-color:#f0e8d9}
-    .takeaway .take-title{font-size:12px;color:#709276;font-weight:750;margin:0 0 8px}
-    .takeaway.limit .take-title{color:#aa895e}
-    .takeaway p{font-size:13px;color:#607565;line-height:1.9;margin:0}
-    .takeaway.limit p{color:#837762}
-    .next{padding:17px 20px;border:1px solid var(--line);border-radius:13px;background:#fffefb;align-items:center}
-    @media(max-width:740px){.question-pair,.route-grid,.understanding{grid-template-columns:1fr}.question-tile{min-height:auto}.route-card{min-height:auto;padding:21px}.relation{padding:17px}.relation-flow{gap:6px}.relation-node{padding:6px 9px;font-size:11px}.question-tile h3{font-size:16px}}
-    @media(prefers-reduced-motion:reduce){.route-card{transition:none}}
-  </style>
+    /* A field-note map, not a system architecture diagram */
+    .field-map{margin-top:28px;background:#fffefa;border:1px solid #dedfd3;border-radius:22px;box-shadow:0 18px 48px rgba(44,54,37,.055);overflow:hidden;position:relative}
+    .field-map:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(#7b9287 .55px,transparent .9px);background-size:22px 22px;opacity:.095}
+    .fm-top{position:relative;padding:27px 34px 20px;border-bottom:1px solid #eaece4;display:flex;justify-content:space-between;align-items:start;gap:20px}
+    .fm-overline{font:700 11px/1.6 -apple-system,BlinkMacSystemFont,'Noto Sans CJK SC',sans-serif;letter-spacing:.14em;color:#71917c}
+    .fm-top h3{font-family:Georgia,'Songti SC','Noto Serif CJK SC',serif;font-weight:650;letter-spacing:-.02em;font-size:25px;line-height:1.45;margin:7px 0 7px;color:#34473d}
+    .fm-top p{font-size:13px;line-height:1.8;color:#7b877d;margin:0;max-width:610px}
+    .fm-stamp{flex-shrink:0;color:#9da69e;transform:rotate(5deg);border:1px solid #dce5da;border-radius:4px;padding:5px 10px;font:italic 12px/1.6 Georgia,serif;letter-spacing:.06em;margin-top:13px}
+    .fm-legend{position:relative;display:grid;grid-template-columns:83px minmax(0,1fr) 56px minmax(0,1fr);align-items:end;gap:0;padding:24px 34px 12px}
+    .fm-zone{padding:0 6px 11px;border-bottom:2px solid #aecab4}.fm-zone.pose{border-color:#d7b6a2}.fm-zone .zh{font-size:18px;font-weight:700;letter-spacing:-.015em;color:#395e4c}.fm-zone.pose .zh{color:#896650}.fm-zone .en{display:inline-block;margin-left:11px;font:italic 12px Georgia,serif;color:#9aa69b}
+    .fm-zone p{margin:2px 0 0;font-size:12px;color:#809087}
+    .fm-note-rows{padding:6px 34px 24px;position:relative}
+    .fm-line{position:absolute;left:73px;top:24px;bottom:68px;border-left:1px dashed #d0d9cb}
+    .fm-row{position:relative;display:grid;grid-template-columns:83px minmax(0,1fr) 56px minmax(0,1fr);align-items:stretch;margin:12px 0 15px;min-height:115px}
+    .fm-step{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding-right:12px;color:#627969;z-index:1}
+    .fm-no{width:28px;height:28px;display:grid;place-items:center;background:#fffef9;border:1px solid #d4dfd0;border-radius:50%;font:italic 15px Georgia,serif;color:#64876e}
+    .fm-step span:last-child{font-size:11px;letter-spacing:.04em;color:#8c978d}
+    .fm-paper{position:relative;background:rgba(245,249,242,.93);border:1px solid #dce7d9;border-radius:14px;padding:17px 19px;min-height:115px;display:flex;flex-direction:column;justify-content:center}
+    .fm-paper.pose{background:rgba(253,247,241,.96);border-color:#f0e0d2}
+    .fm-paper.faded{background:transparent;border-style:dashed;border-color:#e4e7df}
+    .fm-paper .fm-kicker{font-size:11px;line-height:1.6;color:#73907b;margin:0 0 6px;letter-spacing:.04em}
+    .fm-paper.pose .fm-kicker{color:#aa8467}
+    .fm-paper strong{font-size:15px;line-height:1.6;color:#3d5446}
+    .fm-paper.pose strong{color:#785746}
+    .fm-paper p{font-size:12px;line-height:1.8;color:#6c7e71;margin:5px 0 0}
+    .fm-paper.pose p{color:#8a7667}
+    .fm-paper.faded strong{font-weight:500;color:#9aa39b;font-style:italic}
+    .fm-connect{display:flex;justify-content:center;align-items:center;color:#bac8b7;font:26px Georgia,serif;position:relative}
+    .fm-connect strong{font-weight:400;position:relative;top:-3px}
+    .fm-connect.late{color:#97b7a3}
+    .fm-connect.late:after{content:'可融合';position:absolute;bottom:15px;font-size:10px;white-space:nowrap;color:#95a695;letter-spacing:.02em}
+    .fm-remark{position:relative;display:flex;align-items:start;gap:13px;margin:0 34px 30px;padding:18px 23px;background:#f4f1e7;border-radius:14px;border-left:3px solid #a8bca7}
+    .fm-pencil{font:italic 23px Georgia,serif;color:#7a947d;line-height:1.3}
+    .fm-remark p{margin:0;font-size:13px;line-height:1.9;color:#5e6d5f}
+    .fm-remark strong{color:#344c3d}
+    .fm-after{font-size:14px;color:#5e6f63;line-height:1.9;margin:18px 1px 0}
+    .fm-after strong{color:#3c6752}
+    @media(max-width:800px){.fm-top{padding:22px 22px 17px}.fm-top h3{font-size:21px}.fm-stamp{display:none}.fm-legend{grid-template-columns:57px 1fr 24px 1fr;padding:18px 18px 6px}.fm-zone .zh{font-size:15px}.fm-zone .en{display:none}.fm-zone p{font-size:11px}.fm-note-rows{padding:5px 18px 15px}.fm-row{grid-template-columns:57px minmax(0,1fr) 24px minmax(0,1fr)}.fm-paper{padding:11px 12px;min-height:125px}.fm-paper strong{font-size:13px}.fm-paper p{font-size:11px}.fm-line{left:42px}.fm-connect{font-size:18px}.fm-connect.late:after{font-size:9px;bottom:6px}.fm-remark{margin:0 18px 20px;padding:14px 17px}}
+    @media(max-width:510px){.fm-zone p{display:none}.fm-legend{grid-template-columns:44px 1fr 16px 1fr}.fm-row{grid-template-columns:44px 1fr 16px 1fr;min-height:140px;margin:12px 0}.fm-no{width:24px;height:24px;font-size:12px}.fm-step span:last-child{font-size:10px}.fm-line{left:34px}.fm-paper{padding:12px 10px;min-height:140px}.fm-paper .fm-kicker{font-size:10px}.fm-paper strong{font-size:12px}.fm-paper p{line-height:1.65}.fm-connect.late:after{content:''}.fm-remark p{font-size:12px}}
+
+/* Research path: journal-first, not an algorithm catalog */
+.path-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;margin:6px 0 22px}
+.path-intro p{margin:0;color:var(--sub);max-width:740px}.handmark{font:italic 15px Georgia,"Songti SC",serif;color:#8ba48e;white-space:nowrap;transform:rotate(-5deg);padding-top:8px}
+.chapter-index{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0 28px;position:relative}
+.index-card{display:block;position:relative;background:#fffefa;border:1px solid #e0e8dd;border-radius:14px;padding:19px 20px 20px;box-shadow:0 5px 18px rgba(44,61,48,.025);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;min-height:151px}
+.index-card:hover{transform:translateY(-3px);border-color:#b4c9b7;box-shadow:0 10px 24px rgba(44,61,48,.055)}
+.index-card .index-no{display:flex;justify-content:space-between;align-items:center;color:#6d9780;font:700 11px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.11em}
+.index-card .index-no .index-arrow{font-size:18px;color:#a1b2a7;font-family:serif;font-weight:400}
+.index-card h3{font-size:18px;margin:14px 0 7px;line-height:1.45;letter-spacing:-.02em}
+.index-card p{font-size:12px;line-height:1.75;color:#77877d;margin:0}
+.index-card.c2{background:#fffdf9;border-color:#eee4d9}.index-card.c2 .index-no{color:#ba906b}
+.index-card.c3{background:#fbfcff;border-color:#e2e6ef}.index-card.c3 .index-no{color:#8498bc}
+    .selection-note{margin:18px 0 28px;padding:11px 0 11px 18px;border-left:2px solid #b9cdbb;background:transparent;color:#637468}
+    .selection-note-label{font-size:11px;color:#6d9078;font-weight:650;letter-spacing:.04em}
+    .selection-note p{margin:5px 0 0;font-size:13px;line-height:1.85;max-width:910px}
+    .selection-note strong{color:#3c5d4b;font-weight:680}
+.pathnote{margin:0 0 10px;background:linear-gradient(90deg,#f2f6ef,transparent);border-left:2px solid #a5c0a8;padding:9px 15px;font-size:13px;color:#617166}
+.chapter{--tone:#6b9b7f;--wash:#f1f7ef;--stroke:#dce8dc;margin:52px 0 0;scroll-margin-top:25px}
+.chapter.c2{--tone:#bb9873;--wash:#fcf7f0;--stroke:#ede3d5}.chapter.c3{--tone:#869bc0;--wash:#f5f7fc;--stroke:#e1e6ef}
+.chapter-heading{display:grid;grid-template-columns:85px 1fr;gap:20px;align-items:start;margin-bottom:26px}
+.chapter-label{font:italic 34px/1.15 Georgia,serif;color:var(--tone);padding-top:6px;letter-spacing:-.03em}
+.chapter-kicker{font-size:11px;color:var(--tone);font-weight:750;letter-spacing:.12em}
+.chapter-heading h3{font-family:Georgia,"Songti SC","Noto Serif CJK SC",serif;font-size:26px;line-height:1.42;margin:5px 0 8px;font-weight:650;letter-spacing:-.035em}
+.chapter-heading p{font-size:13px;color:var(--sub);max-width:760px;margin:0;line-height:1.85}
+.problem-chain{margin-left:38px;border-left:1px solid var(--stroke);padding-left:44px;display:flex;flex-direction:column;gap:17px}
+.problem{position:relative;background:#fffefa;border:1px solid #e0e6dd;border-radius:16px;padding:23px 27px 17px;box-shadow:var(--shadow);scroll-margin-top:26px}
+.problem::before{content:"";position:absolute;left:-53px;top:30px;width:15px;height:15px;border-radius:50%;background:#fffefa;border:3px solid var(--tone);box-shadow:0 0 0 5px var(--bg)}
+.problem::after{content:"";position:absolute;left:-37px;top:37px;width:36px;height:1px;background:var(--stroke)}
+.problem .problem-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.problem .qno{font:700 11px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.12em;color:var(--tone)}
+.problem .qtheme{font-size:11px;color:#92a198;padding:2px 9px;background:var(--wash);border:1px solid var(--stroke);border-radius:99px}
+.problem h4{font-size:19px;line-height:1.5;margin:0 0 14px;letter-spacing:-.025em}
+.problem-grid{display:grid;grid-template-columns:1.22fr .92fr;gap:26px;align-items:start}
+.problem .reflection{font-size:13.5px;color:#566760;line-height:1.86;margin:0}
+.problem .reflection strong{color:#345749}
+.problem .focus{background:var(--wash);border:1px solid var(--stroke);border-radius:10px;padding:13px 15px}
+.problem .focus .mini-title{font-size:11px;color:var(--tone);font-weight:750;letter-spacing:.05em;margin-bottom:5px}
+.problem .focus p{font-size:12px;color:#64766b;line-height:1.75;margin:0}
+.problem .focus b{font-weight:680;color:#42594d}
+.problem .follow{border-top:1px dashed #e3e9e1;margin-top:17px;padding-top:12px;display:flex;align-items:baseline;gap:12px;font-size:12px;line-height:1.7;color:#8b9a91}
+.problem .follow b{font-weight:600;color:#6d8273}
+.problem .follow a{color:#537961;text-decoration:underline;text-decoration-color:#bfd2c1;text-underline-offset:4px}
+.chapter.c2 .problem .follow a{color:#a17f5e;text-decoration-color:#dec7b0}.chapter.c3 .problem .follow a{color:#677fa8;text-decoration-color:#c5d0e2}
+.chapter-bridge{display:flex;align-items:center;gap:13px;margin:26px 0 8px 77px;color:#7b8d82;font-size:12px;line-height:1.75}
+.chapter-bridge .bridge-path{width:34px;height:1px;background:#b7cbb8;position:relative;flex:none}.bridge-path::after{content:"";position:absolute;right:-1px;top:-3px;width:7px;height:7px;border-top:1px solid #a9c4ac;border-right:1px solid #a9c4ac;transform:rotate(45deg)}
+.chapter-bridge strong{color:#596e60}
+.afterword{padding-top:4px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.after-card{border:1px solid var(--line);border-radius:14px;background:#fffefa;padding:21px 21px;min-height:158px}
+.after-card .pre{font-size:11px;color:#6b977d;font-weight:700;letter-spacing:.07em}.after-card h3{margin:10px 0 8px;font-size:16px;line-height:1.45}.after-card p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.open-questions{margin:18px 0 0;border-radius:13px;border:1px dashed #d6e1d7;background:#f8faf5;padding:17px 20px}.open-questions strong{display:block;margin-bottom:4px;font-size:13px;color:#54725d}.open-questions p{margin:0;font-size:13px;color:#708174;line-height:1.85}
+.next-stage{display:grid;grid-template-columns:1.5fr .9fr;gap:25px;align-items:center;background:#f1f5ef;border:1px solid #dfe9db;border-radius:20px;padding:28px 31px;margin:6px 0 0}
+.next-stage .mini-title{color:#5e8a6c;font-size:11px;font-weight:700;letter-spacing:.12em}
+.next-stage h3{font-family:Georgia,"Songti SC",serif;font-size:23px;letter-spacing:-.03em;font-weight:650;margin:7px 0 9px}
+.next-stage p{margin:0;font-size:13px;color:#627365;line-height:1.9}
+.next-stage .next-side{border-left:1px solid #d4e0d2;padding-left:22px;font-size:13px;line-height:1.75;color:#69806d}
+.next-stage .next-side b{display:block;color:#3a6652;font-size:14px;margin-bottom:6px}
+.section-mini-nav{display:flex;gap:18px;flex-wrap:wrap;margin-top:24px;color:#698574;font-size:12px}
+.section-mini-nav a{padding:4px 0;border-bottom:1px solid #c7d4c7}
+@media(max-width:850px){.problem-grid{grid-template-columns:1fr;gap:13px}.afterword{grid-template-columns:1fr}.after-card{min-height:auto}.next-stage{grid-template-columns:1fr}.next-stage .next-side{border-left:0;border-top:1px solid #d4e0d2;padding-left:0;padding-top:14px}}
+@media(max-width:680px){.path-intro{display:block}.handmark{display:none}.chapter-index{grid-template-columns:1fr;gap:9px}.index-card{min-height:auto;padding:15px 18px}.index-card h3{margin:6px 0 2px;font-size:16px}.chapter-heading{grid-template-columns:46px 1fr;gap:11px}.chapter-label{font-size:27px}.chapter-heading h3{font-size:22px}.problem-chain{margin-left:13px;padding-left:22px}.problem{padding:17px 16px}.problem:before{left:-32px;top:24px;width:13px;height:13px;border-width:2px}.problem:after{left:-18px;top:30px;width:17px}.problem h4{font-size:17px}.problem .follow{display:block}.problem .follow b{margin-right:6px}.chapter-bridge{margin-left:37px}.next-stage{padding:23px}.section-mini-nav{gap:12px}}
+
+  
+/* An inward branch for each question, distinct from the forward chain. */
+.problem .fork-note{display:flex;align-items:center;gap:17px;border-top:1px solid #edf0e8;margin-top:17px;padding:13px 0 2px}
+.problem .fork-copy{min-width:0;flex:1}
+.problem .fork-kicker{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--tone);font-weight:720;letter-spacing:.02em}
+.problem .fork-kicker::before{content:'↳';font:italic 17px/1 Georgia,serif;opacity:.8}
+.problem .fork-question{font-size:12.5px;line-height:1.85;color:#647369;margin:3px 0 0;max-width:670px}
+.problem .fork-open{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;flex:none;border:1px solid var(--stroke);border-radius:100px;background:var(--wash);font-size:11.5px;font-weight:650;color:#52705a;padding:7px 12px;transition:background .18s,border-color .18s}
+.problem .fork-open:hover{background:#fff;color:#2d5942;border-color:var(--tone)}
+.chapter.c2 .problem .fork-open{color:#957250}.chapter.c3 .problem .fork-open{color:#6980a5}
+.problem .follow{margin-top:9px;border-top:0;padding-top:8px}
+@media(max-width:680px){.problem .fork-note{display:block}.problem .fork-open{margin-top:10px}.problem .fork-question{font-size:12.5px}}
+
+  
+/* 问题卡片如今记录一个判断过程，尽量不用“流派分类”的腔调 */
+.journal-stop .reflection{font-size:14px;line-height:2;color:#51645c;margin:12px 0 15px;max-width:790px}
+.journal-stop .clue{font-size:12.5px;color:#687d6e;background:#f7f8f4;border-radius:9px;padding:11px 14px;margin:0 0 14px;line-height:1.85}
+.journal-stop .clue span{font-weight:700;color:#456851;margin-right:12px}
+.tradeoffs{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:5px 0 1px}
+.tradeoffs>div{padding:13px 15px;border:1px solid #e8ece5;background:#fafcf8;border-radius:11px}
+.tradeoffs>div+div{background:#fdf9f3;border-color:#eee8df}
+.tradeoffs small{display:block;color:#5b896b;font-size:11px;font-weight:750;margin-bottom:4px;letter-spacing:.02em}
+.tradeoffs>div+div small{color:#947858}
+.tradeoffs p{margin:0;font-size:12.5px;color:#647368;line-height:1.85}
+.closing-thread{max-width:850px;padding:16px 20px;margin:36px auto 0;color:#60736a;font-size:13px;line-height:2;background:linear-gradient(90deg,#edf4ed,transparent);border-left:2px solid #a6c7a9}
+.closing-thread strong{color:#41634d}
+@media(max-width:660px){.tradeoffs{grid-template-columns:1fr;gap:8px}.tradeoffs>div{padding:12px 13px}.journal-stop .reflection{font-size:13.5px}.journal-stop .clue span{display:block;margin-right:0;margin-bottom:3px}}
+
+/* 先回头看看：一个不编号的停顿，和主线卡片明显不同 */
+.pause-note{position:relative;margin:0 0 24px;padding:27px 30px 23px;border:1px solid #e6e5d9;border-radius:17px;background:#fffdf6;box-shadow:0 8px 26px rgba(67,69,49,.035)}
+.pause-note:after{position:absolute;content:"";inset:10px;pointer-events:none;border:1px dashed #ecebdd;border-radius:12px}
+.pause-heading{display:flex;align-items:flex-start;gap:15px;margin-bottom:9px}.pause-mark{font:italic 32px Georgia,serif;color:#a59c7e;transform:rotate(-13deg);line-height:1.3}
+.pause-eyebrow{color:#968567;font-size:11px;letter-spacing:.03em}.pause-heading h4{margin:7px 0 0;font-size:20px;line-height:1.5;color:#4a5545}
+.pause-lead{color:#5d6a5d;line-height:1.95;font-size:13.5px;margin:10px 0 15px}.pause-lead strong,.pause-end strong{color:#4b5f4e}
+.pause-questions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}
+.pause-questions>div{border:1px solid #e9e9df;border-radius:10px;background:rgba(255,255,255,.7);padding:12px 14px}
+.pause-questions small{font-size:11px;font-weight:700;color:#917d62}.pause-questions p{font-size:12px;line-height:1.8;margin:5px 0 0;color:#687367}
+.pause-end{margin:15px 0 0;font-size:13px;line-height:1.9;color:#68756a;border-top:1px dashed #e4e2d8;padding-top:13px}
+@media(max-width:750px){.pause-note{padding:21px 18px}.pause-note:after{inset:7px}.pause-questions{grid-template-columns:1fr;gap:7px}.pause-heading h4{font-size:17px}}
+</style>
 </head>
 <body>
-  <header class="shell">
-    <nav class="nav" aria-label="主导航">
-      <a href="../index.html" class="brand"><span class="brand-mark" aria-hidden="true">🐟</span>沿途手记</a>
-      <div class="links"><a href="../index.html#now">最近</a><a href="../journey.html">研究地图</a><a href="../journal/index.html">日记本 ↗</a></div>
-    </nav>
-  </header>
-
-  <main class="shell">
-    <article class="article">
-      <div class="crumb"><a href="../journey.html">研究地图</a><span class="sep">/</span>Stage 01</div>
-      <header class="note-head">
-        <div>
-          <p class="eyebrow">STAGE 01 · GEOMETRY / RULE-BASED</p>
-          <h1>先把 Pose 算出来</h1>
-          <p class="lead">目标已经知道，抓法也先由人规定。接下来想弄清楚的是：怎么根据相机观测，把这套规则变成夹爪在真实空间中的 Grasp Pose？</p>
-          <p class="info">技术路线随手记 · 这一页只整理方向与想法</p>
-        </div>
-        <!-- 与首页“最近在折腾什么”同一线条气质的小插画，不影响阅读 -->
-        <svg class="sketch" viewBox="0 0 150 140" role="img" aria-label="夹爪靠近瓶子的简笔示意" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="74" cy="123" rx="60" ry="7" fill="#e0e8db"/>
-          <path d="M25 117H130" stroke="#c6d7c2" stroke-width="4" stroke-linecap="round"/>
-          <path d="M68 87L68 101Q68 108 75 108H96Q103 108 103 101V87" fill="#f5dfbd" stroke="#c9ac83" stroke-width="2"/>
-          <path d="M78 75V65Q78 60 83 60H89Q94 60 94 65V75" fill="#f5dfbd" stroke="#c9ac83" stroke-width="2"/>
-          <path d="M74 75Q68 75 68 83V89H103V83Q103 75 97 75Z" fill="#f5dfbd" stroke="#c9ac83" stroke-width="2"/>
-          <path d="M62 17V46H72V69M109 17V46H100V69" fill="none" stroke="#88a990" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M56 12H116" stroke="#a3b6b5" stroke-width="12" stroke-linecap="round"/>
-          <path d="M18 46l8-4m-5 13 7 1m103 3 7-3" stroke="#dabb83" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="82" cy="94" r="2" fill="#d3b58d"/>
-        </svg>
-      </header>
-
-      <nav class="contents" aria-label="本页目录">
-        <a href="#goal">01 · 先把问题缩小</a>
-        <a href="#route">02 · 思路怎么分成两条路</a>
-        <a href="#view">03 · 目前的理解</a>
-      </nav>
-
-      <section class="section" id="goal">
-        <div class="section-head"><span class="section-no">01</span><h2>先把问题缩小一点</h2></div>
-        <div class="prose">
-          <p>想让机器人抓起一个瓶子，最开始其实混着两个问题：<strong>该怎么抓</strong>，以及<strong>知道抓法以后，具体的 Pose 怎么算</strong>。如果两个问题一起解决，研究范围很容易失控。</p>
-          <p>所以先做个简单的假设：抓取方式已经确定，例如从瓶身侧面夹取。瓶子换了位置、转了方向，算法只需要把这条规则换算到当前场景。</p>
-        </div>
-        <div class="question-pair" aria-label="两个不同的抓取问题">
-          <div class="question-tile">
-            <p class="tile-meta">暂时由人决定</p>
-            <h3>抓哪里？怎么抓？</h3>
-            <p>例如规定从瓶身侧面夹取。先不让算法自己设计新抓法。</p>
-          </div>
-          <div class="question-tile active">
-            <p class="tile-meta">Stage 01 要解决</p>
-            <h3>夹爪具体摆在哪里？</h3>
-            <p>根据物体当前的空间位置和方向，计算实际的 Grasp Pose。</p>
-          </div>
-        </div>
-        <p class="emphasis-line">这一阶段研究的是<strong>已知抓取规则 → 实际 Grasp Pose</strong>，而不是从零开始生成抓法。</p>
-        <div class="spec-row" aria-label="输入输出"><span><b>输入</b> · 目标、抓取规则、现场观测</span><span><b>输出</b> · 夹爪的 6DoF Grasp Pose</span></div>
-      </section>
-
-      <section class="section" id="route">
-        <div class="section-head"><span class="section-no">02</span><h2>为什么分成两条路线？</h2></div>
-        <div class="prose">
-          <p>最先想到的是<strong>几何求解</strong>。如果已经拿到了目标的三维点云，就可以尝试通过中心、主轴、表面法线计算姿态；如果物体有已知模板，也可以通过配准，把预设抓取位姿转换到现场。</p>
-          <p>但想了一下，这里偷偷跳过了一个前提：<strong>目标的几何信息是怎么来的？</strong></p>
-        </div>
-        <div class="step-note">
-          <span class="note-tag">发现一个前提没解决</span>
-          <p>相机拍到的是整个场景，瓶子、桌面和背景都混在一起。<strong>在计算姿态之前，得先知道哪些观测属于目标。</strong></p>
-        </div>
-        <div class="prose">
-          <p>简单场景可以试几何裁剪、平面分割或聚类。但如果物体很多、背景复杂，检测、Mask 或关键点可能更方便。这样一来，问题可以拆成两部分：<strong>拿到几何后怎么求 Pose</strong>，以及<strong>怎么从场景里获取需要的目标信息</strong>。</p>
-          <p>先按这个思路把路线分开，具体方法留到 Route 里继续整理。</p>
-        </div>
-        <div class="route-grid" aria-label="两条技术路线">
-          <article class="route-card">
-            <div class="route-top"><span class="route-index">ROUTE 1.1</span><span class="route-symbol" aria-hidden="true">⌗</span></div>
-            <h3>几何求解</h3>
-            <p class="route-core">已知目标几何，怎样计算 Pose？</p>
-            <p class="route-desc">从目标中心、几何方向与表面关系入手；有模板时，也考虑配准与位姿变换。</p>
-            <div class="tag-row"><span class="tag">PCA / OBB</span><span class="tag">法线</span><span class="tag">ICP</span></div>
-            <a class="link" href="route-1-1.html">展开 Route 1.1 ↗</a>
-          </article>
-          <article class="route-card">
-            <div class="route-top"><span class="route-index">ROUTE 1.2</span><span class="route-symbol" aria-hidden="true">◎</span></div>
-            <h3>视觉辅助</h3>
-            <p class="route-core">真实场景里，怎样找到目标信息？</p>
-            <p class="route-desc">通过检测、分割或关键点提供目标区域和结构线索，再结合深度与几何关系求解。</p>
-            <div class="tag-row"><span class="tag">BBOX</span><span class="tag">Mask</span><span class="tag">RGB-D</span></div>
-            <a class="link" href="route-1-2.html">展开 Route 1.2 ↗</a>
-          </article>
-        </div>
-        <div class="relation">
-          <p class="relation-title">它们怎么配合？</p>
-          <div class="relation-flow" role="group" aria-label="视觉辅助提供目标信息，再结合几何和既定规则求得抓取姿态">
-            <span class="relation-node">视觉辅助（按需）</span><span class="relation-arrow">→</span>
-            <span class="relation-node">目标几何 / 结构线索</span><span class="relation-arrow">→</span>
-            <span class="relation-node">几何求解 + 预定规则</span><span class="relation-arrow">→</span>
-            <span class="relation-node">Grasp Pose</span>
-          </div>
-          <p>不是“几何和视觉二选一”，也不是一定要串联所有环节。目标几何已经可靠时，可以直接计算。</p>
-        </div>
-      </section>
-
-      <section class="section" id="view">
-        <div class="section-head"><span class="section-no">03</span><h2>目前的理解</h2></div>
-        <div class="prose">
-          <p>现在看来，Stage 01 的重点并不是某一种算法，而是<strong>怎样把人定好的抓取规则，落实到真实物体上</strong>。几何负责空间姿态，视觉帮助得到求解需要的信息。</p>
-          <p>不过，算出了 Pose 也不能说明抓取就一定合适。比如被踩扁的盒子或变形的零食袋，原来规定的夹取方向可能根本不好用。这时候再把 Pose 算得很准，也解决不了抓法本身的问题。</p>
-        </div>
-        <div class="understanding">
-          <div class="takeaway"><p class="take-title">这一阶段能处理</p><p>已知抓取规则时，结合现场几何和必要的视觉信息，计算夹爪的目标位姿。</p></div>
-          <div class="takeaway limit"><p class="take-title">暂时解决不了</p><p>遇到未知形状或明显变形的物体，原先规定的抓法可能不再合适。</p></div>
-        </div>
-        <div class="end-question"><b>留到 Stage 02：</b>如果连“怎么抓”也不想手工规定，能不能让模型根据目标观测生成抓取候选？</div>
-      </section>
-
-      <div class="next"><span class="next-label">下一阶段 · Stage 02</span><span>让模型自己找抓法 →</span></div>
-    </article>
-  </main>
-  <footer class="shell"><span>© 2026 小鱼 · 沿途手记</span><span>想到一点，先记一点。🐟</span></footer>
+<header class="wrap"><div class="nav"><a class="logo" href="/">🐟 沿途手记</a><nav aria-label="主导航" class="navlinks"><a href="/src/pages/journey.html">研究地图</a><a href="/src/pages/journal/">日记本 ↗</a></nav></div></header>
+<div class="wrap">
+<div class="breadcrumb"><a href="/src/pages/journey.html">研究地图</a> / Stage 01</div>
+<div class="hero"><div class="eyebrow">STAGE 01 · 关于抓取 Pose 的一点笔记</div><h1>抓法定好了，<br/>Pose 怎么算？</h1><p class="lead">先约定好“怎么抓”，再看看抓手到底该放在哪儿。一开始只想着算几何，后来又补上视觉，也慢慢发现学习式方法不必照着固定流程走。<b>这里先理清问题、方法和适用场景，具体怎么实现以后再细看。</b></p><div class="hero-foot"><span class="stamp strong">先看场景，再选方法</span><span class="stamp">边走边想</span><span class="stamp">单次抓取 · RGB-D · 两指夹爪</span></div></div>
+<main>
+<section id="boundary"><div class="sec-head"><div class="num">01</div><div><h2 class="section-title">先说清，这次固定了什么？</h2><p class="section-desc">之前的写法让我误以为：既然抓法由人规定，那 Pose 也只能由几何公式来求。其实这是两件完全不同的事。</p></div></div>
+<div class="rule-grid"><article class="rule-card in"><small>STAGE 01 · 这次先固定</small><h3>抓取策略 / 任务约束</h3><p>例如“从瓶身侧面夹”，或“沿盒子的短边方向夹”。可以指定抓取区域、接近方向、夹爪开度范围；不需要模型自主发明另一种抓法。</p><span class="marker">人决定：怎么抓</span></article><article class="rule-card out"><small>STAGE 01 · 允许探索</small><h3>空间信息与 Pose 的求解方法</h3><p>目标在哪里？轴线朝向哪里？如何从图像与点云找到稳定参考？可以用拟合、配准、学习关键点、类别位姿估计，或训练受约束的直接 Pose 预测。</p><span class="marker">算法解决：抓手具体放哪里</span></article></div>
+<div class="thought"><p><strong>重新划边界：</strong>Stage 01 不等于“传统算法阶段”；它是“抓取决策已确定”的阶段。Stage 02 才进一步放开“抓哪里、从哪里接近、怎样生成候选”的决策权。</p></div>
+</section>
+<section id="map"><div class="sec-head"><div class="num">02</div><div><h2 class="section-title">两件事，是怎么被我接起来的？</h2><p class="section-desc">不是先设计好一套流程才开始研究的。最初只想着怎么算 Pose，后来补上“怎么看到目标”，再后来又发现，学习式方法不一定沿着我画的箭头走。</p></div></div>
+<figure aria-label="研究思路的三次修正：一开始只想到几何求位姿，随后意识到需要从现场取得目标线索，最后发现学习模型可以不经过显式 Mask，使用二维或三维特征直接估计空间参考或抓取位姿。" class="field-map">
+<div class="fm-top"><div><div class="fm-overline">FIELD NOTE · 这一路的三次修正</div><h3>我原来只画了右半边。</h3><p>后来才发现：左边不是一个简单的“Mask 输入框”，右边也不只有几何公式。</p></div><div class="fm-stamp">OCT. 2026<br/>a work in progress</div></div>
+<div class="fm-legend"><div></div><div class="fm-zone"><div><span class="zh">视觉 / 感知</span><span class="en">What do I know?</span></div><p>现场到底给了我什么线索</p></div><div></div><div class="fm-zone pose"><div><span class="zh">Pose / 求解</span><span class="en">What pose?</span></div><p>怎样把固定抓法落实到空间</p></div></div>
+<div class="fm-note-rows"><div aria-hidden="true" class="fm-line"></div>
+<div class="fm-row"><div class="fm-step"><div class="fm-no">1</div><span>最开始</span></div><div class="fm-paper faded"><span class="fm-kicker">当时没画的部分</span><strong>好像默认目标点云已经有了……</strong></div><div aria-hidden="true" class="fm-connect"><strong>·</strong></div><div class="fm-paper pose"><span class="fm-kicker">先想到 Pose</span><strong>有点云，就试着算方向和位置。</strong><p>PCA、形状拟合、已知模型配准 → Grasp Pose</p></div></div>
+<div class="fm-row"><div class="fm-step"><div class="fm-no">2</div><span>补上</span></div><div class="fm-paper"><span class="fm-kicker">等等，点云从哪里来？</span><strong>得先从场景里找到目标线索。</strong><p>ROI、检测 / Mask、点云聚类……按场景选，不是必经步骤。</p></div><div aria-hidden="true" class="fm-connect"><strong>→</strong></div><div class="fm-paper pose"><span class="fm-kicker">于是把两件事串起来</span><strong>拿到有用的空间信息，再求 Pose。</strong><p>目标中心、轴线、表面、对应关系……</p></div></div>
+<div class="fm-row"><div class="fm-step"><div class="fm-no">3</div><span>再修正</span></div><div class="fm-paper"><span class="fm-kicker">但视觉不只是交出一个 Mask</span><strong>网络可以直接看 RGB、深度、点云或融合特征。</strong><p>有的输出关键点，有的连中间表征都不显式展示。</p></div><div aria-hidden="true" class="fm-connect late"><strong>↝</strong></div><div class="fm-paper pose"><span class="fm-kicker">Pose 也不只是几何计算</span><strong>可以几何求解、学习估计，甚至直接预测。</strong><p>前提依旧是：这次不让算法自行决定抓法。</p></div></div>
+</div>
+<div class="fm-remark"><span aria-hidden="true" class="fm-pencil">✎</span><p><strong>现在的理解：</strong>我还是想把「现场能得到什么信息」和「怎样求出 Pose」分开研究；但它们不一定是两个模型，更不是固定的 <em>Mask → 点云 → 几何 → Pose</em>。有些方法只做一半，有些会把两半一起学掉。</p></div>
+</figure>
+<p class="fm-after">所以这张地图先不急着罗列算法。它只记下我<strong>为什么开始研究视觉，又为什么不能把视觉简单地叫作“几何的辅助”</strong>。接下来顺着这思路修正，把没想明白的问题一件件追下去。</p>
+</section>
+<section id="journey">
+<div class="sec-head"><div class="num">03</div><div><h2 class="section-title">然后，我就一路想到了这里</h2><p class="section-desc">不是先列好几个方法，再把它们连成一条线。更像是试着解决一个问题，发现遗漏了什么，然后又往下多想了一点。</p></div></div>
+<div class="path-intro"><p>下面按<strong>我理解问题的顺序</strong>来写，不是算法的历史演进顺序。每一段都留下当时觉得它<strong>好用在哪里</strong>、后来又发现<strong>哪里不够</strong>。一个方法可以在很多问题里反复出现，它不会因为出现得早就失去价值。</p><span class="handmark">keep asking ✎</span></div>
+<div class="chapter-index"><a class="index-card c1" href="#chapter-pose"><div class="index-no"><span>第一段 · 从 Pose 开始</span><span class="index-arrow">↗</span></div><h3>先拿几何试一试，后来又想到模板</h3><p>几何 → 已知模型</p></a><a class="index-card c2" href="#chapter-vision"><div class="index-no"><span>第二段 · 补上视觉</span><span class="index-arrow">↗</span></div><h3>原来目标数据，还得自己从相机里找</h3><p>2D 定位 → 用深度落到 3D</p></a><a class="index-card c3" href="#chapter-together"><div class="index-no"><span>第三段 · 再换个思路</span><span class="index-arrow">↗</span></div><h3>Pose 是有了，再回头看看哪里不够</h3><p>规则边界 → 学习空间线索 → 直接求抓取位姿</p></a></div><div class="selection-note"><span class="selection-note-label">先说一个贯穿全篇的前提</span><p><strong>技术本身没有被后来的技术“淘汰”。</strong>几何明确、测量可靠时，传统方法完全可能更准、更稳、更省成本；模型已知时，模板配准也值得一直用。学习式方法扩大了可处理的场景，但仍有训练分布、误差与计算开销的限制。<strong>我在意的是条件与边界，不是谁更新。</strong></p></div><div class="chapter c1" id="chapter-pose"><div class="chapter-heading"><div class="chapter-label">01</div><div><div class="chapter-kicker">第一段 · 从 Pose 开始</div><h3>先拿几何试一试，后来又想到模板</h3><p>我最先关心的是“怎么算 Pose”。当时一切都从已经有目标点云开始，顺着现场几何和已知参考两种思路往下走。</p></div></div><div class="problem-chain"><article class="problem journal-stop" id="q01">
+<div class="problem-top"><span class="qno">想法 01</span><span class="qtheme">先从最熟悉的办法试试</span></div>
+<h4>既然有点云，能不能直接把抓取方向算出来？</h4>
+<p class="reflection">刚开始我把「已经拿到目标点云」当成前提。瓶子大致是圆柱，盒子有平面和边，似乎用主轴、法线或形状拟合，就能构造夹爪的中心和方向。再仔细想才发现：<strong>求得一根轴线，不一定就得到了唯一的 6DoF Pose</strong>；还要看预定抓法到底约束了哪些自由度。</p>
+<p class="clue"><span>顺手记下的办法</span>PCA / OBB、法线、RANSAC、圆柱与平面拟合、局部抓取坐标系</p>
+<div class="tradeoffs"><div><small>什么时候很好用</small><p>目标形状规律、几何可见、规则清楚时，计算轻、可解释；测量与标定可靠时，精度可以很好。</p></div><div><small>换个条件就要小心</small><p>遮挡、点云缺失、对称性或大变形时，几何参考可能不唯一，也可能估错。</p></div></div>
+<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">主轴、法线和形状拟合，各自能约束 Pose 的哪些自由度？什么时候只需局部参考，不必求完整 Object Pose？</p></div><a class="fork-open" href="stage-01-notes/q01-geometry.html" title="这一站的技术细节">往里看看 ↗</a></div>
+<div class="follow"><b>于是又想到 →</b> <a href="#q02">要是我本来就知道物体的形状，何必每次只凭这一小片点云猜？</a></div>
+</article><article class="problem journal-stop" id="q02">
+<div class="problem-top"><span class="qno">想法 02</span><span class="qtheme">再把已知信息利用起来</span></div>
+<h4>如果物体有 CAD 或模板，是不是更省事？</h4>
+<p class="reflection">对已知瓶子、盒体或固定工件，与其从局部几何猜位置，不如把现场观测和参考模型对齐。只要得到物体相对相机的变换，<strong>模板上预先规定的抓取位姿就能直接变到相机坐标系</strong>。可是：参考模型、对应关系和初始位姿，又不是自动存在的。</p>
+<p class="clue"><span>顺手记下的办法</span>2D–3D 对应 / PnP、3D–3D 刚体对齐、PPF 粗匹配、ICP / GICP 细配准</p>
+<div class="tradeoffs"><div><small>什么时候很好用</small><p>已知且形态稳定的对象可以复用同一套参考；匹配可靠时，定位精度和工程可控性都不错。</p></div><div><small>换个条件就要小心</small><p>依赖参考准确性与足够观测；遮挡、重复纹理、对称性、变形会让匹配困难或产生歧义。</p></div></div>
+<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">CAD、参考点云和参考图像应该怎么分？为什么有的先全局找对应，有的必须先有较好的初值？</p></div><a class="fork-open" href="stage-01-notes/q02-known-reference.html" title="这一站的技术细节">往里看看 ↗</a></div>
+<div class="follow"><b>于是又想到 →</b> <a href="#q03">等等，我一直在假设已经拿到「目标点云」了。可是现场相机看到的明明是一整幅图。</a></div>
+</article></div><div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>第一次回头看：我懂了怎么利用点云，却忘了问「这份点云从哪里来」。</span></div></div><div class="chapter c2" id="chapter-vision"><div class="chapter-heading"><div class="chapter-label">02</div><div><div class="chapter-kicker">第二段 · 补上视觉</div><h3>原来目标数据，还得自己从相机里找</h3><p>做了 Pose 才发现，真实输入是整幅场景：先在 2D 里找到目标，再借助深度把像素变成空间信息。</p></div></div><div class="problem-chain"><article class="problem journal-stop" id="q03">
+<div class="problem-top"><span class="qno">想法 03</span><span class="qtheme">第一次发现前提没补齐</span></div>
+<h4>我得先在图像里找到要抓的东西吧？</h4>
+<p class="reflection">到了真实场景才意识到：不能一直假设目标已经被单独取出来。相机看到的是地面、杂物和目标混在一起的画面。先从 2D 入手比较直观：<strong>检测告诉我大概在哪，Mask 能给出更细的范围</strong>，语义 Grounding 还能利用任务描述指定目标。</p>
+<p class="clue"><span>顺手记下的办法</span>2D Detection、BBOX、Instance Segmentation / Mask、Grounding</p>
+<div class="tradeoffs"><div><small>什么时候很好用</small><p>RGB 里有丰富的外观和语义信息；定位入口灵活，通常也更方便和上层任务对接。</p></div><div><small>换个条件就要小心</small><p>2D 定位不等于三维姿态；Mask 边界可能不准，也不是所有 Pose 方法都需要 Mask。</p></div></div>
+<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">BBOX 与 Mask 到底分别够做什么？什么时候该用语义 Grounding，什么时候连 2D 检测都可以省略？</p></div><a class="fork-open" href="stage-01-notes/q03-target-in-2d.html" title="这一站的技术细节">往里看看 ↗</a></div>
+<div class="follow"><b>于是又想到 →</b> <a href="#q04">图像里找到了目标，但它还是像素位置。机器人要的是以米为单位的空间 Pose。</a></div>
+</article><article class="problem journal-stop" id="q04">
+<div class="problem-top"><span class="qno">想法 04</span><span class="qtheme">图像找到之后，空间在哪？</span></div>
+<h4>2D 已经找到了，怎样把它放回 3D？</h4>
+<p class="reflection">这时才把 RGB、Depth 和相机内参真正连起来：先确认颜色与深度对应，再把有效深度像素反投影成三维点。根据任务，可以只用中心的深度、从 ROI 取点，也可以借助 Mask 得到更干净的目标点云。<strong>从这里开始，2D 的目标信息终于能参与 3D 几何求解。</strong></p>
+<p class="clue"><span>顺手记下的办法</span>RGB-D 对齐、内参 K、深度尺度、反投影、ROI / Mask 到目标点云</p>
+<div class="tradeoffs"><div><small>什么时候很好用</small><p>把语义/区域信息与有尺度的空间测量接在一起，后续就能算中心、法线、轴线和夹爪 Pose。</p></div><div><small>换个条件就要小心</small><p>反光、薄片、贴地物体、深度孔洞和 RGB-D 错位都会把误差传到 Pose；不是每个网络都显式生成点云。</p></div></div>
+<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">一个像素加深度能得到什么？BBOX/Mask 怎样对应到深度？什么时候保留 Depth 图，比提前转成点云更合适？</p></div><a class="fork-open" href="stage-01-notes/q04-from-2d-to-3d.html" title="这一站的技术细节">往里看看 ↗</a></div>
+<div class="follow"><b>于是又想到 →</b> <a href="#pause-after-pose">现在从找目标、取深度到求 Pose 都接上了。先回头看看：这套办法究竟在哪些时候会出问题？</a></div>
+</article></div><div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>第二次回头看：视觉和几何终于接上了。先别急着换模型，看看这条路还有什么前提。</span></div></div><div class="chapter c3" id="chapter-together"><div class="chapter-heading"><div class="chapter-label">03</div><div><div class="chapter-kicker">第三段 · 再换个思路</div><h3>Pose 是有了，再回头看看哪里不够</h3><p>这次没有急着再找一个新算法。先看看已有做法是在哪些条件下好用、在哪些条件下会失效，才知道接下来值得学什么。</p></div></div><div class="problem-chain"><div class="pause-note" id="pause-after-pose">
+<div class="pause-heading"><span class="pause-mark">↶</span><div><div class="pause-eyebrow">走到这里，先回头看看 · 不单独算一个问题</div><h4>Pose 终于算出来了，但好像还不能到处用。</h4></div></div>
+<p class="pause-lead">把 2D、Depth、几何或模板接起来后，在规整瓶子、已知工件上，这套办法可以很准确、也很好解释。可一换成被压扁的盒子、变形的袋子，原来假设存在的“主轴”“稳定表面”或“参考模型”可能就不合适了。<strong>不是几何不好，而是我该先弄清楚，到底是哪一个前提没满足。</strong></p>
+<div class="pause-questions">
+<div><small>可能是看错了</small><p>目标没找准，Depth 缺失或错位；先解决观测问题。</p></div>
+<div><small>也可能是算不稳</small><p>主轴含糊、匹配歧义、变形太大；需要换空间参考或求解思路。</p></div>
+<div><small>甚至不是 Pose 的问题</small><p>原本预定的抓法不适合这个形状；那就已经接近下一阶段了。</p></div>
+</div>
+<p class="pause-end">所以我不急着说“几何不够先进”。<strong>形状规律、测量可靠时，规则法可能更准、更轻、更可控。</strong> 只是我也想知道：遇到很难手写规则的空间结构，能不能换一种表达方法？</p>
+</div><article class="problem journal-stop" id="q05">
+<div class="problem-top"><span class="qno">想法 05</span><span class="qtheme">换个角度看空间线索</span></div>
+<h4>有些特征不好手写，能不能让模型来学？</h4>
+<p class="reflection">以前我会先规定“找主轴”“拟合平面”或“和模板匹配”。可是遇到形态变化大的物体，<strong>也许不是我要换一个更复杂的阈值，而是让模型从数据里学出有用的空间线索。</strong> 它可以学关键点、对应关系、类别共同的空间参考，也可以直接估计 Object Pose；几何求解仍然可以接在后面。</p>
+<p class="clue"><span>顺手记下的办法</span>学习关键点 / 对应关系、学习初始化 + 几何细化、类别级空间参考（如 NOCS）、学习式 Object Pose</p>
+<div class="tradeoffs"><div><small>什么时候值得试</small><p>外观与局部形状变化较多、手工特征难稳定描述，而且有合适的数据与训练条件时，可以减少逐类制定规则的工作。</p></div><div><small>换个条件就要小心</small><p>学习到的先验仍有训练分布边界；难例、对称性和严重变形不会自动消失，标注与计算也有成本。</p></div></div>
+<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">往里面看，原来并不是只有一种“学习 Pose”</div><p class="fork-question">网络究竟要学什么：关键点、对应关系、类别坐标，还是完整位姿？哪种还依赖实例 CAD，哪种能跨实例？为什么这些方法不该硬排成一条升级路线？</p></div><a class="fork-open" href="stage-01-notes/q05-learning-spatial-clues.html" title="学习式空间线索的技术分支">往里看看 ↗</a></div>
+<div class="follow"><b>再往下想 →</b> <a href="#q06">不过我绕了一圈一直在研究 Object Pose。我的目标只是把夹爪放对，真的每次都需要完整物体位姿吗？</a></div>
+</article><article class="problem journal-stop" id="q06">
+<div class="problem-top"><span class="qno">想法 06</span><span class="qtheme">最后又回到抓取这个任务</span></div>
+<h4>我只想摆好夹爪，能不能直接求 Grasp Pose？</h4>
+<p class="reflection">模板已知时，先得到 Object Pose，再换算抓取位姿很自然。但要是物体没办法定义一个稳定的完整姿态，而抓取方式又已经规定好了，<strong>也许直接估计夹爪中心、方向和开度就足够。</strong> 这种输出可以由规则构造，也可以从 RGB-D / 点云学习；它不必经过一个显式的 Object Pose。</p>
+<p class="clue"><span>顺手记下的办法</span>局部抓取参考、2.5D / 平面抓取预测、受规则条件约束的 6DoF Grasp Pose、几何校验</p>
+<div class="tradeoffs"><div><small>什么时候值得试</small><p>完整物体姿态没有必要或难以定义，而任务只关心规定接近方向、夹爪位置和开度时，可以省掉不必要的中间目标。</p></div><div><small>换个条件就要小心</small><p>直接回归也需要符合抓取策略、夹爪尺寸与局部碰撞要求；训练模型不意味着自动知道物体能不能抓稳。</p></div></div>
+<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这也能继续往里分</div><p class="fork-question">只从上方夹的 2.5D 与任意接近方向的 6DoF，究竟约束了哪些自由度？“模型直接给抓取候选”和“按规定抓法求 Pose”边界在哪？</p></div><a class="fork-open" href="stage-01-notes/q06-direct-grasp-pose.html" title="受约束的 Grasp Pose 预测技术分支">往里看看 ↗</a></div>
+<div class="follow"><b>最后还留了个问题 →</b> <a href="#next">如果连“怎么抓”也不能提前规定，只给出一个位置与方向就不够了吧？</a></div>
+</article></div></div><p class="closing-thread">一路看下来，问题不是从几何“升级”到学习，而是<strong>我不断发现前一种办法依赖什么条件</strong>。条件满足，就继续用；条件不满足，再找另一种可行的空间参考或 Pose 求解方式。</p></section>
+<section id="understanding">
+<div class="sec-head"><div class="num">04</div><div><h2 class="section-title">写到这里，暂时有了几条认识</h2><p class="section-desc">先不急着宣布答案。记录一下，现在觉得哪些判断最值得保留。</p></div></div>
+<div class="rule-grid">
+<div class="rule-card in"><small>关于规则与精度</small><h3>前提清楚时，几何一点也不落后</h3><p>规则明确、深度可靠、几何稳定时，求解结果可解释、精度潜力高。难点不是技术老，而是场景超出了它的前提。</p></div>
+<div class="rule-card"><small>关于视觉</small><h3>2D 可以找目标，却不等于 3D Pose</h3><p>有时要 Mask，有时 BBOX、点云聚类或学习特征就够。只有弄清空间信息如何进入求解，才算把链条接上。</p></div>
+<div class="rule-card"><small>关于学习</small><h3>学习的是不同信息，不是一条必走的升级路线</h3><p>学关键点、对应关系、类别参考或直接估计位姿，解决的前提不同。几何可以和学习结合，结果也都应结合场景检查。</p></div>
+<div class="rule-card"><small>关于最终选择</small><h3>先分清哪一环出了问题</h3><p>感知不准、Pose 不稳、抓法本身不适合，是三个不同问题；选方法前先弄清属于哪一种。</p></div>
+</div></section>
+<section id="next" style="border:0;padding-bottom:20px"><div class="sec-head"><div class="num">05</div><div><h2 class="section-title">还有个问题，先记下来</h2><p class="section-desc">如果一直规定从瓶身侧面夹，那 Pose 算准就有意义。但遇到被踩扁的盒子、卷曲的广告纸，这条规定未必还成立。</p></div></div>
+<div class="next-stage"><div><div class="mini-title">下一问 · STAGE 02</div><h3>如果连“怎么抓”也不能提前规定呢？</h3><p>这时问题不再只是估计空间关系，而是要从可用的接触区域和接近方式中生成、比较抓取候选。算 Pose 的知识依旧有用，只是它不再承担全部决策。</p></div><div class="next-side"><b>这次的边界先停在这里。</b>先把预定抓法对应的 Pose 研究清楚，再走向“选择抓法”；碰撞、夹爪尺寸等局部约束仍需考虑，完整运动规划留给执行层。</div></div>
+<div class="section-mini-nav"><a href="#journey">回看沿途想法 ↑</a><a href="#map">回看思路修正 ↑</a><a href="#boundary">回到开头 ↑</a></div>
+</section>
+</main>
+<footer class="footer"><div>© 2026 沿途手记 · 想到一点，先记一点。🐟</div><div><a href="#boundary">回到页首 ↑</a>　·　<a href="/src/pages/journey.html">研究地图 ↗</a></div></footer>
+</div>
 </body>
 </html>
