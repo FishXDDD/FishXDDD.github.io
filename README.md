@@ -23,6 +23,10 @@ docs/
     ├── index.html
     └── stage-01/
         ├── index.html
+        ├── images/
+        │   ├── grasp-pose-roadmap.png
+        │   ├── vision-pose-field-notes.png
+        │   └── paths-to-grasp-pose.png
         ├── q01-geometry/
         │   └── index.html
         ├── q02-known-reference/

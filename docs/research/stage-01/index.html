@@ -467,6 +467,14 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
   .fm-paper strong{font-size:11px}
   .fm-paper p{font-size:10px}
 }
+.stage-illustration{margin:30px 0 4px;padding:8px;background:#fffefa;border:1px solid #e2e5dc;border-radius:19px;box-shadow:0 14px 38px rgba(44,54,37,.055);overflow:hidden}
+.stage-illustration a{display:block;border-radius:13px;overflow:hidden;background:#f3efe4}
+.stage-illustration img{display:block;width:100%;height:auto;aspect-ratio:1672/941;object-fit:contain}
+.stage-illustration figcaption{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:12px 13px 7px;color:#6d7b72;font-size:12px;line-height:1.75}
+.stage-illustration figcaption strong{color:#435c4e;font-weight:680}
+.stage-illustration figcaption a{display:inline;background:none;border-radius:0;color:#547663;text-decoration:underline;text-decoration-color:#bdcfc0;text-underline-offset:4px;white-space:nowrap}
+.stage-illustration.overview{margin-top:34px;margin-bottom:8px}
+@media(max-width:680px){.stage-illustration{margin-top:23px;padding:5px;border-radius:14px}.stage-illustration a{border-radius:10px}.stage-illustration figcaption{display:block;padding:10px 9px 6px}.stage-illustration figcaption a{margin-top:3px;white-space:normal}}
 @media(prefers-reduced-motion:reduce){.index-card,.problem .fork-open{transition:none}}
 
 </style>
@@ -482,6 +490,10 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 问题一下子有了着手的地方。<br/>
 <b>那就先从 Pose 怎么算开始吧。</b>
 </p><div class="hero-foot"><span class="stamp strong">关于抓取 Pose 的一点笔记</span><span class="stamp">单次抓取 · RGB-D · 两指夹爪</span></div></div>
+<figure class="stage-illustration overview">
+<a href="images/grasp-pose-roadmap.png"><img alt="Stage 1 抓取姿态计算路线图：从形状、已知参考与真实相机观测出发，通向不同的抓取姿态求解路径" decoding="async" fetchpriority="high" height="941" src="images/grasp-pose-roadmap.png" width="1672"/></a>
+<figcaption><strong>Stage 1 全景 · 抓取姿态计算路线图</strong><a href="images/grasp-pose-roadmap.png">查看原图 ↗</a></figcaption>
+</figure>
 <main>
 <section id="boundary">
 <div class="sec-head"><div class="num">01</div><div>
@@ -517,6 +529,10 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 <p>从最初只想着计算 Pose，到补上视觉观测，再到认识不同的求解方式，整个问题才慢慢展开。</p>
 <p>下面就沿着这些想法，把遇到的技术和留下的认识记下来。</p>
 </div>
+<figure class="stage-illustration">
+<a href="images/vision-pose-field-notes.png"><img alt="视觉与姿态估计田野笔记：从只考虑姿态求解，到补上真实观测，再到认识多种视觉与求解路径" decoding="async" height="941" loading="lazy" src="images/vision-pose-field-notes.png" width="1672"/></a>
+<figcaption><strong>田野笔记 · 视觉与 Pose 求解之间的三次修正</strong><a href="images/vision-pose-field-notes.png">查看原图 ↗</a></figcaption>
+</figure>
 </section>
 <section id="journey">
 <div class="sec-head"><div class="num">03</div><div>
@@ -524,6 +540,10 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 <p class="section-desc">最开始只是想算出一个抓取 Pose，没想到顺着这个问题，慢慢发现了不少不同的技术。</p>
 </div></div>
 <div class="path-intro"><p>这里就按自己理解问题的顺序，记下沿途遇到的几种思路。</p><span class="handmark">notes along the way ✎</span></div>
+<figure class="stage-illustration">
+<a href="images/paths-to-grasp-pose.png"><img alt="通往抓取姿态的三条路径：从几何构造、已知参考恢复与直接预测三个方向梳理 Stage 1 的问题链" decoding="async" height="941" loading="lazy" src="images/paths-to-grasp-pose.png" width="1672"/></a>
+<figcaption><strong>路线索引 · 通往 Grasp Pose 的几条路</strong><a href="images/paths-to-grasp-pose.png">查看原图 ↗</a></figcaption>
+</figure>
 <div class="chapter-index">
 <a class="index-card c1" href="#chapter-pose"><div class="index-no"><span>第一段 · 从 Pose 开始</span><span class="index-arrow">↗</span></div><h3>先看看，能从空间里量到什么</h3><p>形状测量 · 利用已知参考</p></a>
 <a class="index-card c2" href="#chapter-vision"><div class="index-no"><span>第二段 · 补齐现场输入</span><span class="index-arrow">↗</span></div><h3>回到相机，找到真正需要的数据</h3><p>找目标 · 从像素到空间</p></a>
