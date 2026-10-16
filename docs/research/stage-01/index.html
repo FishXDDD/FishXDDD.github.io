@@ -472,9 +472,9 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 </style>
 </head>
 <body>
-<header class="wrap"><div class="nav"><a class="logo" href="https://fishxddd.github.io/src/pages/">🐟 沿途手记</a><nav aria-label="主导航" class="navlinks"><a href="https://fishxddd.github.io/src/pages/journey.html">研究地图</a><a href="https://fishxddd.github.io/src/pages/journal/">日记本 ↗</a></nav></div></header>
+<header class="wrap"><div class="nav"><a class="logo" href="/">🐟 沿途手记</a><nav aria-label="主导航" class="navlinks"><a href="/journey/">研究地图</a><a href="/journal/">日记本 ↗</a></nav></div></header>
 <div class="wrap">
-<div class="breadcrumb"><a href="https://fishxddd.github.io/src/pages/journey.html">研究地图</a> / Stage 01</div>
+<div class="breadcrumb"><a href="/journey/">研究地图</a> / Stage 01</div>
 <div class="hero"><div class="eyebrow">STAGE 01 · 关于抓取 Pose 的一点笔记</div><h1>抓法定好了，<br/>Pose 怎么算？</h1><p class="lead">
 最开始，想把抓取这件事变得简单一点。<br/>
 先不考虑机器人该怎么决定抓法。对于一些熟悉的物体，坐标系可以自己约定，抓手相对物体的放法也能提前确定。<br/>
@@ -537,13 +537,13 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 <div class="note-prose intro"><p>既然瓶子有轴线、盒子有平面，最直接的办法就是从点云里测量这些几何特征。</p></div>
 <div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>沿着这个方向，整理了 <b>PCA、OBB、RANSAC、法线与形状拟合</b> 等方法。</p><p>PCA 可以用来寻找点云的主要方向，OBB 能描述物体的空间范围，而 RANSAC 则适合从带有噪声的数据里寻找平面等符合模型的结构。</p></div>
 <div class="note-prose thoughts"><p>这些方法并不复杂，却能从离散的点云中提取出不少有用的空间信息。</p><p>逐渐明确的一点是：<strong>测量出物体的某些几何特征，并不意味着完整的 6DoF Pose 就确定了。</strong> 具体需要多少个自由度，还得回到预先约定的抓法。</p></div>
-<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q01-geometry.html">Q01 · 点云几何测量 ↗</a></div></article>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="q01-geometry/">Q01 · 点云几何测量 ↗</a></div></article>
 <article class="problem journal-stop" id="q02"><div class="problem-top"><span class="qno">想法 02</span><span class="qtheme">利用已知信息</span></div>
 <h4>如果物体本来就是已知的呢？</h4>
 <div class="note-prose intro"><p>前面一直在想怎样从点云里测量形状。但对于已知尺寸、结构甚至完整模型的物体，似乎还有不少现成的信息可以利用。</p><p>于是开始整理已知参考下的位姿求解方法。</p></div>
 <div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>这里遇到了几条不同的技术思路：</p><p><b>ICP / GICP</b> 利用三维点云之间的配准关系；<b>PPF</b> 利用点对的几何特征寻找已知物体的位姿；而 <b>PnP</b> 则通过已知的 3D 点和图像中的 2D 对应点求解位姿。</p></div>
 <div class="note-prose thoughts"><p>它们不是同一种方法的简单变体，所依赖的参考信息、对应关系和初始化条件都不太一样。</p><p>这样看来，<strong>物体有多少已知信息、现场又能观察到什么，本身就会影响 Pose 的求解方式。</strong></p></div>
-<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q02-known-reference.html">Q02 · 已知参考与位姿求解 ↗</a></div></article>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="q02-known-reference/">Q02 · 已知参考与位姿求解 ↗</a></div></article>
 </div>
 <div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>直到把真实相机放回问题里，才发现还得先处理一件很实际的事：从整个场景中找到需要抓取的物体。</span></div>
 </div>
@@ -555,13 +555,13 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 <div class="note-prose intro"><p>前面花了不少心思研究如何计算 Pose，却一直默认目标点云已经准备好了。</p><p>直到把真实相机放回问题里，才发现还得先处理一件很实际的事：从整个场景中找到需要抓取的物体。</p><p>于是又回到了熟悉的二维视觉。</p></div>
 <div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p><b>Detection</b> 可以给出目标的大致范围，<b>Instance Segmentation</b> 能进一步得到物体区域，<b>Grounding</b> 则可以根据语言描述寻找指定目标。</p></div>
 <div class="note-prose thoughts"><p>这一部分本身就有不少成熟的技术路线。</p><p>整理下来也发现，目标定位并不一定非要得到精确的 Mask。不同的 Pose 求解方法，对前面的观测信息有不同要求。</p></div>
-<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q03-target-in-2d.html">Q03 · 从图像里找到目标 ↗</a></div></article>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="q03-target-in-2d/">Q03 · 从图像里找到目标 ↗</a></div></article>
 <article class="problem journal-stop" id="q04"><div class="problem-top"><span class="qno">想法 04</span><span class="qtheme">回到三维</span></div>
 <h4>二维找到了，怎么回到三维？</h4>
 <div class="note-prose intro"><p>图像里已经找到了目标，但像素坐标终究还不是机器人能直接使用的空间位置。</p></div>
 <div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>这时再把 RGB、Depth 和相机内参放在一起，之前学过的投影与反投影就派上了用场。</p><p>有了对齐的深度，一个像素便可以恢复成相机坐标系下的三维点；如果把目标区域里的有效深度都利用起来，还能进一步得到目标点云。</p></div>
 <div class="note-prose thoughts"><p><strong>到这里，最开始设想的那条路线终于接上了。</strong></p><p>从相机观察场景，到确定目标、获取三维信息，再到计算抓取所需的 Pose，已经形成了一条比较清楚的求解思路。</p><p>当然，深度孔洞、测量噪声和对齐误差仍然需要认真处理。不过至少现在知道，这些原本分散的知识是怎样联系起来的。</p></div>
-<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q04-from-2d-to-3d.html">Q04 · 从 2D 走向 3D ↗</a></div></article>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="q04-from-2d-to-3d/">Q04 · 从 2D 走向 3D ↗</a></div></article>
 </div>
 <div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>到这里，最开始设想的那条路线终于接上了。</span></div>
 </div>
@@ -573,13 +573,13 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 <div class="note-prose intro"><p>前面的路线已经能够处理不少形状规整、参考信息明确的物体。</p><p>但继续考虑那些形态变化比较大的目标时，手工规定中心、轴线、表面等几何特征，未必总能得到稳定的空间参考。</p><p>沿着这个问题，开始了解学习式的位姿估计方法。</p></div>
 <div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>原来除了让模型识别物体，还可以学习 <b>关键点、特征对应关系、类别级空间参考（NOCS）</b>，甚至直接估计 Object Pose。</p></div>
 <div class="note-prose thoughts"><p>这里逐渐形成了一个认识：</p><p><strong>学习式方法不一定是直接替代几何求解，也可以只负责提供更有用的空间线索。</strong></p><p>不同方法让网络学习的内容不同，对参考模型、训练数据和物体形变的依赖也不一样。</p><p>这部分的技术分支值得再单独梳理。</p></div>
-<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q05-learning-spatial-clues.html">Q05 · 学习式空间线索 ↗</a></div></article>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="q05-learning-spatial-clues/">Q05 · 学习式空间线索 ↗</a></div></article>
 <article class="problem journal-stop" id="q06"><div class="problem-top"><span class="qno">想法 06</span><span class="qtheme">直接求抓取 Pose</span></div>
 <h4>是不是不一定要先求 Object Pose？</h4>
 <div class="note-prose intro"><p>研究到这里，又回到了最开始的问题。</p><p>这次的目的其实很明确：在抓法已经约定好的前提下，得到夹爪应该执行的 Grasp Pose。</p><p>对于已知刚体，先估计 Object Pose，再变换得到 Grasp Pose，是一条很自然的路线。</p><p>但如果并不需要完整的物体姿态，是否可以直接根据局部观测来确定抓手的位置和方向？</p></div>
 <div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>沿着这个方向，又认识了局部几何抓取、<b>GG-CNN 这类 2.5D 抓取预测方法，以及直接生成 6DoF Grasp Pose 的数据驱动方法</b>。</p><p>它们不一定需要先恢复一个完整的 Object Pose。</p></div>
 <div class="note-prose thoughts"><p>当然，直接预测抓取姿态并不意味着让模型随意决定怎么抓。在当前阶段，抓取区域、接近方向和夹爪约束依然需要满足。</p><p>整理到这里，才更清楚地意识到：</p><p><strong>求 Object Pose 再换算抓取姿态，与直接求 Grasp Pose，是两条可以独立考虑的路线。</strong></p></div>
-<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q06-direct-grasp-pose.html">Q06 · 直接求 Grasp Pose ↗</a></div></article>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="q06-direct-grasp-pose/">Q06 · 直接求 Grasp Pose ↗</a></div></article>
 </div>
 </div>
 
@@ -594,7 +594,7 @@ main section > :not(.sec-head){margin-left:var(--section-indent)}
 </div><p class="closing-question-intro">至于另一个问题——</p><div class="next-stage"><div><div class="mini-title">下一阶段 · STAGE 02</div><h3>如果连“怎么抓”都不能提前约定呢？</h3><p>那就留给下一阶段了。</p></div></div><div class="section-mini-nav"><a href="#journey">回看沿途想法 ↑</a><a href="#map">回看思路修正 ↑</a><a href="#boundary">回到开头 ↑</a></div></section>
 
 </main>
-<footer class="footer"><div>© 2026 沿途手记 · 想到一点，先记一点。🐟</div><div><a href="#boundary">回到页首 ↑</a>　·　<a href="https://fishxddd.github.io/src/pages/journey.html">研究地图 ↗</a></div></footer>
+<footer class="footer"><div>© 2026 沿途手记 · 想到一点，先记一点。🐟</div><div><a href="#boundary">回到页首 ↑</a>　·　<a href="/journey/">研究地图 ↗</a></div></footer>
 </div>
 </body>
 </html>

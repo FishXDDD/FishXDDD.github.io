@@ -1,39 +1,53 @@
 # 沿途手记
 
-网站源码集中在 `docs/`，仓库根目录不再放置页面内容。
+网站内容集中在 `docs/`，并以 `docs/index.html` 作为主页面。当前仍为纯 HTML/CSS/JavaScript，不依赖构建流程。
 
 ```text
 docs/
 ├── index.html
-├── src/
-│   ├── pages/
-│   │   ├── journey.html
-│   │   ├── journal/
-│   │   │   ├── index.html
-│   │   │   └── entry-placeholder.html
-│   │   └── research/
-│   │       ├── stage-01-grasp-pose-cards.html
-│   │       └── stage-01-notes/
-│   │           ├── q01-geometry.html
-│   │           ├── q02-known-reference.html
-│   │           ├── q03-target-in-2d.html
-│   │           ├── q04-from-2d-to-3d.html
-│   │           ├── q05-learning-spatial-clues.html
-│   │           └── q06-direct-grasp-pose.html
-│   ├── content/
-│   │   ├── journal/
-│   │   └── research/
-│   └── components/
-│       ├── navigation.html
-│       └── card.html
-└── public/
-    ├── images/
-    └── assets/
-        ├── css/
-        └── js/
+├── _templates/
+│   ├── card.html
+│   └── navigation.html
+├── assets/
+│   ├── css/
+│   ├── images/
+│   └── js/
+├── journey/
+│   └── index.html
+├── journal/
+│   ├── index.html
+│   └── entries/
+│       └── entry-placeholder/
+│           └── index.html
+└── research/
+    ├── index.html
+    └── stage-01/
+        ├── index.html
+        ├── q01-geometry/
+        │   └── index.html
+        ├── q02-known-reference/
+        │   ├── index.html
+        │   └── appendix/
+        │       └── index.html
+        ├── q03-target-in-2d/
+        │   ├── index.html
+        │   ├── appendix-a01/
+        │   │   └── index.html
+        │   ├── appendix-a02/
+        │   │   └── index.html
+        │   ├── appendix-a03/
+        │   │   └── index.html
+        │   └── appendix-a04/
+        │       └── index.html
+        ├── q04-from-2d-to-3d/
+        │   └── index.html
+        ├── q05-learning-spatial-clues/
+        │   └── index.html
+        └── q06-direct-grasp-pose/
+            └── index.html
 ```
 
-这是一次目录层面的轻量整理，目前仍为纯 HTML/CSS/JavaScript，尚未接入 Astro 构建流程。未完成的页面使用最小 HTML 占位，后续可逐步替换为 `.astro` 页面和 Markdown 内容集合。
+页面按最终 URL 组织。例如 `docs/research/stage-01/q01-geometry/index.html` 对应 `/research/stage-01/q01-geometry/`。`_templates/` 仅保存尚未接入构建流程的组件参考片段。
 
 本地查看首页：
 

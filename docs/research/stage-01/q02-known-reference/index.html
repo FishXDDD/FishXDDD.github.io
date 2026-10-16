@@ -184,8 +184,8 @@ body{font-size:15px}
 @media print{.side-nav,.site-nav,.mobile-toc,.progress{display:none!important}.page{max-width:900px;padding:0 20px}.content-layout{display:block}.essay-section{break-inside:avoid}body{background:white}}
 </style></head><body>
 <div class="progress" id="readingProgress"></div>
-<header class="site-nav"><div class="nav-inner"><a class="brand" href="https://fishxddd.github.io/"><span class="brand-mark">✳</span>沿途手记</a>
-<nav class="nav-links"><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">← Stage 01</a><a href="q01-geometry.html">上一篇 · Q01</a><a href="q02-known-reference-appendix.html">技术年表 ↗</a></nav></div></header>
+<header class="site-nav"><div class="nav-inner"><a class="brand" href="/"><span class="brand-mark">✳</span>沿途手记</a>
+<nav class="nav-links"><a href="../">← Stage 01</a><a href="../q01-geometry/">上一篇 · Q01</a><a href="appendix/">技术年表 ↗</a></nav></div></header>
 <div class="page"><header class="hero"><div class="hero-copy"><div class="eyebrow"><span class="tiny-line"></span>STAGE 01 / Q02 · KNOWN REFERENCE</div>
 <h1>参考信息已知，<br/><em>哪些条件下才能求出 Pose？</em></h1>
 <p class="hero-intro">有模型不代表有位姿。先确认参考、观测、对应与初值，再决定使用哪种求解路线。这一篇把几类方法放回各自成立的条件中，而不是按算法名称排队。</p>
@@ -442,9 +442,9 @@ body{font-size:15px}
 <div class="appendix-jump"><div class="appendix-jump-eyebrow">延伸资料 · 暂不在本页扩写</div>
 <h2>算法的历史演进，单独放在技术年表里</h2>
 <p>这里优先回答“什么条件能用什么工具”。如果想按年份追溯 PnP、ICP、PPF 等技术的源流，再进入附录，不让历史叙述打断求解结构。</p>
-<a href="q02-known-reference-appendix.html">技术年表 ↗</a></div>
+<a href="appendix/">技术年表 ↗</a></div>
 <div class="refs">主要技术核查资料：<a href="https://docs.opencv.org/4.x/d5/d1f/calib3d_solvePnP.html" target="_blank" rel="noopener noreferrer">OpenCV · PnP Methods ↗</a> · <a href="https://www.open3d.org/docs/latest/tutorial/pipelines/global_registration.html" target="_blank" rel="noopener noreferrer">Open3D · Global Registration ↗</a> · <a href="https://www.open3d.org/docs/latest/tutorial/pipelines/icp_registration.html" target="_blank" rel="noopener noreferrer">Open3D · ICP Registration ↗</a> · <a href="https://www.mvtec.com/doc/halcon/2511/en/toc_3dmatching.html" target="_blank" rel="noopener noreferrer">HALCON · 3D Matching ↗</a> · <a href="https://github.com/NVlabs/FoundationPose" target="_blank" rel="noopener noreferrer">NVIDIA · FoundationPose ↗</a>。分类为本篇在 Stage 01 约束下的工程归纳，不代表任何单篇综述的原始分类。</div>
-<nav class="back"><a href="q01-geometry.html">← Q01 · 点云几何测量</a><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">返回 Stage 01 →</a></nav>
+<nav class="back"><a href="../q01-geometry/">← Q01 · 点云几何测量</a><a href="../">返回 Stage 01 →</a></nav>
 </main><aside class="side-nav"><div class="side-sticky"><div class="side-title">本页目录 <span class="side-count">12 节</span></div><nav><a href="#ch00"><span class="toc-index">00</span>已知参考，并不等于已知 Pose</a><a href="#ch01"><span class="toc-index">01</span>先列条件，再谈算法</a><a href="#ch02"><span class="toc-index">02</span>五条几何主线，一组横向求解工具</a><a href="#ch03"><span class="toc-index">03</span>只有尺寸，也可能足够求位姿</a><a href="#ch04"><span class="toc-index">04</span>对应点已知，直接求 R 与 t</a><a href="#ch05"><span class="toc-index">05</span>PnP 与平面参考：先有 3D–2D 对应</a><a href="#ch06"><span class="toc-index">06</span>ICP、PPF、FGR 要按“已知什么”分层</a><a href="#ch07"><span class="toc-index">07</span>没有稳定关键点，还能匹配轮廓和渲染</a><a href="#ch08"><span class="toc-index">08</span>学习式方法放进哪一层，才比较清楚</a><a href="#ch09"><span class="toc-index">09</span>能返回 Pose，不代表 Pose 已被唯一确定</a><a href="#ch10"><span class="toc-index">10</span>同一个任务有哪些真正成立的路线？</a><a href="#ch11"><span class="toc-index">11</span>把约束写清楚，技术路线才有选择依据</a></nav><p class="side-foot">先确认条件，再选择方法。<br/>条件不成立时，换算法通常不是第一步。</p></div></aside></div></div>
 <footer class="site-footer">沿途手记 · STAGE 01 / Q02　|　从约束出发，才知道该求什么。</footer>
 <script>(function(){var bar=document.getElementById('readingProgress');var entries=[...document.querySelectorAll('.side-nav nav a')];function update(){var root=document.documentElement;var max=root.scrollHeight-root.clientHeight;bar.style.width=(max>0?window.scrollY/max*100:0)+'%';var active='';for(var el of document.querySelectorAll('.essay-section')){if(el.getBoundingClientRect().top<190)active='#'+el.id;}entries.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===active));}window.addEventListener('scroll',update,{passive:true});update();})();</script>
