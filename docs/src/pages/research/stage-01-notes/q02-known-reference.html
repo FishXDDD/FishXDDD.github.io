@@ -1,83 +1,451 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Q02 研究手记：如果已经知道物体的形状，怎样把参考模型和现场观测对应起来？从刚体对齐、ICP到全局匹配、PnP，记录探索与认识。"><title>Q02 · 如果物体的形状本来就知道呢？｜沿途手记</title><style>
-:root{--bg:#faf9f5;--paper:#fffefa;--ink:#344338;--muted:#718074;--faint:#95a195;--line:#e0e7de;--green:#517b65;--green-soft:#eff5ee;--orange:#ae815a;--orange-soft:#fbf3e9;--blue:#65829d;--blue-soft:#f0f4f8;--shadow:0 13px 40px rgba(53,74,57,.05)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.98 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}a{color:inherit;text-decoration:none}a:hover{color:var(--green)}strong{font-weight:740;color:#314c3b}::selection{background:#d9ebda}
-.nav{max-width:1110px;margin:auto;padding:22px 29px;display:flex;justify-content:space-between;gap:16px;align-items:center;font-size:13px;color:#7c8b7e}.nav .brand{font-weight:800;color:#43664e}.nav .navlinks{display:flex;gap:20px;flex-wrap:wrap}
-.layout{max-width:1110px;padding:0 29px 94px;margin:auto;display:grid;grid-template-columns:minmax(0,755px) 184px;gap:58px}.article{min-width:0}.side{padding-top:220px}.side .inside{position:sticky;top:24px;border-left:1px solid #d8e3d7;padding-left:19px}.side small{display:block;color:#96a697;font-size:11px;letter-spacing:.08em;margin-bottom:14px}.side a{display:block;color:#819083;font-size:12px;line-height:1.55;padding:0 0 14px}.side a:hover{color:#47745a}
-.hero{padding:53px 0 42px;border-bottom:1px solid var(--line)}.eyebrow{color:var(--green);font-size:11px;font-weight:800;letter-spacing:.12em}.hero h1{font-size:clamp(33px,4.5vw,46px);line-height:1.38;font-weight:770;letter-spacing:-.045em;margin:18px 0 18px}.hero .intro{font-size:17px;line-height:1.95;color:#4e6555;max-width:695px;margin:0}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:25px}.meta span{font-size:11px;padding:4px 10px;border-radius:22px;border:1px solid #e3eadd;color:#87988a;background:#f7f9f4}
-section{padding-top:53px;scroll-margin-top:25px}section .smalltitle{font-size:11px;letter-spacing:.1em;color:#93a69a;font-weight:800;margin-bottom:8px}section h2{font-size:24px;line-height:1.5;letter-spacing:-.03em;margin:0 0 22px;font-weight:755}section h3{font-size:17px;line-height:1.6;margin:28px 0 11px;font-weight:740}section p{margin:0 0 17px;color:#4f5f53}p:last-child{margin-bottom:0}.mild{font-size:13px!important;color:#819084!important}.memo{font-size:14px;color:#7c745f;font-style:italic;margin-top:16px}
-.story{border-radius:14px;padding:23px 25px;background:#fffefa;border:1px solid #e8ebdf;margin:27px 0;box-shadow:var(--shadow)}.story .tag{font-size:11px;letter-spacing:.07em;color:var(--orange);font-weight:800;margin-bottom:9px}.story p{margin:0;font-size:15px;color:#6a6655}.story strong{color:#7d6549}
-.aha{margin:29px 0;padding:19px 23px;background:var(--green-soft);border-left:3px solid #8db596;border-radius:0 12px 12px 0}.aha p{font-size:15px;margin:0;color:#496c52}.aha strong{color:#366047}
-.sketch{margin:28px 0;border:1px solid #e3e9e0;background:#fffefa;border-radius:17px;padding:20px 19px 15px;box-shadow:var(--shadow)}.sketch svg{display:block;width:100%;height:auto;max-height:280px}.sketch figcaption{font-size:12px;color:#909c90;margin:6px 5px 0;line-height:1.7;text-align:center}.figtitle{font-size:13px;font-weight:730;color:#5c7060;letter-spacing:.02em;margin:0 0 8px 5px}
-.method{margin:24px 0 31px;border:1px solid var(--line);border-radius:14px;background:var(--paper);overflow:hidden}.method .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 19px;border-bottom:1px solid var(--line);background:#f7f9f5}.method .top strong{font-size:14px}.method .top small{color:#8c9e8d;font-size:11px;letter-spacing:.05em;white-space:nowrap}.method .body{padding:17px 19px}.method .body p{margin:0 0 11px;font-size:13px;line-height:1.85}.method .body p:last-child{margin:0}.method .subtle{color:#7b8a7e;font-size:12px}.method.orange .top{background:#fbf6ed}.method.blue .top{background:#f4f7fa}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:28px 0}.tiny-card{border:1px solid var(--line);border-radius:12px;padding:19px 19px 20px;background:var(--paper)}.tiny-card.warm{background:#fffcf7;border-color:#eee5d8}.tiny-card.cool{background:#fbfdff;border-color:#e0e7eb}.tiny-card small{display:block;color:var(--green);font-size:11px;font-weight:800;letter-spacing:.04em;margin-bottom:8px}.tiny-card.warm small{color:var(--orange)}.tiny-card.cool small{color:var(--blue)}.tiny-card h3{font-size:15px;margin:0 0 6px}.tiny-card p{font-size:13px;line-height:1.82;color:#657568;margin:0}
-.breaknote{margin:28px 0;padding:13px 17px;background:#f7f6ef;border-radius:10px;color:#7e7e6b;font-size:13px;line-height:1.85}
-.combine{background:#fffefa;border:1px solid var(--line);border-radius:16px;padding:21px 20px 18px;margin:29px 0;box-shadow:var(--shadow)}.combine .ctitle{font-size:15px;font-weight:750;margin:0 0 16px}.chain{display:grid;grid-template-columns:1fr auto 1.5fr auto 1fr;gap:10px;align-items:stretch}.boxx{border:1px solid #dfe7de;border-radius:11px;background:#f8faf7;padding:14px 11px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}.boxx strong{display:block;font-size:13px;color:#476351}.boxx span{color:#849386;font-size:11px;line-height:1.65;margin-top:5px}.boxx.measured{background:#f0f5f7;border-color:#dae6ed}.boxx.measured strong{color:#567b92}.boxx.pose{background:#edf4ed;border-color:#d8e5d8}.arrow{font-size:20px;color:#92ad95;align-self:center}.combine .bottom{text-align:center;margin-top:14px;font-size:12px;color:#829084;line-height:1.8}
-.catch{margin:33px 0 0;border-top:1px solid #e4eae2;padding-top:22px}.catch .label{color:#739980;font-size:12px;font-weight:800;margin-bottom:12px}.catch-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.catch-item{background:#fffefa;border:1px solid #e3e8e1;border-radius:12px;padding:15px 17px}.catch-item strong{font-size:13px;color:#4c755a}.catch-item p{font-size:12px;line-height:1.8;color:#758478;margin:6px 0 0}.catch-item em{font-style:normal;color:#a67a59}
-.end{margin-top:55px;padding:30px 30px 32px;background:linear-gradient(115deg,#edf5ed,#fffaf3);border-radius:17px;border:1px solid #dce6d9}.end .smalltitle{color:#78a082}.end h2{margin:0 0 13px;font-size:22px}.end p{margin:0 0 13px;font-size:15px}.end p:last-child{margin:0}.end .smile{color:#7d876f;font-size:13px;margin-top:19px}.refs{margin-top:27px;font-size:12px;color:#829084}.refs a{text-decoration:underline;text-decoration-color:#bacbbb;text-underline-offset:3px}.back{padding:28px 0 0;margin-top:30px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.back a{border-radius:10px;border:1px solid var(--line);background:var(--paper);padding:11px 15px;font-size:13px;color:#557563}.footer{max-width:1110px;margin:auto;padding:0 29px 36px;font-size:12px;color:#a2aba1}
-@media(max-width:940px){.layout{max-width:795px;grid-template-columns:1fr}.side{display:none}.nav{max-width:795px}}@media(max-width:610px){body{font-size:14px}.nav{padding:17px 18px}.nav .navlinks{gap:11px;font-size:11px}.layout{padding:0 18px 57px}.hero{padding:28px 0 31px}.hero h1{font-size:34px}.hero .intro{font-size:15px}section{padding-top:40px}section h2{font-size:21px}.sketch{padding:12px 7px}.two,.catch-grid{grid-template-columns:1fr}.chain{grid-template-columns:1fr;gap:5px}.chain .arrow{transform:rotate(90deg);line-height:1.3}.boxx{padding:12px 10px}.end{padding:22px 20px}.back{flex-direction:column}.back a{text-align:center}.footer{padding:0 18px 30px}}
-.appendix-jump{margin:34px 0 0;border:1px solid #d9e6dc;border-radius:16px;background:#f4f8f1;padding:25px 28px;box-shadow:var(--shadow)}
-.appendix-jump-eyebrow{color:#5d856c;font-size:11px;font-weight:800;letter-spacing:.08em}
-.appendix-jump h2{font-size:19px;line-height:1.55;margin:9px 0 9px}
-.appendix-jump p{font-size:13px;line-height:1.9;color:#64766a;margin:0 0 16px}
-.appendix-jump a{display:inline-block;background:#537b64;color:white;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:650}
-.appendix-jump a:hover{color:white;background:#3f6751}
-@media(max-width:610px){.appendix-jump{padding:19px}.appendix-jump h2{font-size:17px}}
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="Q02 已知参考与位姿求解：从参考类型、观测、对应关系、初始化及可观测性出发，严谨划分 PnP、ICP、PPF、模型投影与学习式位姿方法。"/>
+<title>Q02 · 已知参考与位姿求解｜沿途手记</title><style>
+:root{--bg:#fafaf7;--ink:#35483e;--body:#4f5d54;--muted:#78877c;--light:#a0aaa0;--stroke:#e0e8de;--stroke2:#e9eee7;--sage:#557d65;--sage-light:#edf3ed;--amber:#b28c6a;--blue:#708fa4;--paper:#fffefa}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:26px}
+body{margin:0;color:var(--ink);background:var(--bg);font:15.5px/1.94 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC','Noto Sans SC','Microsoft Yahei',sans-serif;-webkit-font-smoothing:antialiased}
+::selection{background:#d9e9d9}
+a{text-decoration:none;color:inherit}a:hover{color:#3f7150}
+strong{font-weight:730;color:#385b43}
+.site-nav{border-bottom:1px solid #ebeee8;background:rgba(250,250,247,.97)}
+.nav-inner{max-width:1140px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:17px 30px;gap:18px}
+.brand{font-size:14px;font-weight:760;color:#3e624b;letter-spacing:.01em;white-space:nowrap}
+.brand-mark{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:50%;background:#e5eee5;color:#60866c}
+.nav-links{display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:12px;color:#718276}
+.page{max-width:1140px;margin:auto;padding:0 30px 94px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:36px;padding:57px 0 46px;align-items:center;border-bottom:1px solid var(--stroke)}
+.eyebrow{font-size:11px;letter-spacing:.12em;color:#648d70;font-weight:750;display:flex;align-items:center;gap:9px}.tiny-line{width:19px;height:1.5px;background:#86a692}
+.hero h1{font-size:clamp(32px,3.65vw,45px);line-height:1.39;letter-spacing:-.04em;margin:21px 0 21px;font-weight:775;max-width:660px}
+.hero h1 em{font-style:normal;font-weight:775;color:#4e745b}
+.hero-intro{font-size:15px;line-height:1.94;max-width:660px;color:#627365;margin:0}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:11px;color:#92a194;margin-top:21px}.hero-meta span+span:before{content:'·';margin-right:16px;color:#c7d3c5}
+.hero-art{min-width:0}.hero-art svg{width:100%;height:auto;display:block;background:#f4f7f3;border-radius:12px;border:1px solid #e5ebe3}
+.hero-art-note{font-size:11px;color:#819489;text-align:right;margin-top:8px}.hero-art-note i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#92af99;margin-right:7px}
+.svg-hero-label{font:11px -apple-system,'Noto Sans SC',sans-serif;fill:#789082}
+.reading-trail{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:19px 0 23px;color:#496650;font-size:12px;font-weight:700;border-bottom:1px solid var(--stroke2)}
+.reading-trail i{font-style:normal;color:#9bb3a0}.reading-trail small{margin-left:auto;color:#94a294;font-weight:450;font-size:11px}
+.content-layout{display:grid;grid-template-columns:minmax(0,760px) minmax(185px,1fr);gap:68px;align-items:start}
+.article{min-width:0}.essay-section{padding:48px 0 37px;border-bottom:1px solid var(--stroke2);scroll-margin-top:24px}
+.essay-section:first-child{padding-top:42px}.essay-section:last-child{border-bottom:0}
+.section-head{display:grid;grid-template-columns:39px minmax(0,1fr);gap:13px;align-items:start;margin-bottom:20px}
+.chapter-index{font-size:15px;line-height:1.6;color:#7c9c82;font-family:Georgia,serif;font-weight:700;letter-spacing:-.03em;padding-top:4px}
+.smalltitle{font-size:11px;color:#8c9b8f;font-weight:650;margin-bottom:6px;letter-spacing:.045em}
+.section-heading h2{font-size:clamp(23px,2.45vw,28px);line-height:1.45;letter-spacing:-.025em;font-weight:745;margin:0;color:#334b3b}
+.section-body{min-width:0;padding-left:52px}
+.section-body>p{margin:0 0 16px;color:var(--body);font-size:14.8px;line-height:1.98}
+.section-body>h3{font-size:17px;letter-spacing:-.008em;line-height:1.55;font-weight:745;margin:36px 0 16px;color:#415e49;scroll-margin-top:25px}
+.section-body>h3:first-child{margin-top:0}
+.section-body>ul{margin:15px 0 22px;padding-left:22px;color:var(--body);font-size:14.5px;line-height:1.95}
+.section-body>ul li{margin-bottom:8px}.section-body>ul li::marker{color:#91aa97}
+.table-scroller{width:100%;max-width:100%;margin:21px 0 23px;border:1px solid var(--stroke);border-radius:12px;overflow:auto;background:var(--paper)}
+.table-scroller table{border-collapse:collapse;width:100%;min-width:520px;font-size:12.6px;line-height:1.66;color:#54675a}
+.table-scroller th{font-weight:730;color:#557662;text-align:left;background:#f3f7f2;white-space:nowrap}
+.table-scroller td,.table-scroller th{border-bottom:1px solid #eaf0e8;padding:12px 14px;vertical-align:top}.table-scroller tr:last-child td{border-bottom:0}
+.table-scroller td:first-child{font-weight:630;color:#526d57}
+.method-note{display:grid;grid-template-columns:190px minmax(0,1fr);gap:15px;padding:16px 0 17px;border-top:1px solid #e4ebe3;align-items:start}
+.method-note:last-of-type{border-bottom:1px solid #e4ebe3}
+.method-index{display:inline-block;vertical-align:top;margin-right:9px;font:700 11px Georgia,serif;color:#9bb3a1}
+.method-name{font-size:13.7px;line-height:1.62;color:#476a54;font-weight:725}
+.method-description p{font-size:13px;line-height:1.88;margin:0 0 8px;color:#617368}.method-description p:last-child{margin:0}
+.section-body>h3+.method-note{margin-top:16px}
+.section-body .continuation{margin:27px 0 6px;padding:13px 15px;border-left:2px solid #bacdbb;background:#f7f9f6;border-radius:0 7px 7px 0;font-size:12.6px;color:#748476;line-height:1.85}
+.section-body .continuation em{font-style:normal}
+.essay-bridge{border-top:1px dashed #dbe6dc;margin:32px 0 0!important;padding:21px 0 0;color:#68806f!important}
+.constraint-row{margin:25px 0 4px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid #e3eae1;border-radius:11px;overflow:hidden;background:#fffefa}
+.constraint-row>div{padding:12px 16px;border-right:1px solid #e8eee7;border-bottom:1px solid #e8eee7;display:flex;align-items:baseline;gap:13px}
+.constraint-row>div:nth-child(even){border-right:0}.constraint-row>div:nth-last-child(-n+2){border-bottom:0}
+.constraint-row b{font-size:11px;color:#617e69;white-space:nowrap}.constraint-row span{font-size:12px;color:#809186}
+.diagram,.shape-strip,.topology,.taxonomy{margin:21px 0 28px;border:1px solid #e1e9e0;border-radius:13px;background:#fffefa;overflow:hidden}
+.diagram-title{display:flex;justify-content:space-between;align-items:baseline;gap:13px;flex-wrap:wrap;padding:14px 17px 10px;border-bottom:1px solid #f0f2ed}
+.diagram-title span{font-size:10px;letter-spacing:.055em;color:#86a08a;font-weight:800}.diagram-title b{font-size:12px;font-weight:730;color:#506c58}
+.diagram svg{display:block;width:100%;height:auto;max-height:310px;padding:8px 15px 4px}
+.diagram figcaption,.shape-strip figcaption,.topology figcaption,.taxonomy figcaption{padding:10px 16px 14px;color:#849388;font-size:11.5px;line-height:1.7}
+.svg-head{font:700 12px 'Noto Sans SC','PingFang SC',sans-serif;fill:#66806b}.svg-label{font:700 11px 'Noto Sans SC','PingFang SC',sans-serif;fill:#668674}.svg-txt{font:11px 'Noto Sans SC','PingFang SC',sans-serif;fill:#839588}
+.shape-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:15px 12px 7px;gap:6px}
+.shape-cell{display:grid;place-items:center;gap:4px;padding:4px 0 7px;border-right:1px solid #edf0e9}.shape-cell:last-child{border-right:none}
+.shape-cell svg{width:min(100%,100px);height:auto}.shape-cell span{font-size:11.5px;color:#66806e}
+.source-bar{margin:14px 16px 0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;text-align:center;padding:10px 12px;border:1px solid #dce6dc;border-radius:8px;background:#f5f8f4}
+.source-mark{font-size:9px;letter-spacing:.09em;color:#8ba891;font-weight:800}.source-bar strong{font-size:14px}.source-bar small{font-size:11px;color:#8a9b8e}
+.source-stem{height:19px;width:1px;background:#bbcdbd;margin:auto}.source-stem:after{content:'';display:block;border-bottom:1px solid #bbcdbd;width:75%;position:relative;left:-37.5%;top:19px}
+.topo-grid{margin:0 16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.topo-grid div{border:1px solid #e3eae1;border-radius:7px;padding:10px 6px 11px;text-align:center;background:#fffefa}
+.topo-grid span{display:block;font-size:10px;color:#9aa99a}.topo-grid b{display:block;font-size:12px;color:#547561;margin:3px 0 4px}.topo-grid small{display:block;font-size:9.3px;color:#a0aaa1;line-height:1.4}
+.topo-combine{text-align:center;padding:12px 16px 1px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;color:#5c8066}
+.topo-combine .topo-branch{font-size:11px}.topo-combine .topo-plus,.topo-combine .topo-arrow{color:#a6b9a9}
+.topo-rule{border:1px dashed #b9cbb9;border-radius:6px;padding:5px 9px;font-size:11px}
+.topo-combine strong{border-bottom:2px solid #84a78c;padding-bottom:2px;font-size:13px}
+.scenario-board{margin:20px 0 29px;border:1px solid #e1e9e0;border-radius:12px;background:#fffefa;overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:140px minmax(0,1fr) 136px;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid #eaf0e8;font-size:12px;line-height:1.58;color:#6b7a6e}
+.scenario-row:last-of-type{border-bottom:none}.scenario-name{display:flex;align-items:center;gap:8px;color:#4f6f59;font-weight:735}
+.scenario-dot{display:inline-block;width:9px;height:9px;border-radius:3px;background:#8ea997;flex-shrink:0}.dot-b{background:#a4b4ac}.dot-c{background:#b4a48b}.dot-d{background:#9ca5b3}
+.scenario-row b{color:#62836e;font-weight:690;font-size:11.5px}.scenario-board figcaption{padding:10px 15px 13px;font-size:11px;color:#849388;line-height:1.6}
+.taxonomy{margin-top:12px;padding-bottom:6px}.tax-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:8px;padding:10px 16px;align-items:start}
+.tax-index{font-size:10.5px;color:#72917a;font-weight:700;padding-top:6px}.tax-row>div{display:flex;flex-wrap:wrap;gap:7px}.tax-row b{font-size:11.5px;font-weight:600;border:1px solid #e0e9e0;background:#fafcf9;border-radius:5px;padding:5px 9px;color:#5b7863}
+.tax-join{font-size:10px;color:#9aada0;padding-left:142px;line-height:1.4}
+.side-nav{min-width:0;align-self:stretch;padding-top:31px}
+.side-sticky{position:sticky;top:28px;max-height:calc(100vh - 50px);overflow-y:auto;border-left:1px solid #dce5dc;padding-left:18px;scrollbar-width:thin}
+.side-title{display:flex;flex-direction:column;gap:2px;margin-bottom:15px;color:#839b87;letter-spacing:.08em;font-size:10px;font-weight:780}.side-count{letter-spacing:.01em;color:#adb8ac;font-size:10px;font-weight:500}
+.side-nav nav{display:flex;flex-direction:column;gap:0}
+.side-nav nav a{font-size:11.6px;color:#839086;line-height:1.58;display:grid;grid-template-columns:22px 1fr;gap:5px;align-items:baseline;padding:8px 0;transition:color .2s}
+.side-nav nav a.active{color:#416b4d;font-weight:700}.toc-index{font-family:Georgia,serif;color:#aac0ac;font-size:11px}
+.side-foot{margin-top:24px;color:#a0ada1;font-size:11px;line-height:1.85;padding-top:17px;border-top:1px dashed #e0e8de}
+.mobile-toc{display:none}
+#ch09 h3{border-bottom:1px solid #ecf0e9;padding-bottom:8px;margin-top:30px}
+#ch10 .section-body>p:last-of-type{margin-bottom:28px}
+.appendix-section .question-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}
+.question-item{border:1px solid var(--stroke);background:#fffefa;border-radius:9px;padding:14px 15px}.question-item p{font-size:12.6px;line-height:1.78;margin:0 0 7px;color:#67796a}.question-item p:last-child{margin:0}.question-item strong{color:#597a62}
+.appendix-jump{border:1px solid #d9e6db;border-radius:12px;background:#f6faf5;padding:20px 22px;margin:23px 0}
+.appendix-jump-eyebrow{color:#75947a;font-size:10px;font-weight:800;letter-spacing:.06em}
+.appendix-jump h2{font-size:17px;line-height:1.55;margin:8px 0}.appendix-jump p{font-size:12.7px;line-height:1.85;color:#657968;margin:0 0 13px}.appendix-jump a{font-size:12px;font-weight:750;color:#537b5b;border-bottom:1px solid #a9c0ab}
+.refs{font-size:11px;color:#9aa69b;line-height:1.9;margin:20px 0}.refs a{color:#718c78;text-decoration:underline;text-decoration-color:#c0d1c3}
+.back{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}.back a{border:1px solid #dbe6db;border-radius:7px;padding:9px 13px;background:#fffefa;color:#5c7e64;font-size:12px}
+.site-footer{border-top:1px solid #e4eae3;padding:25px 0 40px;color:#98a398;font-size:11px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.progress{position:fixed;z-index:50;left:0;top:0;width:0;height:2px;background:#739b7b;pointer-events:none}
+@media(max-width:1050px){.content-layout{grid-template-columns:minmax(0,1fr) 190px;gap:35px}.page{max-width:1000px}}
+@media(max-width:850px){.content-layout{display:block}.side-nav{display:none}.mobile-toc{display:block;border:1px solid #e2e9e0;border-radius:9px;margin:26px 0 0;background:#fffefa;padding:0 13px}.mobile-toc summary{cursor:pointer;font-size:12px;padding:10px 0;color:#668773;font-weight:700}.mobile-toc summary span{font-weight:400;color:#93a498;margin-left:9px}.mobile-toc nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;padding:3px 0 15px}.mobile-toc nav a{font-size:12px;color:#758a79}}
+@media(max-width:640px){.scenario-row{grid-template-columns:1fr;gap:4px;padding:11px 13px}.scenario-row b{font-size:11px}.page{padding:0 17px 55px}.nav-inner{padding:14px 17px;align-items:start}.nav-links{justify-content:flex-end;gap:6px 10px;font-size:10.5px}.brand{font-size:12px}.brand-mark{margin-right:4px}.hero{display:block;padding:35px 0 29px}.hero h1{font-size:clamp(29px,7vw,38px);margin:16px 0}.hero-intro{font-size:14px}.hero-art{margin-top:21px;max-width:430px}.hero-art svg{max-height:236px}.hero-meta{margin-top:16px}.hero-art-note{font-size:10px}.reading-trail{gap:7px 9px;padding:12px 0 15px;font-size:10px}.reading-trail small{display:block;width:100%;font-size:10px}.essay-section{padding:35px 0 28px}.essay-section:first-child{padding-top:28px}.section-head{grid-template-columns:28px 1fr;gap:7px;margin-bottom:16px}.chapter-index{font-size:13px}.section-heading h2{font-size:21px}.smalltitle{font-size:10px}.section-body{padding-left:0}.section-body>p{font-size:14px;line-height:1.88;margin-bottom:14px}.section-body>h3{font-size:16.5px;margin:29px 0 14px}.method-note{display:block;padding:13px 0}.method-name{font-size:13.5px;margin-bottom:7px}.method-description p{font-size:12.8px}.constraint-row{grid-template-columns:1fr}.constraint-row>div{border-right:none!important;border-bottom:1px solid #e8eee7!important}.constraint-row>div:last-child{border-bottom:0!important}.diagram,.topology,.shape-strip,.taxonomy{margin:17px 0 20px}.diagram-title{padding:11px 11px 10px}.diagram-title b{font-size:11px}.diagram-title span{font-size:9px}.diagram svg{padding:2px;max-height:none}.diagram figcaption,.shape-strip figcaption,.topology figcaption,.taxonomy figcaption{font-size:10.5px;padding:8px 12px 11px}.svg-txt{font-size:12px}.topo-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 10px;gap:6px}.topo-grid div:last-child{grid-column:1/-1}.topo-combine{gap:7px;font-size:11px}.source-bar{margin:12px 10px 0}.source-stem{height:14px}.source-stem:after{top:14px}.shape-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 5px}.shape-cell:nth-child(3){border-right:0}.shape-cell:nth-child(4),.shape-cell:nth-child(5){border-top:1px solid #edf0e9}.tax-row{grid-template-columns:1fr;gap:4px;padding:9px 12px}.tax-join{padding-left:13px}.table-scroller table{min-width:480px}.appendix-section .question-grid{grid-template-columns:1fr}.mobile-toc nav{grid-template-columns:1fr}.back{flex-direction:column}}
+@media print{.site-nav,.mobile-toc,.side-nav,.progress{display:none}.page{max-width:none}.content-layout{display:block}.hero{display:flex}.article{width:100%}.essay-section{break-inside:auto}.diagram,.method-note,.topology{break-inside:avoid}.table-scroller{overflow:visible}}
 
-.discovery{margin:23px 0 27px;border-left:3px solid #b3cbb5;background:#f3f7f0;padding:21px 25px;border-radius:0 15px 15px 0;color:#4b6654}.discovery b{color:#3f6950}.discovery p{margin:0 0 7px}.discovery p:last-child{margin-bottom:0}
-.reflect{display:flex;gap:18px;align-items:flex-start;margin:22px 0;padding:21px 23px;background:#f7f5ef;border:1px solid #eae5da;border-radius:14px}.reflect .mark{flex:0 0 auto;width:35px;height:35px;display:grid;place-items:center;border-radius:50%;background:#ede8dc;color:#9a855d;font-weight:800;font-size:17px}.reflect p{margin:0}
-.coreline{margin:27px 0;display:grid;grid-template-columns:1fr 40px 1fr;gap:10px;align-items:stretch}.coreline .cl{border-radius:14px;padding:20px;border:1px solid #dfe9df;background:#f6f9f5;text-align:center}.coreline .cl b{display:block;font-size:16px;color:#42674e}.coreline .cl span{display:block;margin-top:5px;font-size:12px;color:#77877a}.coreline .turn{display:grid;place-items:center;color:#82a087;font-size:27px}
-.reference-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0}.reference-map .refbox{border:1px solid #e2e9df;background:#fffefa;border-radius:14px;padding:20px}.reference-map .refbox:nth-child(2){background:#f6f9fc;border-color:#dfe7ef}.reference-map .refbox small{display:block;color:#7c967f;font-size:11px;letter-spacing:.07em}.reference-map .refbox b{font-size:15px;color:#415f4b}.reference-map .refbox p{font-size:12.5px;color:#728177;margin:7px 0 0;line-height:1.8}
-.factstrip{margin:22px 0;border:1px solid #e2e8df;border-radius:15px;overflow:hidden}.factstrip .frow{display:grid;grid-template-columns:130px 1fr;gap:18px;padding:15px 20px;background:#fffefa;border-bottom:1px solid #e8ede6}.factstrip .frow:nth-child(even){background:#f7f9f5}.factstrip .frow:last-child{border-bottom:none}.factstrip .frow b{font-size:13px;color:#496c55}.factstrip .frow span{font-size:13px;color:#65776b}
-.foot-insight{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:21px 0}.foot-insight>div{background:#f5f8f4;border:1px solid #e0e9dd;border-radius:12px;padding:17px;font-size:13px;color:#607466;line-height:1.8}.foot-insight b{display:block;color:#43614a;margin-bottom:6px}
-@media(max-width:640px){.reference-map,.foot-insight{grid-template-columns:1fr}.factstrip .frow{grid-template-columns:1fr;gap:2px}.coreline{grid-template-columns:1fr;gap:5px}.coreline .turn{transform:rotate(90deg)}.reflect{padding:17px 15px;gap:10px}}
+
+/* Q02 - a technical essay, sharing Q01 visual language */
+.hero-art svg{max-height:none}.section-body .lede{font-size:15px;line-height:1.93;color:#506957}
+.technical-figure{margin:23px 0 29px;padding:0;border:1px solid var(--stroke);background:var(--paper);border-radius:13px;overflow:hidden}
+.technical-figure .figure-bar{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 17px;border-bottom:1px solid var(--stroke2)}
+.technical-figure .figure-bar b{font-size:13px;color:#4e7259}.technical-figure .figure-bar span{font-size:10px;color:#9baa9b}
+.technical-figure svg{display:block;width:100%;height:auto;max-height:310px;padding:8px 12px 0}
+.technical-figure figcaption{padding:12px 17px 15px;border-top:1px solid #f0f2ef;color:#829487;font-size:11.5px;line-height:1.77}
+.technical-figure .figure-body{padding:18px 17px}
+.note-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:21px 0}
+.note-columns.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.note-columns .note{border:1px solid #e2eae0;background:#fffefa;border-radius:9px;padding:14px 15px}
+.note small{font-size:10px;color:#90a294;display:block;margin-bottom:6px}.note b{font-size:13px;color:#4d6c55;display:block;margin-bottom:5px}.note p{margin:0;color:#778779;font-size:12px;line-height:1.75}
+.compare-lane{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;border-top:1px solid #e6ece5;padding:13px 3px;align-items:start}
+.compare-lane:last-child{border-bottom:1px solid #e6ece5}
+.compare-lane .lane-key{font-size:11px;font-weight:700;color:#64836d;padding-top:2px}.compare-lane p{font-size:12.7px;line-height:1.83;margin:0;color:#6f8071}.compare-lane strong{font-size:13px}
+.pipeline{display:flex;align-items:stretch;gap:7px;padding:18px 16px;overflow-x:auto}.pipeline .unit{min-width:0;flex:1;border:1px solid #e0e9df;border-radius:9px;padding:12px 11px;background:#fbfdf9;text-align:center}.pipeline .unit b{display:block;font-size:12px;color:#54735b}.pipeline .unit span{display:block;font-size:10px;line-height:1.6;margin-top:5px;color:#8ca092}.pipeline .arr{align-self:center;color:#9db39f;font-size:20px}
+.route-list{margin:21px 0 26px;border:1px solid #e2eae1;border-radius:11px;overflow:hidden;background:var(--paper)}
+.route{display:grid;grid-template-columns:118px minmax(0,1fr) 122px;gap:15px;align-items:start;padding:14px 16px;border-bottom:1px solid #e8eee7}
+.route:last-child{border-bottom:0}.route strong{font-size:12.5px;color:#53755e}.route p{font-size:12.2px;line-height:1.8;color:#6d7d70;margin:0}.route small{font-size:11px;line-height:1.7;color:#839786}
+.micro-kicker{font-size:10px;color:#98a99a;letter-spacing:.06em;font-weight:740;margin-top:6px}
+.formula{font:16px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;text-align:center;padding:17px 8px;color:#51745c;overflow-x:auto;white-space:nowrap}
+.notice{margin:19px 0 22px;padding:13px 16px;border-left:2px solid #a9c1ad;background:#f6f9f5;border-radius:0 7px 7px 0;font-size:12.8px;line-height:1.84;color:#647769}.notice b{color:#476650}
+.reader-tip{color:#738875;font-size:12px;margin-top:8px}
+@media(max-width:680px){.note-columns,.note-columns.three{grid-template-columns:1fr 1fr}.route{grid-template-columns:1fr;gap:5px}.route small{margin-top:2px}.pipeline{gap:4px;padding:13px 9px}.pipeline .unit{min-width:92px}.compare-lane{grid-template-columns:92px 1fr}.technical-figure svg{padding:4px}.figure-bar{padding:10px 12px}}
+@media(max-width:440px){.note-columns,.note-columns.three{grid-template-columns:1fr}.pipeline{flex-wrap:wrap}.pipeline .unit{min-width:140px}.pipeline .arr{font-size:16px}}
+
+
+/* Q02: constraint-first research note, quiet information hierarchy */
+:root{--ink:#35483e;--paper:#fffefa}
+body{font-size:15px}
+.article{max-width:760px}
+.hero{padding-top:54px}
+.hero h1{font-size:clamp(32px,3.8vw,44px)}
+.hero-intro{font-size:15.2px}
+.section-body>p{font-size:14.3px;line-height:2.04}
+.section-body>h3{margin:28px 0 12px}
+.essay-section{padding:46px 0 35px}
+.method-note{grid-template-columns:42px minmax(0,1fr);gap:11px;padding:15px 0;border-top:1px solid #e5ebe4}
+.method-index{padding-top:3px;margin:0;font-size:11.5px;color:#839f89;font-family:ui-monospace,Consolas,monospace}
+.method-main .method-name{font-size:14px;line-height:1.65;margin-bottom:5px}
+.method-main p{font-size:12.6px;line-height:1.86;color:#647568;margin:4px 0 0}
+.method-main p strong{color:#496b53;font-weight:720}
+.table-scroller{box-shadow:none;background:#fffefa}
+.table-scroller th{background:#f5f8f3}
+.table-scroller td{vertical-align:top}
+.table-scroller b{color:#45684e}
+.scope-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:21px 0 24px}
+.scope-grid>div{padding:14px 15px;border:1px solid #e1e9de;background:#fffefa;border-radius:10px;display:flex;flex-direction:column;gap:5px}
+.scope-grid small{font-size:10px;color:#92a697;letter-spacing:.04em}
+.scope-grid strong{font-size:13.5px;color:#4f7358}
+.scope-grid span{font-size:11.6px;line-height:1.75;color:#798b7d}
+.reference-levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:22px 0}
+.reference-levels>div{position:relative;display:flex;flex-direction:column;border:1px solid #e3eae1;border-radius:11px;background:#fffefa;padding:14px 15px 15px;gap:3px;min-height:135px}
+.reference-levels small{color:#a1b2a4;font:700 11px ui-monospace,Consolas,monospace}
+.reference-levels b{font-size:13.5px;color:#466a51}
+.reference-levels span{font-size:12px;color:#647e6a}
+.reference-levels em{font-style:normal;font-size:11px;line-height:1.65;color:#929e92;margin-top:3px}
+.strip-note{display:grid;grid-template-columns:117px minmax(0,1fr);gap:15px;margin:20px 0;padding:15px 0;border-top:1px solid #e1e8df;border-bottom:1px solid #e1e8df}
+.strip-note strong{font-size:12px;line-height:1.7;color:#587861}
+.strip-note span{font-size:12.5px;line-height:1.85;color:#6c7d70}
+.learning-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:19px 0 25px}
+.learning-map>div{display:flex;flex-direction:column;padding:15px 11px;background:#f7faf7;border:1px solid #e0eade;border-radius:9px;gap:7px}
+.learning-map small{font-size:10px;color:#9eafa1}
+.learning-map b{font-size:12.5px;color:#52745c}
+.learning-map span{font-size:11px;color:#768878;line-height:1.6}
+.technical-figure{box-shadow:none}
+.technical-figure svg{width:100%;height:auto;max-width:100%;display:block}
+.section-body .notice{margin:20px 0}
+.section-body code{font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;background:#f0f4ef;color:#4f7057;padding:1px 4px;border-radius:3px}
+.formula{font-size:15px;color:#4d7356;border:1px solid #e2ebe0;border-radius:8px;background:#f7faf6}
+.refs a{word-break:break-word}
+@media(max-width:740px){.scope-grid,.reference-levels{grid-template-columns:repeat(2,minmax(0,1fr))}.learning-map{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.scope-grid,.reference-levels{grid-template-columns:1fr}.learning-map{grid-template-columns:1fr}.strip-note{grid-template-columns:1fr;gap:5px}.section-body>p{font-size:14px}.technical-figure svg{min-width:0}.hero{padding-top:32px}.method-note{grid-template-columns:40px minmax(0,1fr)}}
+@media print{.side-nav,.site-nav,.mobile-toc,.progress{display:none!important}.page{max-width:900px;padding:0 20px}.content-layout{display:block}.essay-section{break-inside:avoid}body{background:white}}
 </style></head><body>
-<header class="nav"><a class="brand" href="https://fishxddd.github.io/">🐟 沿途手记</a><div class="navlinks"><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">← Stage 01</a><a href="q01-geometry.html">上一篇 · Q01</a><a href="q02-known-reference-appendix.html">技术年表 ↗</a></div></header>
-<div class="layout"><main class="article">
-<header class="hero"><div class="eyebrow">STAGE 01 · Q02 / KNOWN REFERENCE</div><h1>如果物体的形状，<br>本来就知道呢？</h1><p class="intro">在 Q01 里，我试着从现场点云量出位置、方向和表面。后来想到：如果这只瓶子、这个工件的形状本来就已知，我是不是不用每次从眼前这一小片点云重新猜？</p><div class="meta"><span>2026.10 · 探索手记</span><span>已知参考 / 对应 / 6D Pose</span><span>重点是发现思路，而不是列算法</span></div></header>
-<section id="start"><div class="smalltitle">起点 / 一个自然的念头</div><h2>既然形状早就知道，能不能直接在现场找到它？</h2>
-<p>Q01 的几何测量让我挺兴奋：原来不需要复杂的模型，只靠深度数据，也能量出很多有意思的东西。但反过来想，现场看见的物体往往只有一部分表面。如果我已经知道它的完整形状，何必把每一帧都当成一件从没见过的物体？</p>
-<p>于是换了一种想法：<strong>先有一个参考物体，再去现场寻找与它相符的那一份观测。</strong>这听着似乎只是“比一比形状”，后来才发现，背后是一整套很成熟的位姿估计问题。</p>
-<div class="story"><div class="tag">当时冒出来的念头</div><p>我不一定非要从零推测物体的轴线。如果能够知道“这个参考物体在相机下怎么摆着”，那么它的位置、朝向，以及参考模型上已知的几何关系，就一起有了空间依据。</p></div>
-<figure class="sketch"><div class="figtitle">我想做的事情，起初其实只有这么简单</div><svg role="img" aria-label="左侧已知参考三维几何，中间是相机观测的局部点云，右侧为找到变换后的对齐结果" viewBox="0 0 690 205">
-<defs><marker id="m2arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#86aa91"/></marker></defs>
-<g transform="translate(15 15)"><rect width="188" height="158" rx="15" fill="#f6f9f4" stroke="#dce6db"/><g stroke="#739f7f" stroke-width="1.6" fill="none" transform="translate(33 18)"><path d="M38 45 L87 28 L135 51 L88 71 Z M38 45 L38 103 L87 128 L87 71 M87 128 L135 103 L135 51"/><path d="M38 103 L88 82 L135 103" stroke-dasharray="3 5" opacity=".45"/></g><text x="94" y="149" text-anchor="middle" font-size="12" fill="#65816b">已知参考形状</text></g>
-<path d="M211 94 H238" stroke="#8cae94" stroke-width="1.8" marker-end="url(#m2arr)"/><g transform="translate(244 15)"><rect width="196" height="158" rx="15" fill="#f7f9fb" stroke="#dfe7ee"/><g fill="#7a9eaa" transform="translate(0 0)"><circle cx="65" cy="45" r="3"/><circle cx="76" cy="40" r="3"/><circle cx="87" cy="36" r="3"/><circle cx="99" cy="35" r="3"/><circle cx="113" cy="40" r="3"/><circle cx="125" cy="47" r="3"/><circle cx="131" cy="59" r="3"/><circle cx="134" cy="73" r="3"/><circle cx="137" cy="87" r="3"/><circle cx="115" cy="93" r="3"/><circle cx="99" cy="98" r="3"/><circle cx="81" cy="101" r="3"/><circle cx="69" cy="93" r="3"/><circle cx="58" cy="82" r="3"/><circle cx="55" cy="66" r="3"/><circle cx="78" cy="57" r="3"/><circle cx="91" cy="52" r="3"/><circle cx="100" cy="68" r="3"/><circle cx="112" cy="73" r="3"/></g><text x="98" y="149" text-anchor="middle" font-size="12" fill="#65816b">现场的部分点云</text></g>
-<path d="M448 94 H471" stroke="#8cae94" stroke-width="1.8" marker-end="url(#m2arr)"/><g transform="translate(477 15)"><rect width="197" height="158" rx="15" fill="#faf7ef" stroke="#ece5d5"/><g transform="translate(34 29) rotate(-14 67 48)"><path d="M32 24 L84 19 L128 50 L72 59 Z M32 24 L32 86 L72 110 L72 59 M72 110 L128 83 L128 50" fill="#eef4ea" stroke="#89a990" stroke-width="1.7"/><path d="M64 18 L80 11 L97 16 M28 28 L30 67 M78 110 L101 100" stroke="#b98b61" stroke-width="2.1" stroke-linecap="round"/></g><text x="98" y="149" text-anchor="middle" font-size="12" fill="#65816b">参考和现场对齐</text></g>
-<text x="344" y="198" font-size="11" fill="#8a978b" text-anchor="middle">概念示意：测量的是参考到现场的变换；实际匹配并不会如此整齐。</text></svg><figcaption>已知形状 ≠ 已知现场位置。真正想找到的是把参考坐标系放到相机坐标系里的那个变换。</figcaption></figure>
-</section>
-<section id="correspondence"><div class="smalltitle">发现 01 / 原来“对齐”有数学答案</div><h2>两组对应的三维点，竟然可以直接求出变换。</h2>
-<p>顺着“把两个形状放到一起”的想法去看 Registration，第一件让我印象很深的事是：<strong>假如知道参考点和现场点谁对应谁，求旋转和平移竟然能化成一个很规整的数学问题。</strong></p>
-<p>像 Kabsch、Arun、Horn 这类经典方法，会从已知的 3D–3D 对应关系里求刚体变换。有些方法使用 SVD，有些使用四元数。最初看到时，我才真正意识到：我们不是“猜一个旋转角度再试试看”，而是直接利用空间点之间的几何一致性。</p>
-<div class="discovery"><b>很重要的一次认知更新</b><p>原来“知道怎么配对”和“知道怎么对齐”是两件事。后者已经有很漂亮的解析或闭式求解；最麻烦的部分，往往是前者。</p></div>
-<div class="coreline"><div class="cl"><b>对应已知</b><span>模型点 A ↔ 现场点 a<br>模型点 B ↔ 现场点 b</span></div><div class="turn">→</div><div class="cl"><b>直接求 R、t</b><span>让成对的点尽量重合<br>得到参考的空间姿态</span></div></div>
-<p class="mild">但一个现实问题很快就显露出来：深度相机给我的是两片点云，不会自动告诉我哪个点应该配给哪个点。这不是数学求解失败，而是<strong>输入条件还没有满足</strong>。</p>
-</section>
-<section id="icp"><div class="smalltitle">发现 02 / 一种很巧妙的办法</div><h2>原来 ICP 会一边找对应，一边慢慢把点云对齐。</h2>
-<p>接着认识 ICP（Iterative Closest Point），感觉很巧妙。它并不要求我提前手动把每个点配好：可以从当前姿态出发，先找附近的对应点，再估计一次变换，然后继续更新。</p>
-<div class="sketch"><div class="figtitle">ICP 的直觉：找近邻 → 估计变换 → 再找近邻</div><svg role="img" aria-label="ICP 迭代配准的三步示意" viewBox="0 0 690 155"><defs><marker id="m2b" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#91af96"/></marker></defs><g font-size="12" text-anchor="middle"><rect x="5" y="16" width="208" height="112" rx="13" fill="#f5f9f6" stroke="#dfe8dd"/><rect x="242" y="16" width="208" height="112" rx="13" fill="#f6f8fa" stroke="#dce6ed"/><rect x="479" y="16" width="206" height="112" rx="13" fill="#faf7f0" stroke="#eee5d7"/><text x="110" y="53" fill="#426951" font-size="17" font-weight="700">① 寻找近邻</text><text x="110" y="83" fill="#6e806f">按当前姿态配点</text><text x="347" y="53" fill="#52758c" font-size="17" font-weight="700">② 求变换</text><text x="347" y="83" fill="#718293">让残差变小</text><text x="582" y="53" fill="#a07a4e" font-size="17" font-weight="700">③ 更新位置</text><text x="582" y="83" fill="#8a7f70">继续迭代收敛</text></g><path d="M216 71 H239 M453 71 H476" stroke="#92ae99" stroke-width="2" marker-end="url(#m2b)"/><text x="346" y="148" fill="#929f90" font-size="11" text-anchor="middle">前提：初始姿态需要足够接近正确解，且匹配关系可靠。</text></svg></div>
-<p>原来<strong>点到点（Point-to-Point）</strong>之外，还能用<strong>点到平面（Point-to-Plane）</strong>的误差；后来 GICP 又把局部表面结构和噪声考虑得更多。这些方法是在配准准则与建模上分化，不是简单的“ICP 1、2、3 代”。</p>
-<div class="reflect"><span class="mark">!</span><p>不过我也不该误解它的能力：<strong>ICP 很擅长把“已经比较接近的两份点云”对得更准，却不等于可以在任意大场景里凭空找出那个物体。</strong>这条边界要牢牢记住。</p></div>
-</section>
-<section id="global"><div class="smalltitle">发现 03 / 原来还有另一套想法</div><h2>要是完全不知道物体在哪，原来也有办法去找。</h2>
-<p>更有意思的发现，是 Global Registration 与 3D Object Recognition。我原本把配准想成“放在差不多的位置，再慢慢对齐”。但已有研究还在尝试另一件事：<strong>在初始姿态未知时，先找到可能的匹配位置。</strong></p>
-<p>PPF（Point Pair Feature）特别直观：利用参考物体和现场点云里两点之间的距离、法线夹角等几何关系，累积支持某个姿态的证据。原来不一定先知道单个点的精确对应，也可以通过<strong>局部几何之间的相对关系来投票寻找物体</strong>。</p>
-<div class="reference-map"><div class="refbox"><small>几何关系 / 投票</small><b>PPF</b><p>把点对间不易受刚体摆放影响的几何关系，当成识别和粗定位的线索。适合已知模型、杂乱场景中的候选位姿搜索。</p></div><div class="refbox"><small>整体一致 / 粗对齐</small><b>4PCS · FGR · Robust Registration</b><p>有的方法寻找几何一致的点集，有的方法利用候选对应做鲁棒优化。目标相近，依赖的输入和假设并不一样。</p></div></div>
-<p>看到这里才发现，所谓“全局匹配”不是一种万能算法。PPF 偏重从场景中识别已知模型，4PCS 关注几何共形关系，FGR、TEASER++ 更重视已有候选对应中的一致性与鲁棒估计。<strong>它们是几条不同的思路，而不是同一个算法的下一版本。</strong></p>
-</section>
-<section id="other"><div class="smalltitle">发现 04 / 对应关系不一定都来自点云</div><h2>如果我看到了模型上的特征点，原来还能直接从图像求 Pose。</h2>
-<p>了解参考模型后，我以前容易默认：既然是三维物体，那就一定要准备两份三维点云。接触 PnP（Perspective-n-Point）之后，才发现这个前提太窄了。</p>
-<p>如果参考模型上某些<strong>三维点</strong>能和图像里的<strong>像素位置</strong>可靠对应，再结合相机内参，就能估计参考物体相对相机的姿态。EPnP 便是这类求解问题中的经典代表；当图像对应有错时，通常还要引入 RANSAC 这类鲁棒机制。</p>
-<div class="reference-map"><div class="refbox"><small>3D ↔ 3D</small><b>点云 / 空间点对应</b><p>使用成对三维坐标求刚体变换；对应未知时，需要建立匹配或执行配准。</p></div><div class="refbox"><small>3D ↔ 2D</small><b>PnP / 图像特征点对应</b><p>使用模型三维点与图像像素、相机内参求姿态；重点转向可辨识的 2D–3D 对应。</p></div></div>
-<p class="mild">这不是“PnP 比点云配准更高级”，而是另一种观测条件下的求解方式。有没有深度、是否有纹理或明显特征、匹配是否可靠，都会改变选择。</p>
-</section>
-<section id="map"><div class="smalltitle">回头看 / 一张知识地图</div><h2>原来已知参考求 Pose，真正要先看的是手里有什么。</h2>
-<p>几种方法放在一起，最有收获的是终于弄清楚了“已知模型”下面，还藏着非常不同的输入条件。</p>
-<div class="factstrip"><div class="frow"><b>已经知道 3D–3D 对应</b><span>Kabsch / Arun / Horn：直接求刚体变换；匹配可靠程度决定解的可信度。</span></div><div class="frow"><b>点云已大致对齐</b><span>ICP / Point-to-Plane / GICP：沿局部几何误差继续精化；不替代全局定位。</span></div><div class="frow"><b>初始姿态未知</b><span>PPF / 4PCS / 特征匹配 + RANSAC / FGR：先寻找候选；不同方法有不同的对应与重叠前提。</span></div><div class="frow"><b>可靠 3D–2D 对应</b><span>PnP / EPnP：结合相机内参，直接从参考点与图像像素估计姿态。</span></div></div>
-<div class="foot-insight"><div><b>已经知道形状 ≠ 已经有对应</b>配准算法的输入假设必须仔细读。尤其要区分“候选对应已知”和“只知道有一份参考模型”。</div><div><b>算出姿态 ≠ 姿态一定唯一</b>对称物体、遮挡、模型与实物不符都可能产生不止一个看起来合理的解。</div></div>
-</section>
-<div class="end"><div class="smalltitle">这一站 / 写给之后的自己</div><h2>我不再只盯着现场点云了。</h2><p>最有意思的收获，是开始理解“已知参考”能把问题变成什么样子：它让物体位姿不必完全从当下的局部形状猜测出来；但也让我认识到，真正重要的是<strong>参考、观测、对应、初值</strong>能否衔接起来。</p><p>这次先把最核心的几种思想记下来就好。以后真要选型，再看点云质量、遮挡和对称性，远比背一长串算法名字更有意义。</p><div class="smile">原来“把一个已知物体找出来”，本身就是一门很有意思的学问。</div></div>
-<div class="appendix-jump"><div class="appendix-jump-eyebrow">延伸阅读 / 技术里程碑</div><h2>这些经典方法，<br>后来是怎样发展成不同路线的？</h2><p>正文只记录遇见这些思想时的发现。附录按已知对应、局部精配准、全局匹配和 2D–3D 求解分别梳理有价值的里程碑，不把论文排成一条假想的继承链。</p><a href="q02-known-reference-appendix.html">翻开附录 · 已知参考位姿估计技术里程碑 →</a></div>
-<div class="refs"><a href="https://www.open3d.org/docs/latest/tutorial/pipelines/icp_registration.html" target="_blank" rel="noopener">Open3D · ICP</a><a href="https://www.open3d.org/docs/latest/tutorial/pipelines/global_registration.html" target="_blank" rel="noopener">Open3D · Global Registration</a><a href="https://www.mvtec.com/doc/halcon/2305/en/find_surface_model.html" target="_blank" rel="noopener">HALCON · Surface-Based Matching</a></div>
-<nav class="back"><a href="q01-geometry.html">← Q01 · 点云几何探索</a><a href="q02-known-reference-appendix.html">Q02 · 技术里程碑附录 →</a></nav>
-<footer class="footer">沿途手记 · Research notes / Stage 01　·　这里是对技术思路的整理，不代表所有方法均已完成实测。</footer>
-</main><aside class="side"><div class="inside"><small>这篇手记</small><a href="#start">一个自然的念头</a><a href="#correspondence">发现刚体求解</a><a href="#icp">发现 ICP</a><a href="#global">认识全局匹配</a><a href="#other">认识 PnP</a><a href="#map">留下技术地图</a></div></aside></div></body></html>
+<div class="progress" id="readingProgress"></div>
+<header class="site-nav"><div class="nav-inner"><a class="brand" href="https://fishxddd.github.io/"><span class="brand-mark">✳</span>沿途手记</a>
+<nav class="nav-links"><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">← Stage 01</a><a href="q01-geometry.html">上一篇 · Q01</a><a href="q02-known-reference-appendix.html">技术年表 ↗</a></nav></div></header>
+<div class="page"><header class="hero"><div class="hero-copy"><div class="eyebrow"><span class="tiny-line"></span>STAGE 01 / Q02 · KNOWN REFERENCE</div>
+<h1>参考信息已知，<br/><em>哪些条件下才能求出 Pose？</em></h1>
+<p class="hero-intro">有模型不代表有位姿。先确认参考、观测、对应与初值，再决定使用哪种求解路线。这一篇把几类方法放回各自成立的条件中，而不是按算法名称排队。</p>
+<div class="hero-meta"><span>2026.10 · 技术研究笔记</span><span>Known Reference / 6D Pose</span><span>约束 → 方法 → 验证</span></div></div>
+<div aria-hidden="true" class="hero-art"><svg viewbox="0 0 360 275"><defs><pattern height="23" id="g" patternunits="userSpaceOnUse" width="23"><path d="M23 0H0V23" fill="none" stroke="#e8eee7"></path></pattern><marker id="ma" markerheight="5" markerwidth="5" orient="auto" refx="8.5" refy="5" viewbox="0 0 10 10"><path d="M0 0L10 5L0 10" fill="none" stroke="#7c9b84" stroke-width="1.6"></path></marker></defs><rect fill="url(#g)" height="275" width="360"></rect>
+<g fill="#edf4eb" stroke="#98b4a1" stroke-width="1.7"><path d="M47 92L100 69L144 90L91 112Z"></path><path d="M47 92v86l44 22v-88Z"></path><path d="M91 112v88l53-23V90Z"></path></g><g fill="#eaf3f5" stroke="#8ca29b" stroke-width="1.7"><path d="M229 116L285 84L325 107L269 139Z"></path><path d="M229 116v82l40 22v-81Z"></path><path d="M269 139v81l56-25v-88Z"></path></g>
+<g stroke="#a9bcae" stroke-dasharray="4 5" stroke-width="1.4"><path d="M100 69L285 84"></path><path d="M47 92L229 116"></path><path d="M144 90L325 107"></path><path d="M91 200L269 220"></path></g>
+<g fill="#698671" font-family="sans-serif" font-size="11"><text x="49" y="53">参考坐标系 O</text><text x="237" y="64">相机观测 C</text></g>
+<path d="M174 147L218 147" marker-end="url(#ma)" stroke="#759881" stroke-width="2"></path><text fill="#63816c" font-size="12" font-weight="700" x="168" y="136">R, t</text><text fill="#8b9b8e" font-size="11" x="176" y="247">参考 → 现场 · 求一个空间变换</text>
+</svg><div class="hero-art-note"><i></i> 参考信息不是 Pose，本页研究的是如何把两者接起来</div></div></header>
+<div class="reading-trail"><span>参考信息</span><i>→</i><span>观测与对应</span><i>→</i><span>可用求解路线</span><i>→</i><span>Pose 验证</span><small>条件优先 · 算法可组合</small></div>
+<details class="mobile-toc"><summary>本页目录 <span>展开 / 折叠</span></summary><nav><a href="#ch00"><span class="toc-index">00</span>已知参考，并不等于已知 Pose</a><a href="#ch01"><span class="toc-index">01</span>先列条件，再谈算法</a><a href="#ch02"><span class="toc-index">02</span>五条几何主线，一组横向求解工具</a><a href="#ch03"><span class="toc-index">03</span>只有尺寸，也可能足够求位姿</a><a href="#ch04"><span class="toc-index">04</span>对应点已知，直接求 R 与 t</a><a href="#ch05"><span class="toc-index">05</span>PnP 与平面参考：先有 3D–2D 对应</a><a href="#ch06"><span class="toc-index">06</span>ICP、PPF、FGR 要按“已知什么”分层</a><a href="#ch07"><span class="toc-index">07</span>没有稳定关键点，还能匹配轮廓和渲染</a><a href="#ch08"><span class="toc-index">08</span>学习式方法放进哪一层，才比较清楚</a><a href="#ch09"><span class="toc-index">09</span>能返回 Pose，不代表 Pose 已被唯一确定</a><a href="#ch10"><span class="toc-index">10</span>同一个任务有哪些真正成立的路线？</a><a href="#ch11"><span class="toc-index">11</span>把约束写清楚，技术路线才有选择依据</a></nav></details>
+<div class="content-layout"><main class="article"><section class="essay-section" id="ch00">
+      <div class="section-head"><div class="chapter-index">00</div>
+      <div class="section-heading"><div class="smalltitle">研究边界 / 先让问题成立</div><h2>已知参考，并不等于已知 Pose</h2></div></div>
+      <div class="section-body">
+<p>Q01 的起点是“手里只有现场点云，能量出哪些空间约束”。Q02 换了一个前提：<strong>物体的某些参考信息事先已知</strong>。已知的是一组尺寸、一张标定过的平面、几处三维关键点，还是完整 CAD？它们能够提供的约束并不相同。</p>
+<p>因此，这里先不按 ICP、PPF、PnP 这样的算法名称分类。先问清楚<strong>参考从哪里来、现场能观测到什么、两者如何建立对应</strong>，再选求解器。没有这些约束，算法清单再长，也无法形成可靠的技术路线。</p>
+<div class="scope-grid">
+  <div><small>任务约定</small><strong>单次抓取 · 固定两指夹爪</strong><span>抓法已提前决定，求空间 Pose，不自主生成新抓法</span></div>
+  <div><small>观测边界</small><strong>单视角 RGB-D</strong><span>相机标定已知；具体方法可只用 RGB 或三维点</span></div>
+  <div><small>对象边界</small><strong>已知参考的刚体</strong><span>主要研究实例级参考，变形与类别泛化另论</span></div>
+  <div><small>模型边界</small><strong>不额外做重建</strong><span>CAD、模板、参考点可事先存在；不为当次求解临时重建</span></div>
+</div>
+<h3>需要的输出究竟是什么？</h3>
+<p>先约定模型坐标系 <code>O</code> 和相机坐标系 <code>C</code>。Q02 的主要结果是 <code>ᶜTₒ</code>，即<strong>把物体参考坐标系里的点变换到相机坐标系</strong>的刚体变换。若抓取方式已表示为 <code>ᵒT𝗴</code>，则有：</p>
+<div class="formula">ᶜT𝗴 = ᶜTₒ · ᵒT𝗴</div>
+<p>这里不需要算法直接理解夹爪。它只需要正确求出参考模型与现场观测之间的空间关系。对于对称物体，可能只得到任务等价的若干姿态，而不一定是唯一姿态。</p>
+</div>
+    </section><section class="essay-section" id="ch01">
+      <div class="section-head"><div class="chapter-index">01</div>
+      <div class="section-heading"><div class="smalltitle">约束矩阵 / 最重要的一页</div><h2>先列条件，再谈算法</h2></div></div>
+      <div class="section-body">
+<p>“已知物体”容易被说成一个条件，但它实际上包含许多独立维度。以下几项必须同时检查，不能只根据是否有 CAD 选择算法。</p>
+<div class="table-scroller"><table><thead><tr><th>约束</th><th>必须问清楚</th><th>它决定什么</th></tr></thead><tbody><tr><td><b>C1 · 参考信息</b></td><td>只有长宽高、若干 3D 点、参考表面、CAD 网格，还是带位姿的参考视图？</td><td>几何模型及其坐标系是否可用</td></tr><tr><td><b>C2 · 现场观测</b></td><td>RGB、深度、目标点云、Mask、边缘或已提取特征，具体有什么？</td><td>可以观测的量与匹配空间</td></tr><tr><td><b>C3 · 对应关系</b></td><td>对应点已确认、只有候选，还是根本没有？</td><td>能否直接求变换，或必须先找匹配</td></tr><tr><td><b>C4 · 位姿先验</b></td><td>已粗对齐、已知搜索区域，还是位置姿态完全未知？</td><td>局部优化还是全局搜索</td></tr><tr><td><b>C5 · 可观测性</b></td><td>遮挡、共面、对称与重复结构是否使某些自由度不可区分？</td><td>解能否唯一、是否稳定</td></tr><tr><td><b>C6 · 标定与尺度</b></td><td>K/D、深度 scale、参考模型单位、相机与模型坐标定义是否可靠？</td><td>结果是否为正确的度量位姿</td></tr><tr><td><b>C7 · 实例范围</b></td><td>目标已经定位、同类对象很多，还是要从混杂场景搜索？</td><td>是否需要实例检测与候选验证</td></tr></tbody></table></div>
+<div class="strip-note"><strong>先分清缺的是信息还是算法。</strong><span>如果已知模型点和观测像素的对应关系，问题可能已经是 PnP；若没有对应、没有可辨识纹理或轮廓，单独调用 PnP 并不会解决“点从哪里来”。</span></div>
+<h3>参考信息至少有四种层次</h3>
+<div class="reference-levels">
+ <div><small>R1</small><b>参数化形状</b><span>盒体长宽高、圆柱半径等</span><em>可建立形状约束，不等于拥有完整可配准模型</em></div>
+ <div><small>R2</small><b>度量关键点</b><span>角点、孔心、特征点 3D 坐标</span><em>可供 PnP 或已知 3D 对应求解</em></div>
+ <div><small>R3</small><b>三维表面 / CAD</b><span>Mesh、点云、法线或可渲染几何</span><em>可做表面配准与模型投影匹配</em></div>
+ <div><small>R4</small><b>参考图像 / 视图</b><span>带标定、尺度或空间关系的模板</span><em>要确认是否真正拥有度量三维参考</em></div>
+</div>
+<p>R1～R4 表示<strong>参考类型而不是技术等级</strong>。模型信息越多，并不保证观测就越容易配准；例如无纹理且高度对称的 CAD，仍可能存在姿态歧义。</p>
+</div>
+    </section><section class="essay-section" id="ch02">
+      <div class="section-head"><div class="chapter-index">02</div>
+      <div class="section-heading"><div class="smalltitle">分类方法 / 把不同层级分开</div><h2>五条几何主线，一组横向求解工具</h2></div></div>
+      <div class="section-body">
+<p>如果直接把 ICP、PnP、PPF、LINEMOD 放在同一排，会混淆三个问题：<strong>用了什么参考、怎么建立几何约束、如何优化或搜索</strong>。</p>
+<figure class="technical-figure"><div class="figure-bar"><b>技术关系不是一条算法排行榜</b><span>几何关系示意 · 非实测数据</span></div><div class="figure-body"><svg viewBox="0 0 690 260" role="img" aria-label="三层求解结构：约束输入、几何关系、求解机制" xmlns="http://www.w3.org/2000/svg">
+<rect x="8" y="7" width="674" height="50" rx="9" fill="#f3f7f1" stroke="#dce8db"/>
+<text x="345" y="27" text-anchor="middle" fill="#41664c" font-size="14" font-weight="700">第 1 层 · 约束输入</text>
+<text x="345" y="45" text-anchor="middle" fill="#758d7b" font-size="11">参考类型 × 观测类型 × 对应 × 初值 × 可观测性</text>
+<path d="M345 58V77" stroke="#a6bbaa" stroke-width="2"/><path d="M341 72L345 78L349 72" fill="none" stroke="#a6bbaa"/>
+<g font-size="11" text-anchor="middle">
+<rect x="8" y="84" width="122" height="68" rx="8" fill="#fffefa" stroke="#dfe7dd"/><text x="69" y="103" fill="#557961" font-weight="700">A 参数形状</text><text x="69" y="125" fill="#78877d">尺寸 + 点云</text>
+<rect x="142" y="84" width="122" height="68" rx="8" fill="#fffefa" stroke="#dfe7dd"/><text x="203" y="103" fill="#557961" font-weight="700">B 3D–3D</text><text x="203" y="125" fill="#78877d">三维对应点</text>
+<rect x="276" y="84" width="122" height="68" rx="8" fill="#fffefa" stroke="#dfe7dd"/><text x="337" y="103" fill="#557961" font-weight="700">C 3D–2D</text><text x="337" y="125" fill="#78877d">模型点 + 像素</text>
+<rect x="410" y="84" width="122" height="68" rx="8" fill="#fffefa" stroke="#dfe7dd"/><text x="471" y="103" fill="#557961" font-weight="700">D 表面</text><text x="471" y="125" fill="#78877d">参考 + 现场曲面</text>
+<rect x="544" y="84" width="138" height="68" rx="8" fill="#fffefa" stroke="#dfe7dd"/><text x="613" y="103" fill="#557961" font-weight="700">E 投影</text><text x="613" y="125" fill="#78877d">模型 + 图像证据</text>
+</g>
+<text x="345" y="172" font-size="11" text-anchor="middle" fill="#849789">第 2 层 · 几何约束来源（可组合，不是五个互斥求解器）</text>
+<path d="M345 179V192" stroke="#a6bbaa" stroke-width="2"/>
+<rect x="8" y="197" width="674" height="57" rx="8" fill="#eff4f5" stroke="#dce7e7"/>
+<text x="345" y="217" font-size="14" text-anchor="middle" fill="#486d7d" font-weight="700">第 3 层 · 求解机制</text>
+<text x="345" y="238" font-size="11" text-anchor="middle" fill="#71858b">解析 / 最小二乘 · 鲁棒估计 · 全局搜索 · 局部精化 · 学习式特征与位姿</text>
+</svg></div><figcaption>A～E 是参考与观测如何形成约束的五种主线；学习式方法可为多条路线提供对应、候选、评分或精化。</figcaption></figure>
+<div class="route-list">
+ <div class="route"><strong>A · 参数形状</strong><p>尺寸或形状参数 + 三维观测 → 通过几何约束拟合位置、方向与尺度。</p><small>盒体、圆柱等</small></div>
+ <div class="route"><strong>B · 3D–3D 对应</strong><p>已知空间点对应 → 直接估计 R、t；如果对应有误，再引入鲁棒估计。</p><small>Kabsch / Horn</small></div>
+ <div class="route"><strong>C · 3D–2D 对应</strong><p>模型点及其图像像素 + K/D → 按投影几何恢复 R、t。</p><small>PnP / IPPE</small></div>
+ <div class="route"><strong>D · 3D 表面匹配</strong><p>参考表面 + 现场表面 → 全局找候选或在已知初值附近精化。</p><small>PPF / ICP 等</small></div>
+ <div class="route"><strong>E · 投影/轮廓匹配</strong><p>可投影的度量模型 + 标定图像 → 对齐轮廓、梯度、渲染证据。</p><small>LINEMOD / 渲染</small></div>
+</div>
+<div class="notice"><b>横向能力 · 学习式估计</b>　学习式关键点、对应匹配、候选排序和姿态精化可插入 B～E；是否端到端预测并不改变参考和现场必须提供足够约束的事实。</div></div>
+    </section><section class="essay-section" id="ch03">
+      <div class="section-head"><div class="chapter-index">03</div>
+      <div class="section-heading"><div class="smalltitle">路线 A / 形状参数已经明确</div><h2>只有尺寸，也可能足够求位姿</h2></div></div>
+      <div class="section-body">
+<p>如果只知道一个盒子的长、宽、高，而现场有深度点云，可以利用正交面、尺寸和可见范围约束估计盒体位置。这与“已经拥有一份可做 ICP 的参考点云”不是同一前提。</p>
+<div class="method-note"><div class="method-index">A1</div>
+      <div class="method-main"><div class="method-name">盒体尺寸 + 平面约束</div>
+      <p>从现场寻找平面与边界，并把已知长宽高、正交性和可见面关系共同放进位姿求解。</p><p><strong>成立条件：</strong>尺寸具有物理尺度；物体近似刚性盒体；至少有足以约束所需自由度的可见几何或摆放先验。</p><p><strong>代价与检查：</strong>对只见一个无纹理平面的情形，不可自动区分所有旋转与隐藏面；可能存在镜像/对称候选。</p></div></div><div class="method-note"><div class="method-index">A2</div>
+      <div class="method-main"><div class="method-name">圆柱 / 球 / 规则基元</div>
+      <p>使用已知半径、长度或结构参数，从部分表面拟合几何参数与对象参考系。</p><p><strong>成立条件：</strong>对象符合相应参数化模型，部分可见表面足以支持估计。</p><p><strong>代价与检查：</strong>拟合残差小不等于每个旋转可观测；理想圆柱绕轴转角、球体全部朝向具有对称歧义。</p></div></div>
+<p>工业实现可参考 HALCON 的 <code>3D Box Finder</code>：已知盒体尺寸，现场提供三维数据，就可以进行盒体定位，而不要求先给出完整 CAD。它证明“已知参数”本身就能构成独立的求解路线。</p>
+<div class="strip-note"><strong>与 Q01 的边界：</strong><span>Q01 是从现场点云本身量几何；Q02 的 A 类额外允许使用事先确定的尺寸、正交性或基元参数来补足约束。</span></div>
+</div>
+    </section><section class="essay-section" id="ch04">
+      <div class="section-head"><div class="chapter-index">04</div>
+      <div class="section-heading"><div class="smalltitle">路线 B / 三维对应已明确</div><h2>对应点已知，直接求 R 与 t</h2></div></div>
+      <div class="section-body">
+<p>当模型中的点 <code>pᵢ</code> 与相机观测到的三维点 <code>qᵢ</code> 已经一一对应时，问题就不再是“怎么找对象”，而是求一组满足 <code>qᵢ ≈ R pᵢ + t</code> 的刚体变换。</p>
+<div class="formula">min Σ ‖R pᵢ + t − qᵢ‖²，且 RᵀR = I，det(R)=1</div>
+<div class="method-note"><div class="method-index">B1</div>
+      <div class="method-main"><div class="method-name">Kabsch / Arun（SVD）</div>
+      <p>去中心化两组对应点，用协方差的奇异值分解求旋转，再由两组中心得到平移。</p><p><strong>成立条件：</strong>已知足够数量、几何配置非退化的真实 3D–3D 对应；刚体且两组尺度一致。</p><p><strong>代价与检查：</strong>匹配不可信时不应直接把所有对应等权纳入求解；退化几何和测量噪声影响结果。</p></div></div><div class="method-note"><div class="method-index">B2</div>
+      <div class="method-main"><div class="method-name">Horn（Quaternion）</div>
+      <p>用四元数参数化旋转求刚体对齐，与 SVD 类方法面向同一类已知三维对应问题。</p><p><strong>成立条件：</strong>对应已知；尺度与坐标含义统一。</p><p><strong>代价与检查：</strong>需辨别刚体、相似变换等具体问题设置；不同数学表示不是新的输入路线。</p></div></div><div class="method-note"><div class="method-index">B3</div>
+      <div class="method-main"><div class="method-name">Umeyama（可选尺度）</div>
+      <p>通过统计形式估计旋转、平移，并可在相似变换设置中估计全局尺度。</p><p><strong>成立条件：</strong>对应可靠；确认任务是 SE(3) 刚体还是 Sim(3) 相似变换。</p><p><strong>代价与检查：</strong>对于已知真实尺度的抓取定位，不应无理由放开 scale，否则可能掩盖标定或数据单位错误。</p></div></div>
+<h3>如果“对应”只是候选，不能直接当真</h3>
+<p>这时可以用 RANSAC、鲁棒损失，或 TEASER++ 等方法在错误对应存在时估计变换。它们处理的是<strong>候选对应中的异常值</strong>，并不会自动告诉系统模型上的哪个点应该和现场哪个点对应。</p>
+<div class="notice"><b>必要区分：</b>“已知 3D–3D 对应”与“有两份点云”不是同一个条件。前者可以直接求刚体变换；后者首先面临对应发现与匹配的问题。</div>
+</div>
+    </section><section class="essay-section" id="ch05">
+      <div class="section-head"><div class="chapter-index">05</div>
+      <div class="section-heading"><div class="smalltitle">路线 C / 已知点在图像中的位置</div><h2>PnP 与平面参考：先有 3D–2D 对应</h2></div></div>
+      <div class="section-body">
+<p>这一类不要求模型和现场都变成点云。只要已知物体坐标系下的<strong>度量 3D 点</strong>，并在当前图像找到了对应的<strong>像素点</strong>，加上正确的相机内参与畸变参数，就能够使用 PnP。</p>
+<figure class="technical-figure"><div class="figure-bar"><b>一个面的四个角点为什么就有可能求 Pose？</b><span>几何关系示意 · 非实测数据</span></div><div class="figure-body"><svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="物体平面角点经过投影变换到图像像素，内参与对应已知时求位姿">
+<rect x="20" y="26" width="284" height="171" rx="10" fill="#f5f7f2" stroke="#dce8de"/>
+<rect x="401" y="26" width="279" height="171" rx="10" fill="#f4f7f8" stroke="#dce8ea"/>
+<text x="162" y="46" text-anchor="middle" font-size="12" fill="#53735b" font-weight="700">已知的模型面 · 单位：米</text>
+<polygon points="86,67 213,67 213,164 86,164" fill="none" stroke="#729680" stroke-width="2.5"/>
+<g fill="#749980"><circle cx="86" cy="67" r="5"/><circle cx="213" cy="67" r="5"/><circle cx="213" cy="164" r="5"/><circle cx="86" cy="164" r="5"/></g>
+<g fill="#597965" font-size="12"><text x="73" y="61">1</text><text x="221" y="62">2</text><text x="221" y="179">3</text><text x="68" y="178">4</text></g>
+<text x="538" y="46" text-anchor="middle" font-size="12" fill="#5f8092" font-weight="700">当前图像 · 单位：像素</text>
+<polygon points="453,80 583,57 616,156 480,176" fill="none" stroke="#6c94a8" stroke-width="2.5"/>
+<g fill="#7299ac"><circle cx="453" cy="80" r="5"/><circle cx="583" cy="57" r="5"/><circle cx="616" cy="156" r="5"/><circle cx="480" cy="176" r="5"/></g>
+<g font-size="12" fill="#4f7d94"><text x="437" y="76">1</text><text x="593" y="56">2</text><text x="626" y="160">3</text><text x="464" y="192">4</text></g>
+<path d="M310 108H390" stroke="#9db4a4" stroke-width="2"/><path d="M383 101L391 108L383 115" fill="none" stroke="#9db4a4" stroke-width="2"/>
+<text x="349" y="94" text-anchor="middle" fill="#66816b" font-size="11">PnP</text>
+<text x="350" y="124" text-anchor="middle" fill="#8b9b91" font-size="10">K, D</text>
+<text x="350" y="216" text-anchor="middle" font-size="11" fill="#829388">4 组同名角点 + 度量面坐标 + 相机标定 → 候选姿态</text>
+</svg></div><figcaption>图中的四组编号必须是一一对应的同名点；矩形的实际尺寸应当已知，不能只拿四个像素角点就假设绝对尺度已知。</figcaption></figure><div class="method-note"><div class="method-index">C1</div>
+      <div class="method-main"><div class="method-name">PnP：P3P / AP3P / EPnP / SQPnP</div>
+      <p>通过透视投影关系，从 3D–2D 对应求物体到相机的旋转和平移。</p><p><strong>成立条件：</strong>参考点 3D 坐标明确、K/D 正确、像素与 3D 身份匹配，点数和几何配置满足所选求解器要求。</p><p><strong>代价与检查：</strong>少点法可能有多个解；误匹配需要 RANSAC；仅看重投影误差不等于姿态一定稳定。</p></div></div><div class="method-note"><div class="method-index">C2</div>
+      <div class="method-main"><div class="method-name">共面 PnP：IPPE / IPPE_SQUARE</div>
+      <p>专门处理所有参考点共面的情形，适合平面标记或已知平面角点。</p><p><strong>成立条件：</strong>点在同一物体平面上，已知平面内的尺度、方向及图像对应；IPPE_SQUARE 要求特定正方形点顺序。</p><p><strong>代价与检查：</strong>近正面、远距离等条件下可能出现相近重投影误差的姿态候选，应保留与验证。</p></div></div><div class="method-note"><div class="method-index">C3</div>
+      <div class="method-main"><div class="method-name">Homography 分解</div>
+      <p>由平面上 2D–2D 对应求单应矩阵；在已知平面度量坐标、K 和几何条件下恢复平面位姿候选。</p><p><strong>成立条件：</strong>场景约束为同一平面，且参考平面坐标与尺度可确定。</p><p><strong>代价与检查：</strong>纯图像间 Homography 不会自动给真实尺度的 6D Pose；平面法线歧义与几何退化须检查。</p></div></div>
+<h3>四个长方形角点的最小例子</h3>
+<div class="compare-lane"><span class="lane-key">已经知道</span><p>该面真实宽高 <code>W,H</code>，四点在物体坐标系为 <code>(0,0,0)</code>、<code>(W,0,0)</code>、<code>(W,H,0)</code>、<code>(0,H,0)</code>；图像中找到了对应的四个角点，且 K/D 已知。</p></div>
+<div class="compare-lane"><span class="lane-key">可以做</span><p>按一致的点顺序构造 <code>objectPoints</code> 和 <code>imagePoints</code>，使用适用于共面的 PnP 或 Homography 分解，得到候选 <code>ᶜTₒ</code>。</p></div>
+<div class="compare-lane"><span class="lane-key">需要验证</span><p>角点是否真是模型指定的那四个、实际尺寸是否正确、平面候选是否存在歧义、是否使用正确的图像 K 与畸变处理。</p></div>
+<div class="notice"><b>这里容易误解</b>　“共面”不代表不能求 Pose；它意味着需要采用适合共面配置的求解器，并理解潜在的候选歧义。</div></div>
+    </section><section class="essay-section" id="ch06">
+      <div class="section-head"><div class="chapter-index">06</div>
+      <div class="section-heading"><div class="smalltitle">路线 D / 有参考与现场表面</div><h2>ICP、PPF、FGR 要按“已知什么”分层</h2></div></div>
+      <div class="section-body">
+<p>有完整 CAD 或参考点云，现场也有目标点云，此时仍不能直接说“做 ICP”。要先看<strong>两份表面是否已有合理的初始对齐</strong>，以及<strong>候选对应从哪里来</strong>。</p>
+<figure class="technical-figure"><div class="figure-bar"><b>三维表面路线：搜索、精化、验证是不同任务</b><span>几何关系示意 · 非实测数据</span></div><div class="figure-body"><svg viewBox="0 0 700 247" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="未知位姿先全局搜索，已有合理初值可局部精化；鲁棒估计基于候选对应">
+<rect x="15" y="20" rx="9" width="205" height="94" fill="#f7f9f5" stroke="#dce7dc"/><text x="118" y="42" font-size="14" text-anchor="middle" fill="#496a54" font-weight="700">位姿完全未知</text><text x="118" y="61" font-size="11" text-anchor="middle" fill="#788c7a">寻找候选实例与姿态</text><text x="118" y="86" font-size="11" text-anchor="middle" fill="#57775f">PPF / FPFH / 4PCS</text>
+<rect x="248" y="20" rx="9" width="205" height="94" fill="#f7f9f5" stroke="#dce7dc"/><text x="350" y="42" font-size="14" text-anchor="middle" fill="#496a54" font-weight="700">候选对齐已存在</text><text x="350" y="61" font-size="11" text-anchor="middle" fill="#788c7a">初值落在合理吸引域</text><text x="350" y="86" font-size="11" text-anchor="middle" fill="#57775f">ICP / Point-to-plane / GICP</text>
+<rect x="481" y="20" rx="9" width="205" height="94" fill="#eff5f0" stroke="#d5e4d6"/><text x="583" y="42" font-size="14" text-anchor="middle" fill="#496a54" font-weight="700">几何验证</text><text x="583" y="61" font-size="11" text-anchor="middle" fill="#788c7a">可见区域、重叠与对称</text><text x="583" y="86" font-size="11" text-anchor="middle" fill="#57775f">评分 / 剔除 / 多候选</text>
+<g stroke="#96b39c" stroke-width="2" fill="none"><path d="M221 67H247"/><path d="M238 60L247 67L238 74"/><path d="M455 67H481"/><path d="M472 60L481 67L472 74"/></g>
+<path d="M350 116V149H118V166" fill="none" stroke="#c1cfc3" stroke-width="1.6" stroke-dasharray="4 5"/>
+<rect x="60" y="169" width="577" height="58" rx="9" fill="#f3f6f8" stroke="#dce7ea"/>
+<text x="350" y="189" text-anchor="middle" font-size="13" fill="#547889" font-weight="700">独立的横向问题：候选对应中有错配，怎样鲁棒地求 R、t？</text>
+<text x="350" y="210" text-anchor="middle" font-size="11" fill="#7a9099">RANSAC 刚体估计 / FGR / TEASER++ · 不会凭空产生可靠的对应点</text>
+</svg></div><figcaption>右下方鲁棒变换估计是一种可插入的机制，既可以服务全局，也可以服务匹配验证。</figcaption></figure>
+<h3>D1 · 已有位姿初值：局部精化</h3>
+<div class="method-note"><div class="method-index">D1.1</div>
+      <div class="method-main"><div class="method-name">Point-to-Point ICP</div>
+      <p>反复寻找最近邻对应，并最小化点到点距离更新刚体变换。</p><p><strong>成立条件：</strong>初始位姿足够接近、参考与观测存在合理重叠、最近邻具有几何意义。</p><p><strong>代价与检查：</strong>容易受错误初值、局部极小值、对称和离群点影响；不能保证全局找对实例。</p></div></div><div class="method-note"><div class="method-index">D1.2</div>
+      <div class="method-main"><div class="method-name">Point-to-Plane ICP</div>
+      <p>利用目标点的表面法线，最小化点到局部切平面的残差。</p><p><strong>成立条件：</strong>局部法线可靠、初值合理、观测包含足够非退化表面。</p><p><strong>代价与检查：</strong>法线误差与平坦/重复结构会影响求解；单一平面不能完整约束刚体 6DoF。</p></div></div><div class="method-note"><div class="method-index">D1.3</div>
+      <div class="method-main"><div class="method-name">GICP / Robust ICP</div>
+      <p>使用局部协方差或鲁棒权重描述观测几何与残差分布，提高某些场景下的局部对齐质量。</p><p><strong>成立条件：</strong>仍需要重叠与可用初值；协方差和鲁棒损失参数应与传感器匹配。</p><p><strong>代价与检查：</strong>计算与调参成本增加，并没有消除全局初始化需求。</p></div></div>
+<h3>D2 · 完全没有初值：先提出候选</h3>
+<div class="method-note"><div class="method-index">D2.1</div>
+      <div class="method-main"><div class="method-name">PPF（Point Pair Feature）</div>
+      <p>通过点对的距离与法线夹角构成几何描述，在参考模型和场景中搜索支持一致位姿的点对。</p><p><strong>成立条件：</strong>参考模型/现场能估计表面点和法线；模型点对结构在可见区域有区分度。</p><p><strong>代价与检查：</strong>点对采样、法线精度、量化/哈希、重复结构和对称性影响候选数量与成本。</p></div></div><div class="method-note"><div class="method-index">D2.2</div>
+      <div class="method-main"><div class="method-name">FPFH + 特征对应 + RANSAC</div>
+      <p>为模型与现场点计算局部几何描述子，在特征空间形成候选对应，再使用鲁棒求解产生全局位姿。</p><p><strong>成立条件：</strong>场景具备足够稳定、可区分的局部几何；尺度/法线/邻域参数合理。</p><p><strong>代价与检查：</strong>描述子相似不等于点对应正确；平整或重复结构中假匹配可能非常多。</p></div></div><div class="method-note"><div class="method-index">D2.3</div>
+      <div class="method-main"><div class="method-name">4PCS / Super4PCS</div>
+      <p>利用三维点集间的刚体不变量搜索相容的基元/点组，估计初始全局对齐。</p><p><strong>成立条件：</strong>模型与现场有足够几何重叠，采样与距离阈值匹配尺度。</p><p><strong>代价与检查：</strong>搜索成本、重叠率、重复结构与数据量直接影响工程表现。</p></div></div>
+<h3>D3 · 对应已经有了很多候选，但混有错误</h3>
+<div class="method-note"><div class="method-index">D3.1</div>
+      <div class="method-main"><div class="method-name">RANSAC / FGR / TEASER++</div>
+      <p>在候选对应集上鲁棒估计刚体变换；FGR 倾向快速鲁棒优化，TEASER++ 利用截断鲁棒估计等机制处理大量错配。</p><p><strong>成立条件：</strong>输入是足以形成约束的候选点对应，或上游特征已提供候选匹配。</p><p><strong>代价与检查：</strong>不等于目标检测器；缺乏对应时需要先补充候选生成流程。</p></div></div>
+<p>实际管线往往可以组合：<strong>模型点云 → 法线与特征 → 候选对应 → 全局 R、t → ICP 精化 → 验证</strong>。如果已有可靠机器人先验或粗位姿，就可以跳过全局搜索。</p>
+</div>
+    </section><section class="essay-section" id="ch07">
+      <div class="section-head"><div class="chapter-index">07</div>
+      <div class="section-heading"><div class="smalltitle">路线 E / 参考模型可以投影到图像</div><h2>没有稳定关键点，还能匹配轮廓和渲染</h2></div></div>
+      <div class="section-body">
+<p>深度点云不是唯一能与 CAD 建立关系的观测。若模型可以从任意候选位姿投影到图像，就可以利用轮廓、梯度、纹理或渲染证据来评分和优化。这里的关键输入是<strong>已知尺度的三维模型 + 相机标定 + 可匹配图像结构</strong>。</p>
+<div class="method-note"><div class="method-index">E1</div>
+      <div class="method-main"><div class="method-name">3D Shape-Based Matching / CAD 轮廓对齐</div>
+      <p>从 CAD 生成候选视角下的边缘或轮廓，与真实 RGB 图像中的结构做一致性匹配，输出候选 6D Pose。</p><p><strong>成立条件：</strong>CAD 可投影、K/D 正确、可观测边缘具有区分度；需有足够的候选姿态搜索或初始化。</p><p><strong>代价与检查：</strong>无纹理并不妨碍轮廓，但纯轮廓对称、遮挡和背景边缘可能造成多解；搜索视角有成本。</p></div></div><div class="method-note"><div class="method-index">E2</div>
+      <div class="method-main"><div class="method-name">LINEMOD 一类模板匹配</div>
+      <p>利用图像梯度、可选深度法线等信息，与预先离散的模板/视图进行匹配，再求或细化位姿。</p><p><strong>成立条件：</strong>存在覆盖相关视角和尺度的模板库，模板与当前相机设置相容，目标可定位。</p><p><strong>代价与检查：</strong>模板数量、视角量化误差、遮挡与背景混淆；模板匹配到 2D 位置不等于天然拥有度量 6D。</p></div></div><div class="method-note"><div class="method-index">E3</div>
+      <div class="method-main"><div class="method-name">Analysis-by-Synthesis / 渲染优化</div>
+      <p>把候选位姿下的模型渲染到图像，与现场轮廓、颜色、深度或特征比较，并优化 R、t。</p><p><strong>成立条件：</strong>可渲染的度量模型、正确相机模型以及与损失函数相容的观测。</p><p><strong>代价与检查：</strong>初始位姿与损失地形决定优化效果；可见性处理、GPU 算力和模型材质假设带来成本。</p></div></div>
+<div class="notice"><b>二维模板的界限：</b>普通 2D Shape-Based Matching 得到位置、尺度和面内旋转，并不自动等价于物体在三维空间中的完整 Pose。必须明确模板是否包含可用的三维投影模型与度量约束。</div>
+<p>这条路线与 PnP 的关系也值得区分：PnP 的关键是<strong>显式 3D–2D 点对应</strong>；轮廓和渲染路线可以不要求少数稳定关键点，而是利用整体图像匹配误差建立约束。</p>
+</div>
+    </section><section class="essay-section" id="ch08">
+      <div class="section-head"><div class="chapter-index">08</div>
+      <div class="section-heading"><div class="smalltitle">横向机制 / 数据驱动不改变几何前提</div><h2>学习式方法放进哪一层，才比较清楚</h2></div></div>
+      <div class="section-body">
+<p>学习式 Pose 估计应当作为一条横向能力来整理，而不是简单与“3D–2D”“3D–3D”并列。网络可以负责发现关键点、建立对应、预测初值、评价候选或在几何/渲染约束下精化位姿。</p>
+<div class="learning-map">
+  <div><small>可学习的环节 ①</small><b>关键点 / 对应</b><span>特征匹配、2D–3D 或 3D–3D 对应候选</span></div>
+  <div><small>可学习的环节 ②</small><b>初始位姿</b><span>基于 RGB/RGB-D 与参考模型产生候选</span></div>
+  <div><small>可学习的环节 ③</small><b>评分与精化</b><span>渲染一致性、深度与特征约束下排序和细化</span></div>
+</div>
+<h3>FoundationPose 放在哪里？</h3>
+<p>以其 CAD 模型模式为例，<strong>已知模型 + RGB-D + 目标 Mask + 相机内参</strong>构成实用前提。它利用候选位姿生成、评分和精化完成对象位姿估计。它不是“完全没有模型、给一张图就能随意求一个物体 Pose”的通用入口。</p>
+<p>其少量参考图像模式引入神经隐式参考表示及额外预处理。这条分支值得了解，但在本页“不为当前任务额外重建”的边界下，应明确标注为<strong>带参考建模代价的扩展路线</strong>。</p>
+<div class="method-note"><div class="method-index">F1</div>
+      <div class="method-main"><div class="method-name">学习式关键点 / 对应</div>
+      <p>利用神经网络在参考与现场提取稳定特征，然后通过 PnP 或 3D 刚体估计求 Pose。</p><p><strong>成立条件：</strong>具有参考和现场间可迁移的可辨识特征，训练域与真实观测合理匹配。</p><p><strong>代价与检查：</strong>训练分布、遮挡和重复外观影响匹配质量；几何验证仍然必要。</p></div></div><div class="method-note"><div class="method-index">F2</div>
+      <div class="method-main"><div class="method-name">已知模型的 RGB-D 姿态估计与精化</div>
+      <p>对 CAD 支持的已知刚体，从当前观测产生并优化 6D 位姿候选。</p><p><strong>成立条件：</strong>参考模型与运行时数据接口满足具体模型要求，坐标系、单位与 Mask 正确。</p><p><strong>代价与检查：</strong>权重、依赖、显存、候选评估和域差；对称形状仍需适合的评价口径。</p></div></div>
+<div class="strip-note"><strong>不要按“传统 vs 学习”直接分上下级。</strong><span>如果网络预测了 2D 对应点，后续仍可能是 PnP；如果网络给出粗位姿，后续仍可以 ICP 或渲染精化。学习的是哪一环，才是可比较的技术差异。</span></div>
+</div>
+    </section><section class="essay-section" id="ch09">
+      <div class="section-head"><div class="chapter-index">09</div>
+      <div class="section-heading"><div class="smalltitle">求解验证 / 数据能否真正区分</div><h2>能返回 Pose，不代表 Pose 已被唯一确定</h2></div></div>
+      <div class="section-body">
+<p>即使已经得到一个数值形式的 <code>R,t</code>，也不能直接认为参考与现场已经建立了正确关系。很多时候，<strong>可观测性比求解器的收敛速度更值得先检查</strong>。</p>
+<div class="table-scroller"><table><thead><tr><th>观测条件</th><th>可能得到的结果</th><th>需要承认的边界</th></tr></thead><tbody><tr><td>仅可见一个无特征平面</td><td>平面位置、法线与某些相对位置约束</td><td>沿面平移及绕法线旋转可能无法由该信息唯一确定</td></tr><tr><td>共面 3D–2D 已知角点</td><td>可计算候选平面 Pose</td><td>近似退化视角可能出现多个合理候选；需要检验</td></tr><tr><td>理想圆柱侧面</td><td>轴线、位置、半径等可估计</td><td>绕圆柱自身轴线的绝对旋转不可辨</td></tr><tr><td>完全相同的重复结构</td><td>可能找到多个高评分位姿</td><td>须结合实例语义、场景约束或任务等价性</td></tr><tr><td>深度表面残缺、重叠很少</td><td>有时仍可给出数值配准结果</td><td>低重叠下单一配准残差不构成可靠验证</td></tr><tr><td>参考尺寸 / K / 深度单位错误</td><td>求解器可能正常返回数值</td><td>数值一致性不代表空间尺度正确</td></tr></tbody></table></div>
+<h3>验证应当与求解目标相对应</h3>
+<div class="note-columns">
+ <div class="note"><small>3D–3D 点对应</small><b>残差与几何一致性</b><p>对应残差、内点分布、点集空间跨度；是否落入退化或平面共线构型。</p></div>
+ <div class="note"><small>3D–2D / PnP</small><b>重投影误差</b><p>误差分布、点位布局、正深度及多个候选；不能只看一个平均数。</p></div>
+ <div class="note"><small>ICP / 表面配准</small><b>可见面的重叠与对齐</b><p>Fitness、RMSE、局部几何覆盖及遮挡；误差小可能来自错配的局部平面。</p></div>
+ <div class="note"><small>面向抓取的最终验证</small><b>抓取 Pose 是否可用</b><p>基准点误差、任务等价旋转、夹爪姿态偏差与局部几何安全裕量。</p></div>
+</div>
+<p>对于物体对称，最好把 <strong>物体坐标系下的数学旋转误差</strong> 与 <strong>抓取任务所关心的实际差异</strong> 区分开。两个不同的 Object Pose 可能在几何或抓取上是等价的；也可能因为指定了特定侧面而完全不等价。</p>
+</div>
+    </section><section class="essay-section" id="ch10">
+      <div class="section-head"><div class="chapter-index">10</div>
+      <div class="section-heading"><div class="smalltitle">约束实例 / 用实际问题验证分类</div><h2>同一个任务有哪些真正成立的路线？</h2></div></div>
+      <div class="section-body">
+<p>下面使用几组明确条件检验分类是否真的能用。这里不预先指定“最佳算法”，而是列出哪些路线成立，以及条件少了什么时会发生变化。</p>
+<div class="table-scroller"><table><thead><tr><th>输入场景</th><th>成立的路线</th><th>关键缺失与选择代价</th></tr></thead><tbody><tr><td><b>一个盒面 4 角点</b><br>已知 W/H、K/D、像素四点对应</td><td>C · IPPE / 平面 PnP；可用 Homography 辅助理解</td><td>检查角点顺序、平面候选和尺度；不需要先转成完整点云</td></tr><tr><td><b>一组已知三维点对应</b><br>模型点 ↔ 深度反投影点</td><td>B · Kabsch / Horn；错配时鲁棒估计</td><td>确保对应、坐标单位与非退化配置</td></tr><tr><td><b>参考 CAD + 现场点云</b><br>已经有大致初值</td><td>D · ICP / GICP / Point-to-plane</td><td>主要是局部收敛域、法线与重叠度</td></tr><tr><td><b>参考 CAD + 现场点云</b><br>没有任何位姿初值</td><td>D · PPF / FPFH+RANSAC / 4PCS 等提出候选，随后精化</td><td>不能直接把 ICP 当全局识别；要能找到有辨识度的几何对应</td></tr><tr><td><b>只有盒体长宽高</b><br>场景中有三维面</td><td>A · 盒体约束 / 3D Box Finder</td><td>只知道尺寸不等于 CAD；要检查能看到多少面及歧义</td></tr><tr><td><b>已知 CAD + 单张 RGB</b><br>图像里有明显轮廓</td><td>E · Shape-Based 3D / 渲染匹配</td><td>需要 K、姿态搜索与模型尺度；普通 2D 模板不等于 6D</td></tr><tr><td><b>已知 CAD + RGB-D + Mask</b></td><td>D/E + F · 传统几何或模型式学习位姿方法</td><td>要比较运行开销、域与模型坐标系；可以使用 FoundationPose 等</td></tr><tr><td><b>只有普通参考照片</b><br>没有尺度/位姿/几何</td><td>不能直接推出度量 6D</td><td>先补参考几何/标定，或进入带参考建模代价的扩展路线</td></tr></tbody></table></div>
+<h3>同一场景，多种路线可能都成立</h3>
+<p>例如“已知 CAD + 已知图像角点 + RGB-D”，既可以走 PnP，也可以利用深度进一步做 3D 对齐。选择不应该看哪个名字更新，而要比较：<strong>对应是否可信、观测是否足够、运行时预算、期望精度以及定位失败的代价</strong>。</p>
+</div>
+    </section><section class="essay-section" id="ch11">
+      <div class="section-head"><div class="chapter-index">11</div>
+      <div class="section-heading"><div class="smalltitle">回到抓取任务 / 为下一次实验留下检查项</div><h2>把约束写清楚，技术路线才有选择依据</h2></div></div>
+      <div class="section-body">
+<p>完整的工程流程未必需要每一步。真正有价值的是把信息来源、搜索机制、求解器和结果验证明确分开。</p>
+<div class="pipeline" aria-label="约束驱动求解流程">
+<div class="unit"><b>定义参考</b><span>尺度 · 坐标系 · 模型</span></div><div class="arr">→</div>
+<div class="unit"><b>现场观测</b><span>RGB / Depth / Mask</span></div><div class="arr">→</div>
+<div class="unit"><b>建立关系</b><span>对应 / 候选 / 初值</span></div><div class="arr">→</div>
+<div class="unit"><b>求 R、t</b><span>估计 · 精化</span></div><div class="arr">→</div>
+<div class="unit"><b>验证与抓取</b><span>ᶜTₒ → ᶜT𝗴</span></div>
+</div>
+<h3>算法卡片应该统一写明的八个条件</h3>
+<div class="table-scroller"><table><thead><tr><th>审查项</th><th>填写内容</th></tr></thead><tbody><tr><td>参考</td><td>具体知道什么、模型坐标系如何定义？</td></tr><tr><td>观测</td><td>RGB、Depth、目标点云、Mask、边缘需要哪些？</td></tr><tr><td>对应</td><td>已有真实对应、候选对应，还是需要搜索？</td></tr><tr><td>初值</td><td>局部优化是否需要位姿初始值？</td></tr><tr><td>可观测</td><td>哪些自由度明确、哪些因对称或遮挡不确定？</td></tr><tr><td>输出</td><td>候选 Pose、唯一 Pose、对应集，还是局部精化结果？</td></tr><tr><td>工程代价</td><td>计算、内存、模板库、标定、数据、参数与部署成本？</td></tr><tr><td>验证</td><td>匹配误差、重叠度、候选歧义、抓取任务误差如何判断？</td></tr></tbody></table></div>
+<h3>Q02 与 Q01、Q03 的实际分工</h3>
+<p><strong>Q01</strong> 不依赖已知实例模型，从现场几何提取可直接使用的抓取空间约束；<strong>Q02</strong> 允许借助事先已知的度量参考求 Object Pose，再完成固定抓法的空间变换；<strong>Q03/Q04</strong> 则研究当前画面如何提取目标、以及二维信息怎样落到三维。</p>
+<p>最后留下一个判断：<strong>技术不是因为“有缺点”而不可用，而是某些必需条件并未满足。</strong> 先核对输入与可观测性，再比较工程成本，才有可能形成稳定的技术选型。</p>
+</div>
+    </section>
+<div class="appendix-jump"><div class="appendix-jump-eyebrow">延伸资料 · 暂不在本页扩写</div>
+<h2>算法的历史演进，单独放在技术年表里</h2>
+<p>这里优先回答“什么条件能用什么工具”。如果想按年份追溯 PnP、ICP、PPF 等技术的源流，再进入附录，不让历史叙述打断求解结构。</p>
+<a href="q02-known-reference-appendix.html">技术年表 ↗</a></div>
+<div class="refs">主要技术核查资料：<a href="https://docs.opencv.org/4.x/d5/d1f/calib3d_solvePnP.html" target="_blank" rel="noopener noreferrer">OpenCV · PnP Methods ↗</a> · <a href="https://www.open3d.org/docs/latest/tutorial/pipelines/global_registration.html" target="_blank" rel="noopener noreferrer">Open3D · Global Registration ↗</a> · <a href="https://www.open3d.org/docs/latest/tutorial/pipelines/icp_registration.html" target="_blank" rel="noopener noreferrer">Open3D · ICP Registration ↗</a> · <a href="https://www.mvtec.com/doc/halcon/2511/en/toc_3dmatching.html" target="_blank" rel="noopener noreferrer">HALCON · 3D Matching ↗</a> · <a href="https://github.com/NVlabs/FoundationPose" target="_blank" rel="noopener noreferrer">NVIDIA · FoundationPose ↗</a>。分类为本篇在 Stage 01 约束下的工程归纳，不代表任何单篇综述的原始分类。</div>
+<nav class="back"><a href="q01-geometry.html">← Q01 · 点云几何测量</a><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">返回 Stage 01 →</a></nav>
+</main><aside class="side-nav"><div class="side-sticky"><div class="side-title">本页目录 <span class="side-count">12 节</span></div><nav><a href="#ch00"><span class="toc-index">00</span>已知参考，并不等于已知 Pose</a><a href="#ch01"><span class="toc-index">01</span>先列条件，再谈算法</a><a href="#ch02"><span class="toc-index">02</span>五条几何主线，一组横向求解工具</a><a href="#ch03"><span class="toc-index">03</span>只有尺寸，也可能足够求位姿</a><a href="#ch04"><span class="toc-index">04</span>对应点已知，直接求 R 与 t</a><a href="#ch05"><span class="toc-index">05</span>PnP 与平面参考：先有 3D–2D 对应</a><a href="#ch06"><span class="toc-index">06</span>ICP、PPF、FGR 要按“已知什么”分层</a><a href="#ch07"><span class="toc-index">07</span>没有稳定关键点，还能匹配轮廓和渲染</a><a href="#ch08"><span class="toc-index">08</span>学习式方法放进哪一层，才比较清楚</a><a href="#ch09"><span class="toc-index">09</span>能返回 Pose，不代表 Pose 已被唯一确定</a><a href="#ch10"><span class="toc-index">10</span>同一个任务有哪些真正成立的路线？</a><a href="#ch11"><span class="toc-index">11</span>把约束写清楚，技术路线才有选择依据</a></nav><p class="side-foot">先确认条件，再选择方法。<br/>条件不成立时，换算法通常不是第一步。</p></div></aside></div></div>
+<footer class="site-footer">沿途手记 · STAGE 01 / Q02　|　从约束出发，才知道该求什么。</footer>
+<script>(function(){var bar=document.getElementById('readingProgress');var entries=[...document.querySelectorAll('.side-nav nav a')];function update(){var root=document.documentElement;var max=root.scrollHeight-root.clientHeight;bar.style.width=(max>0?window.scrollY/max*100:0)+'%';var active='';for(var el of document.querySelectorAll('.essay-section')){if(el.getBoundingClientRect().top<190)active='#'+el.id;}entries.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===active));}window.addEventListener('scroll',update,{passive:true});update();})();</script>
+</body></html>

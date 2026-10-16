@@ -1,166 +1,582 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="沿途手记｜从一团 RGB-D 点云出发，发现三维位置、主方向、表面法线与几何拟合，慢慢拼出 Grasp Pose 的研究随手记。" />
-<title>Q01 · 原来点云里藏着这么多几何线索｜沿途手记</title>
-<style>
-:root{--bg:#faf9f5;--paper:#fffefa;--ink:#344338;--muted:#718074;--faint:#95a195;--line:#e0e7de;--green:#517b65;--green-soft:#eff5ee;--orange:#ae815a;--orange-soft:#fbf3e9;--blue:#65829d;--blue-soft:#f0f4f8;--shadow:0 13px 40px rgba(53,74,57,.05)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.98 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}a{color:inherit;text-decoration:none}a:hover{color:var(--green)}strong{font-weight:740;color:#314c3b}::selection{background:#d9ebda}
-.nav{max-width:1110px;margin:auto;padding:22px 29px;display:flex;justify-content:space-between;gap:16px;align-items:center;font-size:13px;color:#7c8b7e}.nav .brand{font-weight:800;color:#43664e}.nav .navlinks{display:flex;gap:20px;flex-wrap:wrap}
-.layout{max-width:1110px;padding:0 29px 94px;margin:auto;display:grid;grid-template-columns:minmax(0,755px) 184px;gap:58px}.article{min-width:0}.side{padding-top:220px}.side .inside{position:sticky;top:24px;border-left:1px solid #d8e3d7;padding-left:19px}.side small{display:block;color:#96a697;font-size:11px;letter-spacing:.08em;margin-bottom:14px}.side a{display:block;color:#819083;font-size:12px;line-height:1.55;padding:0 0 14px}.side a:hover{color:#47745a}
-.hero{padding:53px 0 42px;border-bottom:1px solid var(--line)}.eyebrow{color:var(--green);font-size:11px;font-weight:800;letter-spacing:.12em}.hero h1{font-size:clamp(33px,4.5vw,46px);line-height:1.38;font-weight:770;letter-spacing:-.045em;margin:18px 0 18px}.hero .intro{font-size:17px;line-height:1.95;color:#4e6555;max-width:695px;margin:0}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:25px}.meta span{font-size:11px;padding:4px 10px;border-radius:22px;border:1px solid #e3eadd;color:#87988a;background:#f7f9f4}
-section{padding-top:53px;scroll-margin-top:25px}section .smalltitle{font-size:11px;letter-spacing:.1em;color:#93a69a;font-weight:800;margin-bottom:8px}section h2{font-size:24px;line-height:1.5;letter-spacing:-.03em;margin:0 0 22px;font-weight:755}section h3{font-size:17px;line-height:1.6;margin:28px 0 11px;font-weight:740}section p{margin:0 0 17px;color:#4f5f53}p:last-child{margin-bottom:0}.mild{font-size:13px!important;color:#819084!important}.memo{font-size:14px;color:#7c745f;font-style:italic;margin-top:16px}
-.story{border-radius:14px;padding:23px 25px;background:#fffefa;border:1px solid #e8ebdf;margin:27px 0;box-shadow:var(--shadow)}.story .tag{font-size:11px;letter-spacing:.07em;color:var(--orange);font-weight:800;margin-bottom:9px}.story p{margin:0;font-size:15px;color:#6a6655}.story strong{color:#7d6549}
-.aha{margin:29px 0;padding:19px 23px;background:var(--green-soft);border-left:3px solid #8db596;border-radius:0 12px 12px 0}.aha p{font-size:15px;margin:0;color:#496c52}.aha strong{color:#366047}
-.sketch{margin:28px 0;border:1px solid #e3e9e0;background:#fffefa;border-radius:17px;padding:20px 19px 15px;box-shadow:var(--shadow)}.sketch svg{display:block;width:100%;height:auto;max-height:280px}.sketch figcaption{font-size:12px;color:#909c90;margin:6px 5px 0;line-height:1.7;text-align:center}.figtitle{font-size:13px;font-weight:730;color:#5c7060;letter-spacing:.02em;margin:0 0 8px 5px}
-.method{margin:24px 0 31px;border:1px solid var(--line);border-radius:14px;background:var(--paper);overflow:hidden}.method .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 19px;border-bottom:1px solid var(--line);background:#f7f9f5}.method .top strong{font-size:14px}.method .top small{color:#8c9e8d;font-size:11px;letter-spacing:.05em;white-space:nowrap}.method .body{padding:17px 19px}.method .body p{margin:0 0 11px;font-size:13px;line-height:1.85}.method .body p:last-child{margin:0}.method .subtle{color:#7b8a7e;font-size:12px}.method.orange .top{background:#fbf6ed}.method.blue .top{background:#f4f7fa}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:28px 0}.tiny-card{border:1px solid var(--line);border-radius:12px;padding:19px 19px 20px;background:var(--paper)}.tiny-card.warm{background:#fffcf7;border-color:#eee5d8}.tiny-card.cool{background:#fbfdff;border-color:#e0e7eb}.tiny-card small{display:block;color:var(--green);font-size:11px;font-weight:800;letter-spacing:.04em;margin-bottom:8px}.tiny-card.warm small{color:var(--orange)}.tiny-card.cool small{color:var(--blue)}.tiny-card h3{font-size:15px;margin:0 0 6px}.tiny-card p{font-size:13px;line-height:1.82;color:#657568;margin:0}
-.breaknote{margin:28px 0;padding:13px 17px;background:#f7f6ef;border-radius:10px;color:#7e7e6b;font-size:13px;line-height:1.85}
-.combine{background:#fffefa;border:1px solid var(--line);border-radius:16px;padding:21px 20px 18px;margin:29px 0;box-shadow:var(--shadow)}.combine .ctitle{font-size:15px;font-weight:750;margin:0 0 16px}.chain{display:grid;grid-template-columns:1fr auto 1.5fr auto 1fr;gap:10px;align-items:stretch}.boxx{border:1px solid #dfe7de;border-radius:11px;background:#f8faf7;padding:14px 11px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}.boxx strong{display:block;font-size:13px;color:#476351}.boxx span{color:#849386;font-size:11px;line-height:1.65;margin-top:5px}.boxx.measured{background:#f0f5f7;border-color:#dae6ed}.boxx.measured strong{color:#567b92}.boxx.pose{background:#edf4ed;border-color:#d8e5d8}.arrow{font-size:20px;color:#92ad95;align-self:center}.combine .bottom{text-align:center;margin-top:14px;font-size:12px;color:#829084;line-height:1.8}
-.catch{margin:33px 0 0;border-top:1px solid #e4eae2;padding-top:22px}.catch .label{color:#739980;font-size:12px;font-weight:800;margin-bottom:12px}.catch-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.catch-item{background:#fffefa;border:1px solid #e3e8e1;border-radius:12px;padding:15px 17px}.catch-item strong{font-size:13px;color:#4c755a}.catch-item p{font-size:12px;line-height:1.8;color:#758478;margin:6px 0 0}.catch-item em{font-style:normal;color:#a67a59}
-.end{margin-top:55px;padding:30px 30px 32px;background:linear-gradient(115deg,#edf5ed,#fffaf3);border-radius:17px;border:1px solid #dce6d9}.end .smalltitle{color:#78a082}.end h2{margin:0 0 13px;font-size:22px}.end p{margin:0 0 13px;font-size:15px}.end p:last-child{margin:0}.end .smile{color:#7d876f;font-size:13px;margin-top:19px}.refs{margin-top:27px;font-size:12px;color:#829084}.refs a{text-decoration:underline;text-decoration-color:#bacbbb;text-underline-offset:3px}.back{padding:28px 0 0;margin-top:30px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.back a{border-radius:10px;border:1px solid var(--line);background:var(--paper);padding:11px 15px;font-size:13px;color:#557563}.footer{max-width:1110px;margin:auto;padding:0 29px 36px;font-size:12px;color:#a2aba1}
-@media(max-width:940px){.layout{max-width:795px;grid-template-columns:1fr}.side{display:none}.nav{max-width:795px}}@media(max-width:610px){body{font-size:14px}.nav{padding:17px 18px}.nav .navlinks{gap:11px;font-size:11px}.layout{padding:0 18px 57px}.hero{padding:28px 0 31px}.hero h1{font-size:34px}.hero .intro{font-size:15px}section{padding-top:40px}section h2{font-size:21px}.sketch{padding:12px 7px}.two,.catch-grid{grid-template-columns:1fr}.chain{grid-template-columns:1fr;gap:5px}.chain .arrow{transform:rotate(90deg);line-height:1.3}.boxx{padding:12px 10px}.end{padding:22px 20px}.back{flex-direction:column}.back a{text-align:center}.footer{padding:0 18px 30px}}
-.appendix-jump{margin:34px 0 0;border:1px solid #d9e6dc;border-radius:16px;background:#f4f8f1;padding:25px 28px;box-shadow:var(--shadow)}
-.appendix-jump-eyebrow{color:#5d856c;font-size:11px;font-weight:800;letter-spacing:.08em}
-.appendix-jump h2{font-size:19px;line-height:1.55;margin:9px 0 9px}
-.appendix-jump p{font-size:13px;line-height:1.9;color:#64766a;margin:0 0 16px}
-.appendix-jump a{display:inline-block;background:#537b64;color:white;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:650}
-.appendix-jump a:hover{color:white;background:#3f6751}
-@media(max-width:610px){.appendix-jump{padding:19px}.appendix-jump h2{font-size:17px}}
-</style>
-</head>
-<body>
-<header class="nav"><a class="brand" href="https://fishxddd.github.io/">🐟 沿途手记</a><div class="navlinks"><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">← Stage 01</a><a href="q01-geometry-appendix.html">技术年表 ↗</a><a href="https://fishxddd.github.io/src/pages/research/route-1-1.html">研究路线 ↗</a></div></header>
-<div class="layout"><main class="article">
-<header class="hero">
-<div class="eyebrow">STAGE 01 · Q01 / POINT CLOUD GEOMETRY</div>
-<h1>原来点云里，<br>藏着这么多几何线索。</h1>
-<p class="intro">最早想做抓取时，我的想法其实挺简单的：深度相机不是已经看到了物体吗？既然能得到三维点云，能不能直接从里面量出位置和方向，再把夹爪放过去？</p>
-<div class="meta"><span>2026.10 · 研究随手记</span><span>RGB-D / 几何测量 / Grasp Pose</span><span>从一个很朴素的想法开始</span></div>
-</header>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="description" content="Q01 点云几何测量：从点云中的中心、方向、法线、基元与接触关系，构造固定抓法下的 Grasp Pose。技术路线、选择代价与场景判断。"/><title>Q01 · 点云几何测量｜沿途手记</title><style>
+:root{--bg:#fafaf7;--ink:#35483e;--body:#4f5d54;--muted:#78877c;--light:#a0aaa0;--stroke:#e0e8de;--stroke2:#e9eee7;--sage:#557d65;--sage-light:#edf3ed;--amber:#b28c6a;--blue:#708fa4;--paper:#fffefa}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:26px}
+body{margin:0;color:var(--ink);background:var(--bg);font:15.5px/1.94 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC','Noto Sans SC','Microsoft Yahei',sans-serif;-webkit-font-smoothing:antialiased}
+::selection{background:#d9e9d9}
+a{text-decoration:none;color:inherit}a:hover{color:#3f7150}
+strong{font-weight:730;color:#385b43}
+.site-nav{border-bottom:1px solid #ebeee8;background:rgba(250,250,247,.97)}
+.nav-inner{max-width:1140px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:17px 30px;gap:18px}
+.brand{font-size:14px;font-weight:760;color:#3e624b;letter-spacing:.01em;white-space:nowrap}
+.brand-mark{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:50%;background:#e5eee5;color:#60866c}
+.nav-links{display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:12px;color:#718276}
+.page{max-width:1140px;margin:auto;padding:0 30px 94px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:36px;padding:57px 0 46px;align-items:center;border-bottom:1px solid var(--stroke)}
+.eyebrow{font-size:11px;letter-spacing:.12em;color:#648d70;font-weight:750;display:flex;align-items:center;gap:9px}.tiny-line{width:19px;height:1.5px;background:#86a692}
+.hero h1{font-size:clamp(32px,3.65vw,45px);line-height:1.39;letter-spacing:-.04em;margin:21px 0 21px;font-weight:775;max-width:660px}
+.hero h1 em{font-style:normal;font-weight:775;color:#4e745b}
+.hero-intro{font-size:15px;line-height:1.94;max-width:660px;color:#627365;margin:0}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:11px;color:#92a194;margin-top:21px}.hero-meta span+span:before{content:'·';margin-right:16px;color:#c7d3c5}
+.hero-art{min-width:0}.hero-art svg{width:100%;height:auto;display:block;background:#f4f7f3;border-radius:12px;border:1px solid #e5ebe3}
+.hero-art-note{font-size:11px;color:#819489;text-align:right;margin-top:8px}.hero-art-note i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#92af99;margin-right:7px}
+.svg-hero-label{font:11px -apple-system,'Noto Sans SC',sans-serif;fill:#789082}
+.reading-trail{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:19px 0 23px;color:#496650;font-size:12px;font-weight:700;border-bottom:1px solid var(--stroke2)}
+.reading-trail i{font-style:normal;color:#9bb3a0}.reading-trail small{margin-left:auto;color:#94a294;font-weight:450;font-size:11px}
+.content-layout{display:grid;grid-template-columns:minmax(0,760px) minmax(185px,1fr);gap:68px;align-items:start}
+.article{min-width:0}.essay-section{padding:48px 0 37px;border-bottom:1px solid var(--stroke2);scroll-margin-top:24px}
+.essay-section:first-child{padding-top:42px}.essay-section:last-child{border-bottom:0}
+.section-head{display:grid;grid-template-columns:39px minmax(0,1fr);gap:13px;align-items:start;margin-bottom:20px}
+.chapter-index{font-size:15px;line-height:1.6;color:#7c9c82;font-family:Georgia,serif;font-weight:700;letter-spacing:-.03em;padding-top:4px}
+.smalltitle{font-size:11px;color:#8c9b8f;font-weight:650;margin-bottom:6px;letter-spacing:.045em}
+.section-heading h2{font-size:clamp(23px,2.45vw,28px);line-height:1.45;letter-spacing:-.025em;font-weight:745;margin:0;color:#334b3b}
+.section-body{min-width:0;padding-left:52px}
+.section-body>p{margin:0 0 16px;color:var(--body);font-size:14.8px;line-height:1.98}
+.section-body>h3{font-size:17px;letter-spacing:-.008em;line-height:1.55;font-weight:745;margin:36px 0 16px;color:#415e49;scroll-margin-top:25px}
+.section-body>h3:first-child{margin-top:0}
+.section-body>ul{margin:15px 0 22px;padding-left:22px;color:var(--body);font-size:14.5px;line-height:1.95}
+.section-body>ul li{margin-bottom:8px}.section-body>ul li::marker{color:#91aa97}
+.table-scroller{width:100%;max-width:100%;margin:21px 0 23px;border:1px solid var(--stroke);border-radius:12px;overflow:auto;background:var(--paper)}
+.table-scroller table{border-collapse:collapse;width:100%;min-width:520px;font-size:12.6px;line-height:1.66;color:#54675a}
+.table-scroller th{font-weight:730;color:#557662;text-align:left;background:#f3f7f2;white-space:nowrap}
+.table-scroller td,.table-scroller th{border-bottom:1px solid #eaf0e8;padding:12px 14px;vertical-align:top}.table-scroller tr:last-child td{border-bottom:0}
+.table-scroller td:first-child{font-weight:630;color:#526d57}
+.method-note{display:grid;grid-template-columns:190px minmax(0,1fr);gap:15px;padding:16px 0 17px;border-top:1px solid #e4ebe3;align-items:start}
+.method-note:last-of-type{border-bottom:1px solid #e4ebe3}
+.method-index{display:inline-block;vertical-align:top;margin-right:9px;font:700 11px Georgia,serif;color:#9bb3a1}
+.method-name{font-size:13.7px;line-height:1.62;color:#476a54;font-weight:725}
+.method-description p{font-size:13px;line-height:1.88;margin:0 0 8px;color:#617368}.method-description p:last-child{margin:0}
+.section-body>h3+.method-note{margin-top:16px}
+.section-body .continuation{margin:27px 0 6px;padding:13px 15px;border-left:2px solid #bacdbb;background:#f7f9f6;border-radius:0 7px 7px 0;font-size:12.6px;color:#748476;line-height:1.85}
+.section-body .continuation em{font-style:normal}
+.essay-bridge{border-top:1px dashed #dbe6dc;margin:32px 0 0!important;padding:21px 0 0;color:#68806f!important}
+.constraint-row{margin:25px 0 4px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid #e3eae1;border-radius:11px;overflow:hidden;background:#fffefa}
+.constraint-row>div{padding:12px 16px;border-right:1px solid #e8eee7;border-bottom:1px solid #e8eee7;display:flex;align-items:baseline;gap:13px}
+.constraint-row>div:nth-child(even){border-right:0}.constraint-row>div:nth-last-child(-n+2){border-bottom:0}
+.constraint-row b{font-size:11px;color:#617e69;white-space:nowrap}.constraint-row span{font-size:12px;color:#809186}
+.diagram,.shape-strip,.topology,.taxonomy{margin:21px 0 28px;border:1px solid #e1e9e0;border-radius:13px;background:#fffefa;overflow:hidden}
+.diagram-title{display:flex;justify-content:space-between;align-items:baseline;gap:13px;flex-wrap:wrap;padding:14px 17px 10px;border-bottom:1px solid #f0f2ed}
+.diagram-title span{font-size:10px;letter-spacing:.055em;color:#86a08a;font-weight:800}.diagram-title b{font-size:12px;font-weight:730;color:#506c58}
+.diagram svg{display:block;width:100%;height:auto;max-height:310px;padding:8px 15px 4px}
+.diagram figcaption,.shape-strip figcaption,.topology figcaption,.taxonomy figcaption{padding:10px 16px 14px;color:#849388;font-size:11.5px;line-height:1.7}
+.svg-head{font:700 12px 'Noto Sans SC','PingFang SC',sans-serif;fill:#66806b}.svg-label{font:700 11px 'Noto Sans SC','PingFang SC',sans-serif;fill:#668674}.svg-txt{font:11px 'Noto Sans SC','PingFang SC',sans-serif;fill:#839588}
+.shape-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:15px 12px 7px;gap:6px}
+.shape-cell{display:grid;place-items:center;gap:4px;padding:4px 0 7px;border-right:1px solid #edf0e9}.shape-cell:last-child{border-right:none}
+.shape-cell svg{width:min(100%,100px);height:auto}.shape-cell span{font-size:11.5px;color:#66806e}
+.source-bar{margin:14px 16px 0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;text-align:center;padding:10px 12px;border:1px solid #dce6dc;border-radius:8px;background:#f5f8f4}
+.source-mark{font-size:9px;letter-spacing:.09em;color:#8ba891;font-weight:800}.source-bar strong{font-size:14px}.source-bar small{font-size:11px;color:#8a9b8e}
+.source-stem{height:19px;width:1px;background:#bbcdbd;margin:auto}.source-stem:after{content:'';display:block;border-bottom:1px solid #bbcdbd;width:75%;position:relative;left:-37.5%;top:19px}
+.topo-grid{margin:0 16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.topo-grid div{border:1px solid #e3eae1;border-radius:7px;padding:10px 6px 11px;text-align:center;background:#fffefa}
+.topo-grid span{display:block;font-size:10px;color:#9aa99a}.topo-grid b{display:block;font-size:12px;color:#547561;margin:3px 0 4px}.topo-grid small{display:block;font-size:9.3px;color:#a0aaa1;line-height:1.4}
+.topo-combine{text-align:center;padding:12px 16px 1px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;color:#5c8066}
+.topo-combine .topo-branch{font-size:11px}.topo-combine .topo-plus,.topo-combine .topo-arrow{color:#a6b9a9}
+.topo-rule{border:1px dashed #b9cbb9;border-radius:6px;padding:5px 9px;font-size:11px}
+.topo-combine strong{border-bottom:2px solid #84a78c;padding-bottom:2px;font-size:13px}
+.scenario-board{margin:20px 0 29px;border:1px solid #e1e9e0;border-radius:12px;background:#fffefa;overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:140px minmax(0,1fr) 136px;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid #eaf0e8;font-size:12px;line-height:1.58;color:#6b7a6e}
+.scenario-row:last-of-type{border-bottom:none}.scenario-name{display:flex;align-items:center;gap:8px;color:#4f6f59;font-weight:735}
+.scenario-dot{display:inline-block;width:9px;height:9px;border-radius:3px;background:#8ea997;flex-shrink:0}.dot-b{background:#a4b4ac}.dot-c{background:#b4a48b}.dot-d{background:#9ca5b3}
+.scenario-row b{color:#62836e;font-weight:690;font-size:11.5px}.scenario-board figcaption{padding:10px 15px 13px;font-size:11px;color:#849388;line-height:1.6}
+.taxonomy{margin-top:12px;padding-bottom:6px}.tax-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:8px;padding:10px 16px;align-items:start}
+.tax-index{font-size:10.5px;color:#72917a;font-weight:700;padding-top:6px}.tax-row>div{display:flex;flex-wrap:wrap;gap:7px}.tax-row b{font-size:11.5px;font-weight:600;border:1px solid #e0e9e0;background:#fafcf9;border-radius:5px;padding:5px 9px;color:#5b7863}
+.tax-join{font-size:10px;color:#9aada0;padding-left:142px;line-height:1.4}
+.side-nav{min-width:0;align-self:stretch;padding-top:31px}
+.side-sticky{position:sticky;top:28px;max-height:calc(100vh - 50px);overflow-y:auto;border-left:1px solid #dce5dc;padding-left:18px;scrollbar-width:thin}
+.side-title{display:flex;flex-direction:column;gap:2px;margin-bottom:15px;color:#839b87;letter-spacing:.08em;font-size:10px;font-weight:780}.side-count{letter-spacing:.01em;color:#adb8ac;font-size:10px;font-weight:500}
+.side-nav nav{display:flex;flex-direction:column;gap:0}
+.side-nav nav a{font-size:11.6px;color:#839086;line-height:1.58;display:grid;grid-template-columns:22px 1fr;gap:5px;align-items:baseline;padding:8px 0;transition:color .2s}
+.side-nav nav a.active{color:#416b4d;font-weight:700}.toc-index{font-family:Georgia,serif;color:#aac0ac;font-size:11px}
+.side-foot{margin-top:24px;color:#a0ada1;font-size:11px;line-height:1.85;padding-top:17px;border-top:1px dashed #e0e8de}
+.mobile-toc{display:none}
+#ch09 h3{border-bottom:1px solid #ecf0e9;padding-bottom:8px;margin-top:30px}
+#ch10 .section-body>p:last-of-type{margin-bottom:28px}
+.appendix-section .question-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}
+.question-item{border:1px solid var(--stroke);background:#fffefa;border-radius:9px;padding:14px 15px}.question-item p{font-size:12.6px;line-height:1.78;margin:0 0 7px;color:#67796a}.question-item p:last-child{margin:0}.question-item strong{color:#597a62}
+.appendix-jump{border:1px solid #d9e6db;border-radius:12px;background:#f6faf5;padding:20px 22px;margin:23px 0}
+.appendix-jump-eyebrow{color:#75947a;font-size:10px;font-weight:800;letter-spacing:.06em}
+.appendix-jump h2{font-size:17px;line-height:1.55;margin:8px 0}.appendix-jump p{font-size:12.7px;line-height:1.85;color:#657968;margin:0 0 13px}.appendix-jump a{font-size:12px;font-weight:750;color:#537b5b;border-bottom:1px solid #a9c0ab}
+.refs{font-size:11px;color:#9aa69b;line-height:1.9;margin:20px 0}.refs a{color:#718c78;text-decoration:underline;text-decoration-color:#c0d1c3}
+.back{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}.back a{border:1px solid #dbe6db;border-radius:7px;padding:9px 13px;background:#fffefa;color:#5c7e64;font-size:12px}
+.site-footer{border-top:1px solid #e4eae3;padding:25px 0 40px;color:#98a398;font-size:11px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.progress{position:fixed;z-index:50;left:0;top:0;width:0;height:2px;background:#739b7b;pointer-events:none}
+@media(max-width:1050px){.content-layout{grid-template-columns:minmax(0,1fr) 190px;gap:35px}.page{max-width:1000px}}
+@media(max-width:850px){.content-layout{display:block}.side-nav{display:none}.mobile-toc{display:block;border:1px solid #e2e9e0;border-radius:9px;margin:26px 0 0;background:#fffefa;padding:0 13px}.mobile-toc summary{cursor:pointer;font-size:12px;padding:10px 0;color:#668773;font-weight:700}.mobile-toc summary span{font-weight:400;color:#93a498;margin-left:9px}.mobile-toc nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;padding:3px 0 15px}.mobile-toc nav a{font-size:12px;color:#758a79}}
+@media(max-width:640px){.scenario-row{grid-template-columns:1fr;gap:4px;padding:11px 13px}.scenario-row b{font-size:11px}.page{padding:0 17px 55px}.nav-inner{padding:14px 17px;align-items:start}.nav-links{justify-content:flex-end;gap:6px 10px;font-size:10.5px}.brand{font-size:12px}.brand-mark{margin-right:4px}.hero{display:block;padding:35px 0 29px}.hero h1{font-size:clamp(29px,7vw,38px);margin:16px 0}.hero-intro{font-size:14px}.hero-art{margin-top:21px;max-width:430px}.hero-art svg{max-height:236px}.hero-meta{margin-top:16px}.hero-art-note{font-size:10px}.reading-trail{gap:7px 9px;padding:12px 0 15px;font-size:10px}.reading-trail small{display:block;width:100%;font-size:10px}.essay-section{padding:35px 0 28px}.essay-section:first-child{padding-top:28px}.section-head{grid-template-columns:28px 1fr;gap:7px;margin-bottom:16px}.chapter-index{font-size:13px}.section-heading h2{font-size:21px}.smalltitle{font-size:10px}.section-body{padding-left:0}.section-body>p{font-size:14px;line-height:1.88;margin-bottom:14px}.section-body>h3{font-size:16.5px;margin:29px 0 14px}.method-note{display:block;padding:13px 0}.method-name{font-size:13.5px;margin-bottom:7px}.method-description p{font-size:12.8px}.constraint-row{grid-template-columns:1fr}.constraint-row>div{border-right:none!important;border-bottom:1px solid #e8eee7!important}.constraint-row>div:last-child{border-bottom:0!important}.diagram,.topology,.shape-strip,.taxonomy{margin:17px 0 20px}.diagram-title{padding:11px 11px 10px}.diagram-title b{font-size:11px}.diagram-title span{font-size:9px}.diagram svg{padding:2px;max-height:none}.diagram figcaption,.shape-strip figcaption,.topology figcaption,.taxonomy figcaption{font-size:10.5px;padding:8px 12px 11px}.svg-txt{font-size:12px}.topo-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 10px;gap:6px}.topo-grid div:last-child{grid-column:1/-1}.topo-combine{gap:7px;font-size:11px}.source-bar{margin:12px 10px 0}.source-stem{height:14px}.source-stem:after{top:14px}.shape-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 5px}.shape-cell:nth-child(3){border-right:0}.shape-cell:nth-child(4),.shape-cell:nth-child(5){border-top:1px solid #edf0e9}.tax-row{grid-template-columns:1fr;gap:4px;padding:9px 12px}.tax-join{padding-left:13px}.table-scroller table{min-width:480px}.appendix-section .question-grid{grid-template-columns:1fr}.mobile-toc nav{grid-template-columns:1fr}.back{flex-direction:column}}
+@media print{.site-nav,.mobile-toc,.side-nav,.progress{display:none}.page{max-width:none}.content-layout{display:block}.hero{display:flex}.article{width:100%}.essay-section{break-inside:auto}.diagram,.method-note,.topology{break-inside:avoid}.table-scroller{overflow:visible}}
+</style></head><body><div class="progress" id="readingProgress"></div><header class="site-nav"><div class="nav-inner"><a class="brand" href="https://fishxddd.github.io/"><span class="brand-mark">✳</span>沿途手记</a><nav class="nav-links" aria-label="网站导航"><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">← Stage 01</a><a href="q01-geometry-appendix.html">技术年表 ↗</a><a href="https://fishxddd.github.io/src/pages/research/route-1-1.html">研究路线 ↗</a></nav></div></header><div class="page"><header class="hero">
+<div class="hero-copy"><div class="eyebrow"><span class="tiny-line"></span> STAGE 01 / Q01 · POINT CLOUD GEOMETRY</div>
+<h1>只有一份点云，<br><em>能把抓取 Pose 算出来吗？</em></h1>
+<p class="hero-intro">从中心、主轴与表面出发，整理点云能够提供的空间约束；再把这些约束组合起来，构造夹爪真正需要的姿态。</p>
+<div class="hero-meta"><span>2026.10</span><span>RGB-D · Geometry</span><span>研究随笔 / 技术路线</span></div>
+</div>
+<div class="hero-art" aria-hidden="true">
+ <svg viewBox="0 0 360 280" role="img"><defs><pattern id="heroGrid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#e5ece5" stroke-width=".8"/></pattern></defs>
+  <rect x="0" y="0" width="360" height="280" fill="url(#heroGrid)" rx="9"/>
+  <ellipse cx="169" cy="231" rx="105" ry="20" fill="#e5ece5" opacity=".62"/>
+  <ellipse cx="169" cy="80" rx="54" ry="18" fill="#eaf3eb" stroke="#7e9f8b" stroke-width="2"/>
+  <path d="M115 80v124c0 11 24 21 54 21s54-10 54-21V80" fill="#f3f7f1" stroke="#7e9f8b" stroke-width="2"/>
+  <ellipse cx="169" cy="204" rx="54" ry="18" fill="none" stroke="#94b19a" stroke-dasharray="4 6"/>
+  <path d="M169 58V225" stroke="#b68e67" stroke-width="2" stroke-dasharray="5 5"/>
+  <g fill="#78a089"><circle cx="116" cy="91" r="2.5"/><circle cx="121" cy="109" r="2.5"/><circle cx="120" cy="131" r="2.5"/><circle cx="122" cy="151" r="2.5"/><circle cx="121" cy="180" r="2.5"/><circle cx="130" cy="197" r="2.5"/><circle cx="146" cy="211" r="2.5"/><circle cx="162" cy="220" r="2.5"/><circle cx="183" cy="218" r="2.5"/><circle cx="205" cy="208" r="2.5"/><circle cx="220" cy="193" r="2.5"/><circle cx="224" cy="167" r="2.5"/><circle cx="221" cy="141" r="2.5"/><circle cx="224" cy="119" r="2.5"/><circle cx="224" cy="101" r="2.5"/><circle cx="211" cy="86" r="2.5"/><circle cx="190" cy="78" r="2.5"/><circle cx="151" cy="74" r="2.5"/><circle cx="134" cy="83" r="2.5"/><circle cx="142" cy="104" r="2.5"/><circle cx="141" cy="133" r="2.5"/><circle cx="140" cy="159" r="2.5"/><circle cx="150" cy="185" r="2.5"/><circle cx="166" cy="205" r="2.5"/><circle cx="193" cy="198" r="2.5"/><circle cx="201" cy="175" r="2.5"/><circle cx="204" cy="149" r="2.5"/><circle cx="202" cy="121" r="2.5"/><circle cx="195" cy="100" r="2.5"/></g>
+  <path d="M221 148L283 126" stroke="#6695a8" stroke-width="2.5"/><path d="M283 126 l-13 -2 5 10Z" fill="#6695a8"/>
+  <path d="M169 160L132 135" stroke="#b78e64" stroke-width="2.3"/><path d="M132 135 l13 2 -5 9Z" fill="#b78e64"/>
+  <g stroke="#6f8e80" fill="#f4f7f2" stroke-width="2"><rect x="265" y="127" width="11" height="71" rx="3"/><rect x="311" y="112" width="11" height="71" rx="3"/></g>
+  <path d="M271 199 L316 183" fill="none" stroke="#809a8a" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="169" cy="160" r="5" fill="#b58c66" stroke="white" stroke-width="1.8"/>
+  <text x="52" y="58" class="svg-hero-label">point cloud</text><path d="M112 83L67 60" fill="none" stroke="#b7c9b7"/>
+  <text x="244" y="72" class="svg-hero-label">axis</text><path d="M233 77L177 58" fill="none" stroke="#bea786"/>
+  <text x="242" y="245" class="svg-hero-label">grasp frame</text><path d="M280 227L290 190" fill="none" stroke="#b7c9b7"/>
+ </svg>
+ <div class="hero-art-note"><i></i> 从可见几何到抓取约束</div>
+</div>
+</header><div class="reading-trail" aria-label="本文内容路线"><span>起点</span><i>→</i><span>几何信息</span><i>→</i><span>约束组合</span><i>→</i><span>Grasp Pose</span><small>从点云量出什么，最终怎样用于夹爪</small></div><details class="mobile-toc"><summary>浏览章节 <span>00—10 / 技术附录</span></summary><nav><a href="#ch00">00 · 起点：先把问题说清</a><a href="#ch01">01 · Pose 需要哪些几何约束？</a><a href="#ch02">02 · 中心与位置：先弄清“中心”指什么</a><a href="#ch03">03 · 主轴与方向：从 PCA 到 OBB</a><a href="#ch04">04 · 表面与法线：从局部到整片平面</a><a href="#ch05">05 · 几何基元：把形状信息用起来</a><a href="#ch06">06 · 边界与接触：看夹爪真正碰到哪里</a><a href="#ch08">07 · 从几何约束构造 Grasp Pose</a><a href="#ch07">08 · 把“几何信息”和“求解工具”分开</a><a href="#ch09">09 · 放回真实物体，怎样选择路线？</a><a href="#ch10">10 · 写到这里，留下的认识</a><a href="#appendix">附 · 进一步研究的问题与资料</a></nav></details><div class="content-layout"><main class="article" id="main-content"><section class="essay-section research-section" id="ch00"><div class="section-head"><span class="chapter-index">00</span><div class="section-heading"><div class="smalltitle">研究前提</div><h2>起点：先把问题说清</h2></div></div><div class="section-body">
 
-<section id="begin">
-<div class="smalltitle">起点 / 当时的直觉</div>
-<h2>先不想复杂的，看看点云里到底有什么。</h2>
-<p>脑子里最先出现的是一个很直接的画面：相机对着桌上的瓶子或盒子，能看到它的表面。那我应该能知道它在哪里，甚至估计一下它是横着放还是竖着放。</p>
-<p>一开始我并没有什么完整的算法路线。只是觉得，如果<strong>夹爪要落在一个三维位置上</strong>，那么先从点云里把这个位置量出来，听起来就很合理。</p>
-<div class="story"><div class="tag">最开始记下的一句话</div><p>我想要的并不是“把点云解释得多漂亮”，而是<strong>能不能直接从这堆点里找到夹爪摆放的依据</strong>。光是想到这件事可以从几何入手，就挺想继续往下看。</p></div>
-<figure class="sketch">
-<div class="figtitle">我最初理解的路线，大概就是这样</div>
-<svg viewBox="0 0 690 196" role="img" aria-label="由RGB-D相机观察到目标点云，再提取测量几何线索，进而确定夹爪姿态的概念示意图">
-<defs><marker id="arw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#86aa91" stroke-width="1.5"/></marker></defs>
-<rect x="10" y="22" width="184" height="138" rx="13" fill="#f6f8f3" stroke="#dfe9df"/>
-<g transform="translate(20 17)"><rect x="42" y="42" width="82" height="45" rx="7" fill="#e7eee6" stroke="#9ab49f" stroke-width="2"/><circle cx="83" cy="64" r="14" fill="#f8fbf7" stroke="#7e9f89" stroke-width="3"/><path d="M65 90 L56 110 M100 90 L109 110" stroke="#9ab49f" stroke-width="3" stroke-linecap="round"/><path d="M123 54 L152 34 L152 95 Z" fill="#c8decb" opacity=".34"/></g>
-<text x="102" y="180" fill="#687d6d" font-size="13" text-anchor="middle">RGB-D 看到物体</text>
-<path d="M202 87 H237" stroke="#86aa91" stroke-width="1.5" marker-end="url(#arw)"/>
-<rect x="246" y="22" width="198" height="138" rx="13" fill="#f7fafb" stroke="#dce7eb"/>
-<g fill="#78a2a9" opacity=".8">
-<circle cx="313" cy="45" r="3"/><circle cx="328" cy="49" r="3"/><circle cx="344" cy="44" r="3"/><circle cx="358" cy="52" r="3"/><circle cx="376" cy="45" r="3"/>
-<circle cx="301" cy="63" r="3"/><circle cx="316" cy="67" r="3"/><circle cx="331" cy="60" r="3"/><circle cx="349" cy="68" r="3"/><circle cx="366" cy="63" r="3"/><circle cx="384" cy="68" r="3"/>
-<circle cx="299" cy="84" r="3"/><circle cx="315" cy="89" r="3"/><circle cx="332" cy="81" r="3"/><circle cx="351" cy="88" r="3"/><circle cx="368" cy="85" r="3"/><circle cx="385" cy="82" r="3"/>
-<circle cx="310" cy="102" r="3"/><circle cx="326" cy="108" r="3"/><circle cx="344" cy="103" r="3"/><circle cx="364" cy="109" r="3"/><circle cx="375" cy="101" r="3"/>
-<circle cx="321" cy="123" r="3"/><circle cx="343" cy="124" r="3"/><circle cx="359" cy="120" r="3"/>
-</g>
-<path d="M339 34 L339 133" stroke="#ce9a75" stroke-dasharray="5 4" stroke-width="2"/>
-<circle cx="342" cy="86" r="6" fill="#fff" stroke="#b88c66" stroke-width="2"/>
-<text x="345" y="180" fill="#687d6d" font-size="13" text-anchor="middle">点云里能量出什么？</text>
-<path d="M452 87 H487" stroke="#86aa91" stroke-width="1.5" marker-end="url(#arw)"/>
-<rect x="496" y="22" width="184" height="138" rx="13" fill="#f5f9f2" stroke="#dae6d9"/>
-<g transform="translate(500 10)"><rect x="70" y="60" width="42" height="64" rx="17" fill="#e2efe4" stroke="#88a993" stroke-width="2"/><path d="M47 83 H67 M114 83 H135 M47 83 V104 H67 M135 83 V104 H114" fill="none" stroke="#bf9167" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M92 42 V71" stroke="#658fa0" stroke-width="3"/><path d="M87 48 L92 40 L97 48" stroke="#658fa0" stroke-width="2" fill="none"/></g>
-<text x="588" y="180" fill="#687d6d" font-size="13" text-anchor="middle">把夹爪摆到空间里</text>
-</svg>
-<figcaption>这里还没有选算法，只有一个念头：把现场能测到的几何信息变成抓取参考。</figcaption>
+
+
+
+
+
+<p>对于抓取 Pose，最初的想法其实很简单。既然深度相机已经能获得物体的三维点云，那么物体的中心、方向、表面，应该都可以直接从点云中测量出来。</p><p>瓶子可以利用瓶身轴线定义方向；规则盒子可以利用中心、边和表面建立坐标系。只要提前约定好抓取方式，就有机会把这些几何信息转换成夹爪的 Pose。</p><p>这条思路不需要先识别物体的具体型号，也不一定需要完整的三维模型。但要成为一条可靠的工程路线，首先得弄清楚：<strong>点云能提供哪些空间信息，又能约束 Grasp Pose 的哪些自由度？</strong></p><div aria-label="本页研究约定" class="constraint-row">
+<div><b>已知输入</b><span>单视角目标点云 · RGB-D</span></div>
+<div><b>先固定</b><span>抓取方式 · 两指平行夹爪</span></div>
+<div><b>不依赖</b><span>实例 CAD · 多视角重建</span></div>
+<div><b>目标输出</b><span>一个或多个 Grasp Pose</span></div></div></div></section><section class="essay-section research-section" id="ch01"><div class="section-head"><span class="chapter-index">01</span><div class="section-heading"><div class="smalltitle">问题分解</div><h2>Pose 需要哪些几何约束？</h2></div></div><div class="section-body"><p>起初觉得求 Pose 就是找中心、算方向。</p>
+<p>再仔细想想，其实这两件事都没有那么确定。</p>
+<p>比如一瓶饮料，它的中心可以是瓶身几何中心，也可以是底面中心，还可以是预定抓取区域的中心。</p>
+<p>这些位置未必相同，却都可能有合理的用途。</p>
+<p>方向也是如此。</p>
+<p>一根瓶身轴线可以告诉我瓶子大致沿着哪个方向放置，但仅凭这根轴线，并不能唯一确定完整的三维旋转。绕着轴线转过一个角度，瓶子的几何外观可能没有任何变化。</p>
+<p>不过，如果本来就约定从瓶身侧面抓取，这个剩余的旋转自由度，也许可以通过接近方向或其他任务条件来确定。</p>
+<p>慢慢发现，<strong>求 Grasp Pose 并不意味着必须先恢复完整的 Object Pose。</strong></p>
+<p>真正需要弄清的是：当前抓法需要哪些空间约束，而点云能够提供其中的哪些信息。</p>
+<p>于是把最常遇到的几类几何信息先分开：</p>
+<div class="table-scroller"><table>
+<thead>
+<tr>
+<th>想得到的信息</th>
+<th>对抓取有什么帮助</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中心与位置</td>
+<td>确定抓取参考点</td>
+</tr>
+<tr>
+<td>主轴与方向</td>
+<td>确定物体的主要朝向</td>
+</tr>
+<tr>
+<td>表面与法线</td>
+<td>确定局部接近方向</td>
+</tr>
+<tr>
+<td>几何基元</td>
+<td>利用形状约束估计轴线、中心与尺寸</td>
+</tr>
+<tr>
+<td>边界与接触区域</td>
+<td>确定夹爪可能接触的位置</td>
+</tr>
+<tr>
+<td>坐标系与自由度</td>
+<td>把这些信息组合成 Grasp Pose</td>
+</tr>
+</tbody>
+</table></div><figure aria-label="点云几何约束分类关系图" class="topology">
+<div class="diagram-title"><span>研究地图 · 可以并行选择</span><b>不是六步流水线，而是信息如何进入 Grasp Pose</b></div>
+<div class="source-bar"><span class="source-mark">INPUT</span><strong>目标点云</strong><small>仅有可见表面 · 可能存在噪声和遮挡</small></div>
+<div class="source-stem"></div>
+<div class="topo-grid">
+<div><span>位置</span><b>中心 / 范围</b><small>Centroid · OBB</small></div>
+<div><span>方向</span><b>主轴 / 边线</b><small>PCA · Line Fit</small></div>
+<div><span>局部</span><b>法线 / 平面</b><small>Normal · Plane</small></div>
+<div><span>形状</span><b>圆柱 / 球 / 盒</b><small>Primitive Fit</small></div>
+<div><span>接触</span><b>边界 / 接触对</b><small>Boundary · Antipodal</small></div>
+</div>
+<div class="topo-combine"><span class="topo-branch">可按需组合</span><span class="topo-plus">+</span><span class="topo-rule">预定抓取约束</span><span class="topo-arrow">↓</span><strong>Grasp Pose</strong></div>
+<figcaption>某一条路线只需具备抓法真正用到的约束，无须把所有几何特征都算出来。</figcaption>
 </figure>
-</section>
-
-<section id="xyz">
-<div class="smalltitle">往下看 / 第一件有趣的事</div>
-<h2>深度图里的每个有效像素，原来都能对应到空间中的一个点。</h2>
-<p>RGB 图像告诉我物体出现在哪个像素，深度给出那个像素对应的距离；再配合相机内参，就能反投影到三维空间。把目标区域里的有效深度点取出来，就有了一团属于目标的点云。</p>
-<p>这件事本身其实已经很有用了。以前图像里的“中心”只是一个二维位置，现在我可以讨论它的<strong>三维坐标、空间范围、高度、两点间的距离</strong>。抓取问题第一次有了能直接测量的东西。</p>
-<div class="aha"><p><strong>第一个小发现：</strong>点云不是一堆需要先“识别”的数据。它本身就是空间测量结果。只要目标区域和深度可靠，我已经可以在相机坐标系里选出抓取参考点了。</p></div>
-<p>顺手也理解了“质心”这类最简单的方法：把观测到的点作统计平均，能得到一个大致位置；但如果只看见瓶子朝向相机的半边，它就是<strong>可见点的中心</strong>，不一定是整个物体的中心。这个区别以后肯定得记着。</p>
-</section>
-
-<section id="orientation">
-<div class="smalltitle">翻资料时 / 发现了一个特别巧的想法</div>
-<h2>原来一团没有顺序的点，也能自己显露出方向。</h2>
-<p>位置有了之后，我自然会好奇：物体是往哪个方向延伸的？例如一根横放的瓶子，看起来明显“长”在某个方向上，能不能直接从点坐标里看出来？</p>
-<p>这时看到 <strong>PCA（主成分分析）</strong>，感觉思路很漂亮：不必先知道瓶子、纸盒分别是什么类别，只要统计这一团点往各个方向分散得有多厉害，就能找出它最主要的延伸方向。原来统计方法也能用来理解三维形状。</p>
-<div class="method"><div class="top"><strong>PCA · 从点的分布里找方向</strong><small>认识笔记 / 不是实现教程</small></div><div class="body"><p><strong>核心想法：</strong>寻找点云变化最显著的方向，把它当作整体形状的参考轴。</p><p class="subtle">它测到的是<strong>观测点的分布方向</strong>。如果物体近似对称、只露出一面，或者深度点特别不均匀，主轴并不保证就是我们心目中的物体朝向。</p></div></div>
-<p>顺着主方向再看 <strong>OBB（有向包围盒）</strong>，就更容易有画面感了：既然有了大致朝向，能不能沿着这些方向给点云套一个盒子，估计它占多大空间、长宽高大致如何？这样不仅能看方向，还能开始量尺寸。</p>
-<p>我很喜欢这个思路，它把抽象的点分布变成了一件很直观的东西。不过也得分清：<strong>PCA 是估计方向的一种方法，OBB 是几何包围表达</strong>；基于 PCA 的 OBB 通常只是近似包围盒，不等于真正的最小体积 OBB，更不等于抓取姿态。</p>
-<div class="breaknote">顺手记一下：PCA 和 OBB 不是两个按顺序升级的“抓取算法”。前者帮助找参考轴，后者帮助看空间占据与尺寸。这是同一份点云能提供的两类测量结果。</div>
-</section>
-
-<section id="surface">
-<div class="smalltitle">再往里看 / 视线不再只盯着整个物体</div>
-<h2>更惊喜的是，一小块表面也能量出自己的方向。</h2>
-<p>看着那些点云方法，我慢慢发现：如果我想让夹爪接近物体侧面，未必需要先搞清整团点云的主轴。我更想知道的是<strong>眼前这块表面朝哪里</strong>。</p>
-<p>这时就碰到了<strong>表面法线</strong>。取一个点附近的小片邻域，把它近似成平面，就能估计垂直于这片表面的方向。和 PCA 求整体主轴很不一样：它不是在概括整团物体，而是在测量一个局部位置的几何朝向。</p>
-<p>后来才注意到一个挺有意思的联系：局部法线也可以通过邻域点的 PCA 来估计，只不过这次关心的是<strong>变化最小的方向</strong>。同样是分析点的分布，尺度一变，回答的问题就变了。</p>
-<div class="two">
-<div class="tiny-card cool"><small>看整体点云</small><h3>PCA / 主方向</h3><p>一团点主要往哪里延伸？适合观察物体的大致姿态或长短方向。</p></div>
-<div class="tiny-card warm"><small>看局部邻域</small><h3>Normal / 表面法线</h3><p>这一小片表面朝哪里？适合构造接触区域附近的方向参考。</p></div>
-</div>
-<p>而当目标上有一大片相对规则的平面，比如纸盒的一面，甚至可以直接拟合一个<strong>平面方程</strong>，从而得到整个平面的法线和位置。点云里有一点噪声、混进了一些背景点，也不是完全没办法——查资料时就顺便认识了 <strong>RANSAC</strong>。</p>
-<div class="method orange"><div class="top"><strong>RANSAC · 原来可以在杂点里找出靠谱的几何结构</strong><small>发现 / 鲁棒拟合</small></div><div class="body"><p><strong>核心想法：</strong>反复抽取少量点提出模型，再看看有多少点支持它，寻找共识较强的几何结构。</p><p class="subtle">这里的 RANSAC 不是另一种抓取姿态算法；它是帮忙<strong>稳健拟合平面、圆柱等模型</strong>的通用思路。模型假设如果本来就不合适，采样再多也解决不了根本问题。</p></div></div>
-<p class="memo">当时挺开心的一点是：原来点云不只是“有多少点”，它还在告诉我接触表面的朝向，甚至能把一部分杂点排除出去。</p>
-</section>
-
-<section id="primitive">
-<div class="smalltitle">又发现 / 形状本身还可以提供更多约束</div>
-<h2>如果它长得像个圆柱，就能量出更多东西了。</h2>
-<p>想到瓶子时，我又发现只看主轴或一小块表面似乎有点浪费：它的瓶身本来就接近圆柱，那为什么不试着把这个几何形状拟合出来？</p>
-<p>这就认识了<strong>几何基元拟合（Primitive Fitting）</strong>。不去恢复复杂形状，而是寻找平面、圆柱等简单几何结构：拟合圆柱时可以得到轴线和半径，拟合平面时可以得到朝向和偏移。<strong>只要形状假设成立，这些信息比一个孤零零的点或方向丰富得多。</strong></p>
-<div class="two">
-<div class="tiny-card"><small>规则盒面</small><h3>Plane fitting</h3><p>量到一个面的位置和法线，就有了更明确的表面参考。</p></div>
-<div class="tiny-card warm"><small>瓶身或管体</small><h3>Cylinder fitting</h3><p>量到轴线、半径等参数，就更容易估计圆柱状物体的几何中心与尺度。</p></div>
-</div>
-<p>当然，点云是相机看见的那一部分，不会因为用了拟合算法就自动补齐背面。尤其圆柱只剩很窄的一段弧面、瓶子被压扁、物体严重遮挡时，参数就可能不稳定。</p>
-<p>但这反而让我更清楚了这条路线的意思：<strong>几何测量不是只选一个最厉害的算法，而是看眼前有没有值得利用的结构。</strong> 有长轴就量长轴，有接触表面就量法线，有明显的规则形状就尝试拟合。它们完全可以一起提供信息。</p>
-</section>
-
-<section id="pose">
-<div class="smalltitle">回到最初的问题 / 这些东西怎么用来抓？</div>
-<h2>原来离 Grasp Pose 已经不远了，不过还得再拼一块。</h2>
-<p>学到这里，我开始能把前面的几何量和夹爪联系起来了：位置可以从三维点或拟合的几何中心来，方向可以参考主轴、表面法线、平面或圆柱轴，尺寸也可以从包围范围或拟合参数估计。</p>
-<p>但也终于理解：<strong>一个点、一根轴、一条法线，都不等于完整的 6DoF Grasp Pose。</strong> 夹爪还需要决定从哪边接近、手指沿哪边闭合，以及最终放在哪个位置。几何提供参考，具体抓法提供尚缺的约束；把这些方向组织成正交的夹爪坐标系，才是最终要输出的 Pose。</p>
-<div class="combine"><div class="ctitle">现在脑子里终于连起来的一条线</div><div class="chain"><div class="boxx"><strong>RGB-D 点云</strong><span>目标表面的 3D 点</span></div><div class="arrow">→</div><div class="boxx measured"><strong>几何测量</strong><span>位置 · 主轴 · 法线<br>平面 / 圆柱 · 尺寸</span></div><div class="arrow">+</div><div class="boxx pose"><strong>抓取约束 → Grasp Pose</strong><span>补齐接近、闭合方向<br>形成夹爪坐标系</span></div></div><div class="bottom">不是点云自己“猜出怎么抓”，而是从现场量到的线索里，构造一个有依据的抓取姿态。</div></div>
-<p>拿侧面夹取瓶子作个脑内例子：圆柱轴线可以提供瓶身方向；局部表面或圆柱几何可以给出侧面的参考；再结合预定的接近方向和夹爪约束，才有机会构造出合理的候选姿态。这件事并不需要先把瓶子的每一处表面都解释清楚。</p>
-<div class="aha"><p><strong>到这里最开心的收获：</strong>我最开始只是觉得“有点云总能量点什么”。现在至少看懂了一整条思路：<strong>从三维测量，到寻找几何线索，再到用线索约束夹爪姿态。</strong></p></div>
-</section>
-
-<section id="pocket">
-<div class="smalltitle">翻完资料 / 给自己留一页短短的备忘</div>
-<h2>这次真正认识的几件几何工具。</h2>
-<p>不写公式，也不急着把它们展开成教程。先留下每个方法最值得记住的核心思想。等真正需要实现或验证时，再单独记细节。</p>
-<div class="catch-grid">
-<div class="catch-item"><strong>反投影 · Back-projection</strong><p>结合深度与内参，从像素得到相机坐标系下的 XYZ。<em>它让测量真正发生在三维空间。</em></p></div>
-<div class="catch-item"><strong>质心 / 空间范围</strong><p>用点坐标统计位置、距离和占据范围。<em>注意观测中心不一定是物体真实中心。</em></p></div>
-<div class="catch-item"><strong>PCA · 主成分分析</strong><p>看点云沿不同方向的分散程度，找整体主轴。<em>主轴是统计结果，不是抓取指令。</em></p></div>
-<div class="catch-item"><strong>OBB · 有向包围盒</strong><p>沿某组方向包住点云，估计大致占据与尺度。<em>PCA-OBB 并非最小体积 OBB。</em></p></div>
-<div class="catch-item"><strong>Normal / Plane</strong><p>从邻域或一组平面点测量表面方向。<em>对局部尺度、深度噪声和遮挡敏感。</em></p></div>
-<div class="catch-item"><strong>RANSAC / Primitive fitting</strong><p>稳健寻找平面、圆柱等几何结构，估计轴线和参数。<em>前提是形状假设确实靠谱。</em></p></div>
-</div>
-</section>
-
-<div class="end" id="end"><div class="smalltitle">写在页尾 / Q01 暂时先记到这里</div><h2>原来“直接用点云求抓取”，真的不是一句空话。</h2>
-<p>从一个像素的三维位置，到一团点的主方向；从局部表面法线，到能拟合出轴线和尺寸的简单几何体……几何里原来藏着这么多可以拿来用的东西。</p>
-<p>我现在对这条路线的认识是：<strong>先弄清楚能从现场稳定测到什么，再想这些测量能为夹爪提供哪些约束。</strong> 不同算法没有必要排成一条谁替代谁的队伍，它们更像是一盒各有用途的测量工具。</p>
-<p>下一次真正动手时，最想观察的反而很简单：点云只露出一半、形状有变化、深度出现缺口时，自己依赖的几何量还稳不稳？这部分就留给后面的实践记录。</p>
-<p class="smile">至少今天的收获已经足够有意思了：原来一团点，也能一步步量出抓取的方向感。 ☺</p></div>
-<div class="appendix-jump">
-  <div class="appendix-jump-eyebrow">Q01 · 继续往里翻 / 技术年表</div>
-  <h2>这些好用的几何测量方法，是怎样一路发展来的？</h2>
-  <p>正文里先认识了质心、PCA、法线与几何拟合。如果想继续追问：同一个测量目标有哪些真正重要的流派、哪些算法至今还值得学？我把筛选后的代表里程碑单独记在下一页。</p>
-  <a href="q01-geometry-appendix.html">翻开附录 · 几何测量技术里程碑 →</a>
-</div>
-<div class="refs">资料线索：<a href="https://www.open3d.org/docs/latest/python_api/open3d.geometry.OrientedBoundingBox.html" target="_blank" rel="noopener noreferrer">Open3D · OBB</a> · <a href="https://pointclouds.org/documentation/tutorials/cylinder_segmentation.html" target="_blank" rel="noopener noreferrer">PCL · Cylinder Segmentation</a>。这篇只记录理解，不替代方法文档或实验验证。</div>
-<nav class="back"><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">← 返回 Stage 01</a><a href="q01-geometry-appendix.html">下一页 · 技术里程碑附录 →</a></nav>
-</main>
-<aside class="side"><div class="inside"><small>这页的随手记录</small><a href="#begin">最初怎么想到的</a><a href="#xyz">从像素量到三维</a><a href="#orientation">点云里的主方向</a><a href="#surface">表面原来有方向</a><a href="#primitive">形状也可以当尺子</a><a href="#pose">拼出 Grasp Pose</a><a href="#pocket">几件工具的认识</a><a href="#end">今天记下的收获</a><a href="q01-geometry-appendix.html">技术里程碑附录 ↗</a></div></aside></div>
-<footer class="footer">🐟 沿途手记 · 路上看到的新东西，就慢慢记下来。</footer>
-</body></html>
+<p>它们更像几种可以利用的空间线索，而不是必须依次执行的六个步骤。</p>
+<p>先分别看看，每一种信息到底能怎么求。</p>
+</div></section><section class="essay-section research-section" id="ch02"><div class="section-head"><span class="chapter-index">02</span><div class="section-heading"><div class="smalltitle">空间位置</div><h2>中心与位置：先弄清“中心”指什么</h2></div></div><div class="section-body"><h3>2.1 点云质心与真实中心</h3>
+<figure aria-label="物体截面中观测点质心与真实几何中心不重合的概念图" class="diagram dia-center">
+<div class="diagram-title"><span>图 01 · 一个截面例子</span><b>观测中心 ≠ 几何中心 ≠ 抓取参考</b></div>
+<svg aria-label="左图示意只观测到圆柱截面右侧表面时，采样点的平均位置偏向右侧；右图示意抓取中心可以另行定义" role="img" viewbox="0 0 690 224">
+<defs><pattern height="16" id="dotsA" patternunits="userSpaceOnUse" width="16"><circle cx="8" cy="8" fill="#e6eee7" r=".75"></circle></pattern></defs>
+<rect fill="url(#dotsA)" height="224" rx="12" width="690" x="0" y="0"></rect>
+<line stroke="#e1e9e1" x1="340" x2="340" y1="21" y2="204"></line>
+<text class="svg-head" x="22" y="25">只看到一部分表面</text>
+<circle cx="173" cy="120" fill="none" r="69" stroke="#b9c7bb" stroke-dasharray="5 6" stroke-width="1.7"></circle>
+<path d="M173 51 A69 69 0 0 1 173 189" fill="none" stroke="#7a9d8b" stroke-linecap="round" stroke-width="3.5"></path>
+<g fill="#648c79"><circle cx="173" cy="51" r="3.5"></circle><circle cx="188" cy="53" r="3.5"></circle><circle cx="207" cy="61" r="3.5"></circle><circle cx="224" cy="75" r="3.5"></circle><circle cx="237" cy="95" r="3.5"></circle><circle cx="241" cy="118" r="3.5"></circle><circle cx="238" cy="140" r="3.5"></circle><circle cx="223" cy="165" r="3.5"></circle><circle cx="206" cy="179" r="3.5"></circle><circle cx="188" cy="187" r="3.5"></circle><circle cx="173" cy="189" r="3.5"></circle><circle cx="233" cy="88" r="3.5"></circle><circle cx="244" cy="126" r="3.5"></circle><circle cx="219" cy="171" r="3.5"></circle></g>
+<circle cx="173" cy="120" fill="#ffffff" r="5.5" stroke="#bd936d" stroke-width="2.8"></circle>
+<circle cx="218" cy="119" fill="#5e8295" r="5" stroke="white" stroke-width="1.5"></circle>
+<path d="M178 120 H211" stroke="#a0ada4" stroke-dasharray="3 3" stroke-width="1.5"></path>
+<text class="svg-txt" x="56" y="207">几何中心</text><path d="M113 198 L166 125" fill="none" stroke="#b9a38e"></path>
+<text class="svg-txt" x="231" y="207">采样质心</text><path d="M253 194 L221 126" fill="none" stroke="#879eab"></path>
+<text class="svg-head" x="365" y="25">抓取中心取决于抓法</text>
+<rect fill="#f4f7f2" height="81" rx="40" stroke="#a5bba9" stroke-width="2" width="155" x="429" y="77"></rect>
+<path d="M429 117 H584" stroke="#b0c1b3" stroke-dasharray="5 6"></path>
+<path d="M488 78 V157" stroke="#aac6b2" stroke-dasharray="4 5"></path>
+<rect fill="#78998a" height="21" rx="3" width="13" x="481" y="57"></rect><rect fill="#78998a" height="21" rx="3" width="13" x="481" y="158"></rect>
+<circle cx="487" cy="117" fill="#bd936d" r="5.5" stroke="white" stroke-width="2"></circle>
+<path d="M492 113 L574 52" fill="none" stroke="#ba926e" stroke-width="1.3"></path><text class="svg-txt" text-anchor="end" x="575" y="50">约定的抓取点</text>
+<text class="svg-txt" text-anchor="middle" x="513" y="201">不必是点云质心</text>
+</svg>
+<figcaption>仅为二维截面示意：不同“中心”定义回答的是不同问题，不代表真实实验结果。</figcaption>
+</figure>
+<p>如果手里已经有一份点云，最简单的办法自然是求平均位置。</p>
+<p>把所有点的坐标相加，再除以点数，就得到了点云质心。</p>
+<p>计算很轻，也很好理解。</p>
+<p>但这里有个容易忽略的地方：<strong>点云质心描述的是采样点的分布，并不一定是物体真实的几何中心。</strong></p>
+<p>例如相机只看到了瓶子的前半面，点云的平均位置自然会偏向可见表面。如果点云采样不均匀，点数更多的区域也会对结果产生更大影响。</p>
+<p>这倒不是质心计算有什么问题，只是它回答的原本就是“这些观测点的平均位置在哪里”。</p>
+<p>如果想得到别的中心，就需要换一种定义。</p>
+<h3>2.2 五种常见中心定义</h3>
+<p>继续整理，可以分出几种常用做法。</p>
+<div class="method-note"><div class="method-name"><span class="method-index">01</span>点云质心（Centroid / Mean）</div><div class="method-description"><p>直接求观测点的平均位置。</p><p>适合需要一个快速、稳定的点集统计参考的情况。计算成本低，但需要注意离群点、采样密度和可见区域的影响。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">02</span>坐标中位数（Coordinate-wise Median）</div><div class="method-description"><p>分别取三个坐标方向的中位数。</p><p>它不那么容易被少量极端离群点拉走，但得到的仍是统计位置，不保证对应物体中心，也不一定落在物体表面或内部。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">03</span>包围盒中心（AABB / OBB Center）</div><div class="method-description"><p>先用包围盒描述点云的空间范围，再取包围盒中心。</p><p>这种中心与点云的包围范围有关，不直接受某个区域点数多少的影响。不过，极端点和不完整观测仍然可能改变包围范围。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">04</span>几何拟合中心（Model Fitting Center）</div><div class="method-description"><p>如果知道目标大致符合某种几何形状，可以通过圆、球、圆柱等模型拟合得到相应的中心、轴线或参考位置。</p><p>它利用了更多形状信息，但也相应地要求物体符合所选择的几何假设。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">05</span>局部抓取中心（Local Grasp Center）</div><div class="method-description"><p>有时候根本不需要知道整个物体的中心。</p><p>如果已经决定夹住瓶身中部，那就可以直接在预定抓取区域附近寻找合适的参考点。</p><p>这得到的是服务于抓取任务的局部中心，不必和物体几何中心一致。</p></div></div>
+<h3>2.3 选择之前，先定义中心</h3>
+<p>整理下来发现，中心并不是一个需要争论哪种算法更准确的问题。</p>
+<p>应该先问：<strong>我究竟想得到什么中心？</strong></p>
+<p>如果只是为了快速定位一个目标区域，点云质心可能足够；如果需要恢复规整物体的几何中心，形状拟合可能更合适；如果只想确定夹爪位置，局部抓取中心反而更直接。</p>
+<p>不同中心不是互相替代的升级版本，只是服务于不同的空间定义。</p>
+<p class="continuation"><em>继续深入：点云统计中心、几何中心、包围盒中心和局部抓取中心，应该怎样比较它们的稳定性？</em></p>
+<p class="essay-bridge">中心解决的是位置参考，却不会告诉夹爪朝向哪里。对于具有明显延伸方向的物体，下一步可以单独考虑主轴与旋转约束。</p></div></section><section class="essay-section research-section" id="ch03"><div class="section-head"><span class="chapter-index">03</span><div class="section-heading"><div class="smalltitle">整体朝向</div><h2>主轴与方向：从 PCA 到 OBB</h2></div></div><div class="section-body"><h3>3.1 PCA 求的是统计主方向</h3>
+<figure aria-label="PCA主方向和有向包围盒的区别示意" class="diagram dia-pca">
+<div class="diagram-title"><span>图 02 · 分清两个概念</span><b>求方向，与描述包围范围不是一件事</b></div>
+<svg aria-label="左侧点云中PCA方向沿数据最长延伸轴，右侧把同类点云放入有向矩形包围盒" role="img" viewbox="0 0 690 236">
+<line stroke="#e4e9e2" x1="345" x2="345" y1="24" y2="210"></line>
+<text class="svg-head" x="18" y="26">PCA · 主方向</text><text class="svg-head" x="365" y="26">OBB · 方向 + 尺寸范围</text>
+<g transform="translate(170 129) rotate(-27)">
+<ellipse cx="0" cy="0" fill="#f2f6f2" rx="120" ry="39"></ellipse>
+<g fill="#87a895"><circle cx="-103" cy="-3" r="2.9"></circle><circle cx="-94" cy="12" r="2.9"></circle><circle cx="-82" cy="-18" r="2.9"></circle><circle cx="-75" cy="7" r="2.9"></circle><circle cx="-65" cy="-27" r="2.9"></circle><circle cx="-58" cy="21" r="2.9"></circle><circle cx="-43" cy="-4" r="2.9"></circle><circle cx="-28" cy="-17" r="2.9"></circle><circle cx="-18" cy="14" r="2.9"></circle><circle cx="-6" cy="-7" r="2.9"></circle><circle cx="9" cy="22" r="2.9"></circle><circle cx="17" cy="-10" r="2.9"></circle><circle cx="34" cy="2" r="2.9"></circle><circle cx="47" cy="-19" r="2.9"></circle><circle cx="58" cy="16" r="2.9"></circle><circle cx="69" cy="-4" r="2.9"></circle><circle cx="80" cy="11" r="2.9"></circle><circle cx="88" cy="-17" r="2.9"></circle><circle cx="103" cy="5" r="2.9"></circle><circle cx="-19" cy="0" r="2.9"></circle><circle cx="44" cy="22" r="2.9"></circle><circle cx="-74" cy="22" r="2.9"></circle></g>
+<line stroke="#be986f" stroke-width="2.5" x1="-137" x2="140" y1="0" y2="0"></line>
+<path d="M140 0 l-10 -5 v10 Z" fill="#be986f"></path>
+<line stroke="#6f8fa7" stroke-width="2" x1="0" x2="0" y1="-52" y2="53"></line><path d="M0 -52 l-4 9 h8 Z" fill="#6f8fa7"></path>
+</g>
+<g transform="translate(518 129) rotate(-27)">
+<rect fill="#f5f8f5" height="90" rx="1" stroke="#799c86" stroke-width="2.4" width="238" x="-119" y="-45"></rect>
+<g fill="#86a998"><circle cx="-103" cy="-3" r="2.8"></circle><circle cx="-94" cy="12" r="2.8"></circle><circle cx="-82" cy="-18" r="2.8"></circle><circle cx="-75" cy="7" r="2.8"></circle><circle cx="-65" cy="-27" r="2.8"></circle><circle cx="-58" cy="21" r="2.8"></circle><circle cx="-43" cy="-4" r="2.8"></circle><circle cx="-28" cy="-17" r="2.8"></circle><circle cx="-18" cy="14" r="2.8"></circle><circle cx="-6" cy="-7" r="2.8"></circle><circle cx="9" cy="22" r="2.8"></circle><circle cx="17" cy="-10" r="2.8"></circle><circle cx="34" cy="2" r="2.8"></circle><circle cx="47" cy="-19" r="2.8"></circle><circle cx="58" cy="16" r="2.8"></circle><circle cx="69" cy="-4" r="2.8"></circle><circle cx="80" cy="11" r="2.8"></circle><circle cx="88" cy="-17" r="2.8"></circle><circle cx="103" cy="5" r="2.8"></circle><circle cx="-19" cy="0" r="2.8"></circle><circle cx="44" cy="22" r="2.8"></circle><circle cx="-74" cy="22" r="2.8"></circle></g>
+<path d="M-119 -57 H119" stroke="#be986f" stroke-width="1.3"></path><path d="M-119 -53 v-9 M119 -53 v-9" stroke="#be986f" stroke-width="1.3"></path>
+<path d="M133 -45 V45" stroke="#6c94a9" stroke-width="1.3"></path><path d="M129 -45 h8 M129 45 h8" stroke="#6c94a9" stroke-width="1.3"></path>
+</g>
+<text class="svg-txt" text-anchor="middle" x="170" y="219">统计主轴，轴向符号需另行约定</text>
+<text class="svg-txt" text-anchor="middle" x="520" y="219">包围盒尺寸由投影范围定义</text>
+</svg>
+<figcaption>PCA-OBB 采用统计主方向；最小体积 OBB 则改变了包围盒的优化目标，两者不能混为一谈。</figcaption>
+</figure>
+<p>对于细长的瓶子、长方体或者条状物体，除了位置，最自然的想法就是找到它们的主要方向。</p>
+<p>这里最先接触到的是 PCA。</p>
+<p>PCA 并不需要提前知道物体属于什么形状。它从点云的整体分布出发，找到数据变化最大的几个正交方向。</p>
+<p>如果物体足够细长，最大变化方向往往与物体的长轴比较接近。</p>
+<p>这样就有了一个很方便的几何参考。</p>
+<p>不过进一步整理发现，PCA、OBB、直线拟合这些方法虽然经常放在一起讨论，实际求解的东西却并不完全相同。</p>
+<h3>3.2 方向估计的几种路线</h3>
+<div class="method-note"><div class="method-name"><span class="method-index">01</span>PCA / SVD 主方向</div><div class="method-description"><p>从点云协方差矩阵或中心化点集的分解结果中提取主方向。</p><p>适合具有明显长短比例、整体分布能代表物体方向的点云。</p><p>需要考虑的是点云完整度，以及特征值相近时的方向不确定性。接近球形或对称性较强的点集，主方向可能没有明确的几何意义。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">02</span>PCA-OBB</div><div class="method-description"><p>利用 PCA 找到一个局部坐标系，再在这个坐标系下计算点云包围范围。</p><p>这样不仅能得到方向，也能获得点云沿三个方向的尺寸估计。</p><p>但 PCA-OBB 的主要方向来自点云统计分布，并不意味着它一定与真实物体的边对齐。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">03</span>最小体积 OBB（Minimum-volume OBB）</div><div class="method-description"><p>换一种思路：不再只关心点云变化最大的方向，而是寻找一个体积尽可能小、能够包围点集的有向包围盒。</p><p>这和 PCA-OBB 的优化目标不同。</p><p>它适合需要紧凑包围范围的任务，但通常要付出更多几何搜索成本，也不能仅凭包围盒体积最小就认定它等于真实物体坐标系。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">04</span>直线与轴线拟合</div><div class="method-description"><p>对于具有明显线状结构的目标，可以直接拟合直线，或者根据边缘、表面信息估计轴线。</p><p>最小二乘与 RANSAC 都可以用于直线拟合，只是对异常点的处理方式不同。</p><p>当目标有明确的局部线性结构时，直接拟合需要的那根线，可能比分析整个点云分布更符合任务需求。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">05</span>结合已有方向约束</div><div class="method-description"><p>如果已知桌面法线、重力方向，或者物体始终遵循某种摆放规则，也可以将这些条件与观测结合。</p><p>例如竖直放置的瓶子，轴线方向本身就受到重力与摆放方式的约束。</p><p>这样可以减少需要从点云里独立估计的自由度，但前提是摆放约束确实成立。</p></div></div>
+<h3>3.3 PCA 与 OBB 的层级区别</h3>
+<p>之前容易把 PCA 和 OBB 放在同一个概念里，仿佛 OBB 只是 PCA 的另一种名字。</p>
+<p>实际上，PCA 是一种统计分析与方向求解方法，而 OBB 是一种几何包围表示。</p>
+<p>可以利用 PCA 来构造 OBB，也可以采用其他几何优化方法寻找更紧凑的 OBB。</p>
+<p>它们相关，却不等价。</p>
+<p>另外，点云只有一个可见面时，即使算出了三个正交方向，也需要判断这些方向究竟来自真实物体结构，还是来自当前观测区域的形状。</p>
+<h3>3.4 主方向未必是抓取方向</h3>
+<p><strong>有一个主方向，不等于有了完整姿态。</strong></p>
+<p>尤其要区分：数学上求出的特征向量、物体实际的轴线，以及抓取时需要的夹爪方向。</p>
+<p>这三者可能一致，也可能需要额外约束才能联系起来。</p>
+<p class="continuation"><em>继续深入：PCA 特征值如何反映点云形状？PCA-OBB 与最小体积 OBB 有什么本质区别？对称和部分观测时，如何判断方向是否可信？</em></p>
+<p class="essay-bridge">整体主轴并不总是抓取时最有用的方向。抓取区域如果落在盒子的一面上，局部表面的法线往往比全局主轴更直接。</p></div></section><section class="essay-section research-section" id="ch04"><div class="section-head"><span class="chapter-index">04</span><div class="section-heading"><div class="smalltitle">表面约束</div><h2>表面与法线：从局部到整片平面</h2></div></div><div class="section-body"><h3>4.1 局部法线与整体表面</h3>
+<figure aria-label="局部法线与整体平面拟合的测量目标对比" class="diagram dia-normal">
+<div class="diagram-title"><span>图 03 · 表面给出的约束</span><b>局部法线和整片平面，用的是不同范围的点</b></div>
+<svg aria-label="左侧示意局部邻域法线，右侧示意整块平面的法线" role="img" viewbox="0 0 690 228">
+<line stroke="#e3eae2" x1="340" x2="340" y1="24" y2="203"></line>
+<text class="svg-head" x="18" y="27">局部 PCA 法线</text><text class="svg-head" x="364" y="27">平面拟合 / RANSAC</text>
+<polygon fill="#edf4ed" points="44,153 232,169 291,110 101,98" stroke="#9db9a5" stroke-width="1.6"></polygon>
+<g fill="#7fa08b"><circle cx="85" cy="145" r="3"></circle><circle cx="110" cy="140" r="3"></circle><circle cx="129" cy="156" r="3"></circle><circle cx="145" cy="117" r="3"></circle><circle cx="161" cy="143" r="3"></circle><circle cx="182" cy="152" r="3"></circle><circle cx="218" cy="125" r="3"></circle><circle cx="237" cy="139" r="3"></circle><circle cx="174" cy="111" r="3"></circle></g>
+<ellipse cx="162" cy="136" fill="none" rx="47" ry="21" stroke="#bc9a75" stroke-dasharray="5 4" stroke-width="1.5"></ellipse>
+<circle cx="162" cy="136" fill="#be966e" r="4"></circle>
+<path d="M162 134 L163 53" stroke="#6c8da6" stroke-width="2.5"></path><path d="M163 53 l-5 11 h10 Z" fill="#6c8da6"></path>
+<text class="svg-label" x="177" y="60">n</text>
+<polygon fill="#edf4ed" points="390,167 575,178 649,105 461,95" stroke="#9bb7a5" stroke-width="1.6"></polygon>
+<g fill="#86a58e"><circle cx="433" cy="145" r="3"></circle><circle cx="457" cy="128" r="3"></circle><circle cx="480" cy="156" r="3"></circle><circle cx="504" cy="117" r="3"></circle><circle cx="524" cy="149" r="3"></circle><circle cx="547" cy="161" r="3"></circle><circle cx="578" cy="127" r="3"></circle><circle cx="592" cy="141" r="3"></circle><circle cx="565" cy="112" r="3"></circle><circle cx="487" cy="141" r="3"></circle></g>
+<g fill="#c0a28b"><circle cx="405" cy="187" r="3.5"></circle><circle cx="627" cy="181" r="3.5"></circle></g>
+<path d="M520 139 L520 56" stroke="#6c8da6" stroke-width="2.5"></path><path d="M520 56 l-5 11 h10 Z" fill="#6c8da6"></path>
+<text class="svg-label" x="535" y="62">n</text>
+<text class="svg-txt" text-anchor="middle" x="155" y="211">一个邻域附近的方向</text>
+<text class="svg-txt" text-anchor="middle" x="521" y="211">一组平面点的共同方向</text>
+</svg><figcaption>法线可以给出接近方向，但单独一根法线不能确定绕该方向的旋转。</figcaption>
+</figure>
+<p>前面主要关注物体整体的中心和主轴。</p>
+<p>但对于盒体、板状物或者具有平整接触区域的物体，似乎还有一条更直接的路线：从表面入手。</p>
+<p>如果能够找到一个稳定的平面，就可以得到它的法线方向。</p>
+<p>对于预先规定了接近方式的抓取任务，法线可能正好是需要的空间约束。</p>
+<p>于是又开始整理法线估计、平面拟合与表面分割。</p>
+<h3>4.2 从法线到平面与多平面</h3>
+<div class="method-note"><div class="method-name"><span class="method-index">01</span>局部 PCA 法线估计</div><div class="method-description"><p>在一个点附近寻找邻域，用这些点拟合局部切平面，取垂直方向作为法线。</p><p>这种方法可以直接作用于点云，不要求先构建完整曲面。</p><p>它的关键选择是邻域尺度。</p><p>邻域太小，容易受到测量噪声影响；邻域太大，又可能跨过边缘，把不同表面混在一起。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">02</span>有组织点云的积分图法线估计（Integral Image Normal）</div><div class="method-description"><p>RGB-D 相机生成的点云往往保留了图像的行列关系。</p><p>既然相邻像素通常对应相邻的空间采样，就可以利用这种组织结构更高效地估计法线。</p><p>它适合有组织点云，但依赖深度图的局部有效性与连续性。深度边界和空洞附近需要特别处理。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">03</span>最小二乘平面拟合</div><div class="method-description"><p>对一组已经比较干净、属于同一平面的点进行拟合，得到平面位置和法线。</p><p>如果点集选择准确，它是一种简单直接的求解方式。</p><p>需要留意的是异常点，以及参与拟合的区域是否真的属于同一块平面。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">04</span>RANSAC 平面拟合</div><div class="method-description"><p>当点云中混有其他表面或少量异常点时，可以通过反复采样与一致性验证，寻找满足某个平面模型的点集。</p><p>它不仅能估计平面，还能帮助找到平面内点。</p><p>需要设置距离阈值、迭代次数等参数。阈值的选择应当与传感器噪声和目标尺度相匹配。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">05</span>Region Growing / 多平面提取</div><div class="method-description"><p>如果需要的不只是一块平面，而是把多个连续表面组织起来，可以根据邻域关系、法线方向和曲率等条件进行区域生长。</p><p>对于盒体等由多个面构成的物体，这可以帮助区分不同的表面区域。</p><p>代价是需要较可靠的法线，以及合适的邻域与生长条件。</p></div></div>
+<h3>4.3 哪些旋转仍然没有确定？</h3>
+<p>如果只需要知道某个抓取点附近的接近方向，局部法线就可能足够。</p>
+<p>如果要让夹爪对齐一整块平面，或者进一步利用多个平面求出盒子的姿态，那么平面拟合、区域分割就更有价值。</p>
+<p>这里还有一个值得注意的细节：法线天然存在正反方向的选择。</p>
+<p>仅凭局部平面几何，通常不能判断法线应该朝向哪一侧。可以利用相机视点、物体内外侧或抓取任务的约定来消除这个歧义。</p>
+<p>而且，<strong>一块平面只能直接提供法线方向，不能唯一确定平面内的旋转角度。</strong></p>
+<p>如果想恢复更完整的姿态，还得继续寻找边、轴线或其他空间约束。</p>
+<p class="continuation"><em>继续深入：局部法线、RANSAC 平面与 Region Growing 分别解决什么问题？邻域尺度怎样影响法线精度？怎样利用多个平面构造局部坐标系？</em></p>
+<p class="essay-bridge">局部表面足以提供部分方向约束。对于规则瓶身和工件，还可以进一步引入圆柱、球、盒体等形状先验，而不只把它们当作零散的点。</p></div></section><section class="essay-section research-section" id="ch05"><div class="section-head"><span class="chapter-index">05</span><div class="section-heading"><div class="smalltitle">形状先验</div><h2>几何基元：把形状信息用起来</h2></div></div><div class="section-body"><h3>5.1 使用形状先验的意义</h3><figure aria-label="五种典型几何基元及其形状先验" class="shape-strip"><div class="diagram-title"><span>图 04 · 形状先验</span><b>几何模型决定可以额外约束什么</b></div><div class="shape-grid"><div class="shape-cell"><svg aria-hidden="true" viewbox="0 0 122 85"><polygon fill="#edf4ee" points="20,57 58,23 101,38 62,72" stroke="#7f9d89" stroke-width="2"></polygon><path d="M65 44V9" stroke="#7394a6" stroke-width="2"></path><path d="M65 9 l-4 9 h8Z" fill="#7394a6"></path></svg><span>平面</span></div><div class="shape-cell"><svg aria-hidden="true" viewbox="0 0 122 85"><circle cx="61" cy="43" fill="none" r="32" stroke="#bed0c1" stroke-dasharray="5 6" stroke-width="2"></circle><path d="M31 29 A33 33 0 0 1 81 16" fill="none" stroke="#789c88" stroke-linecap="round" stroke-width="4"></path><circle cx="61" cy="43" fill="#be9771" r="4.5"></circle></svg><span>圆 / 圆弧</span></div><div class="shape-cell"><svg aria-hidden="true" viewbox="0 0 122 85"><ellipse cx="61" cy="20" fill="#eaf2ec" rx="28" ry="11" stroke="#7d9c88" stroke-width="2"></ellipse><path d="M33 20V64 Q61 87 89 64 V20" fill="#f6f9f5" stroke="#7d9c88" stroke-width="2"></path><path d="M33 64 Q61 42 89 64" fill="none" stroke="#c2d2c3" stroke-dasharray="4 4"></path></svg><span>圆柱</span></div><div class="shape-cell"><svg aria-hidden="true" viewbox="0 0 122 85"><circle cx="61" cy="43" fill="#f3f7f3" r="33" stroke="#7e9e8a" stroke-width="2"></circle><ellipse cx="61" cy="43" fill="none" rx="13" ry="33" stroke="#bed0c1"></ellipse><ellipse cx="61" cy="43" fill="none" rx="33" ry="12" stroke="#bed0c1"></ellipse></svg><span>球</span></div><div class="shape-cell"><svg aria-hidden="true" viewbox="0 0 122 85"><polygon fill="#edf4ee" points="39,27 72,13 101,28 70,43" stroke="#7f9c89" stroke-width="2"></polygon><polygon fill="#f9fbf8" points="39,27 70,43 70,77 39,61" stroke="#7f9c89" stroke-width="2"></polygon><polygon fill="#e2eee5" points="70,43 101,28 101,61 70,77" stroke="#7f9c89" stroke-width="2"></polygon></svg><span>盒体</span></div></div><figcaption>这里展示的是几何模型，而不是五种互相替代的求解算法。</figcaption></figure>
+<p>PCA 可以寻找主要方向，平面拟合能够提供表面约束。</p>
+<p>但如果目标本身比较接近圆柱、球体或者盒体，那是否可以把这些已知的几何规律一起放进求解过程？</p>
+<p>例如瓶子近似圆柱，就可以尝试直接求瓶身轴线与半径。</p>
+<p>这样得到的信息，比单纯的一根 PCA 主轴更有针对性。</p>
+<p>于是这一部分可以单独整理成几何基元拟合。</p>
+<h3>5.2 常见的几何基元</h3>
+<div class="method-note"><div class="method-name"><span class="method-index">01</span>平面（Plane）</div><div class="method-description"><p>最基本的几何基元。</p><p>可以通过局部 PCA、最小二乘或 RANSAC 等方式估计。</p><p>输出主要是平面法线与位置约束。单个平面不能唯一确定完整的刚体姿态，但与边线或其他平面组合，就能得到更多方向信息。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">02</span>圆与圆弧（Circle / Arc）</div><div class="method-description"><p>如果物体具有可见的圆形边缘，可以拟合圆心、半径和所在平面。</p><p>空间圆通常还需要先处理平面关系；对于不完整圆弧，则必须考虑观测弧长、噪声和拟合稳定性。</p><p>这一类方法可以帮助估计圆形零件、瓶口或圆柱截面的局部几何参考。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">03</span>圆柱（Cylinder）</div><div class="method-description"><p>圆柱拟合可以利用表面点，有时也会结合表面法线，估计圆柱轴线、半径与位置。</p><p>相比直接用 PCA 寻找长轴，它使用了更明确的几何模型。</p><p>对于近似圆柱的瓶身、管件，这种形状先验很有价值。</p><p>但圆柱的旋转对称性意味着，绕轴线的某些旋转无法仅凭理想圆柱表面区分。这是几何可观测性的问题，而不是拟合精度不够。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">04</span>球（Sphere）</div><div class="method-description"><p>球体可以通过表面点拟合球心与半径。</p><p>这能给出明确的位置和尺寸信息，但理想球体本身不提供可辨认的旋转方向。</p><p>对于某些对称目标，抓取可能只需要球心、半径以及预定接近方向，未必需要物体完整姿态。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">05</span>盒体 / 多平面组合（Box-like Geometry）</div><div class="method-description"><p>对于盒体，可以通过多个平面及其相互关系，估计边线、顶点、尺寸与方向。</p><p>如果能够观察到几个具有清晰正交关系的面，空间姿态就能获得更多约束。</p><p>但如果只看到一个面，又没有尺寸或摆放先验，则不能凭空恢复所有边和隐藏结构。</p></div></div>
+<h3>5.3 利用额外约束所付出的代价</h3>
+<p>几何基元拟合并不是单纯地换一种更复杂的算法。</p>
+<p>它真正做的，是<strong>把“物体大致符合某种形状”变成一个可以参与求解的约束</strong>。</p>
+<p>这可能让部分观测也足够估计某些结构，但也意味着结果依赖于形状假设是否合理。</p>
+<p>对于规则工件，这种代价通常很值得；对于严重变形的物体，就需要重新考虑局部几何是否比完整基元更适合。</p>
+<p class="continuation"><em>继续深入：平面、圆、圆柱、球和盒体分别需要哪些约束？局部可见时哪些参数仍可观测？怎样联合多个几何基元求解？</em></p>
+<p class="essay-bridge">完整形状并不是唯一入口。如果夹取区域已经约定，局部边缘和接触面的几何关系也可以直接提供抓取参考。</p></div></section><section class="essay-section research-section" id="ch06"><div class="section-head"><span class="chapter-index">06</span><div class="section-heading"><div class="smalltitle">局部抓取</div><h2>边界与接触：看夹爪真正碰到哪里</h2></div></div><div class="section-body"><h3>6.1 直接关注夹爪接触区域</h3>
+<figure aria-label="两指平行夹爪局部接触几何示意" class="diagram dia-contact">
+<div class="diagram-title"><span>图 05 · 回到末端执行器</span><b>需要的不只是物体轮廓，还包括夹爪接触关系</b></div>
+<svg aria-label="一对平行夹爪从左右夹住局部物体，两侧接触法线与接近方向" role="img" viewbox="0 0 690 222">
+<defs><pattern height="7" id="shadeC" patterntransform="rotate(45)" patternunits="userSpaceOnUse" width="7"><line stroke="#e4ece5" stroke-width="1" y2="7"></line></pattern></defs>
+<rect fill="url(#shadeC)" height="143" rx="58" stroke="#93b09a" stroke-width="2" width="236" x="226" y="33"></rect>
+<rect fill="#7f9990" height="114" rx="7" width="39" x="176" y="47"></rect><rect fill="#7f9990" height="114" rx="7" width="39" x="473" y="47"></rect>
+<line stroke="#b78462" stroke-width="3" x1="215" x2="265" y1="108" y2="108"></line><path d="M265 108 l-12 -5 v10 Z" fill="#b78462"></path>
+<line stroke="#b78462" stroke-width="3" x1="473" x2="423" y1="108" y2="108"></line><path d="M423 108 l12 -5 v10 Z" fill="#b78462"></path>
+<circle cx="226" cy="108" fill="#fdfbf6" r="5.2" stroke="#b78462" stroke-width="2.4"></circle>
+<circle cx="462" cy="108" fill="#fdfbf6" r="5.2" stroke="#b78462" stroke-width="2.4"></circle>
+<line stroke="#608ca5" stroke-width="2.6" x1="344" x2="344" y1="201" y2="139"></line><path d="M344 139 l-5 11 h10 Z" fill="#608ca5"></path>
+<text class="svg-txt" text-anchor="middle" x="345" y="216">接近方向（示意）</text>
+<path d="M206 35 L133 16" fill="none" stroke="#9dada0"></path><text class="svg-txt" text-anchor="end" x="127" y="16">左夹指</text>
+<path d="M481 35 L557 16" fill="none" stroke="#9dada0"></path><text class="svg-txt" x="558" y="16">右夹指</text>
+<text class="svg-head" text-anchor="middle" x="345" y="24">目标局部区域</text>
+<text class="svg-label" text-anchor="middle" x="226" y="188">接触 A</text><text class="svg-label" text-anchor="middle" x="463" y="188">接触 B</text>
+</svg>
+<figcaption>接触点和法线可以帮助构造候选；真实稳定性还取决于摩擦、夹持力与隐藏几何。</figcaption>
+</figure>
+<p>研究到这里，已经有了不少描述物体几何的办法。</p>
+<p>但抓取并不是为了给物体建立一个漂亮的坐标系。</p>
+<p>对于固定的两指平行夹爪，真正需要的可能是一个合适的接触区域，以及能让两根手指按预定方式靠近的空间姿态。</p>
+<p>这就有了另一个值得单独研究的方向：局部几何与接触约束。</p>
+<h3>6.2 边界、轮廓与边线</h3>
+<div class="method-note"><div class="method-name"><span class="method-index">01</span>点云边界检测（Boundary Estimation）</div><div class="method-description"><p>通过局部邻域的空间分布，寻找点云边缘或边界候选。</p><p>这有助于发现局部结构的终止位置。</p><p>不过，深度相机看到的边界有时只是遮挡轮廓或深度缺失边界，并不一定是物体真实存在的几何边缘。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">02</span>凸包与局部轮廓（Convex Hull / Alpha Shape）</div><div class="method-description"><p>可以把局部点云投影到合适的平面，再根据点集提取外轮廓或边界形状。</p><p>凸包适合描述整体外包范围，Alpha Shape 则允许根据尺度参数表达部分凹陷结构。</p><p>它们利用的假设和产生的边界不同，选择时需要考虑点云密度、噪声与期望的轮廓细节。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">03</span>边线与交线拟合</div><div class="method-description"><p>对于盒子等具有明显棱边的物体，可以从表面边界、多个平面交线或线状点集出发，得到抓取所需的边缘参考。</p><p>有时候抓手只需要沿某条边对齐，这比恢复整个盒子的 Pose 更直接。</p></div></div>
+<div class="method-note"><div class="method-name"><span class="method-index">04</span>局部接触面估计</div><div class="method-description"><p>选定预定抓取区域后，可以在局部寻找相对平整、适合夹爪接触的表面。</p><p>这里更关心接触点附近的几何与法线，而不是物体整体形状。</p></div></div>
+<h3>6.3 成对接触与 Antipodal Grasp</h3>
+<p>对于两指平行夹爪，还可以考虑成对接触点。</p>
+<p>一种经典思想是 <strong>Antipodal Grasp</strong>：寻找法线方向与接触力条件相匹配的两处接触，使夹爪能够形成合理的夹持关系。</p>
+<p>这里会逐渐接触到接触法线、摩擦锥、力闭合等概念。</p>
+<p>需要区分的是：几何上找到一对看起来合适的接触点，并不等于实际抓取一定稳定。</p>
+<p>实际接触还涉及摩擦、夹持力、物体质量、接触材料与隐藏几何等条件。</p>
+<p>如果这些信息没有提供，几何方法能做的是生成和筛选候选，而不是保证真实抓取成功。</p>
+<h3>6.4 与下一阶段的边界</h3>
+<p>这一章仍然放在 Stage 01。</p>
+<p>因为当前研究的前提是：抓法已经提前约定，例如夹住某个边缘、从某个方向接近。</p>
+<p>现在只是根据局部几何，把这个约定落实为具体的 Grasp Pose。</p>
+<p>如果连抓取区域、接近方向或抓取策略本身都需要系统自主选择，那才进一步进入下一阶段的问题。</p>
+<p class="continuation"><em>继续深入：怎样从点云边界找到真实的可抓取边缘？Antipodal 条件需要哪些几何与物理假设？夹爪尺寸与局部碰撞怎样参与候选筛选？</em></p>
+<p class="essay-bridge">现在已经有了位置、方向和接触信息。它们仍是几何量，下一步需要按照夹爪坐标系的定义，明确哪些约束共同决定完整姿态。</p></div></section><section class="essay-section research-section" id="ch08"><div class="section-head"><span class="chapter-index">07</span><div class="section-heading"><div class="smalltitle">完成闭环</div><h2>从几何约束构造 Grasp Pose</h2></div></div><div class="section-body"><p>前面已经能够得到中心、轴线、表面法线、几何边界等信息。</p>
+<p>但机器人最后需要的，还是一个明确的夹爪姿态。</p>
+<p>这里终于回到了最开始的问题。</p>
+<h3>7.1 一个抓取 Pose 包含什么</h3>
+<figure aria-label="Grasp Pose由位置、接近方向、闭合方向构造的示意" class="diagram dia-pose">
+<div class="diagram-title"><span>图 06 · Pose 最终怎么来</span><b>一个位置 + 两个非平行方向 → 一套正交坐标系</b></div>
+<svg aria-label="左侧列出位置、接近方向与闭合方向，右侧构造三维坐标轴与夹爪姿态" role="img" viewbox="0 0 690 227">
+<g fill="#526d5a" font-size="13" font-weight="600">
+<text x="24" y="48">抓取中心 p</text><text x="24" y="101">接近方向 a</text><text x="24" y="154">闭合方向 c</text></g>
+<g fill="#fcfdf9" stroke="#b8c9bc" stroke-width="1.4"><rect height="32" rx="6" width="123" x="156" y="27"></rect><rect height="32" rx="6" width="123" x="156" y="80"></rect><rect height="32" rx="6" width="123" x="156" y="133"></rect></g>
+<g fill="#6b8773" font-size="12"><text text-anchor="middle" x="217" y="48">3D position</text><text text-anchor="middle" x="217" y="101">approach</text><text text-anchor="middle" x="217" y="154">closing</text></g>
+<path d="M287 98 L336 98" stroke="#99aea0" stroke-width="2"></path><path d="M336 98 l-8 -4 v8Z" fill="#99aea0"></path>
+<text class="svg-txt" text-anchor="middle" x="308" y="87">组合</text>
+<g transform="translate(513 117)">
+<ellipse cx="0" cy="0" fill="#f5f8f4" rx="65" ry="40" stroke="#ccdcd1" stroke-dasharray="5 5"></ellipse>
+<path d="M0 0 L0 -82" stroke="#6e8ca6" stroke-width="3"></path><path d="M0 -82 l-6 12 h12 Z" fill="#6e8ca6"></path>
+<path d="M0 0 L79 29" stroke="#b98c65" stroke-width="3"></path><path d="M79 29 l-13 2 4 -11 Z" fill="#b98c65"></path>
+<path d="M0 0 L-58 54" stroke="#6d947c" stroke-width="3"></path><path d="M-58 54 l4 -12 9 9 Z" fill="#6d947c"></path>
+<circle cx="0" cy="0" fill="#435d4f" r="6" stroke="white" stroke-width="2"></circle>
+<g fill="#fffdf9" stroke="#7d998e" stroke-width="2"><rect height="38" rx="2" width="10" x="-33" y="-19"></rect><rect height="38" rx="2" width="10" x="23" y="-19"></rect></g>
+<text class="svg-label" x="5" y="-88">Z</text><text class="svg-label" x="89" y="37">X</text><text class="svg-label" x="-69" y="68">Y</text>
+</g>
+<text class="svg-txt" text-anchor="middle" x="508" y="209">正交化 · 符号约定 · 退化检查</text>
+</svg>
+<figcaption>轴名仅用于示意；真正实现时须严格采用夹爪工具坐标系的约定和右手系定义。</figcaption>
+</figure>
+<p>对于三维空间中的刚体夹爪，通常可以用一个位置和一个旋转表示目标姿态。</p>
+<p>位置是三维平移，旋转可以用旋转矩阵或四元数表示。</p>
+<p>但仅有一个抓取中心和一根方向向量，一般还不足以唯一构造完整旋转。</p>
+<p>例如知道了夹爪从哪个方向接近，仍然需要确定两根手指沿哪个方向闭合。</p>
+<p>如果已经规定了闭合方向，就可以通过正交化和叉积等操作，构造完整的右手坐标系。</p>
+<h3>7.2 从约束构造右手坐标系</h3>
+<p>可以用一个简单的例子理解。</p>
+<p>假设已经约定：夹爪从某个方向接近物体，并沿预定的方向闭合。</p>
+<p>那么：</p>
+<ul>
+<li>抓取中心确定三维平移。</li>
+<li>接近方向确定夹爪的一根坐标轴。</li>
+<li>闭合方向确定另一根坐标轴的朝向。</li>
+<li>最后一根坐标轴可以由正交关系求出。</li>
+</ul>
+<p>得到这套局部坐标系后，就可以进一步生成 Grasp Pose。</p>
+<p>当然，两个给定方向不能平行，也不应该直接把噪声很大的方向当成严格正交的坐标轴。</p>
+<p>需要根据任务约定与几何条件，处理正交化、方向符号以及退化情况。</p>
+<h3>7.3 不唯一时保留候选</h3>
+<p>对于对称物体，或者夹爪存在等价摆放方式的情况，几何信息可能自然产生多个候选姿态。</p>
+<p>这并不一定需要强行消除。</p>
+<p>如果预定抓法允许多个等价 Pose，可以保留这些候选，再根据夹爪开度、局部碰撞、预定接近方向等条件进行筛选。</p>
+<p>完整的机械臂可达性和运动规划，仍然交给后面的规划与执行模块处理。</p>
+<p>至此，点云几何终于从“测量一些空间特征”，走到了“构造可以交给机器人的抓取姿态”。</p>
+<p class="essay-bridge">把 Grasp Pose 构造清楚后，再回头看 PCA、RANSAC 和最小二乘，会更容易分清测量目标、形状模型和求解机制。</p></div></section><section class="essay-section research-section" id="ch07"><div class="section-head"><span class="chapter-index">08</span><div class="section-heading"><div class="smalltitle">方法关系</div><h2>把“几何信息”和“求解工具”分开</h2></div></div><div class="section-body"><p>前面出现了不少名字：PCA、SVD、RANSAC、最小二乘、Region Growing、OBB、圆柱拟合……</p>
+<p>如果全部放在一张算法列表里，倒是容易把自己绕进去。</p>
+<p>后来逐渐明确，它们原本就不是同一层级的东西。</p>
+<p><strong>中心、主轴、法线、圆柱，是想得到的几何信息或描述。</strong></p>
+<p>而 PCA、最小二乘、RANSAC 等，更多是获取这些信息时采用的数学求解方式。</p>
+<figure aria-label="任务输出、几何模型和求解机制属于三个不同层级" class="taxonomy">
+<div class="diagram-title"><span>关系图 · 这几个名词不是同一种分类</span><b>先问要什么，再问拟合什么，最后决定如何求</b></div>
+<div class="tax-row"><span class="tax-index">A · 测量目标</span><div><b>中心</b><b>轴线</b><b>法线</b><b>尺寸</b><b>接触点</b></div></div>
+<div class="tax-join">↓ 根据任务选择模型</div>
+<div class="tax-row"><span class="tax-index">B · 几何描述</span><div><b>点集</b><b>直线</b><b>平面</b><b>圆柱</b><b>盒体</b></div></div>
+<div class="tax-join">↓ 根据数据质量选择求解器</div>
+<div class="tax-row"><span class="tax-index">C · 求解机制</span><div><b>PCA / SVD</b><b>Least Squares</b><b>RANSAC</b><b>Robust Loss</b><b>Region Growing</b></div></div>
+<figcaption>例如“圆柱 + RANSAC + 最小二乘细化”是一种组合，而不是三条相互竞争的技术路线。</figcaption>
+</figure><h3>8.1 常见求解机制</h3>
+<div class="table-scroller"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>它主要在做什么</th>
+<th>需要权衡什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直接统计</td>
+<td>根据点集坐标得到均值、中位数等</td>
+<td>点云采样、异常点、计算成本</td>
+</tr>
+<tr>
+<td>PCA / SVD</td>
+<td>分析点集分布或求解正交方向</td>
+<td>数据完整度、退化、方向歧义</td>
+</tr>
+<tr>
+<td>最小二乘</td>
+<td>让整体模型拟合误差尽可能小</td>
+<td>模型是否合理、异常观测</td>
+</tr>
+<tr>
+<td>RANSAC</td>
+<td>通过采样和一致性检验寻找模型</td>
+<td>阈值、内点比例、迭代与计算量</td>
+</tr>
+<tr>
+<td>鲁棒优化 / IRLS</td>
+<td>降低大残差观测对拟合的影响</td>
+<td>损失函数、初始化、迭代成本</td>
+</tr>
+<tr>
+<td>Region Growing</td>
+<td>利用邻域连续性组织点云区域</td>
+<td>法线质量、邻域尺度、区域阈值</td>
+</tr>
+<tr>
+<td>约束优化</td>
+<td>联合几何、正交性、尺寸和任务先验</td>
+<td>先验准确性、求解复杂度</td>
+</tr>
+</tbody>
+</table></div>
+<p>这里有一个很值得记住的区别。</p>
+<p><strong>RANSAC 不负责决定物体应该拟合成什么形状。</strong></p>
+<p>它负责的是：给定一个模型和相应的最小采样条件，如何在包含异常观测的数据中找到比较一致的解。</p>
+<p>圆柱拟合可以使用 RANSAC，平面拟合也可以使用 RANSAC。</p>
+<p>PCA 同样不是只能用于计算 OBB，它也可以用于整体主方向估计和局部法线估计。</p>
+<p>只不过在不同任务里，分析的是不同的点集，取出的方向也不同。</p>
+<h3>8.2 数据质量影响测量结果</h3>
+<p>虽然这一页不专门研究点云预处理，但实际使用几何算法时，还是绕不开几个问题。</p>
+<p>体素降采样可以减少点数、调整空间采样密度；离群点过滤可以减少异常测量；局部邻域搜索决定了法线等特征的计算范围。</p>
+<p>对 RGB-D 相机来说，还需要注意深度空洞、距离变化引起的测量噪声，以及边缘处的混合深度。</p>
+<p>这些操作不必每个都手写一遍。</p>
+<p>Open3D、PCL 和相机 SDK 已经提供了不少成熟实现。真正值得研究的是它们的输入输出、参数意义，以及某个处理步骤会怎样改变后续几何测量。</p>
+<p>例如降采样减少了计算量，也可能丢掉薄边缘；平滑深度可以降低噪声，却可能模糊物体轮廓。</p>
+<p>预处理不是越多越好，而是为了让后续需要的几何信息更可靠。</p>
+<p class="essay-bridge">这种区分直接影响工程选择：不是先决定要用哪个算法，而是先判断某个具体目标提供哪些可靠约束。</p></div></section><section class="essay-section research-section" id="ch09"><div class="section-head"><span class="chapter-index">09</span><div class="section-heading"><div class="smalltitle">场景取舍</div><h2>放回真实物体，怎样选择路线？</h2></div></div><div class="section-body"><p>到这里，单独理解算法还不够。</p>
+<p>真正做工程时，手里不会只有一道“求 PCA”或者“拟合圆柱”的题，而是一个具体物体、一份不一定完整的点云，以及一个提前约定的抓取要求。</p>
+<p>因此可以用几种典型物体重新看看。</p>
+<figure aria-label="四种物体条件下的几何信息选择对照" class="scenario-board">
+<div class="diagram-title"><span>工程选择 · 不是方法排行榜</span><b>物体条件不同，需要关注的几何量也不同</b></div>
+<div class="scenario-row"><span class="scenario-name"><i class="scenario-dot dot-a"></i>规则瓶子</span><span>可用整体轴线、圆柱表面</span><b>PCA / 圆柱拟合</b></div>
+<div class="scenario-row"><span class="scenario-name"><i class="scenario-dot dot-b"></i>规则纸盒</span><span>可用平面、边线与正交约束</span><b>OBB / 多平面</b></div>
+<div class="scenario-row"><span class="scenario-name"><i class="scenario-dot dot-c"></i>变形盒体</span><span>更多依赖当前局部可见结构</span><b>边缘 / 局部法线</b></div>
+<div class="scenario-row"><span class="scenario-name"><i class="scenario-dot dot-d"></i>柔性包装</span><span>抓取区域可能比整体主轴更稳定</span><b>局部接触几何</b></div>
+<figcaption>同一物体也可以组合多种方法；这里对照的是可利用的空间信息，而不是宣称唯一正确解。</figcaption>
+</figure><h3>9.1 规则瓶子</h3>
+<p>假设是一只近似圆柱形的饮料瓶，已经决定从瓶身侧面夹取。</p>
+<p>可以先考虑 PCA 主轴，利用点云的整体分布确定主要方向。</p>
+<p>如果瓶身有足够的圆柱表面，也可以尝试圆柱拟合，直接估计轴线与半径。</p>
+<p>如果瓶子始终竖直摆放，重力方向还可以作为额外约束。</p>
+<p>这几种路线不必互相取代。</p>
+<p>点云形状明显、只需要大致轴线时，PCA 可能已经足够；如果半径、轴心位置很重要，而且圆柱表面可见，拟合圆柱则可以利用更多形状信息。</p>
+<p>不过，瓶子绕自身轴线的旋转是否可观测、是否对抓取有意义，还需要另外判断。</p>
+<h3>9.2 规则盒体</h3>
+<p>对于规整纸盒，如果预定沿某条边或者某个方向抓取，可以考虑 OBB、平面拟合和边线提取。</p>
+<p>OBB 提供整体包围与方向参考。</p>
+<p>如果能稳定观察到多个面，多个平面之间的正交关系可能提供更明确的方向约束。</p>
+<p>如果只关心某条边，也可以直接从边线或表面交线入手。</p>
+<p>这里最重要的选择依据是：当前观测究竟能看到几个面，边缘是否可靠，以及是否有合理的摆放约束。</p>
+<h3>9.3 被踩扁的烟灰盒</h3>
+<p>对于形状已经明显变化的烟灰盒，完整盒体模型可能不再适合。</p>
+<p>这时可以把注意力放到局部。</p>
+<p>例如寻找可见边界、局部平面或预定夹取区域，尝试构造满足抓法的局部坐标系。</p>
+<p>相比恢复整个物体姿态，这条路线需要的全局形状假设更少。</p>
+<p>但如果物体贴地过近，夹爪没有足够的进入空间，那么仅凭更精确的 Pose 估计，也无法解决实际的几何干涉。</p>
+<p>这属于抓取条件是否成立的问题。</p>
+<h3>9.4 形状不规则的软包装</h3>
+<p>对于零食袋这类柔性物体，质心、主轴、表面方向都可能随着形态发生变化。</p>
+<p>如果预先约定抓取某个局部区域，可以尝试局部接触几何、边界或表面参考。</p>
+<p>但它们提供的是当前可见形状下的候选，不一定能准确预测夹持之后的变形和受力状态。</p>
+<p>如果某种固定抓法已不再适用，问题就超出了当前 Q01 仅靠几何求解预定抓法的范围。</p>
+<p>这里暂时不急着扩展到新的抓取策略。</p>
+<p>先把哪些空间信息仍然可靠、哪些任务约束已经不满足分清楚，后面的研究才有方向。</p>
+</div></section><section class="essay-section closing-section research-section" id="ch10"><div class="section-head"><span class="chapter-index">10</span><div class="section-heading"><div class="smalltitle">阶段小结</div><h2>写到这里，留下的认识</h2></div></div><div class="section-body"><p>最开始只是觉得，物体有中心、有方向，就应该能从点云中把 Pose 算出来。</p>
+<p>沿着这个想法研究下去，逐渐发现这件事可以拆成不少有意思的小问题。</p>
+<p>中心有不同的定义，方向有不同的获取方式；有时候依赖点云整体分布，有时候利用明确的几何形状，有时候只需要一小块局部表面。</p>
+<p>而这些方法背后，又会反复用到 PCA、最小二乘、RANSAC 等熟悉的数学工具。</p>
+<p>现在更愿意把它们理解成一组可以组合使用的工具，而不是按新旧或先进程度排队的算法。</p>
+<p><strong>选择方法之前，先弄清自己要测量什么、现场提供了什么，以及愿意依赖哪些假设。</strong></p>
+<p>还有一个认识值得保留：</p>
+<p>不是所有信息都能从一份点云中唯一恢复。被遮挡的结构、几何对称带来的方向歧义，并不会因为优化算法更复杂就自动消失。</p>
+<p>如果任务允许，可以通过预定抓法或环境约束补足这些自由度；如果观测本身不足，就需要承认信息的边界。</p>
+<p>这页先停在这里。</p>
+<p>从一份目标点云出发，已经能整理出不少构造 Grasp Pose 的路线。至于物体的完整参考模型如果本来就已知，是否还能利用得更充分，就留到下一篇 Q02 继续研究。</p>
+</div></section><section class="essay-section research-section appendix-section" id="appendix"><div class="section-head"><span class="chapter-index">附</span><div class="section-heading"><div class="smalltitle">继续往里看</div><h2>进一步研究的问题与资料</h2></div></div><div class="section-body"><p>这一页先建立整体认识，下面这些值得分别做成更深入的技术笔记。</p>
+<div class="question-grid"><div class="question-item"><p><strong>A · 中心与位置</strong></p><p>点云质心和几何中心有什么差异？不完整点云下，哪些位置估计更稳定？如何评估抓取中心的误差？</p></div><div class="question-item"><p><strong>B · 主轴与方向</strong></p><p>PCA 的特征值如何体现点集形状？PCA-OBB 和最小体积 OBB 的求解机制有什么区别？轴线的正负方向如何统一？</p></div><div class="question-item"><p><strong>C · 表面与法线</strong></p><p>KNN 与 Radius 邻域怎样选择？局部 PCA、积分图法线和 RANSAC 平面各自适合什么输入？怎样评价法线的稳定性？</p></div><div class="question-item"><p><strong>D · 几何基元</strong></p><p>圆柱、圆弧、球体和多平面盒体分别有哪些成熟拟合方法？如何利用形状约束提升部分观测下的参数估计？什么时候会出现几何退化？</p></div><div class="question-item"><p><strong>E · 边界与接触</strong></p><p>点云可见边界与真实几何边缘如何区分？Antipodal 条件可以提供哪些接触约束？如何结合固定两指夹爪的尺寸与局部空间进行筛选？</p></div><div class="question-item"><p><strong>F · Grasp Pose 构造</strong></p><p>怎样从一点、两根方向向量构造完整坐标系？哪些自由度需要额外约定？如何处理对称姿态、多候选与几何退化？</p></div></div>
+<p>这些内容适合逐个展开，不必全部挤在同一篇笔记里。主线已经清楚，剩下的就可以根据实际遇到的问题，慢慢往里面走。</p>
+</div></section></main><aside class="side-nav"><div class="side-sticky"><div class="side-title"><span>ON THIS PAGE</span><span class="side-count">12 SECTIONS</span></div><nav aria-label="文章目录"><a href="#ch00" data-chapter="ch00"><span class="toc-index">00</span><span>起点：先把问题说清</span></a><a href="#ch01" data-chapter="ch01"><span class="toc-index">01</span><span>Pose 需要哪些几何约束？</span></a><a href="#ch02" data-chapter="ch02"><span class="toc-index">02</span><span>中心与位置：先弄清“中心”指什么</span></a><a href="#ch03" data-chapter="ch03"><span class="toc-index">03</span><span>主轴与方向：从 PCA 到 OBB</span></a><a href="#ch04" data-chapter="ch04"><span class="toc-index">04</span><span>表面与法线：从局部到整片平面</span></a><a href="#ch05" data-chapter="ch05"><span class="toc-index">05</span><span>几何基元：把形状信息用起来</span></a><a href="#ch06" data-chapter="ch06"><span class="toc-index">06</span><span>边界与接触：看夹爪真正碰到哪里</span></a><a href="#ch08" data-chapter="ch08"><span class="toc-index">07</span><span>从几何约束构造 Grasp Pose</span></a><a href="#ch07" data-chapter="ch07"><span class="toc-index">08</span><span>把“几何信息”和“求解工具”分开</span></a><a href="#ch09" data-chapter="ch09"><span class="toc-index">09</span><span>放回真实物体，怎样选择路线？</span></a><a href="#ch10" data-chapter="ch10"><span class="toc-index">10</span><span>写到这里，留下的认识</span></a><a href="#appendix" data-chapter="appendix"><span class="toc-index">附</span><span>进一步研究的问题与资料</span></a></nav><div class="side-foot">“选择方法”之前，<br>先想好要测量什么。</div></div></aside></div><footer class="site-footer"><span>© 2026 沿途手记 · Q01 / Point Cloud Geometry</span><a href="#main-content">回到正文 ↑</a></footer></div>
+<script>
+(function(){
+const bar=document.getElementById('readingProgress');
+function syncProgress(){const doc=document.documentElement;const max=doc.scrollHeight-innerHeight;bar.style.width=(max>0?Math.max(0,Math.min(100,100*scrollY/max)):0)+'%'}
+addEventListener('scroll',syncProgress,{passive:true});addEventListener('resize',syncProgress);syncProgress();
+const links=[...document.querySelectorAll('.side-nav a[data-chapter]')];
+if('IntersectionObserver' in window){let visible=new Set();const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting)visible.add(e.target.id);else visible.delete(e.target.id)});const active=links.map(x=>x.dataset.chapter).find(id=>visible.has(id));if(active)links.forEach(x=>{x.classList.toggle('active',x.dataset.chapter===active);if(x.dataset.chapter===active)x.setAttribute('aria-current','location');else x.removeAttribute('aria-current')})},{rootMargin:'-18% 0px -66% 0px',threshold:0});document.querySelectorAll('.essay-section').forEach(x=>obs.observe(x))}
+})();
+</script></body></html>

@@ -4,8 +4,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="抓法定好了，Pose 怎么算？从现场几何、模板、2D、深度一路想过来，再记录规则的适用条件、学习式空间线索和受约束的抓取位姿。" name="description"/>
-<title>Stage 01 · 抓法定了，Pose 怎么算？｜沿途手记</title>
+<meta content="从一个朴素的抓取 Pose 问题出发，记录点云几何、已知参考、二维视觉、RGB-D 与学习式抓取的六次研究探索。" name="description"/>
+<title>Stage 01 · 抓法定好了，Pose 怎么算？｜沿途手记</title>
 <style>
     :root{--bg:#faf9f5;--paper:#fffefb;--ink:#273936;--sub:#64736e;--faint:#8f9b96;--line:#e3e9e1;--sage:#e7efe8;--pine:#3b7062;--peach:#f9eadf;--blue:#e8f0f7;--violet:#f0edf7;--gold:#fff4db;--shadow:0 12px 35px rgba(39,57,54,.045)}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font:15px/1.9 -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif}
@@ -167,106 +167,434 @@
 .pause-questions small{font-size:11px;font-weight:700;color:#917d62}.pause-questions p{font-size:12px;line-height:1.8;margin:5px 0 0;color:#687367}
 .pause-end{margin:15px 0 0;font-size:13px;line-height:1.9;color:#68756a;border-top:1px dashed #e4e2d8;padding-top:13px}
 @media(max-width:750px){.pause-note{padding:21px 18px}.pause-note:after{inset:7px}.pause-questions{grid-template-columns:1fr;gap:7px}.pause-heading h4{font-size:17px}}
+
+/* 2026.10 · 个人手记改版：把算法目录收成沿途发现的小记录 */
+.encounter{margin:15px 0 12px;padding:14px 16px;border:1px solid #e4e9e0;border-radius:12px;background:#f6f8f3;line-height:1.83}
+.encounter-label{display:inline-block;color:#557463;font-size:11px;font-weight:760;letter-spacing:.055em;margin-bottom:3px}
+.encounter p{color:#5b6f63;font-size:12.8px;line-height:1.83;margin:0}
+.encounter b{color:#416750;font-weight:730}
+.small-find{border-left:3px solid #d1dfd0;margin:12px 0 3px;padding:4px 3px 4px 13px;color:#586d61;font-size:13.1px;line-height:1.9}
+.small-find span{font-weight:760;color:#466d55;margin-right:9px}
+.journal-stop .reflection{font-size:14px;line-height:1.98;color:#52645a}
+.journal-stop .fork-note{margin-top:16px}
+.journal-stop .follow{margin-top:13px;align-items:start}
+.journal-stop .follow span{color:#658073}
+.journal-stop .problem-top{margin-bottom:12px}
+.journal-stop h4{margin-bottom:13px}
+@media(max-width:640px){.encounter{padding:12px 13px}.small-find{padding-left:10px}.journal-stop .follow{display:block}.journal-stop .follow b{display:block;margin-bottom:2px}}
+
+
+/* Final writing-pass adjustments: retain original theme, ease long-form reading */
+.hero .lead{max-width:790px;line-height:2.04}
+.origin-note{margin:17px 0 0;background:linear-gradient(112deg,#fffdf8,#f7faf4);border:1px solid #e5e9df;border-radius:15px;padding:25px 30px 22px;box-shadow:0 6px 20px rgba(65,85,66,.035)}
+.origin-note p,.map-prelude p,.approved-map-after p,.closing-note p{font-size:14px;line-height:2;color:#546a5e;margin:0 0 13px}
+.origin-note p:last-child,.map-prelude p:last-child,.approved-map-after p:last-child,.closing-note p:last-child{margin-bottom:0}
+.map-prelude{margin:13px 0 20px;padding-left:2px}
+.approved-map-after{margin-top:20px}
+.note-prose p{font-size:13.6px;color:#566760;line-height:1.96;margin:0 0 11px}
+.note-prose p:last-child{margin-bottom:0}
+.note-prose strong{font-weight:750;color:#446c50}
+.note-encounter{margin:17px 0;padding:17px 18px}
+.note-encounter p{margin:6px 0 0;font-size:13.2px;line-height:1.95}
+.note-encounter p:first-of-type{margin-top:4px}
+.note-prose.thoughts{margin-top:12px}
+.journal-stop .fork-note{justify-content:space-between;gap:12px}
+.journal-stop .fork-kicker{font-size:11px;color:#8a9687;letter-spacing:.04em}
+.journal-stop .fork-open{margin-left:auto}
+.closing-note{margin:20px 0 25px;border-left:3px solid #b8ccb5;padding:8px 0 8px 22px;background:linear-gradient(90deg,#f5f8f1,transparent)}
+.closing-question-intro{font-size:14px;color:#607568;margin:26px 0 14px}
+#understanding .next-stage{margin:0 0 18px}
+#understanding .next-stage>div:first-child{width:100%}
+@media(max-width:680px){.origin-note{padding:18px 18px}.journal-stop .fork-open{margin:8px 0 0}.note-prose p{font-size:13.3px}.hero .lead{line-height:1.92}}
+
+
+/* 2026.10 · 版面舒适度调整：不改变文字、信息架构与研究路线 */
+:root{
+  --bg:#faf9f6;
+  --paper:#fffefa;
+  --ink:#293a34;
+  --sub:#627168;
+  --faint:#8b9990;
+  --line:#e6ebe4;
+  --pine:#456e58;
+  --shadow:0 3px 16px rgba(40,62,44,.025);
+  --text-measure:780px;
+  --section-indent:64px;
+}
+body{background:var(--bg);color:var(--ink);font-size:15px;line-height:1.95;-webkit-font-smoothing:antialiased}
+body::before{opacity:.065;background-size:23px 23px}
+.wrap{max-width:1100px;padding-inline:40px}
+.nav{height:78px;border-color:#e4e9e2}
+.navlinks{gap:28px}
+.breadcrumb{padding-top:32px}
+.hero{padding:44px 0 60px}
+.hero h1{font-size:clamp(38px,4.65vw,54px);letter-spacing:-.04em;line-height:1.4;margin:20px 0 26px}
+.hero .lead{max-width:850px;font-size:16px;line-height:2.12;color:#576a5d;margin:0}
+.hero .lead p{margin:0 0 11px}
+.hero .lead p:last-child{margin-bottom:0}
+.hero .lead b{font-weight:700}
+.hero-foot{margin-top:34px;gap:10px}
+.stamp{font-size:11.5px;padding:4px 12px;background:transparent;border-color:#e1e8e0;color:#78867c}
+.stamp.strong{background:#f1f6ef;color:#577765;border-color:#e2ebdf}
+
+/* Section index is a quiet margin note; text and body share a clean baseline. */
+main section{padding:65px 0 70px;border-bottom:1px solid #e7ebe5}
+.sec-head{display:grid;grid-template-columns:var(--section-indent) minmax(0,1fr);gap:0;align-items:baseline;margin-bottom:24px}
+.num{min-width:0;font:italic 22px/1.3 Georgia,serif;color:#abbcad;padding-top:2px}
+.section-title{font-size:25px;line-height:1.48;letter-spacing:-.024em;margin:0 0 6px;font-weight:690}
+.section-desc{max-width:var(--text-measure);font-size:14px;line-height:1.95;color:#69796f}
+main section > :not(.sec-head){margin-left:var(--section-indent)}
+
+/* Opening is prose, not an explanatory card. */
+.origin-note{
+  max-width:var(--text-measure);padding:3px 0 3px 22px;
+  background:transparent;border:0;border-left:1px solid #ccdccc;
+  border-radius:0;box-shadow:none;margin-top:22px
+}
+.origin-note p,.map-prelude p,.approved-map-after p,.closing-note p{font-size:14.5px;line-height:2.06;color:#576b5f;margin-bottom:14px}
+.map-prelude{max-width:var(--text-measure);padding:0;margin-top:22px;margin-bottom:24px}
+.approved-map-after{max-width:var(--text-measure);margin-top:25px}
+
+/* Route illustration: keep two columns and all three thinking stages, mute the chrome. */
+.field-map{margin-top:28px;margin-right:0;background:#fffefb;border-color:#e5e9e1;border-radius:17px;box-shadow:0 5px 26px rgba(36,55,38,.025)}
+.field-map:before{opacity:.038}
+.fm-top{padding:25px 29px 23px;border-color:#ecf0e9;align-items:center}
+.fm-top h3{font-size:22px;line-height:1.5;color:#394e40;margin:7px 0 7px}
+.fm-top p{font-size:12.8px;line-height:1.85}
+.fm-stamp{transform:none;margin-top:0;border-color:#e5eae3;color:#a4aea3;font-size:11px}
+.fm-legend{grid-template-columns:68px minmax(0,1fr) 38px minmax(0,1fr);padding:26px 29px 10px}
+.fm-zone{padding:0 3px 12px;border-bottom:1px solid #d3e0d5}
+.fm-zone.pose{border-color:#e5dcd1}
+.fm-zone .zh{font-size:15px;color:#527463}
+.fm-zone.pose .zh{color:#927765}
+.fm-zone .en{font-size:11px;color:#9ca9a0}
+.fm-zone p{font-size:11px}
+.fm-note-rows{padding:6px 29px 22px}
+.fm-row{grid-template-columns:68px minmax(0,1fr) 38px minmax(0,1fr);margin:14px 0;min-height:128px}
+.fm-step{padding-right:5px}
+.fm-no{width:26px;height:26px;font-size:13px;border-color:#dee8dc;color:#719079}
+.fm-line{left:50px;border-color:#e0e8dc;top:34px;bottom:60px}
+.fm-paper{border-color:#e5ebe3;background:#f8faf7;border-radius:11px;padding:17px 18px;min-height:128px}
+.fm-paper.pose{background:#fbf9f5;border-color:#ece8df}
+.fm-paper.faded{background:transparent;border-color:#e5e9e3}
+.fm-paper strong{font-size:14px;color:#465c4a;line-height:1.7}
+.fm-paper.pose strong{color:#766356}
+.fm-paper p{font-size:11.5px;line-height:1.78}
+.fm-connect{color:#b4c2b4}
+.fm-remark{margin:0 29px 29px;background:#f8f8f2;border:1px solid #edece4;border-left:2px solid #c0d0bb;border-radius:10px;padding:16px 18px}
+.fm-remark p{font-size:12.7px;color:#657568}
+.fm-pencil{font-size:20px}
+
+/* Three small chapter shortcuts share a single quiet language. */
+.path-intro{max-width:var(--text-measure);margin-top:8px;margin-bottom:26px}
+.path-intro p{font-size:14px;line-height:1.95}
+.chapter-index{gap:14px;margin:20px 0 34px}
+.index-card,.index-card.c2,.index-card.c3{
+  background:#fffefb;border:1px solid #e8ede6;border-radius:13px;
+  box-shadow:none;padding:21px 20px 20px;min-height:154px;
+}
+.index-card:hover{transform:translateY(-1px);box-shadow:0 5px 17px rgba(40,62,44,.04);border-color:#c9d7c8}
+.index-card .index-no,.index-card.c2 .index-no,.index-card.c3 .index-no{color:#8b9e8f;letter-spacing:.07em}
+.index-card h3{font-size:16px;line-height:1.62;margin:15px 0 8px;letter-spacing:-.012em;font-weight:650}
+.index-card p{font-size:11.8px;color:#849187}
+.index-card .index-no .index-arrow{color:#b1beb2}
+
+/* Chapter heading, timeline and note cards: align to one stable text column. */
+.chapter{margin:69px 0 0}
+.chapter-heading{grid-template-columns:54px minmax(0,1fr);gap:14px;margin-bottom:25px}
+.chapter-label{font-size:30px;line-height:1.4;color:#a9b8a8;padding-top:1px}
+.chapter.c2 .chapter-label{color:#b6aca0}
+.chapter.c3 .chapter-label{color:#a8afba}
+.chapter-kicker{font-size:11px;letter-spacing:.085em;color:#829887}
+.chapter.c2 .chapter-kicker{color:#ad9982}
+.chapter.c3 .chapter-kicker{color:#919baa}
+.chapter-heading h3{font-size:23px;line-height:1.5;margin:6px 0 6px;letter-spacing:-.02em}
+.chapter-heading p{font-size:13px;line-height:1.95;max-width:var(--text-measure)}
+.problem-chain{margin-left:15px;padding-left:37px;gap:22px;border-left:1px solid #e3eae2}
+.problem{
+  background:#fffefb;border:1px solid #e6ebe5;border-radius:14px;
+  padding:27px 32px 21px;box-shadow:0 3px 14px rgba(40,55,44,.018)
+}
+.problem::before{left:-44px;top:32px;width:13px;height:13px;border-width:2px;background:var(--bg);border-color:#b5c8b9;box-shadow:0 0 0 5px var(--bg)}
+.problem::after{left:-37px;top:38px;width:36px;background:#e3eae2}
+.problem .problem-top{margin-bottom:12px;align-items:baseline;gap:14px}
+.problem .qno{font-size:11px;letter-spacing:.08em;color:#839889}
+.chapter.c2 .problem .qno{color:#ad9982}
+.chapter.c3 .problem .qno{color:#91a0b3}
+.problem .qtheme{background:transparent;border:0;color:#a2aca3;padding:0;border-radius:0}
+.problem h4{font-size:20px;line-height:1.52;margin:0 0 18px;letter-spacing:-.024em;font-weight:680}
+.note-prose p,.journal-stop .reflection{font-size:14px;line-height:2.02;color:#5a6b60;margin:0 0 14px;max-width:var(--text-measure)}
+.note-prose strong,.journal-stop .reflection strong{font-weight:690;color:#426450}
+.note-prose.thoughts{margin-top:15px}
+.encounter.note-encounter{
+  background:#f8faf7;border:0;border-left:2px solid #d4e3d5;
+  border-radius:0 9px 9px 0;padding:15px 20px;margin:19px 0 21px
+}
+.chapter.c2 .encounter.note-encounter{background:#faf9f6;border-left-color:#e5dbcb}
+.chapter.c3 .encounter.note-encounter{background:#f9fafb;border-left-color:#dfe5ed}
+.encounter-label{font-size:11px;letter-spacing:.045em;font-weight:690;color:#728e79;margin-bottom:7px}
+.note-encounter p{font-size:13.4px;line-height:1.95;color:#607366;margin:4px 0 0;max-width:var(--text-measure)}
+.note-encounter b{font-weight:680;color:#496b55}
+.small-find{border-left:0;margin:20px 0 2px;padding:0;color:#5b6f60;line-height:1.95;font-size:13.5px}
+.small-find span{font-weight:690;color:#5c7961}
+.journal-stop .fork-note{align-items:center;margin-top:23px;padding:17px 0 0;border-top:1px solid #edf0eb;gap:22px}
+.problem .fork-kicker{font-size:11px;color:#99a59a;font-weight:610;letter-spacing:.035em}
+.problem .fork-kicker:before{font-size:15px;opacity:.65}
+.problem .fork-question{font-size:12.5px;color:#708174;line-height:1.85}
+.problem .fork-open,.chapter.c2 .problem .fork-open,.chapter.c3 .problem .fork-open{
+  background:transparent;border:0;border-bottom:1px solid #c7d6ca;
+  border-radius:0;padding:5px 0;color:#51755f;font-size:12px;white-space:normal;text-align:right;
+  transition:color .15s,border-color .15s
+}
+.problem .fork-open:hover{background:transparent;border-color:#789982;color:#365d46}
+.chapter-bridge{margin:29px 0 0 67px;color:#849389;font-size:12.5px}
+.chapter-bridge .bridge-path{background:#c9d7c8}
+
+/* The last page should land as prose, not a call-to-action. */
+.closing-note{max-width:var(--text-measure);background:transparent;border-left:1px solid #cedccd;margin:20px 0 0;padding:3px 0 3px 22px}
+.closing-question-intro{font-size:14px;color:#697d70;margin:31px 0 13px}
+.next-stage{max-width:var(--text-measure);display:block;background:#f5f7f3;border:1px solid #e5ebe2;border-radius:13px;padding:24px 28px}
+.next-stage .mini-title{font-size:11px;color:#809788}
+.next-stage h3{font-size:21px;margin:9px 0 10px}
+.next-stage p{font-size:13px;line-height:1.95}
+.section-mini-nav{margin-top:24px;gap:24px}
+.section-mini-nav a{border-color:#d1dfd0}
+.footer{border-top:0;padding-top:35px;padding-bottom:44px}
+
+@media(max-width:850px){
+  :root{--section-indent:52px}
+  .wrap{padding-inline:26px}
+  .fm-legend{grid-template-columns:52px minmax(0,1fr) 26px minmax(0,1fr);padding-inline:18px}
+  .fm-row{grid-template-columns:52px minmax(0,1fr) 26px minmax(0,1fr)}
+  .fm-note-rows{padding-inline:18px}
+  .fm-line{left:42px}
+  .fm-paper{padding:13px 13px}
+  .fm-paper strong{font-size:12.5px}
+  .fm-paper p{font-size:11px}
+  .fm-remark{margin-inline:18px}
+  .chapter-index{gap:10px}
+  .index-card,.index-card.c2,.index-card.c3{padding:16px 15px}
+  .index-card h3{font-size:14px}
+}
+@media(max-width:680px){
+  :root{--section-indent:0px}
+  .wrap{padding-inline:20px}
+  .nav{min-height:66px}
+  .breadcrumb{padding-top:23px}
+  .hero{padding:26px 0 41px}
+  .hero h1{font-size:36px;line-height:1.4;margin:13px 0 22px}
+  .hero .lead{font-size:14.5px;line-height:2.04}
+  .hero-foot{margin-top:23px}
+  main section{padding:44px 0 48px}
+  .sec-head{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;margin-bottom:19px}
+  .section-title{font-size:21px}
+  .section-desc{font-size:13px}
+  main section > :not(.sec-head){margin-left:0}
+  .origin-note{margin-left:48px!important;padding-left:15px}
+  .origin-note p,.map-prelude p,.approved-map-after p,.closing-note p{font-size:13.7px;line-height:1.98}
+  .field-map{border-radius:12px;margin-top:22px}
+  .fm-top{padding:18px 17px 17px}
+  .fm-top h3{font-size:19px}
+  .fm-legend{grid-template-columns:35px minmax(0,1fr) 14px minmax(0,1fr);padding:18px 12px 8px}
+  .fm-row{grid-template-columns:35px minmax(0,1fr) 14px minmax(0,1fr);margin:12px 0}
+  .fm-note-rows{padding:3px 12px 13px}
+  .fm-line{left:29px}
+  .fm-step{padding:0}
+  .fm-no{width:22px;height:22px;font-size:11px}
+  .fm-step span:last-child{font-size:10px}
+  .fm-paper{padding:12px 10px;min-height:138px}
+  .fm-paper strong{font-size:11.7px;line-height:1.65}
+  .fm-paper p{font-size:10.5px;line-height:1.7}
+  .fm-paper .fm-kicker{font-size:9.8px}
+  .fm-connect{font-size:13px}
+  .fm-remark{margin:0 12px 15px;padding:12px;gap:7px}
+  .fm-remark p{font-size:11.7px}
+  .chapter-index{gap:9px;margin-bottom:26px}
+  .index-card,.index-card.c2,.index-card.c3{min-height:0;padding:14px 17px}
+  .index-card h3{font-size:16px;margin:6px 0 2px}
+  .chapter{margin-top:45px}
+  .chapter-heading{grid-template-columns:36px 1fr;gap:11px;margin-bottom:20px}
+  .chapter-label{font-size:24px}
+  .chapter-heading h3{font-size:20px}
+  .chapter-heading p{font-size:12.5px}
+  .problem-chain{margin-left:9px;padding-left:23px;gap:15px}
+  .problem{padding:19px 19px 18px;border-radius:12px}
+  .problem::before{left:-29px;top:27px;width:11px;height:11px}
+  .problem::after{left:-23px;top:32px;width:22px}
+  .problem h4{font-size:17px;margin-bottom:15px}
+  .problem .problem-top{margin-bottom:9px}
+  .note-prose p,.journal-stop .reflection{font-size:13.5px;line-height:1.97}
+  .encounter.note-encounter{padding:12px 14px;margin:16px 0 18px}
+  .note-encounter p{font-size:12.5px}
+  .small-find{font-size:12.7px}
+  .journal-stop .fork-note{display:block;margin-top:18px;padding-top:13px}
+  .problem .fork-open{display:inline-flex;margin-top:9px;padding:3px 0}
+  .chapter-bridge{margin:23px 0 0 33px}
+  .closing-note{padding-left:15px}
+  .next-stage{padding:21px 20px}
+  .next-stage h3{font-size:19px}
+}
+/* A horizontal comparison at desk becomes a readable two-step note on phones. */
+@media(max-width:580px){
+  .fm-legend{display:flex;align-items:flex-start;gap:14px;padding:16px 15px 6px}
+  .fm-legend > div:empty{display:none}
+  .fm-legend .fm-zone{flex:1;min-width:0;padding:0 2px 8px}
+  .fm-legend .fm-zone .zh{font-size:13px}
+  .fm-legend .fm-zone p{display:none}
+  .fm-note-rows{padding:5px 15px 19px}
+  .fm-row{display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto 22px auto;column-gap:8px;row-gap:0;min-height:0;margin:13px 0 23px}
+  .fm-line{left:26px;top:24px;bottom:54px}
+  .fm-step{grid-column:1;grid-row:1/4;align-items:flex-start;justify-content:flex-start;padding-top:13px;gap:5px}
+  .fm-paper{grid-column:2;grid-row:1;min-height:0;padding:13px 14px;border-radius:10px}
+  .fm-paper.pose{grid-column:2;grid-row:3;min-height:0}
+  .fm-paper strong{font-size:13px;line-height:1.6}
+  .fm-paper p{font-size:11.5px;line-height:1.78}
+  .fm-paper .fm-kicker{font-size:10px}
+  .fm-connect{grid-column:2;grid-row:2;display:flex;justify-content:center;align-items:center;min-height:0;height:22px;font-size:13px}
+  .fm-connect strong{position:static;display:block;transform:rotate(90deg)}
+  .fm-connect.late::after{content:none}
+  .fm-remark{margin:0 15px 16px}
+  .journal-stop .fork-note{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;align-items:center}
+  .problem .fork-open{margin-top:0}
+}
+@media(max-width:360px){
+  .wrap{padding-inline:15px}
+  .fm-legend{grid-template-columns:30px minmax(0,1fr) 12px minmax(0,1fr);padding-inline:9px}
+  .fm-row{grid-template-columns:30px minmax(0,1fr) 12px minmax(0,1fr)}
+  .fm-note-rows{padding-inline:9px}
+  .fm-line{left:24px}
+  .fm-paper{padding:10px 8px}
+  .fm-paper strong{font-size:11px}
+  .fm-paper p{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){.index-card,.problem .fork-open{transition:none}}
+
 </style>
 </head>
 <body>
-<header class="wrap"><div class="nav"><a class="logo" href="/">🐟 沿途手记</a><nav aria-label="主导航" class="navlinks"><a href="/src/pages/journey.html">研究地图</a><a href="/src/pages/journal/">日记本 ↗</a></nav></div></header>
+<header class="wrap"><div class="nav"><a class="logo" href="https://fishxddd.github.io/src/pages/">🐟 沿途手记</a><nav aria-label="主导航" class="navlinks"><a href="https://fishxddd.github.io/src/pages/journey.html">研究地图</a><a href="https://fishxddd.github.io/src/pages/journal/">日记本 ↗</a></nav></div></header>
 <div class="wrap">
-<div class="breadcrumb"><a href="/src/pages/journey.html">研究地图</a> / Stage 01</div>
-<div class="hero"><div class="eyebrow">STAGE 01 · 关于抓取 Pose 的一点笔记</div><h1>抓法定好了，<br/>Pose 怎么算？</h1><p class="lead">先约定好“怎么抓”，再看看抓手到底该放在哪儿。一开始只想着算几何，后来又补上视觉，也慢慢发现学习式方法不必照着固定流程走。<b>这里先理清问题、方法和适用场景，具体怎么实现以后再细看。</b></p><div class="hero-foot"><span class="stamp strong">先看场景，再选方法</span><span class="stamp">边走边想</span><span class="stamp">单次抓取 · RGB-D · 两指夹爪</span></div></div>
+<div class="breadcrumb"><a href="https://fishxddd.github.io/src/pages/journey.html">研究地图</a> / Stage 01</div>
+<div class="hero"><div class="eyebrow">STAGE 01 · 关于抓取 Pose 的一点笔记</div><h1>抓法定好了，<br/>Pose 怎么算？</h1><p class="lead">
+最开始，想把抓取这件事变得简单一点。<br/>
+先不考虑机器人该怎么决定抓法。对于一些熟悉的物体，坐标系可以自己约定，抓手相对物体的放法也能提前确定。<br/>
+这样一来，似乎只需要知道物体现在在哪里、朝向哪里，就能把预先想好的抓取姿态放到真实空间中。<br/>
+问题一下子有了着手的地方。<br/>
+<b>那就先从 Pose 怎么算开始吧。</b>
+</p><div class="hero-foot"><span class="stamp strong">关于抓取 Pose 的一点笔记</span><span class="stamp">单次抓取 · RGB-D · 两指夹爪</span></div></div>
 <main>
-<section id="boundary"><div class="sec-head"><div class="num">01</div><div><h2 class="section-title">先说清，这次固定了什么？</h2><p class="section-desc">之前的写法让我误以为：既然抓法由人规定，那 Pose 也只能由几何公式来求。其实这是两件完全不同的事。</p></div></div>
-<div class="rule-grid"><article class="rule-card in"><small>STAGE 01 · 这次先固定</small><h3>抓取策略 / 任务约束</h3><p>例如“从瓶身侧面夹”，或“沿盒子的短边方向夹”。可以指定抓取区域、接近方向、夹爪开度范围；不需要模型自主发明另一种抓法。</p><span class="marker">人决定：怎么抓</span></article><article class="rule-card out"><small>STAGE 01 · 允许探索</small><h3>空间信息与 Pose 的求解方法</h3><p>目标在哪里？轴线朝向哪里？如何从图像与点云找到稳定参考？可以用拟合、配准、学习关键点、类别位姿估计，或训练受约束的直接 Pose 预测。</p><span class="marker">算法解决：抓手具体放哪里</span></article></div>
-<div class="thought"><p><strong>重新划边界：</strong>Stage 01 不等于“传统算法阶段”；它是“抓取决策已确定”的阶段。Stage 02 才进一步放开“抓哪里、从哪里接近、怎样生成候选”的决策权。</p></div>
-</section>
-<section id="map"><div class="sec-head"><div class="num">02</div><div><h2 class="section-title">两件事，是怎么被我接起来的？</h2><p class="section-desc">不是先设计好一套流程才开始研究的。最初只想着怎么算 Pose，后来补上“怎么看到目标”，再后来又发现，学习式方法不一定沿着我画的箭头走。</p></div></div>
-<figure aria-label="研究思路的三次修正：一开始只想到几何求位姿，随后意识到需要从现场取得目标线索，最后发现学习模型可以不经过显式 Mask，使用二维或三维特征直接估计空间参考或抓取位姿。" class="field-map">
-<div class="fm-top"><div><div class="fm-overline">FIELD NOTE · 这一路的三次修正</div><h3>我原来只画了右半边。</h3><p>后来才发现：左边不是一个简单的“Mask 输入框”，右边也不只有几何公式。</p></div><div class="fm-stamp">OCT. 2026<br/>a work in progress</div></div>
+<section id="boundary">
+<div class="sec-head"><div class="num">01</div><div>
+<h2 class="section-title">最初的想法</h2>
+
+</div></div>
+
+
+
+<div class="origin-note">
+<p>最先想到的，还是物体本身的形状。</p>
+<p>瓶子有中心和轴线，盒子有边和表面。既然这些都能作为空间参考，那从相机看到的数据里找到它们，是不是就能得到想要的 Pose？</p>
+<p>起初并没有考虑太多，只是觉得这件事应该可以从测量入手。</p>
+<p>后来整理着整理着，才发现自己最初的设想里，藏着不少没有说清楚的前提。</p>
+</div></section>
+<section id="map"><div class="sec-head"><div class="num">02</div><div><h2 class="section-title">原来只画了右半边</h2><p class="section-desc">刚开始画技术路线时，注意力几乎都放在了怎么求 Pose 上。</p></div></div>
+<div class="map-prelude">
+<p>至于目标点云从哪里来，似乎被很自然地略过去了。</p>
+<p>真实相机当然不会把目标点云单独递过来。重新把现场观测考虑进去，原来的路线图便多出了另一半。</p>
+<p>再往下整理，又发现视觉和 Pose 求解也并非只能按照一条固定流程连接。</p>
+</div><figure aria-label="研究思路的三次修正：一开始只想到几何求位姿，随后意识到需要从现场取得目标线索，最后发现学习模型可以不经过显式 Mask，使用二维或三维特征直接估计空间参考或抓取位姿。" class="field-map">
+<div class="fm-top"><div><div class="fm-overline">FIELD NOTE · 这一路的三次修正</div><h3>我原来只画了右半边。</h3><p>先考虑 Pose 求解，随后补上真实观测；几次修正下来，发现也不必把它们固定成一条流水线。</p></div><div class="fm-stamp">OCT. 2026<br/>a work in progress</div></div>
 <div class="fm-legend"><div></div><div class="fm-zone"><div><span class="zh">视觉 / 感知</span><span class="en">What do I know?</span></div><p>现场到底给了我什么线索</p></div><div></div><div class="fm-zone pose"><div><span class="zh">Pose / 求解</span><span class="en">What pose?</span></div><p>怎样把固定抓法落实到空间</p></div></div>
 <div class="fm-note-rows"><div aria-hidden="true" class="fm-line"></div>
-<div class="fm-row"><div class="fm-step"><div class="fm-no">1</div><span>最开始</span></div><div class="fm-paper faded"><span class="fm-kicker">当时没画的部分</span><strong>好像默认目标点云已经有了……</strong></div><div aria-hidden="true" class="fm-connect"><strong>·</strong></div><div class="fm-paper pose"><span class="fm-kicker">先想到 Pose</span><strong>有点云，就试着算方向和位置。</strong><p>PCA、形状拟合、已知模型配准 → Grasp Pose</p></div></div>
-<div class="fm-row"><div class="fm-step"><div class="fm-no">2</div><span>补上</span></div><div class="fm-paper"><span class="fm-kicker">等等，点云从哪里来？</span><strong>得先从场景里找到目标线索。</strong><p>ROI、检测 / Mask、点云聚类……按场景选，不是必经步骤。</p></div><div aria-hidden="true" class="fm-connect"><strong>→</strong></div><div class="fm-paper pose"><span class="fm-kicker">于是把两件事串起来</span><strong>拿到有用的空间信息，再求 Pose。</strong><p>目标中心、轴线、表面、对应关系……</p></div></div>
-<div class="fm-row"><div class="fm-step"><div class="fm-no">3</div><span>再修正</span></div><div class="fm-paper"><span class="fm-kicker">但视觉不只是交出一个 Mask</span><strong>网络可以直接看 RGB、深度、点云或融合特征。</strong><p>有的输出关键点，有的连中间表征都不显式展示。</p></div><div aria-hidden="true" class="fm-connect late"><strong>↝</strong></div><div class="fm-paper pose"><span class="fm-kicker">Pose 也不只是几何计算</span><strong>可以几何求解、学习估计，甚至直接预测。</strong><p>前提依旧是：这次不让算法自行决定抓法。</p></div></div>
+<div class="fm-row"><div class="fm-step"><div class="fm-no">1</div><span>最开始</span></div><div class="fm-paper faded"><span class="fm-kicker">当时留白的部分</span><strong>目标点云被当成了已知输入。</strong></div><div aria-hidden="true" class="fm-connect"><strong>·</strong></div><div class="fm-paper pose"><span class="fm-kicker">先想到 Pose</span><strong>从点云里测量位置和方向。</strong><p>PCA、形状拟合、已知模型配准 → Grasp Pose</p></div></div>
+<div class="fm-row"><div class="fm-step"><div class="fm-no">2</div><span>补上</span></div><div class="fm-paper"><span class="fm-kicker">目标数据原来还没有来路</span><strong>需要从场景里取得真正有用的观测。</strong><p>ROI、检测 / Mask、点云聚类……按场景选，不是必经步骤。</p></div><div aria-hidden="true" class="fm-connect"><strong>→</strong></div><div class="fm-paper pose"><span class="fm-kicker">补上两者之间的联系</span><strong>拿到有用的空间信息，再求 Pose。</strong><p>目标中心、轴线、表面、对应关系……</p></div></div>
+<div class="fm-row"><div class="fm-step"><div class="fm-no">3</div><span>再修正</span></div><div class="fm-paper"><span class="fm-kicker">视觉信息也不止一种形式</span><strong>网络可以直接看 RGB、深度、点云或融合特征。</strong><p>有的输出关键点，有的连中间表征都不显式展示。</p></div><div aria-hidden="true" class="fm-connect late"><strong>↝</strong></div><div class="fm-paper pose"><span class="fm-kicker">求解 Pose 的路径也不止一种</span><strong>可以几何求解、学习估计，甚至直接预测。</strong><p>前提依旧是：这次不让算法自行决定抓法。</p></div></div>
 </div>
-<div class="fm-remark"><span aria-hidden="true" class="fm-pencil">✎</span><p><strong>现在的理解：</strong>我还是想把「现场能得到什么信息」和「怎样求出 Pose」分开研究；但它们不一定是两个模型，更不是固定的 <em>Mask → 点云 → 几何 → Pose</em>。有些方法只做一半，有些会把两半一起学掉。</p></div>
+<div class="fm-remark"><span aria-hidden="true" class="fm-pencil">✎</span><p><strong>现在更愿意这样理解：</strong>“现场能得到什么”和“怎样求出 Pose”是两个值得分别想清楚的问题，但并不要求它们一定由两个模块完成。<em>Mask → 点云 → 几何 → Pose</em> 只是其中一种组织方式，有些方法会跳过其中的显式步骤。</p></div>
 </figure>
-<p class="fm-after">所以这张地图先不急着罗列算法。它只记下我<strong>为什么开始研究视觉，又为什么不能把视觉简单地叫作“几何的辅助”</strong>。接下来顺着这思路修正，把没想明白的问题一件件追下去。</p>
+<div class="fm-after approved-map-after">
+<p>现在回头看，这张图倒更像一份改过几次的草稿。</p>
+<p>从最初只想着计算 Pose，到补上视觉观测，再到认识不同的求解方式，整个问题才慢慢展开。</p>
+<p>下面就沿着这些想法，把遇到的技术和留下的认识记下来。</p>
+</div>
 </section>
 <section id="journey">
-<div class="sec-head"><div class="num">03</div><div><h2 class="section-title">然后，我就一路想到了这里</h2><p class="section-desc">不是先列好几个方法，再把它们连成一条线。更像是试着解决一个问题，发现遗漏了什么，然后又往下多想了一点。</p></div></div>
-<div class="path-intro"><p>下面按<strong>我理解问题的顺序</strong>来写，不是算法的历史演进顺序。每一段都留下当时觉得它<strong>好用在哪里</strong>、后来又发现<strong>哪里不够</strong>。一个方法可以在很多问题里反复出现，它不会因为出现得早就失去价值。</p><span class="handmark">keep asking ✎</span></div>
-<div class="chapter-index"><a class="index-card c1" href="#chapter-pose"><div class="index-no"><span>第一段 · 从 Pose 开始</span><span class="index-arrow">↗</span></div><h3>先拿几何试一试，后来又想到模板</h3><p>几何 → 已知模型</p></a><a class="index-card c2" href="#chapter-vision"><div class="index-no"><span>第二段 · 补上视觉</span><span class="index-arrow">↗</span></div><h3>原来目标数据，还得自己从相机里找</h3><p>2D 定位 → 用深度落到 3D</p></a><a class="index-card c3" href="#chapter-together"><div class="index-no"><span>第三段 · 再换个思路</span><span class="index-arrow">↗</span></div><h3>Pose 是有了，再回头看看哪里不够</h3><p>规则边界 → 学习空间线索 → 直接求抓取位姿</p></a></div><div class="selection-note"><span class="selection-note-label">先说一个贯穿全篇的前提</span><p><strong>技术本身没有被后来的技术“淘汰”。</strong>几何明确、测量可靠时，传统方法完全可能更准、更稳、更省成本；模型已知时，模板配准也值得一直用。学习式方法扩大了可处理的场景，但仍有训练分布、误差与计算开销的限制。<strong>我在意的是条件与边界，不是谁更新。</strong></p></div><div class="chapter c1" id="chapter-pose"><div class="chapter-heading"><div class="chapter-label">01</div><div><div class="chapter-kicker">第一段 · 从 Pose 开始</div><h3>先拿几何试一试，后来又想到模板</h3><p>我最先关心的是“怎么算 Pose”。当时一切都从已经有目标点云开始，顺着现场几何和已知参考两种思路往下走。</p></div></div><div class="problem-chain"><article class="problem journal-stop" id="q01">
-<div class="problem-top"><span class="qno">想法 01</span><span class="qtheme">先从最熟悉的办法试试</span></div>
-<h4>既然有点云，能不能直接把抓取方向算出来？</h4>
-<p class="reflection">刚开始我把「已经拿到目标点云」当成前提。瓶子大致是圆柱，盒子有平面和边，似乎用主轴、法线或形状拟合，就能构造夹爪的中心和方向。再仔细想才发现：<strong>求得一根轴线，不一定就得到了唯一的 6DoF Pose</strong>；还要看预定抓法到底约束了哪些自由度。</p>
-<p class="clue"><span>顺手记下的办法</span>PCA / OBB、法线、RANSAC、圆柱与平面拟合、局部抓取坐标系</p>
-<div class="tradeoffs"><div><small>什么时候很好用</small><p>目标形状规律、几何可见、规则清楚时，计算轻、可解释；测量与标定可靠时，精度可以很好。</p></div><div><small>换个条件就要小心</small><p>遮挡、点云缺失、对称性或大变形时，几何参考可能不唯一，也可能估错。</p></div></div>
-<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">主轴、法线和形状拟合，各自能约束 Pose 的哪些自由度？什么时候只需局部参考，不必求完整 Object Pose？</p></div><a class="fork-open" href="stage-01-notes/q01-geometry.html" title="这一站的技术细节">往里看看 ↗</a></div>
-<div class="follow"><b>于是又想到 →</b> <a href="#q02">要是我本来就知道物体的形状，何必每次只凭这一小片点云猜？</a></div>
-</article><article class="problem journal-stop" id="q02">
-<div class="problem-top"><span class="qno">想法 02</span><span class="qtheme">再把已知信息利用起来</span></div>
-<h4>如果物体有 CAD 或模板，是不是更省事？</h4>
-<p class="reflection">对已知瓶子、盒体或固定工件，与其从局部几何猜位置，不如把现场观测和参考模型对齐。只要得到物体相对相机的变换，<strong>模板上预先规定的抓取位姿就能直接变到相机坐标系</strong>。可是：参考模型、对应关系和初始位姿，又不是自动存在的。</p>
-<p class="clue"><span>顺手记下的办法</span>2D–3D 对应 / PnP、3D–3D 刚体对齐、PPF 粗匹配、ICP / GICP 细配准</p>
-<div class="tradeoffs"><div><small>什么时候很好用</small><p>已知且形态稳定的对象可以复用同一套参考；匹配可靠时，定位精度和工程可控性都不错。</p></div><div><small>换个条件就要小心</small><p>依赖参考准确性与足够观测；遮挡、重复纹理、对称性、变形会让匹配困难或产生歧义。</p></div></div>
-<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">CAD、参考点云和参考图像应该怎么分？为什么有的先全局找对应，有的必须先有较好的初值？</p></div><a class="fork-open" href="stage-01-notes/q02-known-reference.html" title="这一站的技术细节">往里看看 ↗</a></div>
-<div class="follow"><b>于是又想到 →</b> <a href="#q03">等等，我一直在假设已经拿到「目标点云」了。可是现场相机看到的明明是一整幅图。</a></div>
-</article></div><div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>第一次回头看：我懂了怎么利用点云，却忘了问「这份点云从哪里来」。</span></div></div><div class="chapter c2" id="chapter-vision"><div class="chapter-heading"><div class="chapter-label">02</div><div><div class="chapter-kicker">第二段 · 补上视觉</div><h3>原来目标数据，还得自己从相机里找</h3><p>做了 Pose 才发现，真实输入是整幅场景：先在 2D 里找到目标，再借助深度把像素变成空间信息。</p></div></div><div class="problem-chain"><article class="problem journal-stop" id="q03">
-<div class="problem-top"><span class="qno">想法 03</span><span class="qtheme">第一次发现前提没补齐</span></div>
-<h4>我得先在图像里找到要抓的东西吧？</h4>
-<p class="reflection">到了真实场景才意识到：不能一直假设目标已经被单独取出来。相机看到的是地面、杂物和目标混在一起的画面。先从 2D 入手比较直观：<strong>检测告诉我大概在哪，Mask 能给出更细的范围</strong>，语义 Grounding 还能利用任务描述指定目标。</p>
-<p class="clue"><span>顺手记下的办法</span>2D Detection、BBOX、Instance Segmentation / Mask、Grounding</p>
-<div class="tradeoffs"><div><small>什么时候很好用</small><p>RGB 里有丰富的外观和语义信息；定位入口灵活，通常也更方便和上层任务对接。</p></div><div><small>换个条件就要小心</small><p>2D 定位不等于三维姿态；Mask 边界可能不准，也不是所有 Pose 方法都需要 Mask。</p></div></div>
-<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">BBOX 与 Mask 到底分别够做什么？什么时候该用语义 Grounding，什么时候连 2D 检测都可以省略？</p></div><a class="fork-open" href="stage-01-notes/q03-target-in-2d.html" title="这一站的技术细节">往里看看 ↗</a></div>
-<div class="follow"><b>于是又想到 →</b> <a href="#q04">图像里找到了目标，但它还是像素位置。机器人要的是以米为单位的空间 Pose。</a></div>
-</article><article class="problem journal-stop" id="q04">
-<div class="problem-top"><span class="qno">想法 04</span><span class="qtheme">图像找到之后，空间在哪？</span></div>
-<h4>2D 已经找到了，怎样把它放回 3D？</h4>
-<p class="reflection">这时才把 RGB、Depth 和相机内参真正连起来：先确认颜色与深度对应，再把有效深度像素反投影成三维点。根据任务，可以只用中心的深度、从 ROI 取点，也可以借助 Mask 得到更干净的目标点云。<strong>从这里开始，2D 的目标信息终于能参与 3D 几何求解。</strong></p>
-<p class="clue"><span>顺手记下的办法</span>RGB-D 对齐、内参 K、深度尺度、反投影、ROI / Mask 到目标点云</p>
-<div class="tradeoffs"><div><small>什么时候很好用</small><p>把语义/区域信息与有尺度的空间测量接在一起，后续就能算中心、法线、轴线和夹爪 Pose。</p></div><div><small>换个条件就要小心</small><p>反光、薄片、贴地物体、深度孔洞和 RGB-D 错位都会把误差传到 Pose；不是每个网络都显式生成点云。</p></div></div>
-<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这件事其实还能继续往里拆</div><p class="fork-question">一个像素加深度能得到什么？BBOX/Mask 怎样对应到深度？什么时候保留 Depth 图，比提前转成点云更合适？</p></div><a class="fork-open" href="stage-01-notes/q04-from-2d-to-3d.html" title="这一站的技术细节">往里看看 ↗</a></div>
-<div class="follow"><b>于是又想到 →</b> <a href="#pause-after-pose">现在从找目标、取深度到求 Pose 都接上了。先回头看看：这套办法究竟在哪些时候会出问题？</a></div>
-</article></div><div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>第二次回头看：视觉和几何终于接上了。先别急着换模型，看看这条路还有什么前提。</span></div></div><div class="chapter c3" id="chapter-together"><div class="chapter-heading"><div class="chapter-label">03</div><div><div class="chapter-kicker">第三段 · 再换个思路</div><h3>Pose 是有了，再回头看看哪里不够</h3><p>这次没有急着再找一个新算法。先看看已有做法是在哪些条件下好用、在哪些条件下会失效，才知道接下来值得学什么。</p></div></div><div class="problem-chain"><div class="pause-note" id="pause-after-pose">
-<div class="pause-heading"><span class="pause-mark">↶</span><div><div class="pause-eyebrow">走到这里，先回头看看 · 不单独算一个问题</div><h4>Pose 终于算出来了，但好像还不能到处用。</h4></div></div>
-<p class="pause-lead">把 2D、Depth、几何或模板接起来后，在规整瓶子、已知工件上，这套办法可以很准确、也很好解释。可一换成被压扁的盒子、变形的袋子，原来假设存在的“主轴”“稳定表面”或“参考模型”可能就不合适了。<strong>不是几何不好，而是我该先弄清楚，到底是哪一个前提没满足。</strong></p>
-<div class="pause-questions">
-<div><small>可能是看错了</small><p>目标没找准，Depth 缺失或错位；先解决观测问题。</p></div>
-<div><small>也可能是算不稳</small><p>主轴含糊、匹配歧义、变形太大；需要换空间参考或求解思路。</p></div>
-<div><small>甚至不是 Pose 的问题</small><p>原本预定的抓法不适合这个形状；那就已经接近下一阶段了。</p></div>
+<div class="sec-head"><div class="num">03</div><div>
+<h2 class="section-title">沿着这些问题，慢慢往下走</h2>
+<p class="section-desc">最开始只是想算出一个抓取 Pose，没想到顺着这个问题，慢慢发现了不少不同的技术。</p>
+</div></div>
+<div class="path-intro"><p>这里就按自己理解问题的顺序，记下沿途遇到的几种思路。</p><span class="handmark">notes along the way ✎</span></div>
+<div class="chapter-index">
+<a class="index-card c1" href="#chapter-pose"><div class="index-no"><span>第一段 · 从 Pose 开始</span><span class="index-arrow">↗</span></div><h3>先看看，能从空间里量到什么</h3><p>形状测量 · 利用已知参考</p></a>
+<a class="index-card c2" href="#chapter-vision"><div class="index-no"><span>第二段 · 补齐现场输入</span><span class="index-arrow">↗</span></div><h3>回到相机，找到真正需要的数据</h3><p>找目标 · 从像素到空间</p></a>
+<a class="index-card c3" href="#chapter-together"><div class="index-no"><span>第三段 · 换个角度</span><span class="index-arrow">↗</span></div><h3>不一定每次都照同一套流程算</h3><p>学习空间信息 · 直接求抓手 Pose</p></a>
 </div>
-<p class="pause-end">所以我不急着说“几何不够先进”。<strong>形状规律、测量可靠时，规则法可能更准、更轻、更可控。</strong> 只是我也想知道：遇到很难手写规则的空间结构，能不能换一种表达方法？</p>
-</div><article class="problem journal-stop" id="q05">
-<div class="problem-top"><span class="qno">想法 05</span><span class="qtheme">换个角度看空间线索</span></div>
-<h4>有些特征不好手写，能不能让模型来学？</h4>
-<p class="reflection">以前我会先规定“找主轴”“拟合平面”或“和模板匹配”。可是遇到形态变化大的物体，<strong>也许不是我要换一个更复杂的阈值，而是让模型从数据里学出有用的空间线索。</strong> 它可以学关键点、对应关系、类别共同的空间参考，也可以直接估计 Object Pose；几何求解仍然可以接在后面。</p>
-<p class="clue"><span>顺手记下的办法</span>学习关键点 / 对应关系、学习初始化 + 几何细化、类别级空间参考（如 NOCS）、学习式 Object Pose</p>
-<div class="tradeoffs"><div><small>什么时候值得试</small><p>外观与局部形状变化较多、手工特征难稳定描述，而且有合适的数据与训练条件时，可以减少逐类制定规则的工作。</p></div><div><small>换个条件就要小心</small><p>学习到的先验仍有训练分布边界；难例、对称性和严重变形不会自动消失，标注与计算也有成本。</p></div></div>
-<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">往里面看，原来并不是只有一种“学习 Pose”</div><p class="fork-question">网络究竟要学什么：关键点、对应关系、类别坐标，还是完整位姿？哪种还依赖实例 CAD，哪种能跨实例？为什么这些方法不该硬排成一条升级路线？</p></div><a class="fork-open" href="stage-01-notes/q05-learning-spatial-clues.html" title="学习式空间线索的技术分支">往里看看 ↗</a></div>
-<div class="follow"><b>再往下想 →</b> <a href="#q06">不过我绕了一圈一直在研究 Object Pose。我的目标只是把夹爪放对，真的每次都需要完整物体位姿吗？</a></div>
-</article><article class="problem journal-stop" id="q06">
-<div class="problem-top"><span class="qno">想法 06</span><span class="qtheme">最后又回到抓取这个任务</span></div>
-<h4>我只想摆好夹爪，能不能直接求 Grasp Pose？</h4>
-<p class="reflection">模板已知时，先得到 Object Pose，再换算抓取位姿很自然。但要是物体没办法定义一个稳定的完整姿态，而抓取方式又已经规定好了，<strong>也许直接估计夹爪中心、方向和开度就足够。</strong> 这种输出可以由规则构造，也可以从 RGB-D / 点云学习；它不必经过一个显式的 Object Pose。</p>
-<p class="clue"><span>顺手记下的办法</span>局部抓取参考、2.5D / 平面抓取预测、受规则条件约束的 6DoF Grasp Pose、几何校验</p>
-<div class="tradeoffs"><div><small>什么时候值得试</small><p>完整物体姿态没有必要或难以定义，而任务只关心规定接近方向、夹爪位置和开度时，可以省掉不必要的中间目标。</p></div><div><small>换个条件就要小心</small><p>直接回归也需要符合抓取策略、夹爪尺寸与局部碰撞要求；训练模型不意味着自动知道物体能不能抓稳。</p></div></div>
-<div class="fork-note"><div class="fork-copy"><div class="fork-kicker">这也能继续往里分</div><p class="fork-question">只从上方夹的 2.5D 与任意接近方向的 6DoF，究竟约束了哪些自由度？“模型直接给抓取候选”和“按规定抓法求 Pose”边界在哪？</p></div><a class="fork-open" href="stage-01-notes/q06-direct-grasp-pose.html" title="受约束的 Grasp Pose 预测技术分支">往里看看 ↗</a></div>
-<div class="follow"><b>最后还留了个问题 →</b> <a href="#next">如果连“怎么抓”也不能提前规定，只给出一个位置与方向就不够了吧？</a></div>
-</article></div></div><p class="closing-thread">一路看下来，问题不是从几何“升级”到学习，而是<strong>我不断发现前一种办法依赖什么条件</strong>。条件满足，就继续用；条件不满足，再找另一种可行的空间参考或 Pose 求解方式。</p></section>
-<section id="understanding">
-<div class="sec-head"><div class="num">04</div><div><h2 class="section-title">写到这里，暂时有了几条认识</h2><p class="section-desc">先不急着宣布答案。记录一下，现在觉得哪些判断最值得保留。</p></div></div>
-<div class="rule-grid">
-<div class="rule-card in"><small>关于规则与精度</small><h3>前提清楚时，几何一点也不落后</h3><p>规则明确、深度可靠、几何稳定时，求解结果可解释、精度潜力高。难点不是技术老，而是场景超出了它的前提。</p></div>
-<div class="rule-card"><small>关于视觉</small><h3>2D 可以找目标，却不等于 3D Pose</h3><p>有时要 Mask，有时 BBOX、点云聚类或学习特征就够。只有弄清空间信息如何进入求解，才算把链条接上。</p></div>
-<div class="rule-card"><small>关于学习</small><h3>学习的是不同信息，不是一条必走的升级路线</h3><p>学关键点、对应关系、类别参考或直接估计位姿，解决的前提不同。几何可以和学习结合，结果也都应结合场景检查。</p></div>
-<div class="rule-card"><small>关于最终选择</small><h3>先分清哪一环出了问题</h3><p>感知不准、Pose 不稳、抓法本身不适合，是三个不同问题；选方法前先弄清属于哪一种。</p></div>
-</div></section>
-<section id="next" style="border:0;padding-bottom:20px"><div class="sec-head"><div class="num">05</div><div><h2 class="section-title">还有个问题，先记下来</h2><p class="section-desc">如果一直规定从瓶身侧面夹，那 Pose 算准就有意义。但遇到被踩扁的盒子、卷曲的广告纸，这条规定未必还成立。</p></div></div>
-<div class="next-stage"><div><div class="mini-title">下一问 · STAGE 02</div><h3>如果连“怎么抓”也不能提前规定呢？</h3><p>这时问题不再只是估计空间关系，而是要从可用的接触区域和接近方式中生成、比较抓取候选。算 Pose 的知识依旧有用，只是它不再承担全部决策。</p></div><div class="next-side"><b>这次的边界先停在这里。</b>先把预定抓法对应的 Pose 研究清楚，再走向“选择抓法”；碰撞、夹爪尺寸等局部约束仍需考虑，完整运动规划留给执行层。</div></div>
-<div class="section-mini-nav"><a href="#journey">回看沿途想法 ↑</a><a href="#map">回看思路修正 ↑</a><a href="#boundary">回到开头 ↑</a></div>
+<div class="chapter c1" id="chapter-pose">
+<div class="chapter-heading"><div class="chapter-label">01</div><div><div class="chapter-kicker">第一段 · 从 Pose 开始</div><h3>先从形状和已知信息入手</h3><p>物体的形状、已知尺寸与结构，提供了最先想到的空间线索。</p></div></div>
+<div class="problem-chain">
+<article class="problem journal-stop" id="q01"><div class="problem-top"><span class="qno">想法 01</span><span class="qtheme">从形状开始</span></div>
+<h4>能不能直接从形状里量出 Pose？</h4>
+<div class="note-prose intro"><p>既然瓶子有轴线、盒子有平面，最直接的办法就是从点云里测量这些几何特征。</p></div>
+<div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>沿着这个方向，整理了 <b>PCA、OBB、RANSAC、法线与形状拟合</b> 等方法。</p><p>PCA 可以用来寻找点云的主要方向，OBB 能描述物体的空间范围，而 RANSAC 则适合从带有噪声的数据里寻找平面等符合模型的结构。</p></div>
+<div class="note-prose thoughts"><p>这些方法并不复杂，却能从离散的点云中提取出不少有用的空间信息。</p><p>逐渐明确的一点是：<strong>测量出物体的某些几何特征，并不意味着完整的 6DoF Pose 就确定了。</strong> 具体需要多少个自由度，还得回到预先约定的抓法。</p></div>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q01-geometry.html">Q01 · 点云几何测量 ↗</a></div></article>
+<article class="problem journal-stop" id="q02"><div class="problem-top"><span class="qno">想法 02</span><span class="qtheme">利用已知信息</span></div>
+<h4>如果物体本来就是已知的呢？</h4>
+<div class="note-prose intro"><p>前面一直在想怎样从点云里测量形状。但对于已知尺寸、结构甚至完整模型的物体，似乎还有不少现成的信息可以利用。</p><p>于是开始整理已知参考下的位姿求解方法。</p></div>
+<div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>这里遇到了几条不同的技术思路：</p><p><b>ICP / GICP</b> 利用三维点云之间的配准关系；<b>PPF</b> 利用点对的几何特征寻找已知物体的位姿；而 <b>PnP</b> 则通过已知的 3D 点和图像中的 2D 对应点求解位姿。</p></div>
+<div class="note-prose thoughts"><p>它们不是同一种方法的简单变体，所依赖的参考信息、对应关系和初始化条件都不太一样。</p><p>这样看来，<strong>物体有多少已知信息、现场又能观察到什么，本身就会影响 Pose 的求解方式。</strong></p></div>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q02-known-reference.html">Q02 · 已知参考与位姿求解 ↗</a></div></article>
+</div>
+<div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>直到把真实相机放回问题里，才发现还得先处理一件很实际的事：从整个场景中找到需要抓取的物体。</span></div>
+</div>
+<div class="chapter c2" id="chapter-vision">
+<div class="chapter-heading"><div class="chapter-label">02</div><div><div class="chapter-kicker">第二段 · 回到真实相机</div><h3>回到相机看到的场景</h3><p>从图像中找到目标，再把像素信息与实际空间联系起来。</p></div></div>
+<div class="problem-chain">
+<article class="problem journal-stop" id="q03"><div class="problem-top"><span class="qno">想法 03</span><span class="qtheme">找到目标</span></div>
+<h4>目标数据从哪里来？</h4>
+<div class="note-prose intro"><p>前面花了不少心思研究如何计算 Pose，却一直默认目标点云已经准备好了。</p><p>直到把真实相机放回问题里，才发现还得先处理一件很实际的事：从整个场景中找到需要抓取的物体。</p><p>于是又回到了熟悉的二维视觉。</p></div>
+<div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p><b>Detection</b> 可以给出目标的大致范围，<b>Instance Segmentation</b> 能进一步得到物体区域，<b>Grounding</b> 则可以根据语言描述寻找指定目标。</p></div>
+<div class="note-prose thoughts"><p>这一部分本身就有不少成熟的技术路线。</p><p>整理下来也发现，目标定位并不一定非要得到精确的 Mask。不同的 Pose 求解方法，对前面的观测信息有不同要求。</p></div>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q03-target-in-2d.html">Q03 · 从图像里找到目标 ↗</a></div></article>
+<article class="problem journal-stop" id="q04"><div class="problem-top"><span class="qno">想法 04</span><span class="qtheme">回到三维</span></div>
+<h4>二维找到了，怎么回到三维？</h4>
+<div class="note-prose intro"><p>图像里已经找到了目标，但像素坐标终究还不是机器人能直接使用的空间位置。</p></div>
+<div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>这时再把 RGB、Depth 和相机内参放在一起，之前学过的投影与反投影就派上了用场。</p><p>有了对齐的深度，一个像素便可以恢复成相机坐标系下的三维点；如果把目标区域里的有效深度都利用起来，还能进一步得到目标点云。</p></div>
+<div class="note-prose thoughts"><p><strong>到这里，最开始设想的那条路线终于接上了。</strong></p><p>从相机观察场景，到确定目标、获取三维信息，再到计算抓取所需的 Pose，已经形成了一条比较清楚的求解思路。</p><p>当然，深度孔洞、测量噪声和对齐误差仍然需要认真处理。不过至少现在知道，这些原本分散的知识是怎样联系起来的。</p></div>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q04-from-2d-to-3d.html">Q04 · 从 2D 走向 3D ↗</a></div></article>
+</div>
+<div class="chapter-bridge"><span aria-hidden="true" class="bridge-path"></span><span>到这里，最开始设想的那条路线终于接上了。</span></div>
+</div>
+<div class="chapter c3" id="chapter-together">
+<div class="chapter-heading"><div class="chapter-label">03</div><div><div class="chapter-kicker">第三段 · 再换个角度</div><h3>再试试其他求解思路</h3><p>学习空间特征，以及是否必须先求完整的 Object Pose。</p></div></div>
+<div class="problem-chain">
+<article class="problem journal-stop" id="q05"><div class="problem-top"><span class="qno">想法 05</span><span class="qtheme">学习空间特征</span></div>
+<h4>空间特征，能不能让模型自己学？</h4>
+<div class="note-prose intro"><p>前面的路线已经能够处理不少形状规整、参考信息明确的物体。</p><p>但继续考虑那些形态变化比较大的目标时，手工规定中心、轴线、表面等几何特征，未必总能得到稳定的空间参考。</p><p>沿着这个问题，开始了解学习式的位姿估计方法。</p></div>
+<div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>原来除了让模型识别物体，还可以学习 <b>关键点、特征对应关系、类别级空间参考（NOCS）</b>，甚至直接估计 Object Pose。</p></div>
+<div class="note-prose thoughts"><p>这里逐渐形成了一个认识：</p><p><strong>学习式方法不一定是直接替代几何求解，也可以只负责提供更有用的空间线索。</strong></p><p>不同方法让网络学习的内容不同，对参考模型、训练数据和物体形变的依赖也不一样。</p><p>这部分的技术分支值得再单独梳理。</p></div>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q05-learning-spatial-clues.html">Q05 · 学习式空间线索 ↗</a></div></article>
+<article class="problem journal-stop" id="q06"><div class="problem-top"><span class="qno">想法 06</span><span class="qtheme">直接求抓取 Pose</span></div>
+<h4>是不是不一定要先求 Object Pose？</h4>
+<div class="note-prose intro"><p>研究到这里，又回到了最开始的问题。</p><p>这次的目的其实很明确：在抓法已经约定好的前提下，得到夹爪应该执行的 Grasp Pose。</p><p>对于已知刚体，先估计 Object Pose，再变换得到 Grasp Pose，是一条很自然的路线。</p><p>但如果并不需要完整的物体姿态，是否可以直接根据局部观测来确定抓手的位置和方向？</p></div>
+<div class="encounter note-encounter"><span class="encounter-label">沿途整理的技术</span><p>沿着这个方向，又认识了局部几何抓取、<b>GG-CNN 这类 2.5D 抓取预测方法，以及直接生成 6DoF Grasp Pose 的数据驱动方法</b>。</p><p>它们不一定需要先恢复一个完整的 Object Pose。</p></div>
+<div class="note-prose thoughts"><p>当然，直接预测抓取姿态并不意味着让模型随意决定怎么抓。在当前阶段，抓取区域、接近方向和夹爪约束依然需要满足。</p><p>整理到这里，才更清楚地意识到：</p><p><strong>求 Object Pose 再换算抓取姿态，与直接求 Grasp Pose，是两条可以独立考虑的路线。</strong></p></div>
+<div class="fork-note"><span class="fork-kicker">深入笔记</span><a class="fork-open" href="stage-01-notes/q06-direct-grasp-pose.html">Q06 · 直接求 Grasp Pose ↗</a></div></article>
+</div>
+</div>
+
 </section>
+<section id="understanding">
+<div class="sec-head"><div class="num">04</div><div><h2 class="section-title">写到这里</h2></div></div>
+<div class="closing-note">
+<p>回头看，最开始只是想算出一个抓取 Pose，后来却沿着这个问题认识了不少不同的技术。</p>
+<p>有些方法从形状出发，有些利用已知参考，也有些把空间信息交给模型学习。</p>
+<p>它们并不是简单的新旧替代关系。很多时候，还是要看手里有什么信息、物体是什么样子，以及究竟需要求出什么。</p>
+<p>这篇先把这些思路记下来。更具体的原理、技术历史和适用场景，就留在各自的笔记里慢慢整理。</p>
+</div><p class="closing-question-intro">至于另一个问题——</p><div class="next-stage"><div><div class="mini-title">下一阶段 · STAGE 02</div><h3>如果连“怎么抓”都不能提前约定呢？</h3><p>那就留给下一阶段了。</p></div></div><div class="section-mini-nav"><a href="#journey">回看沿途想法 ↑</a><a href="#map">回看思路修正 ↑</a><a href="#boundary">回到开头 ↑</a></div></section>
+
 </main>
-<footer class="footer"><div>© 2026 沿途手记 · 想到一点，先记一点。🐟</div><div><a href="#boundary">回到页首 ↑</a>　·　<a href="/src/pages/journey.html">研究地图 ↗</a></div></footer>
+<footer class="footer"><div>© 2026 沿途手记 · 想到一点，先记一点。🐟</div><div><a href="#boundary">回到页首 ↑</a>　·　<a href="https://fishxddd.github.io/src/pages/journey.html">研究地图 ↗</a></div></footer>
 </div>
 </body>
 </html>
