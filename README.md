@@ -16,9 +16,15 @@ docs/
 │   └── index.html
 ├── journal/
 │   ├── index.html
-│   └── entries/
-│       └── entry-placeholder/
-│           └── index.html
+│   ├── assets/
+│   │   ├── site.css
+│   │   └── *.svg
+│   └── stage-01/
+│       ├── index.html
+│       ├── 01-geometry.html
+│       ├── 02-observation.html
+│       ├── 03-alternatives.html
+│       └── 04-takeaways.html
 └── research/
     ├── index.html
     └── stage-01/
@@ -44,7 +50,9 @@ docs/
         │   ├── appendix-a04/
         │   │   └── index.html
         │   └── images/
-        │       ├── q03-overview.png
+        │       ├── q03-method-map.png
+        │       ├── q03-observation-types.png
+        │       ├── q03-parallel-paths.png
         │       ├── a01-classical-vision.png
         │       ├── a02-reference-matching.png
         │       ├── a03-object-detection.png
