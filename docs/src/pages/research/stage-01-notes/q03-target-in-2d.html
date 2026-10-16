@@ -1,15 +1,231 @@
-<!DOCTYPE html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="沿途手记 · Stage 01 / Q03：从完整图像中找到目标。先弄清楚目标如何被指定、需要什么二维观测，再认识传统视觉、参考匹配、目标检测、实例分割与 Grounding。">
+<meta name="theme-color" content="#faf9f5">
+<title>Q03 · 从图像里找到目标｜沿途手记</title>
+<style>
+:root{--bg:#faf9f5;--paper:#fffefa;--ink:#35473b;--body:#55645a;--muted:#7b8c80;--faint:#98a69b;--line:#e2e9df;--line2:#edf1e9;--sage:#527b60;--sage-dark:#426951;--sage-light:#eef4ed;--ochre:#ab8861;--ochre-light:#fbf6ed;--blue:#65869a;--blue-light:#f2f6f8;--shadow:0 12px 35px rgba(49,73,54,.035)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.96;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}a{color:inherit;text-decoration:none}a:hover{color:var(--sage)}::selection{background:#dcebd9}strong{color:#3a6047;font-weight:730}p{margin:0 0 17px}p:last-child{margin-bottom:0}button{font:inherit}
+.site-header{height:70px;border-bottom:1px solid #e7ede4;background:rgba(250,249,245,.96)}.nav{max-width:1120px;height:100%;padding:0 30px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:25px}.brand{display:flex;align-items:center;gap:9px;font-weight:780;white-space:nowrap;color:#42664d;font-size:14px}.fish{width:29px;height:29px;border-radius:50%;background:#e5efe5;display:grid;place-items:center;color:#5a8467;font-size:16px}.navlinks{display:flex;gap:23px;flex-wrap:wrap;font-size:12px;color:#7a8d7d}.navlinks a:hover{text-decoration:underline;text-underline-offset:5px}.topline{height:2px;background:linear-gradient(90deg,#8fb19a,#d7e5d5);width:0;position:fixed;z-index:20;top:0;left:0;transition:width .08s linear}
+.wrapper{max-width:1120px;margin:auto;padding:0 30px 85px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:46px;align-items:center;padding:57px 0 45px;border-bottom:1px solid var(--line)}.eyebrow{display:flex;gap:10px;align-items:center;color:#6c9275;font-size:11px;font-weight:760;letter-spacing:.12em}.eyebrow:before{content:"";width:20px;height:1.5px;background:#8caf95}.hero h1{font-size:clamp(32px,3.7vw,46px);line-height:1.37;margin:21px 0 17px;font-weight:770;letter-spacing:-.045em}.hero h1 .dim{color:#63836c}.hero p{font-size:15px;line-height:2.0;color:#687c6b;max-width:660px}.meta{margin-top:26px;display:flex;gap:12px 20px;color:#92a294;flex-wrap:wrap;font-size:11px}.meta span:not(:last-child)::after{content:'·';margin-left:20px;color:#c2cfc1}.hero-figure{margin:0}.hero-figure svg{display:block;width:100%;height:auto;border-radius:13px;border:1px solid #e2eae1;background:#f3f7f2}.hero-figure figcaption{text-align:right;color:#8c9f90;font-size:11px;margin-top:10px}
+.summary{padding:19px 0 19px;display:flex;flex-wrap:wrap;gap:10px 13px;align-items:center;border-bottom:1px solid var(--line2)}.summary .prompt{color:#62866d;font-size:12px;font-weight:730;white-space:nowrap}.summary .path{font-size:12px;color:#66776a;line-height:1.8}.summary .arrow{color:#a7b9a6}.summary .hint{margin-left:auto;color:#9aab9c;font-size:11px;white-space:nowrap}
+.content-grid{display:grid;grid-template-columns:minmax(0,747px) 208px;gap:66px;align-items:start}.article{min-width:0}.toc{position:sticky;top:32px;align-self:start;padding-top:42px}.toc-inner{border-left:1px solid #dce6db;padding-left:19px}.toc-kicker{font-size:11px;color:#8da18f;font-weight:700;letter-spacing:.08em;margin-bottom:13px}.toc a{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:baseline;gap:8px;font-size:12px;color:#89978b;padding:9px 0;line-height:1.55}.toc a:hover,.toc a.active{color:#4e7d59}.toc a.active{font-weight:760}.toc a span:first-child{font-size:10px;color:#a7bba9;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.toc .aside-note{border-top:1px solid var(--line2);padding-top:17px;color:#9aaa9b;font-size:11px;line-height:1.9;margin-top:10px}
+.chapter{padding:48px 0 42px;border-bottom:1px solid var(--line2);scroll-margin-top:24px}.chapter:last-child{border-bottom:0}.chapter-header{display:grid;grid-template-columns:43px minmax(0,1fr);gap:9px;align-items:start;margin-bottom:20px}.number{font-size:13px;color:#87a28b;font-weight:750;padding-top:5px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.chapter-kicker{color:#91a396;font-size:11px;letter-spacing:.07em;font-weight:680;margin:0 0 4px}.chapter h2{font-size:clamp(20px,2.25vw,25px);letter-spacing:-.025em;line-height:1.48;font-weight:760;margin:0}.chapter-body{padding-left:52px}.chapter-body>p{color:var(--body);line-height:2.03}.chapter h3{font-size:16.5px;margin:29px 0 11px;line-height:1.7;font-weight:750;letter-spacing:-.015em}.chapter h4{font-size:14px;margin:20px 0 8px;font-weight:750}.chapter .small{font-size:12px;color:var(--muted);line-height:1.85}.lede{font-size:16px;color:#425a48!important;line-height:1.95!important}.question{margin:24px 0 24px;padding:13px 0 13px 19px;border-left:3px solid #aac7ad;font-size:17px;line-height:1.85;font-weight:730;letter-spacing:-.02em;color:#43674d;background:linear-gradient(90deg,rgba(237,245,235,.8),transparent 83%)}.plain-note{display:grid;grid-template-columns:74px minmax(0,1fr);gap:14px;border-top:1px solid #e2eae0;border-bottom:1px solid #e2eae0;margin:25px 0;padding:17px 0}.plain-note .key{font-size:11px;font-weight:770;letter-spacing:.04em;color:#7c9a82;padding-top:2px}.plain-note p{font-size:13.2px;color:#68806b;line-height:1.88;margin:0}.plain-note.warm .key{color:#b28b61}.plain-note.warm p{color:#846f5a}.topic-tags{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0 17px}.topic-tags span{font-size:11px;color:#69816f;border:1px solid #e0e8dc;border-radius:99px;background:#f8faf6;padding:3px 10px;line-height:1.6}.topic-tags .muted{color:#8b998f;background:none;border-color:#e6ece3}.subline{color:#7a947d;font-size:11px;font-weight:720;letter-spacing:.08em;display:block;margin-top:26px;margin-bottom:7px}.method{margin:24px 0 25px;border:1px solid #e5eae0;border-radius:11px;background:var(--paper);overflow:hidden}.method .top{padding:13px 18px;border-bottom:1px solid #edf0e9;display:flex;flex-wrap:wrap;gap:7px 12px;align-items:center}.method .top b{font-size:13px;color:#4d7157}.method .top small{font-size:11px;color:#a08a71}.method .text{padding:15px 18px;font-size:13px;line-height:1.9;color:#637365}.method .text p{margin:0 0 9px}.method .text p:last-child{margin:0}.method .foot{background:#fbfcf9;border-top:1px solid #edf0e9;padding:10px 18px;font-size:11px;color:#8b9b8c}
+.note-box{border:1px solid #e5eae1;background:#fffefa;border-radius:12px;margin:26px 0;padding:21px 23px;box-shadow:var(--shadow)}.note-box .label{color:#77947e;font-size:11px;font-weight:790;letter-spacing:.08em;margin-bottom:10px}.note-box h4{margin:0 0 11px;font-size:15px}.note-box p{font-size:13px;color:#657368;line-height:1.92}.note-box.soft{background:#f5f8f2;border-color:#e4ece1}.note-box.orange{background:#fcf9f2;border-color:#ece6d9}.note-box.orange .label{color:#ab8b66}
+.sketch{margin:26px 0 23px;border:1px solid #e3eae1;border-radius:12px;background:#fffefa;padding:17px 17px 13px;overflow:hidden}.sketch svg{width:100%;height:auto;display:block}.sketch figcaption{font-size:11px;color:#8c9a8e;line-height:1.7;margin:7px 2px 0}.columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:22px 0}.mini{border:1px solid #e2e9e0;border-radius:10px;padding:17px 18px;background:#fffefa}.mini .over{color:#91aa94;font-size:10px;font-weight:720;letter-spacing:.08em}.mini b{display:block;font-size:13px;margin:4px 0 6px;color:#44684e}.mini p{font-size:12px;color:#7c8b7d;line-height:1.8;margin:0}
+.table-wrap{margin:25px 0;overflow:auto;border:1px solid #e3eae1;border-radius:12px;background:#fffefa}.table-wrap table{width:100%;border-collapse:collapse;min-width:515px;font-size:12.5px;line-height:1.78}.table-wrap th{padding:13px 16px;background:#f5f8f3;color:#688271;text-align:left;font-weight:740;white-space:nowrap}.table-wrap td{padding:13px 16px;border-top:1px solid #ebefe8;color:#657468;vertical-align:top}.table-wrap td:first-child{color:#486e54;font-weight:740;min-width:110px}.table-wrap tr:hover td{background:#fdfefa}.caption{font-size:11px;line-height:1.8;color:#98a699;margin:-12px 0 24px}
+.mini-roadmap{margin:23px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.mini-roadmap .item{display:grid;grid-template-columns:126px minmax(0,1fr);gap:16px;padding:13px 0;border-bottom:1px solid var(--line2);font-size:12.5px}.mini-roadmap .item:last-child{border:0}.mini-roadmap .step{font-weight:760;color:#507957}.mini-roadmap .desc{color:#728275}.refbox{margin:27px 0 0;border:1px dashed #d9e4d8;border-radius:10px;padding:19px 21px}.refbox b{font-size:12px;color:#577a5f}.refbox p{font-size:12px;color:#8a998b;line-height:1.85;margin:6px 0 0}.footer{padding-top:38px;margin-top:18px;display:flex;justify-content:space-between;gap:18px;align-items:center;border-top:1px solid var(--line);color:#829285;font-size:12px}.footer .next{border:1px solid #dfe8dc;background:#fffefa;padding:10px 15px;border-radius:9px;color:#56745a}.footer .next:hover{background:#eef5ed}.footer .brand-end{font-weight:730;color:#739078}
+@media(max-width:1000px){.hero{grid-template-columns:minmax(0,1fr) 245px;gap:30px}.content-grid{grid-template-columns:minmax(0,1fr) 185px;gap:40px}}@media(max-width:800px){.hero{grid-template-columns:minmax(0,1fr) 220px;gap:22px}.toc{display:none}.content-grid{display:block}.chapter-body{padding-left:48px}.summary .hint{display:none}}@media(max-width:620px){.site-header{height:60px}.nav{padding:0 19px}.navlinks{gap:12px;font-size:11px}.navlinks .extra{display:none}.wrapper{padding:0 20px 65px}.hero{display:block;padding:40px 0 33px}.hero h1{font-size:34px;margin:17px 0 13px}.hero p{font-size:14px}.hero-figure{max-width:320px;margin:26px 0 0}.hero-figure figcaption{text-align:left}.summary{gap:7px 9px}.summary .prompt{width:100%}.summary .path{font-size:11.5px}.chapter{padding:39px 0 34px}.chapter-header{grid-template-columns:31px 1fr;gap:9px}.chapter h2{font-size:21px}.chapter-body{padding-left:0}.chapter-body>p{font-size:14px;line-height:1.95}.question{font-size:15.5px;padding-left:14px}.columns{grid-template-columns:1fr}.plain-note{grid-template-columns:1fr;gap:5px;padding:14px 0}.mini-roadmap .item{grid-template-columns:1fr;gap:4px}.note-box{padding:18px 17px}.method .top{padding:12px 14px}.method .text{padding:12px 14px}.footer{flex-direction:column;align-items:stretch}.footer .next{text-align:center}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.topline{transition:none}}@media print{body{background:#fff}.site-header,.toc,.topline,.summary,.footer{display:none!important}.wrapper{padding:0 20px;max-width:100%}.content-grid{display:block}.hero{padding:15px 0 20px}.chapter{break-inside:avoid;page-break-inside:avoid}}
 
-<html lang="zh-CN"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="Stage 01 问题03延伸笔记：相机究竟给了我哪些信息？" name="description"/><title>想法 03 · 我得先在图像里找到要抓的东西吧？｜沿途手记</title><style>
-:root{--bg:#f9f8f4;--card:#fffefa;--ink:#2b3c34;--muted:#64756b;--soft:#89968b;--line:#e4e9e0;--pine:#47715a;--tint:#edf3eb;--sand:#f7f2e9;--orange:#a78060;--shadow:0 10px 35px #293d2b05}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.85 -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.12;background-image:radial-gradient(#7e9c84 .55px,transparent .9px);background-size:19px 19px}
-a{color:var(--pine);text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:4px}a:focus-visible{outline:2px solid #739e79;outline-offset:3px}
-.wrap{max-width:1000px;margin:0 auto;padding:0 28px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:23px 0;border-bottom:1px solid var(--line);font-size:12px}.home{font-family:Georgia,"Songti SC",serif;font-size:18px;font-weight:650;color:var(--ink)}.back{color:#758477}.crumb{padding-top:34px;font-size:11px;letter-spacing:.065em;color:#8c9a8e}.hero{padding:14px 0 30px;border-bottom:1px solid var(--line)}.eyebrow{font-size:11px;color:#6c8b73;letter-spacing:.06em}.hero h1{font-size:clamp(30px,4.5vw,44px);letter-spacing:-.035em;font-weight:650;line-height:1.3;margin:11px 0 12px;font-family:Georgia,"Songti SC","Noto Serif CJK SC",serif}.lead{max-width:780px;font-size:15px;color:#526b5a;margin:0 0 18px;line-height:1.95}.meta{display:flex;gap:8px;flex-wrap:wrap}.tag{font-size:11px;color:#678070;background:#eff4ec;border:1px solid #dfe9db;border-radius:999px;padding:3px 11px}.tag.secondary{background:#f7f0e8;color:#91775e;border-color:#efe1d1}
-.content{display:grid;grid-template-columns: minmax(0,1fr) 184px;column-gap:48px}.main section{padding:30px 0;border-bottom:1px solid var(--line)}section h2{font-size:21px;margin:0 0 10px;letter-spacing:-.02em;font-weight:700}section h2 .index{display:inline-block;min-width:29px;color:#9eb4a1;font:italic 18px Georgia,serif;margin-right:5px}p{margin:0 0 13px}section .sub{font-size:13px;color:var(--muted);margin:0 0 19px}.aside{position:relative}.sticky{position:sticky;top:25px;padding-top:35px}.toc{border-left:1px solid #d9e5d8;padding-left:16px}.toc strong{display:block;font-size:11px;color:#9aaa9e;letter-spacing:.08em;margin-bottom:10px}.toc a{display:block;padding:4px 0;color:#7b897e;font-size:12px}.toc a:hover{color:#3c7051}.sidebar-note{font-size:12px;color:#879488;line-height:1.75;margin-top:16px}
-.callout{background:#f1f6ef;border:1px solid #dde9d9;border-radius:13px;padding:17px 20px;margin:18px 0}.callout.sand{background:#f9f4eb;border-color:#eee0d0}.callout p{font-size:13px;color:#526c57;margin:0}.callout b{color:#3c654d}.callout.sand p{color:#806a54}.callout.sand b{color:#8a6d50}
-.micro-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch;margin:19px 0}.micro{padding:18px;border:1px solid #dfe8dd;border-radius:13px;background:var(--card);min-width:0}.micro small{display:block;font-size:11px;color:#8b9e90;margin-bottom:6px}.micro b{font-size:14px;line-height:1.55;display:block}.micro p{font-size:12px;margin:5px 0 0;color:#758579;line-height:1.65}.micro:nth-child(2){background:#f5f8f2}.micro:nth-child(3){background:#f8f4eb;border-color:#eee3d4}
-.mini-label{font-size:11px;color:#a0795d;letter-spacing:.06em;margin:20px 0 8px}.matrix{width:100%;border-collapse:collapse;font-size:12.5px;margin:17px 0 20px;table-layout:fixed}.matrix th{background:#eef3ea;color:#466a51;text-align:left;font-weight:650;font-size:12px}.matrix th,.matrix td{padding:11px 12px;border-bottom:1px solid #e5eae1;vertical-align:top}.matrix tr:nth-child(even) td{background:#fbfcf9}.matrix td:first-child{font-weight:650;color:#3e654d;width:25%}.matrix .wider{width:30%}.chip{display:inline-block;font-size:11px;border-radius:5px;background:#f3efe7;color:#937657;padding:2px 7px;margin-right:5px}.entry{border-left:2px solid #bacfbd;padding:4px 0 4px 17px;margin:13px 0}.entry b{display:block;color:#3d644e;font-size:13px;margin-bottom:2px}.entry p{font-size:12.5px;color:#687a6d;margin:0}.axis-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.axis-card{border-radius:13px;border:1px solid var(--line);background:var(--card);padding:16px}.axis-card b{font-size:14px}.axis-card p{color:#718174;font-size:12.5px;margin:6px 0 0}.thinking{background:#fffefa;border:1px dashed #b9cdbb;border-radius:13px;padding:18px 20px;margin:18px 0}.thinking strong{color:#446d52;font-size:13px}.thinking p{margin:7px 0 0;font-size:13px;color:#607162}.formula{background:#f3f6ef;border-radius:10px;padding:16px 17px;font:13px/1.9 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-x:auto;white-space:pre;tab-size:2;color:#476652}.formula .f-note{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;font-size:11.5px;color:#819084;white-space:normal}.linklist{display:grid;gap:7px}.linklist a{font-size:12.5px;line-height:1.7}.linklist a:after{content:' ↗';font-size:11px;color:#a4b6a4}.sm{font-size:12px;color:#8a988d}.footer{padding:24px 0 62px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.footer a{border:1px solid var(--line);padding:8px 14px;border-radius:20px;background:var(--card);font-size:12px}.note-mini{padding:15px 18px;border:1px solid var(--line);border-radius:12px;background:var(--card);margin:10px 0}.note-mini b{font-size:13px;color:#3f6d50}.note-mini p{font-size:12.5px;color:var(--muted);margin:3px 0 0}
-@media(max-width:800px){.content{display:block}.aside{display:none}.wrap{padding:0 22px}.hero{padding-bottom:22px}}
-@media(max-width:560px){.wrap{padding:0 17px}.micro-map{grid-template-columns:1fr;gap:7px}.micro{padding:13px 15px}.axis-grid{grid-template-columns:1fr}.matrix{font-size:11.5px;table-layout:auto}.matrix th,.matrix td{padding:8px 7px}.hero h1{font-size:29px}.top{padding:17px 0}}
-</style></head><body><div class="wrap"><header class="top"><a class="home" href="../stage-01-grasp-pose-cards.html">✳ 沿途手记</a><a class="back" href="../stage-01-grasp-pose-cards.html#q03">← 回到 Stage 01 · 想法 03</a></header><div class="crumb">STAGE 01 / 往里看看 / 想法 03</div><div class="hero"><div class="eyebrow">从主线里拐进来，看看这件事内部还能怎么分</div><h1>我得先在图像里找到要抓的东西吧？</h1><p class="lead">到了真实场景才意识到：不能一直假设目标已经被单独取出来。相机看到的是地面、杂物和目标混在一起的画面。先从 2D 入手比较直观：检测告诉我大概在哪，Mask 能给出更细的范围，语义 Grounding 还能利用任务描述指定目标。</p><div class="meta"><span class="tag">视觉与空间线索</span><span class="tag secondary">暂留问题</span></div></div><div class="content"><main class="main"><section id="branches"><h2><span class="index">01</span> 这件事里面，至少有几条不同做法</h2><p class="sub">这里先把用途与边界区分清楚；具体原理和工程实现以后再逐项补。</p><div class="note-mini"><b>只需目标的大致区域 · BBOX / 2D 检测</b><p><strong>适合：</strong>当后续算法只要裁剪 ROI 或有自己的特征聚合方式时，不必为了形式上完整而强行分割。</p><p><strong>留意：</strong>重叠物体与大框背景会让目标信息混杂。</p></div><div class="note-mini"><b>需要边界更干净 · 实例分割 / Mask</b><p><strong>适合：</strong>在 RGB-D 中过滤非目标像素、准备目标点云时常常有帮助。</p><p><strong>留意：</strong>边缘误分和遮挡会改变实际选中的深度点。</p></div><div class="note-mini"><b>目标来自一句话 · Language Grounding</b><p><strong>适合：</strong>目标含有语义关系，例如“最左边那把椅子”时有价值。</p><p><strong>留意：</strong>语义定位与像素级精确边界是两种不同问题。</p></div></section><section id="open"><h2><span class="index">02</span> 这条线还可以继续追什么？</h2><div class="thinking"><strong>留给下次展开</strong><p>BBOX 与 Mask 到底分别够做什么？什么时候该用语义 Grounding，什么时候连 2D 检测都可以省略？</p><p>图像里找到了目标，但它还是像素位置。机器人要的是以米为单位的空间 Pose。</p></div><div class="callout"><p><b>先停在这里：</b>对 Stage 来说，最重要的是知道该在什么条件下选哪条路线；论文里程碑和实现细节再放入技术专题。</p></div></section></main><aside class="aside"><div class="sticky"><nav class="toc"><strong>这一页</strong><a href="#branches">几种不同做法</a><a href="#open">继续追问</a></nav><p class="sidebar-note">这是技术理解的整理；具体实现和实验记录，留在各自的笔记里。</p></div></aside></div><footer class="footer"><a href="../stage-01-grasp-pose-cards.html#q03">← 回主线</a><a href="../stage-01-grasp-pose-cards.html#q04">顺着问题继续走 →</a></footer></div></body></html>
+/* 研究附录入口：不打断正文阅读，留给独立的技术路线页面 */
+.route-link{margin:25px 0 3px;padding:12px 0 0;border-top:1px dashed #dce8dc;display:flex;align-items:center;gap:11px;flex-wrap:wrap;font-size:12px;line-height:1.75}
+.route-link .route-name{font-size:10px;letter-spacing:.08em;color:#9bae9c;font-weight:760;flex-shrink:0}
+.route-link a{color:#4e7959;font-weight:710;border-bottom:1px solid #c7d9c8;padding-bottom:1px;transition:color .15s,border-color .15s}
+.route-link a:hover{color:#305a3d;border-color:#6f9874}
+.route-link .route-hint{color:#9baa9d;font-size:11px}
+.appendix-hub{margin:54px 0 43px;padding:31px 0 0;border-top:1px solid #dbe6dc;scroll-margin-top:30px}
+.appendix-hub .appendix-head .label{font:760 10.5px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.13em;color:#86a18a;margin:0 0 10px}
+.appendix-hub h2{font-size:clamp(22px,2.4vw,27px);line-height:1.5;letter-spacing:-.035em;margin:0 0 11px;font-weight:760}
+.appendix-hub .appendix-intro{color:#6e806f;max-width:650px;font-size:13px;line-height:1.96;margin:0 0 22px}
+.appendix-tip{padding:13px 15px;border:1px solid #e3eae0;background:#f7f9f5;border-radius:8px;color:#7c8e7f;font-size:11.5px;line-height:1.9;margin:0 0 23px}
+.appendix-tip strong{font-size:11.5px;color:#587b5c}
+.appendix-list{display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid #e4ebe2}
+.appendix-item{scroll-margin-top:25px;padding:22px 2px 23px;display:grid;grid-template-columns:75px minmax(0,1fr);gap:14px;border-bottom:1px solid #e4ebe2}
+.appendix-index{padding-top:4px;font:700 11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;color:#8eaa91;letter-spacing:.04em}
+.appendix-body{min-width:0}.appendix-title{display:flex;gap:8px 12px;align-items:baseline;flex-wrap:wrap;margin-bottom:7px}.appendix-item h3{font-size:15px;line-height:1.5;color:#45674c;letter-spacing:-.01em;margin:0;font-weight:750}
+.appendix-state{font-size:10px;color:#9aa99b;border:1px solid #e2e9df;border-radius:50px;padding:1px 8px;line-height:1.6;white-space:nowrap}
+.appendix-question{color:#64776a;font-size:12.4px;line-height:1.82;margin:0 0 7px}
+.appendix-preview{color:#8a9b8b;font-size:11.5px;line-height:1.83;margin:0}
+.appendix-out{font-size:11px;color:#759478;margin-top:10px}
+.appendix-out a{color:#587f62;border-bottom:1px solid #cbdacb}
+.appendix-out a:hover{color:#375b43}
+.appendix-foot{color:#98a699;font-size:11px;line-height:1.9;margin-top:20px}
+@media(max-width:620px){.appendix-hub{margin-top:39px;padding-top:25px}.appendix-item{grid-template-columns:50px minmax(0,1fr);gap:9px;padding:20px 0}.appendix-item h3{font-size:14px}.route-link{gap:5px 9px}.route-link .route-hint{flex-basis:100%;margin-left:0}}
+</style>
+</head>
+<body>
+<div class="topline" id="progress"></div>
+<header class="site-header"><nav class="nav" aria-label="主导航">
+<a class="brand" href="https://fishxddd.github.io/"><span class="fish">✳</span>沿途手记</a>
+<div class="navlinks"><a href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">← Stage 01</a><a href="q02-known-reference.html">上一篇 · Q02</a><a class="extra" href="#ch08">留给后面的问题 ↓</a></div>
+</nav></header>
+<div class="wrapper">
+<header class="hero">
+<div><div class="eyebrow">STAGE 01 / Q03 · 2D TARGET LOCALIZATION</div>
+<h1>从图像里找到目标，<br><span class="dim">先弄清楚在找什么。</span></h1>
+<p>相机拍到整个场景，但后面的几何求解只需要其中一部分信息。先定义问题，再看看哪些视觉思路值得调查；具体的算法原理与发展，留给独立的技术路线。</p>
+<div class="meta"><span>2026.10 · 技术随手记</span><span>研究问题 / 方法线索 / 待验证</span><span>单视角 · RGB-D</span></div></div>
+<figure class="hero-figure">
+<svg viewBox="0 0 300 231" role="img" aria-label="场景图像中有几个目标和背景，选择目标后可用框、区域和关键点等不同方式表达">
+<defs><pattern id="grid" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M18 0H0V18" fill="none" stroke="#dfebe0" stroke-width=".6"/></pattern></defs><rect width="300" height="231" rx="12" fill="#f4f7f2"/><rect width="300" height="231" fill="url(#grid)" opacity=".65"/><rect x="23" y="25" width="254" height="176" rx="9" fill="#fffefa" stroke="#dbe6d9"/><path d="M25 157Q86 150 154 157T275 157" fill="none" stroke="#d4ddd4" stroke-width="1.3"/><path d="M61 104h27v57H61z" rx="5" fill="#cddfd0" stroke="#84a690" stroke-width="1.4"/><rect x="66" y="95" width="17" height="10" fill="#c7d8c7" stroke="#84a690" stroke-width="1"/><path d="M67 98V84H81V98" fill="#d7e3d3" stroke="#84a690" stroke-width="1"/><rect x="113" y="101" width="48" height="55" rx="6" fill="#efe6d4" stroke="#c7ad87" transform="rotate(10 137 128)"/><path d="M190 160l10-59q2-5 7-5h17q5 0 7 6l9 58Z" fill="#d0ded9" stroke="#96aea5" stroke-width="1.4"/><path d="M204 100v-12h21v12" fill="#d0ded9" stroke="#96aea5" stroke-width="1.2"/><rect x="181" y="79" width="69" height="86" rx="3" fill="none" stroke="#58866a" stroke-width="2.1"/><path d="M188 77l-15-15h-36" fill="none" stroke="#6a9679" stroke-width="1.2"/><text x="135" y="57" font-size="11" fill="#548361" font-weight="700">目标？</text><circle cx="200" cy="100" r="3.8" fill="#c28c5f" stroke="#fffefa" stroke-width="1.5"/><circle cx="231" cy="100" r="3.8" fill="#c28c5f" stroke="#fffefa" stroke-width="1.5"/><circle cx="239" cy="160" r="3.8" fill="#c28c5f" stroke="#fffefa" stroke-width="1.5"/><circle cx="190" cy="160" r="3.8" fill="#c28c5f" stroke="#fffefa" stroke-width="1.5"/><text x="35" y="186" fill="#94a497" font-size="9.5">scene / candidates / observations</text><text x="150" y="219" text-anchor="middle" fill="#7d9683" font-size="10.5">整幅场景 → 选中目标 → 提取所需观测</text></svg>
+<figcaption>草图 · 识别目标与表达目标，是两件事</figcaption>
+</figure>
+</header>
+<div class="summary"><span class="prompt">这一页想理清：</span><span class="path">目标由什么指定</span><span class="arrow">→</span><span class="path">有哪些定位思路</span><span class="arrow">→</span><span class="path">需要什么二维结果</span><span class="hint">不做算法排行榜</span></div>
+<div class="content-grid">
+<main class="article" id="main">
+<section class="chapter" id="ch00"><div class="chapter-header"><div class="number">00</div><div><div class="chapter-kicker">研究起点</div><h2>前面好像跳过了一个问题</h2></div></div><div class="chapter-body">
+<p>Q01 研究从点云里量出中心、轴线和表面等几何信息；Q02 讨论已知参考怎样和现场观测建立联系，进一步求解物体位姿。</p>
+<p>但回头看，这些方法常常已经拿到了「目标点云」「目标轮廓」或者「对应点」。现实中，相机只拍到一个完整场景，里面可能同时存在目标、背景和其他物体。</p>
+<div class="question">那些真正属于目标的信息，是怎样从图像里获得的？</div>
+<p>这次先研究二维目标定位。不预设必须使用检测、分割、模板匹配，也不限定最终一定走 PnP。先看看<strong>目标可以由什么条件指定，我们到底希望拿到什么</strong>，再去寻找合适的技术入口。</p>
+<div class="plain-note"><span class="key">暂定边界</span><p>单张图像、已知当前要找的目标或目标条件；重点研究二维定位与观测。视频跟踪、复杂语言推理和模型训练细节，暂不在本页展开。</p></div>
+</div></section>
+<section class="chapter" id="ch01"><div class="chapter-header"><div class="number">01</div><div><div class="chapter-kicker">先定义“找到”</div><h2>框住目标，和拿到有用的信息，不是一回事</h2></div></div><div class="chapter-body">
+<p>最先想到的往往是 BBOX。图像里框出一个物体，似乎就意味着已经找到了目标。</p>
+<p>但如果画面中有三个瓶子，输出三个 bottle 检测框，只表示找到了一些类别候选。当前任务要的是哪一个，仍需要判断。即使选中了正确实例，下一步真正需要的也未必是框。</p>
+<p>如果只是缩小搜索范围，BBOX 可能足够；如果需要提取目标点云，更关心像素区域；如果后续方法需要几何约束，则可能需要关键点、轮廓或对应关系。</p>
+<div class="question">先区分：找对哪个目标？找到以后，要带走什么信息？</div>
+<figure class="sketch"><svg viewBox="0 0 636 176" role="img" aria-label="BBOX、Mask、Keypoints 和 Correspondences 四种不同的二维观测表达">
+<g transform="translate(0 0)"><rect x="4" y="4" width="144" height="142" rx="9" fill="#f7faf5" stroke="#e2eae0"/><path d="M60 41h33l6 7v67H54V48Z" fill="#d0e1d3" stroke="#9bb39e"/><rect x="51" y="38" width="51" height="82" rx="2" stroke="#4d8661" fill="none" stroke-width="2"/><text x="76" y="136" text-anchor="middle" fill="#557966" font-size="12" font-weight="700">BBOX</text></g>
+<g transform="translate(160 0)"><rect x="4" y="4" width="144" height="142" rx="9" fill="#f7faf5" stroke="#e2eae0"/><path d="M60 41h33l6 7v67H54V48Z" fill="#b6d3bf" stroke="#5f9771" stroke-width="2"/><path d="M55 52l44 53" fill="none" stroke="#eef6ed" opacity=".8"/><text x="76" y="136" text-anchor="middle" fill="#557966" font-size="12" font-weight="700">Mask</text></g>
+<g transform="translate(320 0)"><rect x="4" y="4" width="144" height="142" rx="9" fill="#f7faf5" stroke="#e2eae0"/><path d="M60 41h33l6 7v67H54V48Z" fill="#dae7db" stroke="#9bb39e"/><g stroke="white" stroke-width="2" fill="#bf8759"><circle cx="54" cy="48" r="4.3"/><circle cx="99" cy="48" r="4.3"/><circle cx="99" cy="115" r="4.3"/><circle cx="54" cy="115" r="4.3"/></g><text x="76" y="136" text-anchor="middle" fill="#557966" font-size="12" font-weight="700">Keypoints</text></g>
+<g transform="translate(480 0)"><rect x="4" y="4" width="144" height="142" rx="9" fill="#f7faf5" stroke="#e2eae0"/><g fill="#cdded1" stroke="#8dad93"><rect x="19" y="35" width="41" height="59" rx="5"/><rect x="86" y="47" width="36" height="51" rx="5"/></g><g fill="#bc895e"><circle cx="24" cy="46" r="3"/><circle cx="50" cy="56" r="3"/><circle cx="42" cy="80" r="3"/><circle cx="91" cy="60" r="3"/><circle cx="114" cy="69" r="3"/><circle cx="106" cy="88" r="3"/></g><g stroke="#89a992" stroke-width="1.2" stroke-dasharray="3 3"><path d="M24 46L91 60M50 56L114 69M42 80L106 88"/></g><text x="76" y="136" text-anchor="middle" fill="#557966" font-size="12" font-weight="700">Correspondences</text></g>
+<text x="318" y="164" text-anchor="middle" fill="#8d9d8e" font-size="10.5">示意图：它们提供不同信息，不是从低级到高级的固定次序</text></svg><figcaption>BBOX 限定区域；Mask 描述实例像素；关键点提供局部位置；对应关系连接不同观测。</figcaption></figure>
+<p>这里还要留一个概念：普通角点、局部特征点和具有特定物体身份的关键点，不一定是同一种东西。检测到一个清晰角点，不代表知道它对应物体上的哪个三维位置。</p>
+<p>所以暂时不评价哪种输出“最好”。<strong>二维输出应由实际需要的信息决定</strong>，而不是一开始就把所有目标送进同一条检测加分割流水线。</p>
+</div></section>
+<section class="chapter" id="ch02"><div class="chapter-header"><div class="number">02</div><div><div class="chapter-kicker">第一种直觉</div><h2>有现成的视觉规律，为什么不先用？</h2></div></div><div class="chapter-body">
+<p>如果目标只出现在固定工位，直接给出 ROI 就能限制搜索范围。如果颜色容易区分，可以使用 HSV 阈值和连通域。如果物体形状规则，可以提取轮廓，进一步拟合直线、圆弧或旋转矩形。</p>
+<p>这些并不复杂，却能够直接给出目标区域、中心或某些几何位置。对于约束明确的场景，这样做完全合理。</p>
+<div class="columns"><div class="mini"><span class="over">已知位置</span><b>ROI / 固定搜索范围</b><p>利用工位和相机安装关系；缩小搜索范围，不等于已经识别物体。</p></div><div class="mini"><span class="over">已知外观规律</span><b>颜色 / 轮廓 / 形状</b><p>阈值、连通域、Contour、几何拟合，直接把视觉条件变成区域约束。</p></div></div>
+<p>研究角点时还会遇到 Harris 这样的经典方法。它能发现局部灰度变化明显的位置，但它回答的是「哪里像角点」，不是「哪个角点属于任务目标」。</p>
+<div class="question">发现视觉特征，不等于识别了目标。</div>
+<p>颜色相同的两个物体可能被一起选中；图像上的文字也会产生大量角点；外形相似的背景结构可能被误判为目标。因此，位置、外观和几何信息有时需要组合。</p>
+<p>这里先不急着否定传统视觉。更值得记录的是它的使用前提：<strong>目标的哪些规律足够稳定，能够被明确描述？</strong></p>
+<div class="plain-note warm"><span class="key">继续追问</span><p>如果目标外观变化很大，或者场景中的背景不断变化，人工规则还有多大维护空间？不同目标是否需要换一整套规则？</p></div>
+<div class="route-link"><span class="route-name">研究附录 A01</span><a href="#appendix-a01" aria-label="查看附录 A01：传统视觉与几何定位">传统视觉与几何定位 ↗</a><span class="route-hint">技术里程碑与方法分支 · 预留入口</span></div></div></section>
+<section class="chapter" id="ch03"><div class="chapter-header"><div class="number">03</div><div><div class="chapter-kicker">换一种已知条件</div><h2>有参考图像，能不能认出“就是这个”？</h2></div></div><div class="chapter-body">
+<p>不一定能写出明确的颜色或几何规则，但如果手里已经有目标的一张照片，是否可以直接用它去现场寻找相同物体？</p>
+<p>最直接的入口是 Template Matching：在当前图像中搜索与参考区域相似的局部图像。</p>
+<p>问题也很明显：现场物体可能旋转、缩放，观察角度和遮挡情况也可能不同。整块区域看起来不再相同，却仍然是同一个目标。</p>
+<div class="question">如果整块图像不好比，能不能只匹配其中稳定的局部结构？</div>
+<div class="method"><div class="top"><b>一个重要的研究入口 · SIFT</b><small>局部特征与跨图像匹配</small></div><div class="text"><p>SIFT 不只是寻找关键点，还描述关键点附近的局部图像结构，使两张图中的候选位置可以相互比较。</p><p>它提示了几个原本容易混在一起的任务：<strong>在哪里找特征、怎样描述特征、怎样建立对应，以及怎样验证对应。</strong></p></div><div class="foot">可继续认识 ORB（高效经典特征）、SuperPoint（学习式特征）、SuperGlue（学习式匹配）、LoFTR（另一种对应建立思路）。</div></div>
+<p>例如描述子相似的两个点，不一定真的对应同一处结构。重复纹理和背景干扰都可能造成错误匹配。几何验证因此很重要；RANSAC 可以作为鲁棒估计工具，但具体采用什么几何模型，需要先确认场景条件。</p>
+<p>这条方向让我看到，参考图像不仅能用于定位，还可能带来<strong>跨图像的局部对应</strong>。只是这些对应点是否具有已知三维坐标、能不能用于后续 Pose 求解，还需要另外判断。</p>
+<div class="plain-note"><span class="key">暂留问题</span><p>低纹理、重复纹理、严重遮挡、视角差异很大时，匹配有多可靠？经典特征与学习式匹配分别需要什么条件？这些放到独立的「图像特征匹配」Route 再深入。</p></div>
+<div class="route-link"><span class="route-name">研究附录 A02</span><a href="#appendix-a02" aria-label="查看附录 A02：参考图像与局部对应">参考图像与局部对应 ↗</a><span class="route-hint">技术里程碑与方法分支 · 预留入口</span></div></div></section>
+<section class="chapter" id="ch04"><div class="chapter-header"><div class="number">04</div><div><div class="chapter-kicker">另一条入口</div><h2>没有参考照片，只有目标类别呢？</h2></div></div><div class="chapter-body">
+<p>很多时候并没有某个实例的参考外观，只知道想找的是瓶子、纸盒或者椅子。它们的品牌、纹理、颜色都可能不同。</p>
+<p>这里不再是在另一张图中寻找相同外观，而是在不同外观中识别相同类别。单纯列举手工规则可能越来越繁琐，学习式目标检测就成了值得调查的方向。</p>
+<div class="question">能否从样本中学会“这一类物体通常是什么样”，再直接给出它们的位置？</div>
+<p>R-CNN、Faster R-CNN、YOLO、DETR 是很有代表性的技术入口。它们采用不同的检测组织方式：候选区域与识别、直接预测，以及基于 Transformer 的集合预测等。</p>
+<p>这里不急着展开每一代模型的发展。对当前研究而言，最重要的是理解它们提供的能力：<strong>不必为每个实例准备参考图像，就有机会在新画面中找到某一已知类别的目标。</strong></p>
+<figure class="sketch"><svg viewBox="0 0 616 134" role="img" aria-label="参考图像匹配与类别检测两条不同的输入路线">
+<rect x="2" y="9" width="286" height="114" rx="10" fill="#f7faf5" stroke="#e5ece2"/><text x="18" y="32" font-size="12" font-weight="700" fill="#50765b">参考图像匹配</text><text x="18" y="56" font-size="11" fill="#7e9281">“这里有它的照片，去找同一个”</text><path d="M20 78H265" stroke="#cfddcf" stroke-width="1.4" stroke-dasharray="4 5"/><text x="18" y="103" font-size="10.8" fill="#688575">参考外观 → 匹配 → 对应 / 位置</text>
+<rect x="328" y="9" width="286" height="114" rx="10" fill="#f7faf5" stroke="#e5ece2"/><text x="344" y="32" font-size="12" font-weight="700" fill="#50765b">类别检测</text><text x="344" y="56" font-size="11" fill="#7e9281">“我想找瓶子，不限定是哪一个”</text><path d="M346 78H590" stroke="#cfddcf" stroke-width="1.4" stroke-dasharray="4 5"/><text x="344" y="103" font-size="10.8" fill="#688575">类别样本 → 检测 → 候选 BBOX</text></svg><figcaption>两条路线利用的已知信息不同，不能简单当作新旧替代。</figcaption></figure>
+<p>但找到类别不代表选中了任务指定的实例。同类别物体出现多个时，还需要考虑位置、属性或实例间关系。简单条件可以直接在检测结果上筛选，不必把每次筛选都变成大型语义推理任务。</p>
+<div class="plain-note warm"><span class="key">暂留问题</span><p>预定义类别覆盖不到的新物体怎么办？不同外观、遮挡与尺度变化对检测质量的影响有多大？模型工程成本应当怎样与任务规模匹配？</p></div>
+<div class="route-link"><span class="route-name">研究附录 A03</span><a href="#appendix-a03" aria-label="查看附录 A03：学习式目标检测">学习式目标检测 ↗</a><span class="route-hint">技术里程碑与方法分支 · 预留入口</span></div></div></section>
+<section class="chapter" id="ch05"><div class="chapter-header"><div class="number">05</div><div><div class="chapter-kicker">从框到区域</div><h2>已经知道在哪里，为什么还要研究 Mask？</h2></div></div><div class="chapter-body">
+<p>目标检测通常能给出一个 BBOX，但框里往往同时包含目标和背景。对于 RGB-D，相当一部分框内深度点可能属于地面、桌面或者其他物体。</p>
+<p>也许可以通过深度范围、平面约束进一步筛选；另一种思路，则是让二维视觉先给出哪些像素属于目标实例。</p>
+<div class="question">能不能在目标的大致位置之外，获得它更准确的像素区域？</div>
+<p>Mask R-CNN 是实例分割的代表方法之一：模型可以区分不同实例，并输出各自的像素区域。这里应该分清实例分割和语义分割——同一类别的三个物体，未必能靠一张类别区域图直接分开。</p>
+<p>但如果前面已经获得一个可靠 BBOX，是否必须再针对每类目标训练实例分割模型？</p>
+<div class="method"><div class="top"><b>另一个重要入口 · SAM</b><small>提示式分割</small></div><div class="text"><p>SAM 可以根据 Point、BBOX 等提示预测对应区域。这样就有了一种可组合的方式：先找到目标，再依据提示细化其像素范围。</p><p>后续 SAM 2、SAM 3 扩展了研究能力，但本阶段只需要理解：<strong>“指定目标”和“分出区域”可以由不同模块完成。</strong></p></div><div class="foot">不预设必须使用 YOLO + SAM；直接实例分割、几何筛选或者其他可靠方法都可能满足需求。</div></div>
+<figure class="sketch"><svg viewBox="0 0 604 151" role="img" aria-label="BBOX 包含背景、Mask 区分目标，但深度仍可能有无效点">
+<g transform="translate(9 4)"><rect width="174" height="117" rx="9" fill="#f5f8f3" stroke="#dce7dd"/><path d="M0 88H174" stroke="#c7d5c9" stroke-width="1.5"/><path d="M76 38h23l3 11v41H73V49Z" fill="#b9d3c0" stroke="#88aa91" stroke-width="1.5"/><rect x="68" y="29" width="41" height="67" fill="none" stroke="#c78c60" stroke-width="2"/><text x="87" y="136" fill="#798f7d" text-anchor="middle" font-size="11">BBOX 含背景</text></g>
+<path d="M198 60h22" stroke="#9ab39d" stroke-width="1.8"/><path d="M216 56l5 4-5 4" fill="none" stroke="#9ab39d" stroke-width="1.8"/>
+<g transform="translate(228 4)"><rect width="174" height="117" rx="9" fill="#f5f8f3" stroke="#dce7dd"/><path d="M0 88H174" stroke="#c7d5c9" stroke-width="1.5"/><path d="M76 38h23l3 11v41H73V49Z" fill="#92bea0" stroke="#629878" stroke-width="1.5"/><text x="87" y="136" fill="#798f7d" text-anchor="middle" font-size="11">Mask 提取区域</text></g>
+<path d="M416 60h22" stroke="#9ab39d" stroke-width="1.8"/><path d="M434 56l5 4-5 4" fill="none" stroke="#9ab39d" stroke-width="1.8"/>
+<g transform="translate(447 4)"><rect width="148" height="117" rx="9" fill="#f5f8f3" stroke="#dce7dd"/><g fill="#8fae9a"><circle cx="65" cy="45" r="3"/><circle cx="77" cy="43" r="3"/><circle cx="87" cy="47" r="3"/><circle cx="69" cy="58" r="3"/><circle cx="90" cy="60" r="3"/><circle cx="70" cy="72" r="3"/><circle cx="88" cy="77" r="3"/><circle cx="64" cy="84" r="3"/></g><g fill="none" stroke="#c88b60" stroke-width="1.7"><circle cx="79" cy="56" r="4"/><circle cx="78" cy="73" r="4"/></g><text x="74" y="136" fill="#798f7d" text-anchor="middle" font-size="11">Depth 仍需验证</text></g></svg><figcaption>二维区域正确，并不意味着有效深度完整；反光、透明或贴地目标尤其要注意。</figcaption></figure>
+<p>我更在意的不是 Mask 看起来多漂亮，而是它是否真的减少背景混入、保留有用边缘，并能在深度图中得到足够可靠的目标点。</p>
+<div class="route-link"><span class="route-name">研究附录 A04</span><a href="#appendix-a04" aria-label="查看附录 A04：实例与提示式分割">实例与提示式分割 ↗</a><span class="route-hint">技术里程碑与方法分支 · 预留入口</span></div></div></section>
+<section class="chapter" id="ch06"><div class="chapter-header"><div class="number">06</div><div><div class="chapter-kicker">再放宽一点条件</div><h2>如果目标是用一句话指定的呢？</h2></div></div><div class="chapter-body">
+<p>固定类别检测已经很有用，但真实任务的描述不一定对应一个明确的类别编号，例如「地上的广告纸」「蓝色的零食包装袋」「最左边的瓶子」。</p>
+<p>有些描述可以拆开处理：先找出候选，再按图像位置、颜色等简单规则选择。可如果目标类别本身不固定，就需要继续研究更开放的目标指定方式。</p>
+<div class="question">文字能不能直接参与图像里的目标定位？</div>
+<p>GLIP、OWL-ViT、Grounding DINO 是开放词汇目标检测与 Grounding 的重要技术入口。它们提示了一种新的输入方式：不只依赖预先规定的类别 ID，还可以根据文本条件寻找相关图像区域。</p>
+<p>不过「能根据词语找到物体」和「能理解复杂任务关系并选对实例」依然需要区分。对于后一种能力，才有必要进一步探索 VLM 的空间理解。</p>
+<div class="plain-note"><span class="key">先停在这</span><p>Rex-Omni、LocateAnything、GroundingPI 等空间定位研究值得后续单独追踪，但 Q03 暂时只关心它们可以提供什么二维观测，不展开坐标 Token、训练方案或推理架构。</p></div>
+<div class="route-link"><span class="route-name">研究附录 A05</span><a href="#appendix-a05" aria-label="查看附录 A05：开放词汇定位与 Grounding">开放词汇定位与 Grounding ↗</a><span class="route-hint">技术里程碑与方法分支 · 预留入口</span></div></div></section>
+<section class="chapter" id="ch07"><div class="chapter-header"><div class="number">07</div><div><div class="chapter-kicker">回看整个问题</div><h2>这些路线好像不该排成一条升级链</h2></div></div><div class="chapter-body">
+<p>研究到这里，一开始的「目标定位」已经分出了不同的入口。差别不只在算法性能，首先在于<strong>我们究竟掌握了什么条件</strong>。</p>
+<div class="table-wrap"><table><thead><tr><th>已知条件</th><th>值得研究的思路</th><th>主要还要想什么</th></tr></thead><tbody>
+<tr><td>位置 / 颜色 / 几何规律</td><td>ROI、阈值、轮廓与几何定位</td><td>这些规律在现场能否保持稳定？</td></tr>
+<tr><td>目标的参考外观</td><td>模板与局部特征匹配</td><td>视角、纹理和遮挡会怎样影响对应？</td></tr>
+<tr><td>目标类别</td><td>监督式目标检测</td><td>类别覆盖与陌生实例的泛化如何？</td></tr>
+<tr><td>目标已定位，需像素区域</td><td>实例分割 / 提示式分割</td><td>Mask 是否实际改善后续几何？</td></tr>
+<tr><td>文字描述</td><td>开放词汇检测 / Grounding</td><td>如何从多个候选中找到指定实例？</td></tr>
+</tbody></table></div>
+<p>这些方法能够组合。例如检测给出 ROI，局部再进行轮廓拟合；或者 Grounding 找到候选区域，提示式分割再提供 Mask。但这不是必须执行的完整流水线。</p>
+<p>SIFT 不是 YOLO 的上一代，SAM 也不是更高级的 YOLO。它们解决的问题不同，不能因为都出现在二维视觉里，就排成连续的历史进化关系。</p>
+<div class="note-box soft"><div class="label">暂时整理出的认识</div><p><strong>先问“已知什么”和“需要什么”，再问“用什么”。</strong> 条件足够简单就利用约束；有参考就调查匹配；有类别就考虑检测；需要像素区域再研究分割；文字指定目标时再研究 Grounding。</p></div>
+</div></section>
+<section class="chapter" id="ch08"><div class="chapter-header"><div class="number">08</div><div><div class="chapter-kicker">留下几个问题</div><h2>现在还不急着给出最佳方案</h2></div></div><div class="chapter-body">
+<p>这次先把技术方向辨认出来，还不足以确定哪一条路线在所有场景中最合适。有几个问题需要留到真正的选型和实验阶段。</p>
+<div class="mini-roadmap"><div class="item"><div class="step">目标身份</div><div class="desc">检测到了正确类别，但选错具体实例，后续几何再准确也没有意义。</div></div><div class="item"><div class="step">二维几何质量</div><div class="desc">BBOX、Mask、Keypoints 和对应关系的误差不同，不能只靠一个指标比较。</div></div><div class="item"><div class="step">后续求解条件</div><div class="desc">局部对应未必具有三维身份；Mask 准确也未必有可靠深度。</div></div><div class="item"><div class="step">任务与成本</div><div class="desc">简单规则、经典特征与学习模型的实际价值，需要结合场景变化、延迟和部署约束再判断。</div></div></div>
+<p>这些疑问暂时不需要强行给结论。以后具体调查某条路线时，可以把它们变成实验问题和验收条件。</p>
+</div></section>
+<section class="chapter" id="ch09"><div class="chapter-header"><div class="number">09</div><div><div class="chapter-kicker">收个尾 / 留个入口</div><h2>先把二维定位的问题定义清楚</h2></div></div><div class="chapter-body">
+<p>这次并没有找到一个能够适用于所有物体的最佳检测算法。反而先弄清楚了：二维定位不只是“跑一个检测模型”，而是根据已有的信息，选中正确目标并得到后续需要的视觉观测。</p>
+<p>位置和形状规律可以成为直接约束；参考外观可以进入模板与特征匹配；类别可以引出学习式检测；像素区域可以通过实例或提示式分割获得；语言描述则带来了开放词汇定位的可能。</p>
+<p>它们是不同的研究入口，不需要在 Stage 01 里把每条路线的历史、论文、实现细节一次写完。具体算法的发展与取舍，适合放到各自的 Route 页面里。</p>
+<div class="refbox"><b>与前后研究的关系</b><p>Q01 需要可靠的目标点云；Q02 可能需要目标区域、轮廓、特征点或对应关系；Q03 讨论怎样从二维图像中取得它们。下一步 Q04，再研究像素、深度和相机内参怎样把这些观测连接到三维空间。</p></div>
+<p style="margin-top:24px"><strong>这一页先记到这里。</strong> 以后遇到新的目标定位需求，再回来补充新的约束与疑问，而不是为了凑满算法名单继续往下写。</p>
+</div></section>
+<section class="appendix-hub" id="appendix-hub" aria-labelledby="appendix-title">
+<header class="appendix-head"><div class="label">APPENDIX / ROUTE INDEX</div><h2 id="appendix-title">这些有趣的技术发展，留到附录里慢慢看。</h2>
+<p class="appendix-intro">Q03 先把问题和入口认识清楚。至于经典方法如何出现、后来的研究改变了什么、哪些路线今天仍然值得用，都可以单独展开。这里先留下五个附录位置，不在正文中插入完整技术年表。</p></header>
+<div class="appendix-tip"><strong>这里是接口，不是五篇已经完成的综述。</strong> 目前可从各章节跳到对应的研究提纲；之后完成独立页面时，只需把章节里的链接替换为对应的 HTML 文件。未创建的附录不会产生失效跳转。</div>
+<div class="appendix-list">
+<!-- FUTURE APPENDIX FILE: q03-appendix-a01-classical-vision.html; 将各章节 route-link 的 href 改为相应文件路径后即可启用独立页面 -->
+<article class="appendix-item" id="appendix-a01" data-future-page="q03-appendix-a01-classical-vision.html">
+  <div class="appendix-index">A01</div>
+  <div class="appendix-body"><div class="appendix-title"><h3>传统视觉与几何定位</h3><span class="appendix-state">待展开</span></div>
+  <p class="appendix-question">哪些规律能够直接用来定位？</p>
+  <p class="appendix-preview">后续整理：ROI、阈值与连通域、轮廓和形状、角点与几何测量。</p>
+  <div class="appendix-out"><a href="#ch02">↖ 回到对应的研究问题</a></div></div>
+</article>
+<!-- FUTURE APPENDIX FILE: q03-appendix-a02-image-matching.html; 将各章节 route-link 的 href 改为相应文件路径后即可启用独立页面 -->
+<article class="appendix-item" id="appendix-a02" data-future-page="q03-appendix-a02-image-matching.html">
+  <div class="appendix-index">A02</div>
+  <div class="appendix-body"><div class="appendix-title"><h3>参考图像与局部对应</h3><span class="appendix-state">待展开</span></div>
+  <p class="appendix-question">外观改变后，怎样仍然认出同一目标？</p>
+  <p class="appendix-preview">后续整理：模板匹配、SIFT / ORB、学习式特征与匹配、几何验证。</p>
+  <div class="appendix-out"><a href="#ch03">↖ 回到对应的研究问题</a></div></div>
+</article>
+<!-- FUTURE APPENDIX FILE: q03-appendix-a03-object-detection.html; 将各章节 route-link 的 href 改为相应文件路径后即可启用独立页面 -->
+<article class="appendix-item" id="appendix-a03" data-future-page="q03-appendix-a03-object-detection.html">
+  <div class="appendix-index">A03</div>
+  <div class="appendix-body"><div class="appendix-title"><h3>学习式目标检测</h3><span class="appendix-state">待展开</span></div>
+  <p class="appendix-question">没有具体参考外观，怎样学会定位某一类别？</p>
+  <p class="appendix-preview">后续整理：R-CNN / Faster R-CNN、YOLO、DETR；不同检测范式。</p>
+  <div class="appendix-out"><a href="#ch04">↖ 回到对应的研究问题</a></div></div>
+</article>
+<!-- FUTURE APPENDIX FILE: q03-appendix-a04-segmentation.html; 将各章节 route-link 的 href 改为相应文件路径后即可启用独立页面 -->
+<article class="appendix-item" id="appendix-a04" data-future-page="q03-appendix-a04-segmentation.html">
+  <div class="appendix-index">A04</div>
+  <div class="appendix-body"><div class="appendix-title"><h3>实例与提示式分割</h3><span class="appendix-state">待展开</span></div>
+  <p class="appendix-question">有了候选位置，怎样进一步得到目标像素区域？</p>
+  <p class="appendix-preview">后续整理：实例分割、Mask R-CNN、SAM 系列；提示与实例边界。</p>
+  <div class="appendix-out"><a href="#ch05">↖ 回到对应的研究问题</a></div></div>
+</article>
+<!-- FUTURE APPENDIX FILE: q03-appendix-a05-grounding.html; 将各章节 route-link 的 href 改为相应文件路径后即可启用独立页面 -->
+<article class="appendix-item" id="appendix-a05" data-future-page="q03-appendix-a05-grounding.html">
+  <div class="appendix-index">A05</div>
+  <div class="appendix-body"><div class="appendix-title"><h3>开放词汇定位与 Grounding</h3><span class="appendix-state">待展开</span></div>
+  <p class="appendix-question">类别不固定时，语言怎样参与目标定位？</p>
+  <p class="appendix-preview">后续整理：GLIP、OWL-ViT、Grounding DINO；VLM Grounding 留作后续专题。</p>
+  <div class="appendix-out"><a href="#ch06">↖ 回到对应的研究问题</a></div></div>
+</article>
+</div><p class="appendix-foot">附录更适合按「当时遇到什么难题 → 代表性思路出现 → 解决了什么 → 仍有哪些边界」来写，不必把年代相邻的论文强行串成师承关系。</p>
+</section>
+</main>
+<aside class="toc" aria-label="本页目录"><div class="toc-inner"><div class="toc-kicker">本页目录 · Q03</div>
+<a href="#ch00"><span>00</span><span>为什么研究二维定位</span></a><a href="#ch01"><span>01</span><span>找到什么才算找到</span></a><a href="#ch02"><span>02</span><span>现成的视觉规律</span></a><a href="#ch03"><span>03</span><span>参考外观与匹配</span></a><a href="#ch04"><span>04</span><span>已知类别的检测</span></a><a href="#ch05"><span>05</span><span>像素区域与分割</span></a><a href="#ch06"><span>06</span><span>文字指定目标</span></a><a href="#ch07"><span>07</span><span>几条并行的思路</span></a><a href="#ch08"><span>08</span><span>还有哪些疑问</span></a><a href="#ch09"><span>09</span><span>暂时的认识</span></a>
+<a href="#appendix-hub"><span>↗</span><span>技术附录 · 五条路线</span></a>
+<div class="aside-note">这是一份研究入口笔记。<br>原理、年表与实验，留给各自的 Route。</div></div></aside>
+</div>
+<footer class="footer"><div><div class="brand-end">✳ 沿途手记</div>把问题记下来，慢慢往前走。</div><a class="next" href="https://fishxddd.github.io/src/pages/research/stage-01-grasp-pose-cards.html">返回 Stage 01 · 研究总览 ↗</a></footer>
+</div>
+<script>
+(function(){'use strict';const bar=document.getElementById('progress');const anchors=[...document.querySelectorAll('.toc a[href^="#"]')];const sections=anchors.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);let ticking=false;function refresh(){const doc=document.documentElement,scrollable=doc.scrollHeight-doc.clientHeight;bar.style.width=(scrollable>0?Math.min(100,Math.max(0,doc.scrollTop/scrollable*100)):0)+'%';let current=sections[0];for(const s of sections){if(s.getBoundingClientRect().top<190)current=s;else break;}for(const a of anchors){const active=a.getAttribute('href')==='#'+current.id;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');}ticking=false;}function onScroll(){if(!ticking){requestAnimationFrame(refresh);ticking=true;}}window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll);refresh();})();
+</script>
+</body>
+</html>
