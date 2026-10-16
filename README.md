@@ -37,8 +37,15 @@ docs/
         │   │   └── index.html
         │   ├── appendix-a03/
         │   │   └── index.html
-        │   └── appendix-a04/
-        │       └── index.html
+        │   ├── appendix-a04/
+        │   │   └── index.html
+        │   └── images/
+        │       ├── q03-overview.png
+        │       ├── a01-classical-vision.png
+        │       ├── a02-reference-matching.png
+        │       ├── a03-object-detection.png
+        │       ├── a04-instance-segmentation.png
+        │       └── a05-open-vocabulary-grounding.png
         ├── q04-from-2d-to-3d/
         │   └── index.html
         ├── q05-learning-spatial-clues/
