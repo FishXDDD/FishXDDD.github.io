@@ -308,7 +308,7 @@
           <p>相机看到的是整个场景，而不只是那个准备抓取的物体。于是开始整理检测、实例分割、Grounding 等定位方式：有的告诉我大致位置，有的提供更精细的区域，有的能根据语义描述锁定目标。</p>
           <p>这时反而不必追求所有场景都输出同一种东西。只需要 BBox 的方法，不一定要为它额外准备完美 Mask；依赖对应点的方法，也未必需要先裁出完整点云。</p>
           <div class="turning-point"><div class="tp-label">这一步留下的认识</div><p>目标定位是在提供可用观测，而不是规定所有 Pose 算法必须执行的第一个模块。</p></div>
-          <div class="chapter-actions"><a class="read-more" href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/" target="_blank" rel="noopener">继续翻笔记 · Q03 从图像里找到目标 ↗</a><span class="extra">BBox / Mask / Keypoints / Grounding</span></div>
+          <div class="chapter-actions"><a class="read-more" href="q03-target-in-2d/">继续翻笔记 · Q03 从图像里找到目标 ↗</a><span class="extra">BBox / Mask / Keypoints / Grounding</span></div>
         </section>
 
         <section class="chapter" id="q04" aria-labelledby="q04-title">
@@ -319,7 +319,7 @@
           <!-- FIG 03 预留：2D 像素、深度和 3D 坐标关系。 -->
           <figure class="figure" id="figure-03"><div class="figure-slot"><div class="placeholder-panel" data-figure="F03" data-suggested-file="assets/stage-01/f03-backprojection.webp"><div class="ph-icon" aria-hidden="true">▧</div><div class="ph-id">FIG 03 · IMAGE TO 3D</div><div class="ph-title">像素、深度与三维空间 · 预留</div><div class="ph-description">左边 RGB 图像中的目标像素，右边深度射线及相机坐标系中的三维点。说明 2D→3D 的联系，但不把单点误画成完整 Pose。</div><div class="ph-resolution">建议 16:9 · 1600 × 900</div></div></div><figcaption>建议图注｜深度补上了尺度与位置，姿态依旧需要更多几何或任务约束。</figcaption></figure>
           <div class="turning-point"><div class="tp-label">这一步留下的认识</div><p>观测链终于接上了；但 2D→3D 是建立空间信息的办法，不等于已经解完抓手姿态。</p></div>
-          <div class="chapter-actions"><a class="read-more" href="https://fishxddd.github.io/research/stage-01/q04-from-2d-to-3d/" target="_blank" rel="noopener">继续翻笔记 · Q04 从 2D 走向 3D ↗</a><span class="extra">K / Depth / Back-projection</span></div>
+          <div class="chapter-actions"><a class="read-more" href="q04-from-2d-to-3d/">继续翻笔记 · Q04 从 2D 走向 3D ↗</a><span class="extra">K / Depth / Back-projection</span></div>
         </section>
 
         <section class="chapter" id="q05" aria-labelledby="q05-title">
@@ -331,7 +331,7 @@
           <!-- FIG 04 预留：人工几何特征与学习式空间线索比较。 -->
           <figure class="figure" id="figure-04"><div class="figure-slot"><div class="placeholder-panel" data-figure="F04" data-suggested-file="assets/stage-01/f04-learned-spatial-clues.webp"><div class="ph-icon" aria-hidden="true">▧</div><div class="ph-id">FIG 04 · SPATIAL CLUES</div><div class="ph-title">手工几何约束 / 学习式空间线索 · 预留</div><div class="ph-description">左右并排：人工提取中心轴线表面；模型学习关键点、对应关系或规范坐标。两侧都可能继续进入几何求解。</div><div class="ph-resolution">建议 16:9 · 1600 × 900</div></div></div><figcaption>建议图注｜学习可以参与获取空间约束，也可以进一步参与 Pose 求解。</figcaption></figure>
           <div class="turning-point"><div class="tp-label">这一步留下的认识</div><p>几何与学习不是必须二选一。学习能给出新的空间线索，而几何仍然可以约束、解释和检验结果。</p></div>
-          <div class="chapter-actions"><a class="read-more" href="https://fishxddd.github.io/research/stage-01/q05-learning-spatial-clues/" target="_blank" rel="noopener">继续翻笔记 · Q05 学习式空间线索 ↗</a><span class="extra">Keypoints / Correspondence / NOCS</span></div>
+          <div class="chapter-actions"><a class="read-more" href="q05-learning-spatial-clues/">继续翻笔记 · Q05 学习式空间线索 ↗</a><span class="extra">Keypoints / Correspondence / NOCS</span></div>
         </section>
 
         <section class="chapter" id="q06" aria-labelledby="q06-title">
@@ -343,7 +343,7 @@
           <!-- FIG 05 预留：Object-centric 与 Grasp-centric 两条求解组织方式。 -->
           <figure class="figure figure-wide" id="figure-05"><div class="figure-slot"><div class="placeholder-panel" data-figure="F05" data-suggested-file="assets/stage-01/f05-object-vs-grasp.webp"><div class="ph-icon" aria-hidden="true">▧</div><div class="ph-id">FIG 05 · TWO WAYS TO GRASP POSE</div><div class="ph-title">先求物体参考 vs 直接面向夹爪 · 预留</div><div class="ph-description">相同观测与任务约束，分为“Object Pose / 物体参考→Grasp Pose”和“局部几何/直接候选→Grasp Pose”。重点画清差异，不必重复首页分类图全部文字。</div><div class="ph-resolution">建议 16:9 · 1800 × 1012</div></div></div><figcaption>研究回环｜问题仍是最初的问题，但现在知道解它不只有一种组织方式。</figcaption></figure>
           <div class="turning-point"><div class="tp-label">这一步留下的认识</div><p>把 Object Pose 当作常见中间表示，而不是所有抓取任务都必须经过的终点前一站。</p></div>
-          <div class="chapter-actions"><a class="read-more" href="https://fishxddd.github.io/research/stage-01/q06-direct-grasp-pose/" target="_blank" rel="noopener">继续翻笔记 · Q06 直接求 Grasp Pose ↗</a><span class="extra">Grasp-centric / 2.5D / 6DoF</span></div>
+          <div class="chapter-actions"><a class="read-more" href="q06-direct-grasp-pose/">继续翻笔记 · Q06 直接求 Grasp Pose ↗</a><span class="extra">Grasp-centric / 2.5D / 6DoF</span></div>
         </section>
       </div>
 
