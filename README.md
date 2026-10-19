@@ -72,6 +72,10 @@ docs/
 
 ```bash
 python -m http.server 8000 --directory docs
+
+
+python3 -m http.server 8000 --bind 127.0.0.1 --directory docs
+
 ```
 
 然后访问 `http://localhost:8000/`。
