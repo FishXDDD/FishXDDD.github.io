@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f8f7f2">
+<meta name="description" content="沿途手记 Stage 01 / Q01 · LEVEL 2 几何模型拟合：从统计分布转向几何结构假设，深入探索直线、平面、RANSAC、圆柱拟合的数学目标、成熟工具、工程实现与适用边界。">
+<title>LEVEL 2｜几何模型拟合 · 从点云中恢复结构｜沿途手记</title>
+<style>
+:root{--bg:#f8f7f2;--paper:#fffefa;--ink:#293834;--muted:#63766b;--faint:#899489;--green:#557b69;--green2:#3c6454;--sage:#eaf1e9;--honey:#be925d;--sand:#faf0e2;--coral:#b97866;--pink:#f8eeea;--line:#e3e7dd;--shadow:0 16px 48px rgba(48,74,55,.05);--serif:'Noto Serif CJK SC','Source Han Serif SC','Songti SC',serif;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans CJK SC','Microsoft YaHei',sans-serif;--mono:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.88 var(--sans);-webkit-font-smoothing:antialiased}body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:radial-gradient(#88a28a19 .6px,transparent .6px);background-size:10px 10px}a{color:inherit;text-decoration:none}a:hover{color:var(--green2)}button{font:inherit;cursor:pointer}::selection{background:#d9e8dc}
+.shell{max-width:1230px;margin:auto;padding:0 30px}.top{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:16px}.brand{font-size:17px;font-weight:850;white-space:nowrap}.brand i{font-style:normal;margin-right:8px}.topnav{display:flex;align-items:center;gap:25px;font-size:13px;color:var(--muted)}.topnav a:last-child{background:var(--paper);border:1px solid var(--line);border-radius:99px;padding:7px 16px}.crumb{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:29px 0 18px;font-size:12px;color:var(--faint)}.crumb strong{color:var(--green)}
+.hero{border-radius:25px;border:1px solid #dfe7dc;overflow:hidden;background:linear-gradient(122deg,#f0f5ee,#fffdf7 68%);box-shadow:var(--shadow);padding:39px 45px 25px}.hero-grid{display:grid;grid-template-columns:1.24fr .86fr;align-items:center;gap:25px}.eyebrow{color:var(--green);font:750 11px var(--sans);letter-spacing:.16em}.hero h1{font:700 clamp(30px,3.3vw,44px)/1.34 var(--serif);letter-spacing:-.025em;margin:13px 0 16px}.hero h1 em{font-style:normal;color:var(--green)}.hero p{font-size:15px;color:#52665b;max-width:650px;margin:0}.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:23px}.tag{border:1px solid #d7e3d6;background:#ffffffb9;color:#5a7869;border-radius:99px;padding:3px 11px;font-size:11px}.hero-art{max-width:420px;margin:auto;width:100%}.hero-foot{padding-top:17px;margin-top:21px;border-top:1px solid #dfe7dc;display:flex;align-items:center;justify-content:space-between;color:#7c897c;gap:15px;font-size:12px}
+.layout{display:grid;grid-template-columns:224px minmax(0,1fr);gap:49px;padding-top:41px}.toc{position:sticky;top:20px;align-self:start;border-right:1px solid var(--line);padding:3px 22px 24px 0;max-height:calc(100vh - 35px);overflow:auto;scrollbar-width:thin}.toc .mini{font:700 10px var(--sans);letter-spacing:.14em;color:var(--faint);margin:0 0 14px}.toc a{display:block;padding:8px 10px;border-radius:9px;font-size:12.4px;color:#6e8074;line-height:1.45}.toc a:hover,.toc a.active{color:var(--green2);background:var(--sage)}.toc a.sub{padding-left:23px;font-size:11.8px}.toc hr{border:0;border-top:1px solid var(--line);margin:12px 8px}.aside{font-size:11.5px;line-height:1.7;color:#87978a;background:#f0f4ec;padding:12px;border-radius:10px;margin-top:19px}
+main{min-width:0}.part{padding:8px 0 52px;border-bottom:1px solid var(--line);margin-bottom:43px}.stag{font:750 11px var(--sans);letter-spacing:.13em;color:var(--green);margin-bottom:10px}.part>h2{font:750 clamp(23px,2.5vw,29px)/1.45 var(--serif);margin:0 0 16px}.lede{font:500 16.5px/1.9 var(--serif);color:#364b40}.part p{margin:11px 0 17px}.part strong{color:#315f48}.part h3{font:700 21px/1.5 var(--serif);margin:35px 0 13px;scroll-margin-top:24px}.part h4{font-size:16px;color:#415d4c;margin:23px 0 8px}.minor{color:var(--muted);font-size:13.5px}.overline{font:750 11px var(--sans);letter-spacing:.12em;color:var(--honey)}.step{margin:38px 0 49px;scroll-margin-top:25px}.step:first-of-type{margin-top:15px}.step-title{display:flex;gap:13px;align-items:flex-start}.step-no{flex:0 0 42px;height:42px;background:var(--sage);border:1px solid #dce8dc;border-radius:12px;display:grid;place-items:center;color:var(--green);font:800 13px var(--sans)}.step-title h3{font:730 22px/1.45 var(--serif);margin:1px 0 0}.step-title small{display:block;color:#8b9a8c;font-size:11px;margin-top:3px}.step-body{margin:14px 0 0 55px}.step-body>p:first-child{margin-top:0}.turn{padding:17px 20px;border-left:3px solid var(--honey);background:#fbf3e6;border-radius:0 13px 13px 0;margin:22px 0}.turn b{display:block;font-size:11px;letter-spacing:.05em;color:#9b7549}.turn p{margin:4px 0 0}.result{padding:17px 20px;border:1px solid #dce9dc;background:#f2f7ef;border-radius:13px;margin:18px 0}.result b{color:var(--green2)}.result p{margin:4px 0 0}.caution{padding:17px 20px;border:1px solid #ecd9cb;background:#fdf4ef;border-radius:13px;margin:18px 0}.caution b{color:#9b6553}.caution p{margin:4px 0 0}.milestone{border:1px solid #e8ddc8;border-radius:14px;background:#fffaf2;padding:16px 20px;margin:22px 0}.milestone .year{font:800 11px var(--sans);color:#b28b59;letter-spacing:.08em}.milestone h4{margin:4px 0;font:700 16px var(--serif);color:#79603f}.milestone p{font-size:13px;color:#786e5c;margin:5px 0 0}.math{background:#f5f7f2;border:1px solid #e2e9dc;color:#365447;border-radius:12px;padding:15px 18px;margin:17px 0;overflow:auto;font:500 15px/1.7 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}.math small{display:block;font:12px var(--sans);color:#798779;margin-top:5px}.code-wrap{border:1px solid #e1e6dd;background:#fffefa;border-radius:15px;overflow:hidden;margin:22px 0}.code-head{padding:9px 15px;border-bottom:1px solid #e1e6dd;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#f3f6ef}.code-head strong{font:700 12px var(--sans);color:#506b58}.copy{padding:4px 11px;border:1px solid #d6dfd3;border-radius:8px;color:#688272;background:#fff;font-size:11px}.copy:hover{background:#e7efe5}pre{margin:0;padding:17px 19px;max-height:560px;overflow:auto;background:#fcfdf9;font:12.3px/1.65 var(--mono);color:#2d493c;tab-size:4}pre code{white-space:pre}.code-caption{padding:11px 17px;border-top:1px solid var(--line);font-size:12px;color:#829187;line-height:1.65}.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:13px;margin:21px 0;background:#fffefa}table{width:100%;border-collapse:collapse;min-width:630px;font-size:13px;line-height:1.65}th{text-align:left;background:#f2f6ef;color:#4c7057;font-size:12px;font-weight:800}td,th{padding:12px 14px;border-bottom:1px solid #e9ece6;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:700;color:#3a5946}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:21px 0}.cards>div{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:17px 18px}.cards strong{display:block;font-size:14px}.cards p{font-size:12.5px;color:var(--muted);margin:6px 0 0}.figure{border:1px solid #e1e6dc;border-radius:15px;overflow:hidden;background:#fffefa;margin:24px 0}.figure-header{background:#f8f6ef;border-bottom:1px solid var(--line);padding:10px 15px;font-size:12px;font-weight:700;color:#657c6c}.figure svg{display:block;width:100%;height:auto}.figure figcaption{padding:10px 15px;font-size:11.8px;color:#8a9287;border-top:1px solid #eceee7}.placeholder{display:grid;place-items:center;min-height:160px;background:repeating-linear-gradient(45deg,#f5f4ed,#f5f4ed 13px,#f9f8f1 13px,#f9f8f1 26px);text-align:center;padding:20px}.placeholder b{display:block;color:#577c64;font-size:14px}.placeholder p{font-size:12px;color:#829085;max-width:530px}.placeholder code{font:12px var(--mono);color:#ad9274}.anchor{color:#698a77;text-decoration:underline;text-decoration-color:#b8ceb9;text-underline-offset:3px}.refs a{display:flex;justify-content:space-between;gap:10px;padding:11px 15px;background:#fffefa;border:1px solid var(--line);border-radius:10px;margin:7px 0;font-size:13px}.refs a span{color:#819184}.footerlinks{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:36px 0 24px}.footerlinks a{background:#fffefa;padding:10px 17px;border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--green2)}.footer{padding:20px 0 45px;display:flex;justify-content:space-between;gap:14px;color:#87978d;font-size:12px;flex-wrap:wrap}.chip{font-size:11px;padding:3px 9px;border-radius:8px;background:#eaf1e9;color:#63806c}.mono{font-family:var(--mono);font-size:.91em}.smallnote{color:var(--muted);font-size:12px}
+@media(max-width:950px){.hero-grid{grid-template-columns:1fr}.hero-art{max-width:330px}.layout{grid-template-columns:180px minmax(0,1fr);gap:25px}.toc{padding-right:10px}.cards{grid-template-columns:1fr}}
+@media(max-width:730px){.shell{padding:0 17px}.top{height:65px}.topnav{gap:10px;font-size:12px}.topnav a:nth-child(2){display:none}.hero{padding:27px 23px 21px}.hero-art{max-width:260px}.hero h1{font-size:30px}.hero-foot{display:block}.hero-foot span{display:block}.layout{display:block;padding-top:22px}.toc{position:static;display:flex;gap:5px;overflow:auto;max-height:none;padding:0 0 13px;border:0;border-bottom:1px solid var(--line);margin-bottom:23px}.toc .mini,.toc hr,.toc .aside{display:none}.toc a,.toc a.sub{padding:6px 11px;white-space:nowrap;border:1px solid var(--line);background:#fffefa;font-size:11px;border-radius:99px}.part{margin-bottom:29px;padding-bottom:29px}.step-body{margin-left:0}.step-title h3{font-size:19px}.step-no{height:38px;flex-basis:38px}.part h2{font-size:25px}table{font-size:12px}td,th{padding:9px 11px}pre{font-size:11px}.hero-art svg{max-height:210px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{body{background:#fff}.toc,.topnav,.copy{display:none}.hero,.code-wrap,.figure{break-inside:avoid}.layout{display:block}.part{break-before:auto}.shell{max-width:100%;padding:0 18px}}
+</style>
+</head>
+<body>
+<header class="shell top"><a class="brand" href="/"><i>🐟</i>沿途手记</a><nav class="topnav" aria-label="站点导航"><a href="/research/stage-01/">Stage 01</a><a href="/research/stage-01/q01-geometry/">Q01 · 研究主线</a><a href="../01-statistical-geometry/">上一篇 · 统计几何</a><a href="#resources">技术资料 ↗</a></nav></header>
+<div class="shell">
+<div class="crumb"><a href="/">小站首页</a><span>›</span><a href="/research/stage-01/">Stage 01</a><span>›</span><a href="/research/stage-01/q01-geometry/">Q01 点云几何</a><span>›</span><strong>LEVEL 2 · 几何模型拟合</strong></div>
+<section class="hero" aria-labelledby="main-title">
+<div class="hero-grid"><div><div class="eyebrow">STAGE 01 / Q01 · LEVEL 2 / MODEL FITTING</div><h1 id="main-title">不只看点怎样分布，<br><em>还能让它们符合一种几何关系吗？</em></h1><p>从 PCA 的统计主轴走向显式几何假设：直线、平面、圆柱究竟怎样从带噪、残缺的现场点云中估计出来？经典求解器能帮上什么，又有哪些问题不属于求解器的能力范围？</p><div class="tags"><span class="tag">单视角 RGB-D</span><span class="tag">无实例 CAD / 模板</span><span class="tag">通用几何假设</span><span class="tag">已约定抓法</span></div></div>
+<div class="hero-art"><svg viewBox="0 0 430 282" role="img" aria-label="由局部点云逐步估计出平面、圆柱和轴线的几何模型示意"><defs><linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff9ed"/><stop offset="1" stop-color="#e8f1e7"/></linearGradient></defs><rect x="8" y="9" width="414" height="265" rx="20" fill="url(#paper)" stroke="#dce6dc"/><text x="31" y="36" font-size="12" fill="#688573">observation · model · parameters</text><path d="M37 219L174 250L205 211L64 181Z" fill="#dbe7d9" stroke="#8ead9d" opacity=".8"/><g fill="#83a996" opacity=".85"><circle cx="56" cy="176" r="3"/><circle cx="85" cy="185" r="3"/><circle cx="128" cy="192" r="3"/><circle cx="161" cy="198" r="3"/><circle cx="65" cy="218" r="3"/><circle cx="110" cy="226" r="3"/><circle cx="164" cy="234" r="3"/><circle cx="87" cy="199" r="3"/><circle cx="117" cy="214" r="3"/><circle cx="183" cy="214" r="3"/></g><g transform="translate(284 151)"><ellipse cx="0" cy="-76" rx="50" ry="18" fill="#f7dfbf" fill-opacity=".65" stroke="#bd9870" stroke-width="1.5"/><path d="M-50 -76V76A50 18 0 0 0 50 76V-76" fill="#f5d9b1" fill-opacity=".35" stroke="#bd9870" stroke-width="1.5"/><ellipse cx="0" cy="76" rx="50" ry="18" fill="none" stroke="#bd9870" stroke-width="1.5" stroke-dasharray="4 4"/><path d="M0 -107V98" stroke="#b97866" stroke-width="2.6" stroke-dasharray="5 4"/><g fill="#ba8663" opacity=".65"><circle cx="-42" cy="-50" r="3"/><circle cx="-45" cy="-15" r="3"/><circle cx="-50" cy="17" r="3"/><circle cx="-46" cy="48" r="3"/><circle cx="-22" cy="-60" r="3"/><circle cx="-25" cy="61" r="3"/><circle cx="11" cy="-61" r="3"/><circle cx="22" cy="58" r="3"/></g></g><path d="M175 104C204 82 216 83 228 89" stroke="#c29c70" stroke-width="1.8" fill="none" stroke-dasharray="5 5"/><path d="M222 83l7 7l-9 2" stroke="#c29c70" stroke-width="1.7" fill="none"/><text x="33" y="77" font-size="13" fill="#587565">observed points</text><text x="298" y="261" font-size="12" fill="#a9785f">fitted axis</text></svg></div></div><div class="hero-foot"><span>研究手记 · 技术末级 / 可随实验继续修订</span><span>不是算法排行榜，也不预设每个模型都适合当前物体</span></div>
+</section>
+<div class="layout">
+<aside class="toc" aria-label="本文目录"><div class="mini">IN THIS NOTE</div><a href="#scope">00 · 研究对象</a><a href="#overview">01 · 技术路线</a><a href="#exploration">02 · 技术探索</a><a class="sub" href="#m1">2.1 什么时候尝试拟合</a><a class="sub" href="#m2">2.2 直线与 TLS</a><a class="sub" href="#m3">2.3 平面与 SVD</a><a class="sub" href="#m4">2.4 RANSAC 为什么出现</a><a class="sub" href="#m5">2.5 圆柱与非线性优化</a><a class="sub" href="#m6">2.6 PCL 圆柱实践</a><a class="sub" href="#m7">2.7 拟合结果可信吗</a><a class="sub" href="#m8">2.8 我会怎样验证</a><hr><a href="#closing">03 · 留下的认识</a><a href="#resources">参考论文与接口</a><div class="aside">这篇只研究从现场观测提取结构参数。<br><br>已知实例模型的配准、对应与 Object Pose 求解，属于 Q02 的另一条研究路线。</div></aside>
+<main id="reading">
+<section id="scope" class="part"><div class="stag">00 / WHAT IS STUDIED</div><h2>从点的分布，到几何结构</h2><p class="lede">统计几何已经能从点集分布中得到位置与主方向。现在想继续看看：如果观测点近似满足某一种几何关系，能不能直接估计这条直线、这片平面，或这个圆柱的参数？</p><p>这里不依赖实例 CAD、预先测好的瓶身半径或已定义的物体模板坐标系。<strong>可以先假设一种通用几何类型，但参数应从当前观测中求出。</strong>这与 Q02 的已知参考配准不是同一件事。</p></section>
+<section id="overview" class="part"><div class="stag">01 / TECHNICAL MAP</div><h2>技术路线｜先决定拟合什么，再决定怎样拟合</h2><p>几何拟合不是把点云送进一个万能求解器。首先要看是否存在值得解释的结构：近似共线的棱边、近似共面的表面，或带有曲率规律的圆柱形区域。<strong>选定模型，才有明确的参数与误差定义。</strong></p>
+<h3>A｜代表性的几何模型</h3><div class="tablewrap"><table><thead><tr><th>模型假设</th><th>想从观测中得到什么</th><th>典型情况</th></tr></thead><tbody><tr><td>Line · 直线</td><td>线上一点、方向向量</td><td>棱边、杆状局部结构；不自动获得线段端点</td></tr><tr><td>Plane · 平面</td><td>法向、平面偏移</td><td>盒面、桌面、局部平坦区域；不自动获得面内朝向</td></tr><tr><td>Cylinder · 圆柱</td><td>中心轴线、半径</td><td>瓶身、管体；不自动获得沿轴原点与绕轴朝向</td></tr></tbody></table></div>
+<h3>B｜经典求解机制与现成工具</h3><div class="tablewrap"><table><thead><tr><th>遇到的困难</th><th>代表机制</th><th>成熟实现</th></tr></thead><tbody><tr><td>支持点已知，但有测量噪声</td><td>TLS / SVD / 最小二乘</td><td>NumPy、Eigen</td></tr><tr><td>混入了不属于模型的点</td><td>RANSAC / Sample Consensus</td><td>Open3D <span class="mono">segment_plane</span>、PCL SAC</td></tr><tr><td>参数与残差之间是非线性关系</td><td>Nonlinear Least Squares / LM / Trust Region</td><td>SciPy <span class="mono">least_squares</span>、PCL Cylinder</td></tr></tbody></table></div><p class="minor">这些不是互相竞争的三个模型：一个圆柱模型可以先经过内点筛选，再进行非线性求精；一个直线模型也可以直接由 SVD 求解。</p></section>
+<section id="exploration" class="part"><div class="stag">02 / EXPLORATION · HOW THE IDEAS CONNECT</div><h2>深入探索｜从一个几何假设，走到可以验证的模型参数</h2><p class="lede">我真正想搞清楚的不是“直线、平面、圆柱分别有什么 API”，而是：<strong>为什么能通过这些模型解释可见点云？模型怎样被求出来？如果结果看着很漂亮，是否就能相信？</strong></p>
+<div class="step" id="m1"><div class="step-title"><span class="step-no">2.1</span><div><h3>第一次转变：已知一个大致形状，能不能反过来估计它？</h3><small>FROM DISTRIBUTION TO MODEL ASSUMPTION</small></div></div><div class="step-body"><p>面对一只近似圆柱形的瓶子，PCA 可以给出当前可见点集的主轴。但想要的可能是瓶身的<strong>几何中心轴</strong>。它们有联系，却不必然一致，尤其是相机只看见一部分曲面的时候。</p><p>这时我并没有瓶子的 CAD，也不知道准确半径；我只是在观测中发现了一种可能的规则结构。是否可以假设表面上的点到同一条轴线具有近似相等的距离，然后从点云反推这条轴线与半径？</p><div class="turn"><b>探索的变化</b><p>不是再寻找一种“更高级的 PCA”，而是从描述数据分布转向解释数据：<strong>什么几何关系能够让这些点同时成立？</strong></p></div><div class="math">模型 M(θ)　→　定义残差 rᵢ(θ)　→　估计参数 θ*<br>θ* = arg min Σᵢ ρ(rᵢ(θ)²)<small>ρ 可以是平方损失，也可以是鲁棒损失；关键是先定义模型参数与几何残差。</small></div><p>不过，选择模型并非自动完成。如果物体表面没有明显的线状、平面或圆柱规律，就不能仅因为 PCL 支持某个模型而强行拟合。这里的“无参考”指<strong>没有实例级已知模型</strong>，不等于完全没有几何先验。</p><div class="cards"><div><strong>先看输入</strong><p>目标点是否已从背景分开？深度是否为真实表面测量？</p></div><div><strong>再定假设</strong><p>这个局部是线、平面还是具有曲率规律的曲面？</p></div><div><strong>最后求解</strong><p>模型参数是否被观测充分约束？它们能不能服务抓取？</p></div></div></div></div>
+<div class="step" id="m2"><div class="step-title"><span class="step-no">2.2</span><div><h3>假设是一条直线：为什么不能只用两个点？</h3><small>ORTHOGONAL REGRESSION · TOTAL LEAST SQUARES</small></div></div><div class="step-body"><p>如果目标点云里已经提取出一段近似棱边，理想情况下两个不同的点就能确定直线。但 RGB-D 中两个点的误差足以让这条直线明显晃动。既然有一整组点，应该让它们共同决定方向。</p><p>将直线写成 <strong>L(t)=c+t·v</strong>，其中 c 是线上一点，v 是单位方向。对三维点 p，最自然的误差不是 X 或 Y 坐标差，而是点到直线的<strong>垂直距离</strong>。</p><div class="math">eᵢ = (I − vvᵀ)(pᵢ − c)<br>min Σᵢ ‖eᵢ‖²　,　‖v‖=1<small>它寻找使所有支持点到直线平方正交距离之和最小的轴线。</small></div><p>这就是正交回归 / Total Least Squares（TLS）的典型形式。解法反而很熟悉：点云去中心化，对坐标矩阵做 SVD，第一右奇异向量就是拟合直线的方向。<strong>PCA 和 TLS 可以共享一套计算机制，只是前者强调分布，后者明确地假设一条物理直线。</strong></p>
+<div class="milestone"><span class="year">1901 · 经典研究线索</span><h4>Karl Pearson · 最接近点、直线与平面的正交拟合</h4><p>它值得记录，不是因为今天要重现百年前的全部证明，而是因为它明确了“让数据到几何对象的距离最小”这一类估计问题。现代 SVD / Eigen 已经可以高效完成其基础求解。</p></div>
+<div class="code-wrap"><div class="code-head"><strong>Python · 正交最小二乘直线拟合（可运行函数）</strong><button class="copy" type="button">复制代码</button></div><pre><code class="language-python">import numpy as np
+
+def fit_line_tls(points):
+    P = np.asarray(points, dtype=np.float64)
+    if P.ndim != 2 or P.shape[1] != 3 or len(P) &lt; 3:
+        raise ValueError("points 必须是 N×3，N≥3")
+
+    c = P.mean(axis=0)
+    X = P - c
+    _, s, Vt = np.linalg.svd(X, full_matrices=False)
+    v = Vt[0] / np.linalg.norm(Vt[0])
+
+    # 点到无穷直线的正交残差（米）
+    e = X - np.outer(X @ v, v)
+    dist = np.linalg.norm(e, axis=1)
+    return c, v, dist, s</code></pre><div class="code-caption">输入 N×3 点；输出线上一点、无向单位轴、逐点距离与奇异值。计算本身不保证输入确实呈线状；应检查 s[0] 相对于 s[1] 的差异。</div></div>
+<p>有了这条线，也还没有获得线段长度。如果需要端点，只能在已识别的支持点上沿 v 投影，利用投影范围估计<strong>可见线段</strong>。缺失的棱边不会自动恢复。</p><div class="result"><b>得到的能力</b><p>从一组带噪、已知属于同一线状结构的点中，恢复一条有位置和方向的三维轴线，而不是只获得抽象的统计方向。</p></div><div class="caution"><b>留下的代价</b><p>必须先有足够可信的线状支持点；如果实际输入是一片面或复杂曲面，直接 TLS 依然会输出轴，但这个轴未必具备想要的几何意义。</p></div></div></div>
+<div class="step" id="m3"><div class="step-title"><span class="step-no">2.3</span><div><h3>同一套方法，能不能从点里拟合一片平面？</h3><small>PLANE MODEL · LEAST-SQUARES SVD</small></div></div><div class="step-body"><p>盒子的一侧或桌面的可见点云，可能更接近一片平面。若目标是表面法向，继续把它当成线状点集已经没有意义；需要改换模型，而不是一定改换求解器。</p><p>单位法向为 n 的平面可以写成 <span class="mono">n·p+d=0</span>。让每个点到平面的正交距离尽可能小：</p><div class="math">min Σᵢ (nᵀpᵢ + d)²　,　‖n‖=1<br>c = mean(P)　→　d = −nᵀc<br>n = Vt[−1]（中心化点集的最小奇异方向）<small>拟合直线取最大方差方向；拟合平面取最小方差方向。同一 SVD，不同的几何约束。</small></div>
+<div class="code-wrap"><div class="code-head"><strong>Python · 正交最小二乘平面拟合（可运行函数）</strong><button class="copy" type="button">复制代码</button></div><pre><code class="language-python">import numpy as np
+
+def fit_plane_tls(points):
+    P = np.asarray(points, dtype=np.float64)
+    if P.ndim != 2 or P.shape[1] != 3 or len(P) &lt; 3:
+        raise ValueError("points 必须是 N×3，N≥3")
+
+    c = P.mean(axis=0)
+    X = P - c
+    _, s, Vt = np.linalg.svd(X, full_matrices=False)
+    n = Vt[-1] / np.linalg.norm(Vt[-1])
+    d = -np.dot(n, c)
+    distance = np.abs(P @ n + d)
+    return n, d, distance, s</code></pre><div class="code-caption">输出 (n, d) 使得 n·p+d≈0。n 与 −n 都表示同一平面；如需一致的有向法线，应利用视点或场景方向约定其符号。</div></div>
+<p>这也给了一个不需要额外分类的数学判断：如果点集接近一个平面，最小奇异值通常较小；但若点几乎共线，平面法向就可能没有唯一性。<strong>求解器能输出结果，不等于参数可辨识。</strong></p><p>对于明确的一片平面，TLS 简单且高效。但单个无限平面只提供法向与偏移：它不定义面内长边、边界、完整物体原点，更不自动等于一个 Object Frame。</p><div class="result"><b>得到的能力</b><p>从当前观测恢复有空间位置的参考平面和法向，为表面约束或场景参考提供基础。</p></div></div></div>
+<div class="step" id="m4"><div class="step-title"><span class="step-no">2.4</span><div><h3>有些点根本不属于这个模型，怎么办？</h3><small>RANSAC · SAMPLE CONSENSUS · INLIER REFINEMENT</small></div></div><div class="step-body"><p>刚才的 TLS 有一个前提：输入已经是同一条线或同一片面的有效支持点。但一份 Mask 对齐后的点云，也可能包含无效深度残留、背景边缘、多个相邻面。</p><p>如果把它们全部交给最小二乘，模型可以被明显拉偏。这里的核心问题从“参数怎么解”变成了<strong>“哪些点值得用于当前模型”</strong>。</p><div class="milestone"><span class="year">1981 · 经典里程碑</span><h4>Fischler &amp; Bolles · RANSAC</h4><p>对一个给定模型，先用最少样本构造候选，再用残差阈值统计内点支持，反复尝试后保留较好的一致模型。它属于鲁棒估计机制，而不是新的几何模型。</p></div>
+<div class="figure"><div class="figure-header">一次平面 RANSAC 为什么需要“采样 → 统计内点 → 求精”？</div><svg viewBox="0 0 770 190" role="img" aria-label="RANSAC 从混杂点中寻找支持目标平面的内点，并重新拟合"><rect x="15" y="18" width="221" height="143" rx="12" fill="#f7f4ed" stroke="#e2e5db"/><rect x="274" y="18" width="221" height="143" rx="12" fill="#f3f7f0" stroke="#dbe7db"/><rect x="533" y="18" width="221" height="143" rx="12" fill="#f7f3ec" stroke="#e7dfd1"/><g font-size="13" fill="#516d5b" font-weight="700"><text x="33" y="44">01 · 混杂观测</text><text x="292" y="44">02 · 候选模型与内点</text><text x="551" y="44">03 · 内点重新拟合</text></g><g fill="#829f8c"><circle cx="39" cy="106" r="4"/><circle cx="66" cy="116" r="4"/><circle cx="89" cy="102" r="4"/><circle cx="110" cy="112" r="4"/><circle cx="132" cy="101" r="4"/><circle cx="154" cy="107" r="4"/><circle cx="186" cy="98" r="4"/></g><g fill="#c28a75"><circle cx="68" cy="70" r="4"/><circle cx="174" cy="69" r="4"/><circle cx="206" cy="136" r="4"/></g><path d="M294 132L466 83" stroke="#6e9a80" stroke-width="2.2"/><g fill="#729e86"><circle cx="299" cy="128" r="4"/><circle cx="321" cy="122" r="4"/><circle cx="344" cy="118" r="4"/><circle cx="367" cy="112" r="4"/><circle cx="393" cy="101" r="4"/><circle cx="418" cy="98" r="4"/><circle cx="448" cy="88" r="4"/></g><g fill="#c28a75"><circle cx="328" cy="76" r="4"/><circle cx="462" cy="141" r="4"/></g><path d="M549 133L731 82" stroke="#5a8d6d" stroke-width="3"/><g fill="#6c9a78"><circle cx="564" cy="127" r="3.5"/><circle cx="591" cy="121" r="3.5"/><circle cx="617" cy="112" r="3.5"/><circle cx="641" cy="108" r="3.5"/><circle cx="672" cy="98" r="3.5"/><circle cx="709" cy="89" r="3.5"/></g><text x="249" y="100" font-size="21" fill="#9baf9f">→</text><text x="507" y="100" font-size="21" fill="#9baf9f">→</text><text x="21" y="181" font-size="11" fill="#819083">示意图仅说明估计机制，不代表运行结果</text></svg></div>
+<p>对平面模型，一个简化流程是：抽三个不共线的点 → 构造候选平面 → 找到距离小于阈值的内点 → 多次比较 → 用内点 TLS 求精。</p><div class="math">P(一次采到全部内点) ≈ wˢ<br>N ≥ log(1−p) / log(1−wˢ)<small>w：内点比例；s：每次构造模型的最小采样数；p：期望至少一次全内点采样的概率。这里假设独立随机采样且内点判定合理。</small></div>
+<p>这个公式的价值不是让人背诵，而是知道：内点比例越低、模型最小样本量越大，往往要付出更多采样次数。RANSAC 的残差阈值应与测量噪声、点云单位、距离及模型偏差一起确定。</p>
+<div class="code-wrap"><div class="code-head"><strong>Python · Open3D RANSAC 平面 + 内点 TLS 求精</strong><button class="copy" type="button">复制代码</button></div><pre><code class="language-python">import open3d as o3d
+import numpy as np
+
+pcd = o3d.io.read_point_cloud("target.ply")
+if len(pcd.points) &lt; 30:
+    raise ValueError("点数不足，先检查输入")
+
+# 以米为单位时，0.004 表示 4 mm；仅作示例
+model, inlier_ids = pcd.segment_plane(
+    distance_threshold=0.004,
+    ransac_n=3,
+    num_iterations=1000,
+)
+
+# 在 RANSAC 内点上重新做正交平面拟合
+P = np.asarray(pcd.points)[inlier_ids]
+n, d, errors, s = fit_plane_tls(P)
+print("plane n,d:", n, d)
+print("inlier_ratio:", len(inlier_ids)/len(pcd.points))
+print("inlier_median_residual_m:", np.median(errors))
+
+# 额外检查是否为目标需要的平面，而非最大桌面</code></pre><div class="code-caption">这里调用前面的 fit_plane_tls。若只想快速提取平面，Open3D 的 segment_plane 本身已经返回模型系数与内点索引；额外 TLS 用于明确执行内点求精与残差检查。</div></div>
+<div class="caution"><b>RANSAC 不能替你选择正确的结构</b><p>例如桌面比盒体表面更大，支持点最多的平面可能是桌面。模型与抓取任务是否一致，仍然依赖目标筛选、空间位置与已知约束。</p></div><p>也不必把 RANSAC 提升成单独的“鲁棒几何 Level”：它属于这一层模型估计时会反复用到的基础机制；后面的局部法线估计也可能复用它。</p></div></div>
+<div class="step" id="m5"><div class="step-title"><span class="step-no">2.5</span><div><h3>直线与平面容易理解，圆柱为何更麻烦？</h3><small>CYLINDER MODEL · NONLINEAR LEAST SQUARES</small></div></div><div class="step-body"><p>现在可以回到近似圆柱的瓶身。一个无限圆柱的几何结构，用轴线上一点 c、单位轴向 v、半径 R 就能表示。</p><p>与前面的直线拟合不同，圆柱表面点一般<strong>并不落在轴线上</strong>，而是到轴线的垂直距离接近一个共同半径。</p><div class="math">d_axis(p) = ‖(I − vvᵀ)(p − c)‖<br>r(p) = d_axis(p) − R<br>min Σᵢ ρ(r(pᵢ)²)　,　‖v‖=1，R&gt;0<small>参数中轴线位置、方向和半径相互耦合。单次 SVD 通常不能完成一般三维圆柱拟合。</small></div><p>这里遇到了另一个重要问题：c 可以沿着 v 任意平移，而圆柱几何完全不变。因此它的七个输出系数不代表七个独立自由度。真正的无限圆柱通常只有<strong>五个几何自由度</strong>：轴方向 2 个、轴的横向位置 2 个、半径 1 个。</p><p>如果已知瓶子竖直放置、且现场有可靠的重力或桌面法线，可以先固定轴向，只在垂直于轴的平面中拟合圆。这样会比毫无约束地从三维空间估计整套圆柱参数容易得多。</p>
+<h4>怎样让复杂残差可以被优化？</h4><p>这时才需要 Nonlinear Least Squares。Gauss–Newton、Levenberg–Marquardt（LM）和 Trust Region 一类求解方法，依据当前参数与残差函数，迭代寻找使误差减小的参数。</p><p>如果只是验证数学想法，不必自己重写优化器。SciPy 的 <span class="mono">scipy.optimize.least_squares()</span> 已经支持边界、不同求解方式和鲁棒损失。</p>
+<div class="code-wrap"><div class="code-head"><strong>Python · 已知轴向的瓶身圆柱拟合（可运行示例）</strong><button class="copy" type="button">复制代码</button></div><pre><code class="language-python">import numpy as np
+from scipy.optimize import least_squares
+
+# P 是目标瓶身点云 N×3，单位米
+P = np.asarray(P, dtype=np.float64)
+if len(P) &lt; 20:
+    raise ValueError("有效点过少")
+
+# 前提：已经由场景约束确认圆柱轴向近似 Z
+# 此时只拟合圆截面中心 cx,cy 与半径 R
+xy = P[:, :2]
+
+def residual(params):
+    cx, cy, radius = params
+    return np.linalg.norm(
+        xy - np.array([cx, cy]), axis=1
+    ) - radius
+
+x0 = [xy[:, 0].mean(), xy[:, 1].mean(), 0.035]
+result = least_squares(
+    residual, x0=x0,
+    bounds=([-np.inf, -np.inf, 0.02],
+            [ np.inf,  np.inf, 0.06]),
+    loss="soft_l1", f_scale=0.003,
+    method="trf",
+)
+
+cx, cy, radius = result.x
+print("success:", result.success)
+print("circle center:", cx, cy)
+print("radius:", radius)
+print("median |radial residual|:",
+      np.median(np.abs(result.fun)))</code></pre><div class="code-caption">这里用“轴已知”的先验将问题降维，是用于理解参数残差与优化器的一条明确工程路线；它不是一般倾斜圆柱的完整 3D 拟合。示例的半径区间和 f_scale 不是通用推荐值。</div></div>
+<p>如果轴向未知，就需要把轴线方向和横向位置一起放进优化参数。此时必须合理地初始化方向（例如 PCA 主轴、重力方向、局部几何约束），并处理轴向正负、参数冗余和局部极值问题。</p>
+<div class="caution"><b>不要从 API 的“收敛成功”推断圆柱已经恢复正确</b><p>少量可见圆弧可能由许多不同半径的圆柱近似解释。即使损失很小，半径与轴线也可能高度耦合，导致结果对微小深度扰动很敏感。</p></div></div></div>
+<div class="step" id="m6"><div class="step-title"><span class="step-no">2.6</span><div><h3>圆柱不一定要自己写优化：PCL 已有成熟工程路径</h3><small>PCL · SACSEGMENTATIONFROMNORMALS · CYLINDER</small></div></div><div class="step-body"><p>对于未知实例但几何上近似圆柱的瓶身，PCL 的 <span class="mono">SACSegmentationFromNormals</span> 配合 <span class="mono">SACMODEL_CYLINDER</span> 是一条真正值得记录的经典工程实现。</p><p>它不仅使用三维点，还会结合表面法线。这很自然：理想圆柱侧面的法线沿径向，理论上垂直于圆柱轴；法线关系能够为轴的候选假设提供额外约束。</p><p>在这里我们只关心：<strong>为什么法线有帮助，以及 PCL 如何把这些条件放进模型拟合。</strong> 邻域 PCA、法线方向一致性、邻域尺度选择等细节，则留到 LEVEL 3 的局部表面专题完整研究。</p>
+<div class="code-wrap"><div class="code-head"><strong>C++ / PCL · 目标瓶身点云 → 法线 → 圆柱模型</strong><button class="copy" type="button">复制代码</button></div><pre><code class="language-cpp">#include &lt;pcl/point_types.h&gt;
+#include &lt;pcl/point_cloud.h&gt;
+#include &lt;pcl/features/normal_3d.h&gt;
+#include &lt;pcl/search/kdtree.h&gt;
+#include &lt;pcl/segmentation/sac_segmentation.h&gt;
+#include &lt;pcl/ModelCoefficients.h&gt;
+#include &lt;pcl/PointIndices.h&gt;
+#include &lt;iostream&gt;
+
+using PointT = pcl::PointXYZ;
+
+// 前置条件：cloud 为已提取、过滤后的有限深度瓶身点云
+bool fitCylinder(pcl::PointCloud&lt;PointT&gt;::Ptr cloud,
+                 pcl::ModelCoefficients::Ptr coefficients,
+                 pcl::PointIndices::Ptr inliers) {
+    if (!cloud || cloud-&gt;size() &lt; 50) return false;
+
+    pcl::search::KdTree&lt;PointT&gt;::Ptr tree(
+        new pcl::search::KdTree&lt;PointT&gt;);
+    pcl::PointCloud&lt;pcl::Normal&gt;::Ptr normals(
+        new pcl::PointCloud&lt;pcl::Normal&gt;);
+
+    pcl::NormalEstimation&lt;PointT, pcl::Normal&gt; ne;
+    ne.setInputCloud(cloud);
+    ne.setSearchMethod(tree);
+    ne.setKSearch(30);             // 示例：应验证邻域尺度
+    ne.compute(*normals);
+
+    pcl::SACSegmentationFromNormals&lt;PointT, pcl::Normal&gt; seg;
+    seg.setOptimizeCoefficients(true);
+    seg.setModelType(pcl::SACMODEL_CYLINDER);
+    seg.setMethodType(pcl::SAC_RANSAC);
+    seg.setNormalDistanceWeight(0.1);
+    seg.setMaxIterations(2000);
+    seg.setDistanceThreshold(0.005);
+    seg.setRadiusLimits(0.025, 0.055);
+    seg.setInputCloud(cloud);
+    seg.setInputNormals(normals);
+    seg.segment(*inliers, *coefficients);
+
+    return !inliers-&gt;indices.empty()
+        &amp;&amp; coefficients-&gt;values.size() == 7;
+}</code></pre><div class="code-caption">可嵌入现有 PCL/ROS 工程；代码假设输入已经清理 NaN、背景与明显误测点。参数值只是示范，法线邻域、半径范围和阈值都必须结合实际目标重新验证。</div></div>
+<div class="tablewrap"><table><thead><tr><th>输出的 7 个系数</th><th>几何含义</th><th>实际使用时的提醒</th></tr></thead><tbody><tr><td>coeff[0:3]</td><td>圆柱轴线上一点 c</td><td>不是瓶底、瓶顶或天然的物体原点</td></tr><tr><td>coeff[3:6]</td><td>圆柱轴向 v</td><td>正负号不唯一，不能直接决定有向夹爪姿态</td></tr><tr><td>coeff[6]</td><td>圆柱半径 R</td><td>严重缺失弧面时可能不稳定</td></tr></tbody></table></div>
+<div class="milestone"><span class="year">成熟工程链路 · PCL</span><h4>目标分离 → 法线估计 → 圆柱一致性筛选 → 参数求精</h4><p>PCL 官方的 Cylinder Segmentation 教程展示了这一整条链路，并直接提供 C++ 代码、模型参数及构建方法。对于需要自定义 C++ 工程的使用者，优先阅读其官方示例通常比从零实现 RANSAC 与 LM 更有效。</p></div><p>如果物体是透明玻璃瓶，这条算法链路仍然不能自动修复错误的深度。<strong>首先确认点云确实对应瓶身表面，然后再评估是否适合圆柱拟合。</strong></p></div></div>
+<div class="step" id="m7"><div class="step-title"><span class="step-no">2.7</span><div><h3>拟合残差很小，为什么结果仍然可能不能用？</h3><small>MODEL VALIDITY · OBSERVABILITY · TASK RELEVANCE</small></div></div><div class="step-body"><p>了解这些方法后，我反而觉得：最难的部分未必是把优化器跑起来，而是判断<strong>它有没有估计到正确的结构</strong>。</p><div class="tablewrap"><table><thead><tr><th>需要区分的疑问</th><th>典型现象</th><th>如何检查</th></tr></thead><tbody><tr><td>模型选错了吗？</td><td>变形瓶身被强行当成理想圆柱</td><td>查看残差空间分布，比较模型与实际曲面趋势</td></tr><tr><td>观测足够吗？</td><td>只有很窄的圆柱弧面，却得到稳定格式的 7 个系数</td><td>改变采样子集、初值与点云噪声，比较半径和轴线漂移</td></tr><tr><td>找对结构了吗？</td><td>平面分割成功，但选中了桌面而非目标盒面</td><td>检查区域位置、内点空间覆盖与预定抓取区域</td></tr><tr><td>是求解器问题吗？</td><td>圆柱结果随初值变化明显</td><td>改变初始化，检查优化收敛与参数耦合</td></tr><tr><td>满足抓取需求吗？</td><td>得到了圆柱轴，却不知道沿轴在哪里夹</td><td>列出抓法要求的额外位置和方向约束</td></tr></tbody></table></div>
+<p>对于圆柱，残差评价最好同时查看<strong>内点比例、残差分布、观测弧度范围、轴线稳定性、半径稳定性</strong>。但“看到了圆柱多少弧度”本身也需要借助估计轴线计算，不能只依靠一个总 RMS 指标。</p><p>理论上，还可以利用非线性最小二乘的雅可比矩阵检查参数是否存在弱约束方向。如果几组不同的圆柱参数都能解释同一小块曲面，那么优化器可能收敛得很漂亮，估计仍然很不确定。</p><div class="turn"><b>这次真正新增的认识</b><p><strong>残差小 ≠ 模型正确；求解器收敛 ≠ 参数可辨识；参数被估计出来 ≠ 足以定义 Object Pose。</strong></p></div>
+<p>尤其是无限圆柱，它不定义有限物体的轴向端点，也无法通过理想对称侧面分辨绕轴的自转角。即使模型参数准确，物体完整位姿仍可能有自由度未被观测约束。</p></div></div>
+<div class="step" id="m8"><div class="step-title"><span class="step-no">2.8</span><div><h3>如果现在动手，我会怎样验证这条路线？</h3><small>REPRODUCIBLE BASELINES · NOT YET TEST RESULTS</small></div></div><div class="step-body"><p>我不准备因为这篇整理了许多经典算法，就把它们全部接进实际抓取流程。更合理的做法是挑选能回答不同问题的对照实验，让每个工具的价值被真正验证。</p><div class="tablewrap"><table><thead><tr><th>实验</th><th>准备的输入</th><th>比较与记录什么</th></tr></thead><tbody><tr><td>直线 TLS</td><td>可控噪声的模拟棱边点，再加入异常点</td><td>拟合轴与真值夹角、正交残差、异常点敏感性</td></tr><tr><td>平面 TLS vs RANSAC</td><td>单个平面、多个相邻面、混杂背景</td><td>法向误差、内点比例、阈值敏感性与速度</td></tr><tr><td>圆柱已知轴 vs 未知轴</td><td>完整 / 半圆弧 / 窄弧瓶身点云</td><td>轴线偏移、半径误差、不同初值下的稳定性</td></tr><tr><td>PCA vs 圆柱拟合</td><td>同一份真实有效瓶身点云</td><td>统计主轴与模型轴线的方向差异；与抓法需求是否一致</td></tr></tbody></table></div>
+<p>前面的代码都可以作为最小实验入口。对于真实 RGB-D 点云，先记录目标 Mask、相机内参与深度尺度、无效点过滤方式和采样范围，避免把输入条件不同造成的差异误认成算法性能差异。</p><div class="result"><b>暂时的工程尝试顺序</b><p>稳定 Mask / Grounding → 提取有效目标点云 → 判断能否用简单统计几何解决 → 若结构假设有明确意义，再试对应直线 / 平面 / 圆柱拟合 → 记录参数稳定性 → 按已约定抓法决定是否足够。<br>这是准备验证的想法，不是已经完成的实验结果。</p></div></div></div>
+</section>
+<section id="closing" class="part"><div class="stag">03 / WHAT REMAINS</div><h2>现在，几何模型拟合在整条路线中是什么位置？</h2><p>与统计几何相比，这一层真正增加的不是更复杂的代数工具，而是<strong>模型结构本身成为信息来源</strong>。当我们有理由相信一组点近似属于某个圆柱或平面时，可以通过这个假设，估计仅凭点集整体分布不容易直接定义的轴线、法向和尺寸。</p><p>但它也不自动等于实例级 Object Pose 恢复。直线、平面与无限圆柱各自定义的参考自由度有限。只要预定抓法能够利用这些信息构造出足够明确的抓取约束，就可能不需要完整物体姿态；如果任务需要某个无法从几何中辨认的参考原点或有向角度，便应该诚实地承认信息仍然不足。</p><div class="cards"><div><strong>这层能做到</strong><p>从现场点云和通用结构假设中求出有物理意义的几何参数。</p></div><div><strong>这层做不到</strong><p>凭空提供未知的实例坐标系、不可见的端点或对称自由度。</p></div><div><strong>下一层值得研究</strong><p>整体模型不适合时，能否只测量抓取局部的表面法线与曲率？</p></div></div><p class="lede">最后留下的一句话：<strong>不是所有物体都需要拟合模型；但当一个明确的几何假设能够提供任务真正需要的约束时，模型拟合值得优先考虑。</strong></p></section>
+<section id="resources" class="part refs"><div class="stag">REFERENCE / VERIFIED IMPLEMENTATIONS</div><h2>值得留存的论文线索与官方工具</h2><p class="minor">这里只留能够直接支撑正文技术机制、方便以后查证或复现的资料。外部链接可在有网络时打开。</p>
+<a href="https://www.open3d.org/docs/latest/tutorial/geometry/pointcloud.html" target="_blank" rel="noopener noreferrer"><b>Open3D · Point Cloud / Plane Segmentation</b><span>segment_plane 官方示例 ↗</span></a>
+<a href="https://pointclouds.org/documentation/tutorials/cylinder_segmentation.html" target="_blank" rel="noopener noreferrer"><b>PCL · Cylinder Model Segmentation</b><span>法线、RANSAC、圆柱系数和 C++ 范例 ↗</span></a>
+<a href="https://pointclouds.org/documentation/group__sample__consensus.html" target="_blank" rel="noopener noreferrer"><b>PCL · Sample Consensus 模型与估计器</b><span>Line / Plane / Cylinder / RANSAC ↗</span></a>
+<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html" target="_blank" rel="noopener noreferrer"><b>SciPy · nonlinear least_squares</b><span>损失、初值、边界、LM / TRF ↗</span></a>
+<a href="https://en.wikipedia.org/wiki/Random_sample_consensus" target="_blank" rel="noopener noreferrer"><b>Fischler &amp; Bolles（1981）· RANSAC</b><span>经典原理与原始论文信息 ↗</span></a>
+<a href="https://en.wikipedia.org/wiki/Total_least_squares" target="_blank" rel="noopener noreferrer"><b>Orthogonal Regression / TLS</b><span>正交误差与经典背景 ↗</span></a>
+</section>
+<div class="footerlinks"><a href="/research/stage-01/q01-geometry/">← 回到 Q01 研究主线</a><a href="#main-title">↑ 回到顶部</a></div>
+</main>
+</div>
+</div>
+<footer class="shell footer"><span>✳ 沿途手记 · Stage 01 / Q01 / LEVEL 2 · Model Fitting</span><span>技术探索记录 · 随理解与验证不断修订</span></footer>
+<script>
+document.querySelectorAll('.copy').forEach(btn=>btn.addEventListener('click',async()=>{
+  const code=btn.closest('.code-wrap').querySelector('code').innerText;
+  try{await navigator.clipboard.writeText(code);btn.textContent='已复制';setTimeout(()=>btn.textContent='复制代码',1800);}catch(e){btn.textContent='请选择并复制';}
+}));
+if('IntersectionObserver' in window){const ls=[...document.querySelectorAll('.toc a[href^="#"]')];const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){ls.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));}}),{rootMargin:'-9% 0px -77% 0px',threshold:0});document.querySelectorAll('main section[id],.step[id]').forEach(s=>io.observe(s));}
+</script>
+</body>
+</html>

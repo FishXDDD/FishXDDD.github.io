@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#f8f5ed" name="theme-color"/>
+<meta content="《沿途手记》统计几何底层技术手记：Mean、Median、Geometric Median、Medoid、Trimmed/Huber、Voxel/SOR/ROR、PCA/SVD、Weighted PCA/MCD、AABB/OBB；每种都包含数学直觉与工程短代码。" name="description"/>
+<title>02｜统计几何：从点的分布中寻找几何线索 · 沿途手记</title>
+<style>
+:root{
+  --paper:#f8f5ed; --paper2:#fffdfa; --ink:#42382f; --muted:#81756a; --light:#aaa093;
+  --line:#e8dfd3; --rose:#c98e83; --rose-pale:#f7e9e4; --clay:#b77b59;
+  --sage:#879c86; --sage-pale:#ecf1e9; --wheat:#dbc399; --wheat-pale:#f8f0dd;
+  --shadow:0 10px 35px rgba(79,61,43,.045); --radius:19px;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.9;letter-spacing:.012em}
+a{color:#9c654e;text-decoration:none}a:hover{text-decoration:underline}button{font:inherit}a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #c98e83;outline-offset:4px}
+::selection{background:#f1d6ca;color:var(--ink)}
+#progress{position:fixed;inset:0 auto auto 0;height:3px;background:linear-gradient(90deg,var(--sage),var(--rose));width:0;z-index:30;pointer-events:none}
+.topline{height:6px;background:linear-gradient(90deg,#d4bca3,#efcabd,#b4c6b2)}
+.site-header{max-width:1220px;margin:auto;padding:24px 38px 18px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:11px;align-items:center;font-family:Georgia,"Noto Serif SC",serif;font-size:18px;font-weight:700;letter-spacing:.04em;color:#514036}.brand .leaf{width:30px;height:30px;display:inline-grid;place-items:center;border-radius:10px;background:#f1e5d8;color:var(--clay)}
+.site-nav{font-size:12px;color:var(--muted);display:flex;gap:18px;align-items:center}.site-nav a{color:inherit}.site-nav span{color:#c2b6aa}
+.page-shell{max-width:1220px;margin:0 auto;display:grid;grid-template-columns:218px minmax(0,1fr);gap:38px;padding:0 38px 90px}
+.sidebar{border-right:1px solid var(--line);padding:40px 22px 30px 0}.sidebar-inner{position:sticky;top:26px}
+.sidebar-kicker,.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#b48268}.sidebar-title{font-size:14px;font-weight:750;line-height:1.65;margin:8px 0 18px}
+.toc{display:flex;flex-direction:column;gap:4px}.toc a{font-size:12px;display:block;color:#8c8074;padding:6px 10px;border-radius:8px;line-height:1.6;transition:background .2s,color .2s;border-left:2px solid transparent}.toc a:hover,.toc a.active{color:#925f4c;background:#f4ece3;text-decoration:none;border-left-color:#c98e83}.toc .toc-sub{padding-left:20px;font-size:11px}
+.sidebar-note{margin-top:30px;background:#f4ece3;border-radius:12px;padding:14px;font-size:11px;color:#807267;line-height:1.9}.sidebar-note strong{color:var(--ink)}
+main{min-width:0;max-width:910px;padding-top:34px}.breadcrumbs{font-size:11px;color:#9c9084;display:flex;flex-wrap:wrap;gap:9px;align-items:center}.breadcrumbs a{color:inherit}.breadcrumbs b{font-weight:500;color:#d4bdac}
+.hero{position:relative;border:1px solid #e7d7c9;border-radius:24px;background:linear-gradient(135deg,#fffefa 0%,#fbf0e9 70%,#f3eee3 100%);overflow:hidden;margin-top:27px;padding:39px 40px 30px;box-shadow:var(--shadow)}
+.hero:before{content:"";position:absolute;right:-90px;top:-160px;width:380px;height:380px;border:1px solid rgba(179,136,104,.14);border-radius:50%;box-shadow:0 0 0 40px rgba(179,136,104,.025),0 0 0 90px rgba(179,136,104,.018)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(190px,.8fr);gap:8px;align-items:center;position:relative}.chapter-pill{font-size:11px;display:inline-flex;align-items:center;gap:8px;color:#a0644e;background:#f5e5d9;border:1px solid #efd6c6;border-radius:100px;padding:4px 12px;font-weight:800;letter-spacing:.07em}
+h1{font-family:Georgia,"Noto Serif SC","Songti SC",serif;font-size:clamp(26px,3vw,38px);letter-spacing:-.025em;line-height:1.45;margin:18px 0 9px;font-weight:750}h1 small{display:block;font-family:inherit;font-size:.45em;font-weight:600;letter-spacing:.08em;color:#a7705c;margin-bottom:4px}.hero-lede{font-size:14px;color:#6f6259;max-width:560px;line-height:2;margin-top:13px}.hero svg{display:block;width:100%;height:auto}.hero-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.hero-meta span{font-size:11px;padding:4px 10px;border:1px solid #eadbcf;border-radius:99px;background:#fffaf5;color:#8d7564}
+.intro{padding:27px 6px 0;color:#554a41;font-size:15px}.intro strong{color:#a2684f}.intro p{margin:0 0 12px}
+.section{margin-top:68px;scroll-margin-top:30px}.section-heading{display:flex;align-items:center;gap:15px;margin-bottom:16px}.section-number{flex:none;display:grid;place-items:center;background:#f2e0d5;border:1px solid #ead3c5;color:#a66e57;width:44px;height:44px;border-radius:13px;font:700 19px Georgia,serif}h2{font-family:"Noto Serif SC","Songti SC",Georgia,serif;font-size:25px;letter-spacing:-.02em;line-height:1.5;margin:0}h3{font-size:17px;font-weight:800;margin:32px 0 12px;letter-spacing:.01em;line-height:1.65}h4{font-size:14px;font-weight:800;margin:22px 0 8px;color:#7b5546}p{margin:12px 0;line-height:2.02}.section-lead{font-size:14px;color:#766b61;margin:0 0 25px}.mini-label{font-size:10px;letter-spacing:.12em;color:#af7e66;font-weight:850;text-transform:uppercase;display:block;margin:0 0 5px}
+.note{margin:20px 0;padding:18px 21px;background:#fffdfa;border:1px solid var(--line);border-left:3px solid #bb9076;border-radius:0 14px 14px 0;box-shadow:var(--shadow);font-size:13px;color:#62574e}.note strong{color:#845943}.note.sage{background:#f3f6f0;border-color:#dce9d9;border-left-color:#899f87}.note.rose{background:#fff3ef;border-color:#eddad2;border-left-color:#c78f83}.note .note-title{font-weight:800;color:#66483b;margin-bottom:4px}
+.card{border:1px solid var(--line);background:var(--paper2);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin:18px 0}.card.soft{background:#fcf9f2}.card h3{margin-top:0}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.two-col .card,.three-col .card{margin:0}
+.tech{background:#fffdfa;border:1px solid var(--line);border-radius:14px;padding:17px 18px;margin:11px 0;position:relative;overflow:hidden}.tech:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#e4bea8}.tech.sage:before{background:#a8bba2}.tech.wheat:before{background:#d9ba84}.tech-name{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:14px;font-weight:800}.tech-name em{font-weight:600;color:#af8873;font-style:normal;font-size:11px}.tech p{font-size:12.5px;color:#70645a;margin:5px 0 0}.tech .tradeoff{color:#895c47}
+.formula{overflow-x:auto;background:#f7f1e9;border:1px solid #eee0d2;border-radius:12px;padding:13px 20px;margin:15px 0;font-family:"Cambria Math","STIX Two Math",Georgia,serif;font-size:17px;text-align:center;white-space:nowrap;letter-spacing:0;line-height:1.75}.formula .small{font-size:13px;color:#8f7968}.formula code{font-family:inherit}.math-block{font-family:"Cambria Math",Georgia,serif;font-size:18px}
+.table-wrap{overflow:auto;margin:18px 0;border:1px solid var(--line);border-radius:15px;background:var(--paper2)}table{width:100%;border-collapse:collapse;min-width:540px;text-align:left;line-height:1.75;font-size:12.5px}th{background:#f5eee5;color:#69554a;font-size:12px;white-space:nowrap;font-weight:800}th,td{padding:12px 14px;border-bottom:1px solid #ece4da;vertical-align:top}tr:last-child td{border-bottom:0}tbody tr:nth-child(even){background:#fffefa}td strong{color:#6f4d3f}
+.split-heading{display:flex;align-items:center;gap:10px;font-weight:750;margin:28px 0 12px}.split-heading .bullet{height:9px;width:9px;border-radius:50%;background:#b58f76;flex:none}
+.figure{border:1px solid #eadfd2;border-radius:17px;background:#fffdf9;padding:16px;margin:20px 0}.figure figcaption{font-size:11px;color:#8b7d70;line-height:1.7;text-align:center;margin-top:7px}.figure svg{display:block;width:100%;height:auto}.figure-title{font-size:13px;font-weight:800;color:#72594a;margin:0 0 9px}.figure > p{font-size:12px;color:#817469;margin:6px 0 0}
+.demo{padding:19px 21px;border:1px solid #e7d9ca;background:linear-gradient(180deg,#fffdf9,#faf4eb);border-radius:17px;margin:20px 0}.demo h4{margin:0 0 3px;color:#654d41}.demo p{font-size:12px;color:#817166;margin:2px 0 10px}.demo-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.demo-controls input[type=range]{flex:1;min-width:140px;accent-color:#b57c68}.demo-readouts{display:flex;gap:9px;flex-wrap:wrap;margin-top:9px}.demo-readouts span{border-radius:20px;font-size:11px;background:white;border:1px solid #ebe0d4;padding:3px 9px}.demo-readouts b{color:#a26350}.demo svg{width:100%;height:auto;display:block;margin-top:4px}.legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:11px;color:#847368}.legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px}.dot.points{background:#a6b7a1}.dot.mean{background:#bf7663}.dot.median{background:#6b736e}
+.feature-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:19px 0}.feature-strip .feat{padding:17px;border:1px solid #e9ddcc;border-radius:14px;background:#fffdfa}.feat .caps{font-size:10px;letter-spacing:.12em;color:#9c715f;font-weight:800}.feat strong{display:block;font-size:14px;margin:3px 0}.feat p{font-size:11px;margin:0;color:#807367;line-height:1.8}
+.step-list{counter-reset:step;display:grid;gap:10px;margin-top:18px}.step{position:relative;border:1px solid var(--line);background:#fffdfa;border-radius:13px;padding:15px 19px 15px 55px}.step:before{counter-increment:step;content:counter(step,decimal-leading-zero);position:absolute;left:17px;top:17px;color:#af816b;font:700 17px Georgia,serif}.step strong{font-size:13.5px}.step p{font-size:12px;color:#786a5e;margin:2px 0 0}
+.code-block{border-radius:15px;overflow:hidden;border:1px solid #dfd9cd;margin:22px 0;background:#303630}.code-title{background:#3e453f;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#f5f0e6;padding:8px 16px;font-size:11px}.code-title span{font-weight:750;letter-spacing:.03em}.copy-btn{font-size:11px;color:#f4e8d7;background:transparent;border:1px solid #777f74;border-radius:7px;padding:4px 10px;cursor:pointer}.copy-btn:hover{background:#556056}pre{overflow:auto;margin:0;padding:19px 21px;color:#ecebdc;font:12px/1.75 "SFMono-Regular",Consolas,"Liberation Mono",monospace;tab-size:4}pre code{font-family:inherit}
+.experiment{border:1px solid var(--line);border-radius:15px;background:#fffdfa;padding:19px;margin:14px 0}.exp-head{display:flex;gap:12px;align-items:center;margin-bottom:6px}.exp-id{background:var(--sage-pale);color:#638365;border-radius:9px;padding:3px 9px;font:700 12px Georgia,serif}.experiment strong{font-size:14px}.experiment p{font-size:12.5px;margin:7px 0;color:#72685e}.experiment p b{color:#66564a}
+blockquote{margin:28px 0;border-left:3px solid #bf8d76;padding:5px 0 5px 20px;color:#694b3c;font-family:"Noto Serif SC","Songti SC",serif;font-size:17px;line-height:2;background:transparent}
+.source-list{font-size:12px;color:#786c60;line-height:1.85;padding-left:20px}.source-list li{margin-bottom:7px}.source-list a{word-break:break-word}
+.route-card{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;background:#f0efe6;border:1px solid #dfe5d8;padding:19px 21px;border-radius:16px;margin-top:26px}.route-card small{display:block;color:#82917c;font-weight:800;letter-spacing:.1em;font-size:10px}.route-card strong{font-size:16px}.route-card p{font-size:12px;color:#717567;margin:3px 0 0}.route-card .route-arrow{color:#769071;font-size:24px}
+.bottom-nav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:40px}.bottom-nav a,.bottom-nav .nav-pending{display:block;background:#fffdfa;border:1px solid var(--line);padding:14px 17px;border-radius:12px;color:#675e55;font-size:13px}.bottom-nav small{display:block;color:#a39484;font-size:10px;margin-bottom:5px}.bottom-nav .nav-pending{opacity:.75}.bottom-nav .nav-pending span{font-size:10px;color:#9b7f72}
+.footer{max-width:1220px;margin:0 auto;padding:22px 38px 30px;text-align:center;font-size:11px;color:#a99b8a;border-top:1px solid var(--line)}
+@media(max-width:990px){.page-shell{grid-template-columns:1fr;gap:0}.sidebar{display:none}main{max-width:100%;padding-top:22px}.hero{padding:28px 29px}}
+@media(max-width:660px){.site-header{padding:16px 18px;align-items:flex-start}.site-nav{gap:9px;flex-wrap:wrap;justify-content:flex-end}.page-shell{padding:0 17px 65px}.hero{padding:25px 20px}.hero-grid{grid-template-columns:1fr}.hero svg{max-width:310px;margin:-9px auto -8px}.hero-meta{margin-top:9px}h1{font-size:28px}h2{font-size:21px}.section{margin-top:52px}.section-number{width:37px;height:37px;font-size:16px}.two-col,.three-col,.feature-strip{grid-template-columns:1fr}.card{padding:18px}.table-wrap{margin-left:-2px;margin-right:-2px}table{min-width:580px}.bottom-nav{grid-template-columns:1fr}.route-card{grid-template-columns:1fr}.route-arrow{display:none}.formula{font-size:14px;padding:12px 8px}.hero-lede{font-size:13px}}
+@media print{.sidebar,#progress,.copy-btn,.demo-controls,.site-nav{display:none!important}.page-shell{display:block;padding:0 12px}.site-header{padding:8px 12px}.hero{break-inside:avoid}.section{break-inside:auto;margin-top:40px}.card,.tech,.experiment,table,figure{break-inside:avoid}.footer{padding:15px}}
+
+/* Revision 02.1: miniature mathematical ideas + usable algorithm snippets */
+.method-core{margin-top:13px;padding:12px 14px;background:#f8f5ee;border:1px solid #e8e2d5;border-radius:11px;color:#69594e;font-size:12.5px;line-height:1.85}
+.method-core strong{color:#815844}.method-core .math-inline{display:block;font-family:"Cambria Math",Georgia,serif;font-size:15px;overflow-x:auto;white-space:nowrap;padding:5px 0;color:#6e6157}
+.code-block.compact-code{margin:12px 0 3px;border-radius:10px;box-shadow:none}
+.compact-code pre{padding:12px 15px;font-size:11.4px;line-height:1.63;max-height:390px}
+.compact-code .code-title{padding:6px 12px}
+.method-result{font-size:11.5px;color:#826f5f;margin:8px 0 0;line-height:1.65}
+.method-result b{color:#8c6251}
+.tech .compact-code{margin-bottom:2px}
+.method-bridge{padding:14px 17px;background:#f5f0e8;border-left:3px solid #b3a281;border-radius:0 12px 12px 0;margin:19px 0;font-size:12.5px}
+.demo-row{display:flex;gap:13px;flex-wrap:wrap;align-items:center;font-size:12px;color:#78675c}
+.demo-row .pill{background:#f0e6d7;border:1px solid #e9d9c5;border-radius:20px;padding:2px 9px;color:#7e5a46;font-weight:700}
+.method-index{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0}
+.method-index a{font-size:11px;line-height:1.5;padding:10px;border:1px solid #e8dfd2;background:#fffdf9;border-radius:10px;color:#7c6252;display:block}
+.method-index b{display:block;font-size:12px;color:#654d40}
+.test-data{background:#f2f4ee;border:1px solid #dce6d8;border-radius:12px;padding:15px 17px;margin:17px 0;font-size:12.5px;color:#5c705a}
+.test-data code{font-size:12px}
+@media(max-width:740px){.method-index{grid-template-columns:repeat(2,minmax(0,1fr))}.compact-code pre{font-size:10.6px}}
+</style>
+</head>
+<body>
+<div id="progress"></div><div class="topline"></div>
+<header class="site-header">
+<a aria-label="沿途手记主页" class="brand" href="https://fishxddd.github.io/"><span class="leaf">✿</span>沿途手记 <span style="font-size:11px;font-weight:500;color:#9d8d80">/ Research Notes</span></a>
+<nav aria-label="网站导航" class="site-nav"><a href="https://fishxddd.github.io/">回到首页</a><span>·</span><a href="https://fishxddd.github.io/research/stage-01/">Stage 01</a></nav>
+</header>
+<div class="page-shell">
+<aside aria-label="本页目录" class="sidebar"><div class="sidebar-inner">
+<div class="sidebar-kicker">Q01 · Geometry</div>
+<div class="sidebar-title">02｜统计几何<br/>从点的分布寻找线索</div>
+<nav aria-label="章节目录" class="toc">
+<a href="#why">研究起点</a>
+<a href="#center">01 · 什么才算中心？</a>
+<a class="toc-sub" href="#center-family">中心方法的分支</a>
+<a class="toc-sub" href="#sampling">异常点与采样偏差</a>
+<a href="#direction">02 · 从协方差走向 PCA</a>
+<a class="toc-sub" href="#pca-limits">退化与稳定性</a>
+<a class="toc-sub" href="#robust-pca">主轴的鲁棒估计</a>
+<a href="#range">03 · AABB / OBB 与空间范围</a>
+<a href="#implementation">04 · 具体怎么落地</a>
+<a href="#experiments">05 · 四组验证实验</a>
+<a href="#closing">06 · 认识与边界</a>
+<a href="#resources">实现参考</a>
+</nav>
+<div class="sidebar-note"><strong>关于这一页</strong><br/>这一页是统计几何的最下一层技术手记：主要方法、关键原理、工程代价和验证思路尽量在这里讲完整，不再把核心内容留给下一篇。</div>
+</div></aside>
+<main>
+<div class="breadcrumbs"><a href="https://fishxddd.github.io/">沿途手记</a><b>›</b><a href="https://fishxddd.github.io/research/stage-01/">Stage 01</a><b>›</b><a href="../">Q01 · 点云几何</a><b>›</b><span>02 · 统计几何</span></div>
+<section class="hero" id="top">
+<div class="hero-grid">
+<div>
+<span class="chapter-pill">Q01 · 技术探索 02</span>
+<h1><small>Statistical Geometry</small>从点的分布中<br/>寻找几何线索</h1>
+<p class="hero-lede">没有 CAD，也不预先假定物体形状。先看看仅凭一份单视角点云，可以怎样得到中心、主方向和空间范围；再弄明白，它们为什么有时候恰好有用，有时候却会稳定地算错。</p>
+<div class="hero-meta"><span>Centroid / Median</span><span>Covariance / PCA</span><span>Robust Estimation</span><span>AABB / OBB</span></div>
+</div>
+<svg aria-label="示意：点云、统计中心、主方向和一个旋转包围框" role="img" viewbox="0 0 290 245">
+<defs><pattern height="12" id="dots" patternunits="userSpaceOnUse" width="12"><circle cx="1" cy="1" fill="#e8dbcd" r=".65"></circle></pattern></defs>
+<rect fill="url(#dots)" height="226" opacity=".7" rx="18" width="276" x="7" y="8"></rect>
+<g transform="rotate(-28 150 124)"><rect fill="#e8e6d7" fill-opacity=".45" height="72" rx="4" stroke="#bda18b" stroke-dasharray="7 5" stroke-width="1.7" width="190" x="55" y="92"></rect>
+<g fill="#91a58f" opacity=".95"><circle cx="69" cy="115" r="4"></circle><circle cx="84" cy="105" r="3.6"></circle><circle cx="93" cy="139" r="4"></circle><circle cx="110" cy="118" r="3"></circle><circle cx="120" cy="150" r="4"></circle><circle cx="135" cy="108" r="4.5"></circle><circle cx="143" cy="128" r="3.4"></circle><circle cx="161" cy="141" r="4"></circle><circle cx="169" cy="113" r="3.6"></circle><circle cx="187" cy="133" r="4.8"></circle><circle cx="198" cy="108" r="3.2"></circle><circle cx="219" cy="124" r="4"></circle><circle cx="229" cy="146" r="3.3"></circle><circle cx="103" cy="121" r="3.8"></circle><circle cx="154" cy="116" r="3.8"></circle><circle cx="181" cy="154" r="3.5"></circle><circle cx="207" cy="143" r="3.8"></circle></g><path d="M44 128H257" stroke="#bb8067" stroke-width="2.2"></path><path d="M250 122l9 6-9 6" fill="none" stroke="#bb8067" stroke-width="2.2"></path><path d="M150 88V169" stroke="#b3a596" stroke-dasharray="4 4" stroke-width="1.2"></path><circle cx="150" cy="128" fill="#c47f66" r="7" stroke="#fff" stroke-width="3"></circle></g>
+<g fill="#8d7160" font-family="sans-serif" font-size="10"><text x="196" y="46">主方向</text><text x="125" y="209">分布中心</text></g>
+<path d="M199 50l-8 21M147 199l-1-28" fill="none" stroke="#af9482" stroke-width="1.1"></path>
+</svg>
+</div>
+</section>
+<div class="intro" id="why">
+<p>拿到点云，最简单的路线是不去猜测它是什么物体，而是先<strong>统计这些点本身</strong>：它们集中在哪里、沿什么方向展开、占据什么范围。</p>
+<p>这条路线看起来只有 Mean、PCA、OBB 几个名字，真正有意思的地方却在于：<strong>“中心”有不同定义，“方向”可能退化，“范围”也取决于优化目标。</strong>如果不分清这些问题，代码得到一个结果，并不意味着已经获得了物体的真实几何。</p>
+</div>
+<section class="section" id="center">
+<div class="section-heading"><span class="section-number">01</span><h2>从一个中心开始，究竟在求什么？</h2></div>
+<p class="section-lead">中心估计值得认真学一次，因为它不是一个只有 <code>mean()</code> 的问题。不同方法背后，对“什么算中心”的定义本来就不同。</p><div class="test-data"><strong>代码约定</strong>：以下所有简短片段都使用 <code>P</code> 表示形状为 <code>(N,3)</code> 的 NumPy 数组，坐标单位统一为米，且已经去除 NaN / Inf。它们是可复制的<strong>最小算法实现</strong>，不是机器人生产环境的整套流程。代码中的 <code>np</code> 默认来自 <code>import numpy as np</code>。</div>
+<div class="method-index"><a href="#center-family"><b>中心估计</b>Mean · Median · Medoid · Huber</a><a href="#sampling"><b>观测与清理</b>Voxel · SOR · ROR</a><a href="#direction"><b>方向提取</b>Covariance · PCA · SVD</a><a href="#robust-pca"><b>稳健方向</b>Weighted PCA · MCD</a><a href="#range"><b>范围估计</b>AABB · OBB · Quantile</a><a href="#experiments"><b>验证方法</b>扰动 · 遮挡 · 退化</a></div>
+<h3 id="mean-basics">1.1 最直接的 Mean，其实有明确的优化意义</h3>
+<p>对点云 <strong>P = {p₁, …, pₙ}</strong> 的 XYZ 分别取平均，就能得到 Mean Centroid（观测点集均值中心）。这不是一个随手规定的位置：它恰好让所有点到这个中心的<strong>平方距离之和最小</strong>。</p>
+<div class="formula">μ = (1/N) ∑ᵢ pᵢ  =  arg min<sub>c</sub> ∑ᵢ ‖pᵢ − c‖²</div><div class="code-block compact-code"><div class="code-title"><span>Mean：最小平方距离</span><button class="copy-btn" data-copy="algo-v2-101" type="button">复制代码</button></div><pre id="algo-v2-101"><code>import numpy as np
+center_mean = P.mean(axis=0)  # [cx, cy, cz]</code></pre></div><p class="method-result"><b>输出：</b>一个 3D 位置。它可以不在任何实际测量点上。</p>
+<p>所以 Mean 的代价也很容易理解：远处的点会因为平方惩罚产生更大的影响。如果点云混入几处深度飞点，结果可能被它们拉走；但数据干净且分布合理时，它简单、高效，也是非常好的基线。</p>
+<div aria-label="离群点对一维中心的影响交互示意" class="demo">
+<h4>一个可以拖动的小实验 · 一维也能看清问题</h4>
+<p>九个点聚在 0 附近，拖动右侧异常点的位置，看看均值与中位数如何移动。仅作为直观演示，并不代表所有三维点云的分布。</p>
+<div class="demo-controls"><label for="outlier" style="font-size:12px;font-weight:800;white-space:nowrap">异常点位置</label><input id="outlier" max="8" min="0" step="0.1" type="range" value="6"/><strong id="outlier-value" style="font-size:12px;color:#a46952">6.0</strong></div>
+<svg aria-label="九个集中点、一个异常点以及均值与中位数的位置示意" id="center-demo" role="img" viewbox="0 0 640 150"></svg>
+<div class="demo-readouts"><span>Mean <b id="mean-value">—</b></span><span>Median <b id="median-value">—</b></span></div>
+<div class="legend" style="margin-top:10px"><span><i class="dot points"></i>观测点</span><span><i class="dot mean"></i>Mean</span><span><i class="dot median"></i>Median</span></div>
+</div>
+<h3 id="center-family">1.2 中心不止一种：先弄清楚它们在优化什么</h3>
+<p>如果目标是对离群点更稳定、或者必须从真实观测点中选一个代表位置，就会出现不同的中心定义。它们不是 Mean 的简单升级版，而是<strong>优化目标发生了变化</strong>。</p>
+<div class="tech"><div class="tech-name">A · Coordinate-wise Median <em>逐坐标中位数</em></div><p>分别求 X、Y、Z 的中位数；等价于最小化逐坐标的绝对偏差之和。对少量极端异常值更稳健，而且容易实现。</p><p class="tradeoff"><strong>代价：</strong>依赖所选坐标轴，点云旋转后重新估计，结果不必等于原结果的同步旋转。</p><div class="method-core">逐坐标把点排序，取每一维的中位数；最小化的是各维度的绝对偏差总和。<div class="math-inline">cⱼ = median(p₁ⱼ, …, pₙⱼ)</div></div><div class="code-block compact-code"><div class="code-title"><span>逐坐标中位数</span><button class="copy-btn" data-copy="algo-v2-102" type="button">复制代码</button></div><pre id="algo-v2-102"><code>center_xyz_median = np.median(P, axis=0)</code></pre></div><p class="method-result"><b>注意：</b>不是“在三维中寻找离大家最近的点”；XYZ 分开求会受坐标系旋转影响。</p></div>
+<div class="tech sage"><div class="tech-name">B · Geometric Median <em>几何中位数 · Weiszfeld</em></div><p>把最小化逐坐标距离，改成最小化<strong>三维欧氏距离之和</strong>。它具有旋转不变性；代表性的求解机制是 Weiszfeld 迭代，反复根据各点到当前估计的距离调整权重。</p><div class="formula" style="font-size:16px">c* = arg min<sub>c</sub> ∑ᵢ ‖pᵢ − c‖</div><p class="tradeoff"><strong>代价：</strong>需要迭代；靠近样本点时需要处理数值细节。仍然只代表<strong>观测点分布</strong>。</p><div class="method-core">从均值附近开始迭代：离当前估计越近的样本，下一次平均时权重越大。标准 Weiszfeld 法对应欧氏距离和最小化。<div class="math-inline">wᵢ = 1 / ‖pᵢ − c‖，cₙₑₓₜ = ∑wᵢpᵢ / ∑wᵢ</div></div><div class="code-block compact-code"><div class="code-title"><span>几何中位数：Weiszfeld 简化版</span><button class="copy-btn" data-copy="algo-v2-103" type="button">复制代码</button></div><pre id="algo-v2-103"><code>def geometric_median(P, eps=1e-9, max_iter=200):
+    c = np.median(P, axis=0).astype(float)
+    for _ in range(max_iter):
+        dist = np.linalg.norm(P - c, axis=1)
+        w = 1.0 / np.maximum(dist, eps)
+        nxt = (P * w[:, None]).sum(axis=0) / w.sum()
+        if np.linalg.norm(nxt - c) &lt; 1e-8:
+            break
+        c = nxt
+    return c
+
+center_geo = geometric_median(P)</code></pre></div><p class="method-result"><b>细节：</b><code>eps</code> 仅用于数值保护；当最优解恰好落在样本上时，严格 Weiszfeld 需额外处理，该代码是实用近似。</p></div>
+<div class="tech wheat"><div class="tech-name">C · Medoid <em>样本代表点</em></div><p>寻找使“到其他观测点的距离和”最小的<strong>某个原始点</strong>。如果输出必须对应真实测得的位置，它和允许落在点云外的均值、几何中位数有本质区别。</p><p class="tradeoff"><strong>代价：</strong>直接计算两两距离通常为 O(N²) 量级；可以先下采样或近似搜索。</p><div class="method-core">把每个已有点轮流当作候选中心，计算它到全部点的<strong>欧氏距离和</strong>；选得分最小的原始点及其索引。<div class="math-inline">j* = arg minⱼ ∑ᵢ ‖pⱼ − pᵢ‖，输出 pⱼ* ∈ P</div></div><div class="code-block compact-code"><div class="code-title"><span>Medoid：精确求样本代表点</span><button class="copy-btn" data-copy="algo-v2-104" type="button">复制代码</button></div><pre id="algo-v2-104"><code>from scipy.spatial.distance import cdist
+
+def medoid_exact(P, block=128):
+    best_idx, best_score = -1, float('inf')
+    for start in range(0, len(P), block):
+        # 只计算本批候选到全部点的距离
+        score = cdist(P[start:start+block], P).sum(axis=1)
+        j = int(np.argmin(score))
+        if score[j] &lt; best_score:
+            best_score = float(score[j])
+            best_idx = start + j
+    return best_idx, P[best_idx]
+
+idx, center_medoid = medoid_exact(P)</code></pre></div><p class="method-result"><b>输出：</b>索引 <code>idx</code> 和原点 <code>P[idx]</code>。时间约 <code>O(N²)</code>；批计算将距离矩阵内存降为 <code>O(block × N)</code>。</p><div class="code-block compact-code"><div class="code-title"><span>Medoid：大点云近似候选</span><button class="copy-btn" data-copy="algo-v2-105" type="button">复制代码</button></div><pre id="algo-v2-105"><code>rng = np.random.default_rng(42)
+candidates = rng.choice(len(P), min(256, len(P)),
+                        replace=False)
+score = cdist(P[candidates], P).sum(axis=1)
+idx = candidates[np.argmin(score)]
+center_medoid_approx = P[idx]</code></pre></div><p class="method-result"><b>思路：</b>只让最多 256 个样本参与“竞选”，但得分仍对全部样本求和；约 <code>O(MN)</code>，不保证找到精确 Medoid。</p></div>
+<div class="tech"><div class="tech-name">D · Bounding-Box Center <em>包围范围中点</em></div><p>取各坐标最小值、最大值的中点。它主要反映<strong>点云的空间范围</strong>，而不是内部点出现的频次。</p><p class="tradeoff"><strong>代价：</strong>极值对飞点敏感；它也不是物体的体积质心。</p><div class="method-core">直接取坐标极值的中点；它回答的是当前坐标系中“点集占据范围的中间在哪里”，不是密集区域在哪里。<div class="math-inline">c = (min(P,axis=0) + max(P,axis=0)) / 2</div></div><div class="code-block compact-code"><div class="code-title"><span>AABB 范围中心</span><button class="copy-btn" data-copy="algo-v2-106" type="button">复制代码</button></div><pre id="algo-v2-106"><code>low, high = P.min(axis=0), P.max(axis=0)
+center_box = (low + high) / 2
+extent_xyz = high - low</code></pre></div><p class="method-result"><b>输出：</b>中心 + XYZ 范围尺寸；一个远离群点就可能改变极值。</p></div>
+<div class="tech sage"><div class="tech-name">E · Trimmed Mean / M-estimator <em>截尾均值与稳健损失</em></div><p>另一条思路是仍然保留“平均”或“损失最小化”的形式，但先剔除按规则判定的极端观测，或改用 Huber 等对大残差增长较慢的损失。适合在误差模型比较明确时改善估计。</p><p class="tradeoff"><strong>代价：</strong>截尾比例、残差尺度等需要选择；多簇点云或真正的少数结构可能被误判。三维截尾应先明确距离与筛选基准，不能随意每轴剪裁。</p><div class="method-core">截尾：先选一个稳健参考中心，再剔除离它最远的一小部分样本；Huber：近距离使用平方误差，远距离改用近似线性惩罚。<div class="math-inline">ρδ(r) = r²/2 (r≤δ)；δ(r−δ/2) (r&gt;δ)</div></div><div class="code-block compact-code"><div class="code-title"><span>Trimmed Mean：按三维距离筛选</span><button class="copy-btn" data-copy="algo-v2-107" type="button">复制代码</button></div><pre id="algo-v2-107"><code>seed = np.median(P, axis=0)
+d = np.linalg.norm(P - seed, axis=1)
+keep = d &lt;= np.quantile(d, 0.9)  # 留下 90%
+center_trim = P[keep].mean(axis=0)</code></pre></div><p class="method-result"><b>代价：</b>90% 是示例，不是标准值；真实细部/离群簇可能被误判。</p><div class="code-block compact-code"><div class="code-title"><span>Huber 中心：IRLS 简化版</span><button class="copy-btn" data-copy="algo-v2-108" type="button">复制代码</button></div><pre id="algo-v2-108"><code>def huber_center(P, delta=0.02, loops=30):
+    c = np.median(P, axis=0).astype(float)
+    for _ in range(loops):
+        r = np.linalg.norm(P - c, axis=1)
+        w = np.minimum(1.0, delta / np.maximum(r, 1e-12))
+        c = np.average(P, axis=0, weights=w)
+    return c
+
+center_huber = huber_center(P)  # delta 单位：米</code></pre></div><p class="method-result"><b>数学思路：</b>Huber 损失的 IRLS 权重 <code>w=min(1,δ/r)</code>；<code>delta</code> 需与噪声尺度匹配。</p></div>
+<div class="method-bridge"><strong>一个能分清三种中心的小例子：</strong>对同一直线上的位置 <code>[0, 0.1, 0.2, 0.3, 8.0]</code>（单位 m），Mean 会被远处的 8.0 拉偏；几何中位数接近 0.2；Medoid 也会从<strong>真实已有样本</strong>中选到 0.2。对于非对称三维点集，几何中位数可能落在两点之间，而 Medoid 始终是输入点之一。<br/><strong>不要混淆：</strong>Medoid 并不保证是最靠近均值的样本，正确目标是“到所有样本距离和最小”。</div><div class="table-wrap"><table><thead><tr><th>中心定义</th><th>到底优化什么</th><th>比较适合的情况</th><th>值得警惕的代价</th></tr></thead><tbody>
+<tr><td><strong>Mean</strong></td><td>平方距离和最小</td><td>干净、采样合理的点集</td><td>远离群点影响大</td></tr>
+<tr><td><strong>Coordinate Median</strong></td><td>逐轴绝对距离和最小</td><td>简易稳健基线</td><td>随坐标轴定义变化</td></tr>
+<tr><td><strong>Geometric Median</strong></td><td>欧氏距离和最小</td><td>希望保留旋转一致性的稳健位置</td><td>迭代、数值处理</td></tr>
+<tr><td><strong>Medoid</strong></td><td>从观测点中找距离和最小者</td><td>需要真实样本代表点</td><td>大点集计算成本</td></tr>
+<tr><td><strong>Box Center</strong></td><td>坐标极值中点</td><td>描述观测空间范围</td><td>极端值、遮挡</td></tr>
+<tr><td><strong>Trimmed / Huber</strong></td><td>减弱大残差影响</td><td>离群点分布有依据时</td><td>阈值及筛选偏差</td></tr>
+</tbody></table></div>
+<div class="note"><div class="note-title">到这里应该形成的判断</div>“中心”本身并不唯一。Mean 不是错误方法，Median 也不是处处更优；<strong>首先要定义想要的是哪一种中心，再谈求解算法。</strong></div>
+<h3 id="sampling">1.3 算法换得再稳，为什么位置还是可能偏？</h3>
+<p>这时需要把三种完全不同的误差分开：<strong>离群点、采样密度不均、可见性缺失</strong>。它们会造成相似的中心偏移，却不能依靠同一种方法消除。</p>
+<div class="three-col">
+<div class="card"><span class="mini-label">Noise</span><strong>离群点 / 飞点</strong><p style="font-size:12px;color:#76695e">少量不属于主体表面的错误测量。可以考虑稳健位置统计、SOR、ROR 等，但有可能误删真实细部。</p></div>
+<div class="card"><span class="mini-label">Sampling</span><strong>采样密度偏差</strong><p style="font-size:12px;color:#76695e">点更多的区域，在普通均值与协方差中权重更大。体素降采样或合理加权可缓解，但不能保证严格表面积均匀。</p></div>
+<div class="card"><span class="mini-label">Visibility</span><strong>单视角遮挡</strong><p style="font-size:12px;color:#76695e">背面根本没有测量。无论统计估计多鲁棒，都不能仅靠这份点云补全不存在的信息。</p></div>
+</div>
+<h4>离群点：SOR 与 ROR 在做什么？</h4>
+<p><strong>SOR（Statistical Outlier Removal）</strong>使用邻居距离的统计规律，删除局部邻域距离明显异常的点；<strong>ROR（Radius Outlier Removal）</strong>则看指定半径内是否拥有足够多的邻居。它们是点云清理机制，不是“求中心的新算法”。</p><div class="code-block compact-code"><div class="code-title"><span>Open3D：SOR 与 ROR</span><button class="copy-btn" data-copy="algo-v2-109" type="button">复制代码</button></div><pre id="algo-v2-109"><code>import open3d as o3d
+pcd = o3d.geometry.PointCloud()
+pcd.points = o3d.utility.Vector3dVector(P)
+
+sor, _ = pcd.remove_statistical_outlier(
+    nb_neighbors=20, std_ratio=2.0)
+ror, _ = pcd.remove_radius_outlier(
+    nb_points=8, radius=0.01)  # 半径 1 cm</code></pre></div><p class="method-result"><b>SOR：</b>相邻点平均距离的异常程度；<b>ROR：</b>半径内邻居数量。两者是不同筛选策略，这里分别处理原始 <code>pcd</code>。</p>
+<p>对于单个孤立飞点可能有效；如果错误深度连成了密集片区，也可能无法识别。反过来，真实的细杆、尖角或稀疏边缘也可能被错删。</p>
+<h4>采样密度：为什么 Voxel 不只是为了提速？</h4>
+<p>深度相机给出的是有像素拓扑的采样，表面在不同距离、角度下可能对应不同数量的点。原始 Mean 统计的是<strong>这些测量样本的均值</strong>，不是严格的连续表面积中心。</p><div class="code-block compact-code"><div class="code-title"><span>Open3D：体素降采样</span><button class="copy-btn" data-copy="algo-v2-110" type="button">复制代码</button></div><pre id="algo-v2-110"><code>import open3d as o3d
+pcd = o3d.geometry.PointCloud()
+pcd.points = o3d.utility.Vector3dVector(P)
+vox = pcd.voxel_down_sample(voxel_size=0.005)
+P_vox = np.asarray(vox.points)
+center_after_voxel = P_vox.mean(axis=0)</code></pre></div><p class="method-result"><b>机制：</b>按 5 mm 体素分组，非空体素给一个代表点；近似减弱密集区域权重，但不可用来补全背面。</p>
+<p><strong>Voxel Downsampling</strong>按空间体素划分点，每个非空体素保留一个代表点，可以减少高密区域的重复权重，同时降低后续统计成本。但体素太大又会吃掉薄结构、改变边界；体素代表点也未必具有完全相同的真实表面积权重。</p>
+<h4>遮挡：最值得保留的一次认知区分</h4>
+<div class="figure"><p class="figure-title">同一圆柱截面：完整几何中心 ≠ 前半圈可见表面的均值中心</p>
+<svg aria-label="圆柱截面圆的完整中心与可见半圆弧均值偏移示意" role="img" viewbox="0 0 700 225">
+<defs><marker id="ah" markerheight="7" markerwidth="7" orient="auto" refx="5" refy="3"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#bb7963" stroke-width="1"></path></marker></defs>
+<g transform="translate(192 112)"><circle fill="#f8f2e9" r="80" stroke="#c9b8a5" stroke-dasharray="5 6" stroke-width="1.3"></circle><path d="M0 -80 A80 80 0 0 1 0 80" fill="none" stroke="#91aa90" stroke-linecap="round" stroke-width="7"></path><path d="M-104 0 H105M0 -101 V101" stroke="#ece1d6" stroke-width="1"></path><circle cx="0" cy="0" fill="#b47d68" r="6"></circle><circle cx="50.93" cy="0" fill="#739977" r="6" stroke="white" stroke-width="2"></circle><path d="M5 0 H45" marker-end="url(#ah)" stroke="#b77f68" stroke-width="2"></path></g>
+<g fill="#7a6456" font-family="sans-serif" font-size="13"><text x="65" y="25">完整截面</text><text x="58" y="42">几何中心</text><path d="M129 45 L187 108" fill="none" stroke="#aa927c"></path><text x="312" y="100">可见前半弧</text><text x="312" y="120">的均值中心</text><path d="M308 112 L247 112" fill="none" stroke="#92a48e"></path><text fill="#9d8070" font-size="12" x="444" y="58">理想例子：半圆弧均匀取样时</text><text fill="#956e58" font-family="Georgia,serif" font-size="21" x="444" y="89">偏移 = 2R / π</text><text font-size="12" x="444" y="121">方向朝向可见一侧</text><text fill="#9c8b7a" font-size="11" x="444" y="146">真实 RGB-D 采样一般并不均匀</text></g>
+</svg><figcaption>几何示意，不是实测。即使零噪声、无飞点，只保留均匀半圆弧时，点集中心也不会落在圆心。</figcaption></div>
+<p>因此需要准确区分：<strong>观测点均值中心、可见表面面积中心、物体表面面积中心、物体体积质心、形状模型中心</strong>。除非有明确前提，它们并不能互相替代。</p>
+<div class="note rose"><div class="note-title">这里不是再找一种更强的统计方法</div>如果真正需要的是圆柱轴心，那么问题已经从“估计观测点的中心”变成“推断符合圆柱几何的轴心”。这是之后<strong>几何模型拟合</strong>的研究目标，不能靠把 Mean 换成 Median 来完成。</div>
+</section>
+<section class="section" id="direction">
+<div class="section-heading"><span class="section-number">02</span><h2>中心之外，怎样找到点云的主方向？</h2></div>
+<p class="section-lead">对于细长瓶身、条状零件或倾斜的盒体，只知道一个点的位置远远不够。接下来需要一种方法，描述整组点沿哪些方向分散、分散到什么程度。</p>
+<h3 id="pca-essentials">2.1 从方差与协方差，走到 PCA</h3>
+<p>沿着某一个单位方向 <strong>v</strong> 投影点云，得到一组标量。假设所有点已经减去均值，那么这个方向上的投影方差可以写成 <strong>vᵀCv</strong>。</p>
+<div class="formula">C = (1/N) ∑ᵢ (pᵢ − μ)(pᵢ − μ)ᵀ</div>
+<p>其中 <strong>C 是 3×3 协方差矩阵</strong>。现在要寻找一条方向，使投影方差最大，同时要求这个方向长度为 1：</p>
+<div class="formula">v₁ = arg max<sub>‖v‖ = 1</sub> vᵀCv</div>
+<p>这个约束优化问题的解，就是协方差矩阵<strong>最大特征值对应的特征向量</strong>。再选取与第一条方向正交的第二主方向，最后得到三个正交方向：</p>
+<div class="formula">Cvⱼ = λⱼvⱼ ，  λ₁ ≥ λ₂ ≥ λ₃ ≥ 0</div>
+<p>这便是 PCA（Principal Component Analysis）的几何意义：找出<strong>点集投影变化最大的正交方向</strong>。所以它并不是一个专门用来“求物体朝向”的黑盒，而是在回答一个清楚的统计问题。</p>
+<div class="note sage"><div class="note-title">PCA 与 SVD 的关系</div>可以不显式构造协方差，而直接对去中心化后的 N×3 点坐标矩阵做 SVD。其右奇异向量对应主轴，奇异值平方与协方差特征值成比例。对已经中心化的同一份数据，两条实现途径指向同一套主方向；工程中注意归一化约定与数值稳定性即可。</div>
+<div class="method-bridge"><strong>核心实现：</strong>先中心化，再算 <code>3×3</code> 协方差；对实对称矩阵使用 <code>eigh</code>，将特征值降序排列。PCA 实质上不是在识别物体，而是在对观测分布选主轴。</div><div class="code-block compact-code"><div class="code-title"><span>NumPy：Covariance → PCA</span><button class="copy-btn" data-copy="algo-v2-111" type="button">复制代码</button></div><pre id="algo-v2-111"><code>mu = P.mean(axis=0)
+X = P - mu
+C = X.T @ X / len(P)        # 3×3 协方差
+lam, V = np.linalg.eigh(C)  # 特征值默认升序
+idx = np.argsort(lam)[::-1]
+lam = lam[idx]
+R = V[:, idx]               # 三列：主轴向量
+if np.linalg.det(R) &lt; 0:
+    R[:, -1] *= -1          # 保持右手系
+main_axis = R[:, 0]</code></pre></div><p class="method-result"><b>输出：</b><code>lam</code> 三个特征值、<code>R</code> 三条正交主轴；正负符号仍未解决。</p><div class="code-block compact-code"><div class="code-title"><span>NumPy：SVD 也能获得主轴</span><button class="copy-btn" data-copy="algo-v2-112" type="button">复制代码</button></div><pre id="algo-v2-112"><code>_, singular, Vt = np.linalg.svd(X, full_matrices=False)
+R_svd = Vt.T
+lam_svd = singular**2 / len(P)</code></pre></div><p class="method-result"><b>理解：</b>去中心点矩阵的右奇异向量就是主方向（允许符号差异）；对应特征值等于奇异值平方除以 N。</p><h3>2.2 PCA 不只有一条轴，还告诉我点的分布像什么</h3>
+<p>三个特征值反映点在三个主方向上的分散程度。如果它们大小差异明显，便能分辨一些典型的分布形态。</p>
+<div class="feature-strip">
+<div class="feat"><span class="caps">LINEAR</span><strong>近似线状</strong><svg aria-hidden="true" viewbox="0 0 190 66"><g stroke="#b4a49a" stroke-width="1"><path d="M8 56L176 10" stroke-dasharray="4 4"></path></g><g fill="#92a991"><circle cx="19" cy="52" r="4"></circle><circle cx="37" cy="43" r="3"></circle><circle cx="56" cy="44" r="3.5"></circle><circle cx="80" cy="36" r="4"></circle><circle cx="100" cy="31" r="3"></circle><circle cx="124" cy="22" r="4"></circle><circle cx="150" cy="18" r="3"></circle><circle cx="170" cy="11" r="4"></circle></g></svg><p>λ₁ ≫ λ₂、λ₃<br/>第一主轴通常更有辨识度。</p></div>
+<div class="feat"><span class="caps">PLANAR</span><strong>近似面状</strong><svg aria-hidden="true" viewbox="0 0 190 66"><path d="M23 45L66 10L173 20L132 56Z" fill="#eef1e9" stroke="#a4b39b"></path><g fill="#90aa90"><circle cx="48" cy="37" r="3"></circle><circle cx="81" cy="24" r="3"></circle><circle cx="116" cy="44" r="3"></circle><circle cx="138" cy="27" r="3"></circle><circle cx="98" cy="37" r="3"></circle><circle cx="76" cy="43" r="3"></circle></g></svg><p>λ₁ ≈ λ₂ ≫ λ₃<br/>平面内朝向可不稳定，法线轴却可能稳定。</p></div>
+<div class="feat"><span class="caps">ISOTROPIC</span><strong>近似各向同性</strong><svg aria-hidden="true" viewbox="0 0 190 66"><ellipse cx="96" cy="33" fill="#f1ece4" rx="54" ry="29" stroke="#d6c6b6"></ellipse><g fill="#9da99a"><circle cx="78" cy="18" r="3"></circle><circle cx="104" cy="20" r="3.5"></circle><circle cx="116" cy="39" r="3"></circle><circle cx="82" cy="44" r="3"></circle><circle cx="68" cy="32" r="3"></circle><circle cx="132" cy="29" r="3"></circle><circle cx="96" cy="33" r="3"></circle></g></svg><p>λ₁ ≈ λ₂ ≈ λ₃<br/>没有显著唯一的统计主方向。</p></div>
+</div>
+<p>由此可以得到几个常见的特征值描述量，用于粗略刻画点集的线性、平面性和三维分散性：</p>
+<div class="formula">Linearity = (λ₁ − λ₂) / λ₁<br/>Planarity = (λ₂ − λ₃) / λ₁<br/>Scattering = λ₃ / λ₁</div>
+<p>这些量在 λ₁ &gt; 0 时才有定义。它们属于<strong>统计形态描述符</strong>，不是物体类别识别器：一个瓶子的局部可见表面和完整瓶子会表现出不同特征值结构。</p>
+<div class="code-block compact-code"><div class="code-title"><span>计算 Linearity / Planarity / Scattering</span><button class="copy-btn" data-copy="algo-v2-113" type="button">复制代码</button></div><pre id="algo-v2-113"><code>if lam[0] &gt; 1e-12:
+    linearity = (lam[0] - lam[1]) / lam[0]
+    planarity = (lam[1] - lam[2]) / lam[0]
+    scattering = lam[2] / lam[0]
+else:
+    linearity = planarity = scattering = float('nan')</code></pre></div><p class="method-result"><b>用途：</b>比较形态与退化迹象；并不能直接判断物体属于哪种形状。</p><h3 id="pca-limits">2.3 “PCA 算出了方向”，为什么仍然可能没法定义朝向？</h3>
+<p>这里至少存在三种不同情况，必须分别判断。</p>
+<div class="tech"><div class="tech-name">A · 结构轴与统计轴不一致 <em>Systematic Bias</em></div><p>PCA 寻找投影方差最大方向，求得的是<strong>当前被采样点集</strong>的轴。瓶身一侧缺失、盒体只见一个角，或者形状本来不规则时，统计主轴都可能与真实结构轴偏离。算法即便完全正确，目标也可能选错。</p></div>
+<div class="tech sage"><div class="tech-name">B · 特征值接近 <em>Degeneracy</em></div><p>当对应两个方向的特征值很接近时，微小噪声就可能使这两个特征向量明显旋转。但要看<strong>关心的是哪一条轴</strong>：一个平面点集的两个面内主方向可能不稳定，垂直平面的法线轴却可以很稳定。</p><p class="tradeoff"><strong>检查方法：</strong>观察对应特征值间隔，并通过重复采样、加噪和帧间比较实际检验方向稳定性；不应只给出一个没有上下文的固定比值阈值。</p></div>
+<div class="tech wheat"><div class="tech-name">C · 方向正负无法由 PCA 决定 <em>Sign Ambiguity</em></div><p>v 和 −v 的投影方差完全相同。PCA 输出的是<strong>无向轴</strong>，无法仅凭它判断“瓶口朝上还是朝下”。即使拼出三根互相正交的轴，也还需要规定方向符号并保证右手系（det(R) = +1）。</p><p class="tradeoff"><strong>补充约束：</strong>可以来自重力、桌面、视点、已知任务规则等，但这些都不是 PCA 本身得到的新信息。</p></div>
+<div class="figure"><p class="figure-title">同样叫“朝向”，可能是完全不同的三种要求</p>
+<svg aria-label="对比无向统计主轴、有方向主轴和完整抓取坐标系" role="img" viewbox="0 0 720 184">
+<g font-family="sans-serif"><rect fill="#faf3ec" height="150" rx="13" width="218" x="8" y="10"></rect><rect fill="#f2f5ed" height="150" rx="13" width="218" x="250" y="10"></rect><rect fill="#faf3ec" height="150" rx="13" width="218" x="492" y="10"></rect>
+<text fill="#795948" font-size="13" font-weight="bold" x="25" y="34">无向轴</text><text fill="#795948" font-size="13" font-weight="bold" x="267" y="34">有向轴</text><text fill="#795948" font-size="13" font-weight="bold" x="509" y="34">完整坐标系</text>
+<g stroke="#c08269" stroke-linecap="round" stroke-width="3"><path d="M65 111L169 66"></path><path d="M65 111l9-2 -5-7M169 66l-9 2 5 7" fill="none"></path><path d="M307 111L410 64"></path><path d="M410 64l-13 1 7 10" fill="none"></path><path d="M550 120L642 72"></path><path d="M642 72l-12 2 6 10" fill="none"></path></g>
+<g stroke="#93ad91" stroke-width="3"><path d="M550 120L575 54"></path><path d="M575 54l-8 9 11 3" fill="none"></path></g><g stroke="#b7a38a" stroke-width="3"><path d="M550 120L603 139"></path><path d="M603 139l-11-1 4-10" fill="none"></path></g>
+<text fill="#877366" font-size="11" x="25" y="145">PCA 自然输出</text><text fill="#718371" font-size="11" x="267" y="145">仍需消除正负歧义</text><text fill="#877366" font-size="11" x="509" y="145">还需多条独立约束</text></g>
+</svg><figcaption>空间主轴 ≠ 有明确符号的物体方向 ≠ 机器人夹爪的完整姿态。</figcaption></div>
+<div class="code-block compact-code"><div class="code-title"><span>无向轴误差：忽略 v 与 −v</span><button class="copy-btn" data-copy="algo-v2-114" type="button">复制代码</button></div><pre id="algo-v2-114"><code>a = R[:, 0] / np.linalg.norm(R[:, 0])
+b = np.asarray([0.0, 0.0, 1.0])  # 参考轴
+cosine = np.clip(abs(a @ b), 0.0, 1.0)
+axis_error_deg = np.degrees(np.arccos(cosine))</code></pre></div><p class="method-result"><b>注意：</b>只适合比较无向轴；如果应用要求瓶口朝上，不能取绝对值。</p><div class="method-core">判断稳定性，不是只看最大特征值，而是看<strong>目标方向对应的特征值与相邻特征值之间有没有明显间隔</strong>。<div class="math-inline">例如主轴关注 (λ₁−λ₂)，法线轴关注 (λ₂−λ₃)</div></div><h3 id="robust-pca">2.4 离群点也会带偏 PCA，值得学习哪些鲁棒做法？</h3>
+<p>普通 PCA 使用的协方差包含坐标偏差的乘积项，所以距离主体很远的少量点，可能显著改变主轴。改进并不一定意味着换掉特征值分解；很多时候，是要改进<strong>协方差从哪里来</strong>。</p>
+<div class="tech"><div class="tech-name">A · 清理后普通 PCA <em>Baseline First</em></div><p>使用目标分离、有效深度过滤、适度 Voxel、SOR / ROR 等减少异常观测，再进行普通 PCA。优先级高、可解释性好。</p><p class="tradeoff"><strong>代价：</strong>点云过滤过度可能删除有效边缘；清理无法修复单侧遮挡。</p></div>
+<div class="tech sage"><div class="tech-name">B · Weighted PCA <em>加权统计</em></div><p>根据可解释的测量可信度或采样密度补偿，为不同点赋予权重。加权均值、加权协方差的基本形式是：</p>
+<div class="formula" style="font-size:15px">μ<sub>w</sub> = (∑ᵢ wᵢpᵢ)/(∑ᵢ wᵢ)<br/>C<sub>w</sub> = (∑ᵢ wᵢ(pᵢ−μ<sub>w</sub>)(pᵢ−μ<sub>w</sub>)ᵀ)/(∑ᵢ wᵢ)</div>
+<p class="tradeoff"><strong>代价：</strong>权重设计要有依据；一个随意的权重策略可能比等权统计偏差更大。</p><div class="code-block compact-code"><div class="code-title"><span>Weighted PCA：改变协方差权重</span><button class="copy-btn" data-copy="algo-v2-115" type="button">复制代码</button></div><pre id="algo-v2-115"><code># 例：w 可以来自可靠的深度置信度
+w = np.ones(len(P), dtype=float)
+w = w / w.sum()
+mu_w = np.sum(P * w[:, None], axis=0)
+Xw = P - mu_w
+Cw = (Xw * w[:, None]).T @ Xw
+lam_w, Rw = np.linalg.eigh(Cw)
+order = np.argsort(lam_w)[::-1]
+lam_w, Rw = lam_w[order], Rw[:, order]</code></pre></div><p class="method-result"><b>为什么有效：</b>低置信度点的协方差贡献变小；这里的全 1 权重只是演示接口，实际必须有可信度来源。</p></div>
+<div class="tech wheat"><div class="tech-name">C · Robust Covariance / MCD <em>鲁棒协方差</em></div><p><strong>Minimum Covariance Determinant（MCD）</strong>通过寻找合适的样本子集来估计稳健的位置与协方差，再从鲁棒协方差提取主轴。这是独立于普通 PCA 的一类重要鲁棒统计思想。</p><p class="tradeoff"><strong>代价：</strong>计算更贵，通常更适合单峰、近似椭圆/对称的分布。面对多片曲面、复杂非凸点云时，不应该默认它更正确。</p><div class="code-block compact-code"><div class="code-title"><span>MCD：用稳健协方差求主轴</span><button class="copy-btn" data-copy="algo-v2-116" type="button">复制代码</button></div><pre id="algo-v2-116"><code>from sklearn.covariance import MinCovDet
+mcd = MinCovDet(random_state=0).fit(P)
+lam_mcd, R_mcd = np.linalg.eigh(mcd.covariance_)
+order = np.argsort(lam_mcd)[::-1]
+lam_mcd, R_mcd = lam_mcd[order], R_mcd[:, order]
+center_mcd = mcd.location_</code></pre></div><p class="method-result"><b>前提：</b>通常适合单峰、近似对称/椭圆分布；点云可能含有多个结构面，不能把它当成万能鲁棒 PCA。</p></div>
+<p>如果污染来自“可见半个瓶身”而不是离群点，这些方法可能都改变不了偏差来源。<strong>鲁棒性与几何真实性必须分开评价。</strong></p>
+<div class="note sage"><div class="note-title">如果只想比较两条无向主轴</div>先把两个向量单位化，再使用 <strong>θ = arccos(|v₁·v₂|)</strong>。绝对值使 v 与 −v 被视作同一条轴。不要把这个误差直接当成完整 6D 抓取姿态误差。</div>
+</section>
+<section class="section" id="range">
+<div class="section-heading"><span class="section-number">03</span><h2>有了主轴，怎样描述点云占据的空间？</h2></div>
+<p class="section-lead">方差大，不意味着一定知道物体长多少。需要把统计方向转换成具体的边界和尺寸，这便引出了 AABB、PCA-OBB 与最小体积 OBB。</p>
+<h3>3.1 AABB：固定坐标轴下的边界</h3>
+<p><strong>Axis-Aligned Bounding Box</strong> 分别沿 X、Y、Z 求最小值和最大值，构造与当前坐标系对齐的包围盒。它简单，适合做空间裁剪、粗碰撞检测、固定世界系范围描述。</p>
+<p>但是同一个物体发生旋转后，AABB 的尺寸可能变化很大：它描述的是<strong>坐标系中的占据</strong>，不一定是物体自身的尺寸。</p>
+<div class="code-block compact-code"><div class="code-title"><span>AABB：极值与中心</span><button class="copy-btn" data-copy="algo-v2-117" type="button">复制代码</button></div><pre id="algo-v2-117"><code>xyz_min = P.min(axis=0)
+xyz_max = P.max(axis=0)
+aabb_center = (xyz_min + xyz_max) / 2
+aabb_extent = xyz_max - xyz_min</code></pre></div><p class="method-result"><b>输出：</b>XYZ 边界与轴对齐尺寸；旋转同一物体，尺寸可能变化。</p><h3>3.2 PCA-OBB：把主方向变成尺寸描述</h3>
+<p>既然 PCA 已经给出了三根正交主轴，就把点投影到这些方向上，然后分别求投影范围。</p>
+<div class="formula">sᵢⱼ = vⱼᵀ(pᵢ − μ)  ,  Lⱼ = maxᵢ(sᵢⱼ) − minᵢ(sᵢⱼ)</div>
+<p>这样可以得到<strong>三条方向轴、三个方向的长度，以及投影极值中点对应的盒中心</strong>。注意：包围盒中心通常并不等于最开始的 Mean Centroid。</p>
+<div class="figure"><p class="figure-title">同一组倾斜点：AABB 与 PCA-OBB 描述的不是同一套边界</p>
+<svg aria-label="相同倾斜点云在 AABB 和旋转 PCA OBB 下的示意比较" role="img" viewbox="0 0 720 208">
+<g fill="#7b6153" font-family="sans-serif" font-size="13" font-weight="bold"><text x="105" y="24">AABB · 坐标系对齐</text><text x="461" y="24">PCA-OBB · 主轴对齐</text></g>
+<g transform="translate(13 27)"><rect fill="#f6e9e3" fill-opacity=".45" height="143" stroke="#cba99a" stroke-dasharray="6 4" stroke-width="2" width="228" x="66" y="25"></rect><g transform="rotate(-30 180 99)"><ellipse cx="180" cy="99" fill="#e5eddf" rx="125" ry="35" stroke="none"></ellipse><g fill="#94ae94"><circle cx="65" cy="112" r="4"></circle><circle cx="95" cy="86" r="3"></circle><circle cx="122" cy="117" r="4"></circle><circle cx="149" cy="89" r="4"></circle><circle cx="178" cy="111" r="3"></circle><circle cx="209" cy="87" r="4"></circle><circle cx="237" cy="103" r="4"></circle><circle cx="278" cy="94" r="3"></circle><circle cx="182" cy="98" r="3"></circle><circle cx="130" cy="106" r="3"></circle></g></g></g>
+<g transform="translate(375 27)"><g transform="rotate(-30 180 99)"><rect fill="#f7ece4" fill-opacity=".55" height="76" rx="3" stroke="#bc8e77" stroke-width="2.3" width="262" x="49" y="61"></rect><ellipse cx="180" cy="99" fill="#e5eddf" rx="125" ry="35" stroke="none"></ellipse><g fill="#94ae94"><circle cx="65" cy="112" r="4"></circle><circle cx="95" cy="86" r="3"></circle><circle cx="122" cy="117" r="4"></circle><circle cx="149" cy="89" r="4"></circle><circle cx="178" cy="111" r="3"></circle><circle cx="209" cy="87" r="4"></circle><circle cx="237" cy="103" r="4"></circle><circle cx="278" cy="94" r="3"></circle><circle cx="182" cy="98" r="3"></circle><circle cx="130" cy="106" r="3"></circle></g></g></g>
+</svg><figcaption>纯示意：PCA 方向来自样本分布；它并不自动意味着得到最紧凑的旋转包围盒。</figcaption></div>
+<div class="code-block compact-code"><div class="code-title"><span>直接对原始点做 PCA-OBB</span><button class="copy-btn" data-copy="algo-v2-118" type="button">复制代码</button></div><pre id="algo-v2-118"><code>mu = P.mean(axis=0)
+X = P - mu
+lam, V = np.linalg.eigh(X.T @ X / len(P))
+R = V[:, np.argsort(lam)[::-1]]
+if np.linalg.det(R) &lt; 0:
+    R[:, 2] *= -1
+Q = X @ R                 # 变换到 PCA 局部轴
+lo, hi = Q.min(axis=0), Q.max(axis=0)
+obb_extent = hi - lo
+obb_center = mu + R @ ((lo + hi) / 2)
+# R: 朝向，obb_center: 中心，obb_extent: 尺寸</code></pre></div><p class="method-result"><b>特别注意：</b>OBB 中心来自各方向投影极值中点，不一定等于 <code>mu</code>。若主方向退化，盒子朝向也可能不稳定。</p><h3>3.3 Minimum-Volume OBB：为什么还要另一套算法？</h3>
+<p><strong>PCA-OBB</strong> 先优化投影方差来获得主方向，再据此求边界。<strong>最小体积 OBB</strong> 则直接关注包围盒体积，希望在所有允许的正交方向中找到更小的盒子。</p>
+<p>这是两个不同的目标函数。因此一个 PCA 主轴统计意义上非常清晰，也不代表它能产生最小体积；反过来，体积最小的盒子也未必代表物体语义或真实结构轴。</p>
+<div class="table-wrap"><table><thead><tr><th>方法</th><th>轴从哪里来</th><th>关心什么</th><th>使用时的判断</th></tr></thead><tbody>
+<tr><td><strong>AABB</strong></td><td>固定 XYZ 坐标轴</td><td>坐标系中的占据范围</td><td>最快最直接；旋转敏感</td></tr>
+<tr><td><strong>PCA-OBB</strong></td><td>统计主轴</td><td>沿主要分布方向的尺寸</td><td>容易解释，但不保证体积最小</td></tr>
+<tr><td><strong>Minimum-Volume OBB</strong></td><td>搜索 / 优化方向</td><td>尽可能小的包围体积</td><td>算法成本更高，仍不代表真实物体轴线</td></tr>
+<tr><td><strong>Quantile Extent</strong></td><td>使用已确定方向</td><td>主体点的稳健范围</td><td>会主动舍弃部分点，不是严格包围盒</td></tr>
+</tbody></table></div>
+<div class="code-block compact-code"><div class="code-title"><span>Open3D：两种 OBB 的不同目标</span><button class="copy-btn" data-copy="algo-v2-119" type="button">复制代码</button></div><pre id="algo-v2-119"><code>import open3d as o3d
+pcd = o3d.geometry.PointCloud()
+pcd.points = o3d.utility.Vector3dVector(P)
+obb_hull_pca = pcd.get_oriented_bounding_box()
+obb_min = pcd.get_minimal_oriented_bounding_box()
+print(np.prod(obb_hull_pca.extent), np.prod(obb_min.extent))</code></pre></div><p class="method-result"><b>API 定义：</b>经典 Open3D 的第一项基于凸包 PCA；第二项寻找较小的包围体积。具体精度、退化处理需看安装版本。</p><h3>3.4 极值会受飞点影响，分位数范围值得用吗？</h3>
+<p>OBB 一般根据投影最小值与最大值计算长度，这让单个远离群点就可能拉大整个盒子。对于仅需要<strong>主体范围</strong>的情况，可以沿已确定的轴取分位数，例如 2%～98% 区间。</p><div class="code-block compact-code"><div class="code-title"><span>分位数范围：只描述主体点</span><button class="copy-btn" data-copy="algo-v2-120" type="button">复制代码</button></div><pre id="algo-v2-120"><code>Q = (P - mu) @ R  # 上面 PCA 的局部坐标
+lo, hi = np.quantile(Q, [0.02, 0.98], axis=0)
+robust_extent = hi - lo
+robust_center = mu + R @ ((lo + hi) / 2)</code></pre></div><p class="method-result"><b>提醒：</b>这是刻意舍弃部分点的“主体范围”，不能直接当成包含所有有效点的严格碰撞边界。</p>
+<p>它不再保证包含全部观测点，而是用“舍弃少数极端样本”换取相对稳定的范围估计。若任务要求碰撞边界或严格覆盖有效点云，这种做法就不能被误认为严格包围盒。</p>
+<div class="note"><div class="note-title">一个容易忽视的实现差异</div>Open3D 经典几何 API 的 <code>get_oriented_bounding_box()</code> 通常采用<strong>凸包 PCA</strong> 近似构造 OBB，并非对原始全部点直接运行你手算的 PCA；它也不是严格的最小体积求解。Open3D Tensor API 另外提供 PCA、近似最小体积和更精确但较慢的 Jylänki 类方法。PCL 的 <code>MomentOfInertiaEstimation</code> 也明确说明其 OBB 不保证最小体积。<strong>比较不同工具前，先核对算法定义与版本。</strong></div>
+</section>
+<section class="section" id="implementation">
+<div class="section-heading"><span class="section-number">04</span><h2>这套技术怎样真正落地？</h2></div>
+<p class="section-lead">最值得自己理解的是统计量的定义、误差来源和退化条件；最近邻搜索、离群点清理、矩阵分解与包围盒构造，则可以充分利用现有库。</p>
+<h3>4.1 一条可执行的基本处理路线</h3>
+<div class="step-list">
+<div class="step"><strong>确定输入点云代表的是什么</strong><p>确认单位（通常为米）、坐标系、目标 Mask 对齐、深度有效性与是否混入背景。先检查点数与空间尺度。</p></div>
+<div class="step"><strong>为统计选取合适的观测集合</strong><p>根据噪声与采样情况，选择原始点、Voxel 后的点、经过 SOR / ROR 清理的点，或带有可信权重的点；保留选择记录。</p></div>
+<div class="step"><strong>计算中心与分布</strong><p>Mean 为基线；需要时并行比较 Geometric Median。再计算 Covariance、PCA 特征值 / 特征向量及简单分布形态指标。</p></div>
+<div class="step"><strong>构造范围表示</strong><p>根据任务选 AABB、PCA-OBB 或较紧凑的 OBB；如采用分位数范围，应明确标注它不是完整包围。</p></div>
+<div class="step"><strong>输出可信度信息，而不只输出结果</strong><p>记录有效点数量、尺度、特征值间隔、遮挡条件、离群点比例和不同预处理下的变化。对退化方向标注“不可靠”，而不是强行给确定 Pose。</p></div>
+</div>
+<div class="method-bridge"><strong>为什么这些小代码分散在对应技术下面？</strong> 因为这里已经是最下一层笔记。看到一种方法，就应该立即看懂优化目标和最小实现，而不是先读完整章，最后才在一段庞大的 Pipeline 里找接口。下面保留一个汇总代码，用于把统计计算连接起来；完整可运行的单文件示例也会一起提供。</div><h3>4.2 一段足够透明的 NumPy 最小实现</h3>
+<p>下面的代码故意不封装成一整套框架，只做三件事：<strong>Mean / Geometric Median、原始点 PCA、沿 PCA 轴构造 OBB</strong>。这样可以直接核对每一个输出到底意味着什么。</p>
+<div class="code-block"><div class="code-title"><span>geometry_stats.py · 只依赖 NumPy</span><button aria-label="复制 NumPy 示例" class="copy-btn" data-copy="numpy-example">复制代码</button></div><pre id="numpy-example"><code>import numpy as np
+
+
+def geometric_median(points, tol=1e-8, max_iter=500):
+    """Weiszfeld-like numerical estimate; adequate as a learning baseline."""
+    P = np.asarray(points, dtype=np.float64)
+    y = np.median(P, axis=0)
+    for _ in range(max_iter):
+        d = np.linalg.norm(P - y, axis=1)
+        w = 1.0 / np.maximum(d, tol)
+        nxt = np.sum(P * w[:, None], axis=0) / w.sum()
+        if np.linalg.norm(nxt - y) &lt; tol:
+            return nxt
+        y = nxt
+    return y
+
+
+def point_statistics(points):
+    P = np.asarray(points, dtype=np.float64)
+    if P.ndim != 2 or P.shape[1] != 3:
+        raise ValueError("points must be N x 3")
+    P = P[np.all(np.isfinite(P), axis=1)]
+    if len(P) &lt; 3:
+        raise ValueError("need at least 3 finite points")
+
+    mean = P.mean(axis=0)
+    X = P - mean
+    covariance = (X.T @ X) / len(P)
+
+    # eigh is for a real symmetric matrix.
+    eigvals, eigvecs = np.linalg.eigh(covariance)
+    order = np.argsort(eigvals)[::-1]
+    eigvals = np.maximum(eigvals[order], 0.0)
+    R = eigvecs[:, order]
+
+    # Obtain an orthonormal right-handed basis.
+    # Axis signs remain ambiguous even after this operation.
+    if np.linalg.det(R) &lt; 0:
+        R[:, 2] *= -1
+
+    # Project raw points into PCA coordinates.
+    Q = X @ R
+    low, high = Q.min(axis=0), Q.max(axis=0)
+    extent = high - low
+    box_center = mean + R @ ((low + high) / 2.0)
+
+    l1, l2, l3 = eigvals
+    if l1 &gt; 1e-12:
+        features = {
+            "linearity": (l1 - l2) / l1,
+            "planarity": (l2 - l3) / l1,
+            "scattering": l3 / l1,
+        }
+    else:
+        features = None
+
+    return {
+        "mean": mean,
+        "coordinate_median": np.median(P, axis=0),
+        "geometric_median": geometric_median(P),
+        "eigenvalues": eigvals,
+        "R_pca": R,
+        "obb_center": box_center,
+        "obb_extent": extent,
+        "distribution_features": features,
+    }
+
+
+if __name__ == "__main__":
+    rng = np.random.default_rng(7)
+    # An elongated 3D cluster. This is only synthetic data.
+    cloud = rng.normal(size=(400, 3)) * [0.18, 0.025, 0.018]
+    print(point_statistics(cloud))</code></pre></div>
+<p>如果想比较工具接口，请留意：以上代码的 PCA 是<strong>直接针对输入点集合</strong>计算的；Open3D 的某些 OBB 方法则会先使用凸包。两者在非均匀采样点云上可能产生不同方向，这是算法定义差异，不一定是 bug。</p>
+<h3>4.3 不必重复造轮子的成熟实现</h3>
+<div class="table-wrap"><table><thead><tr><th>需要的能力</th><th>现成工具 / 接口</th><th>要真正学会的内容</th></tr></thead><tbody>
+<tr><td>均值、协方差、PCA</td><td><code>NumPy</code> · <code>mean</code> / <code>cov</code> / <code>eigh</code></td><td>中心化、特征值顺序、退化与符号歧义</td></tr>
+<tr><td>点云异常点清理</td><td><code>Open3D</code> · <code>remove_statistical_outlier</code> / <code>remove_radius_outlier</code></td><td>阈值含义、哪些真实点会被错删</td></tr>
+<tr><td>均衡采样</td><td><code>Open3D</code> · <code>voxel_down_sample</code></td><td>体素尺寸与几何细节损失</td></tr>
+<tr><td>鲁棒协方差</td><td><code>scikit-learn</code> · <code>MinCovDet</code></td><td>适用分布假设，不能无条件替换 PCA</td></tr>
+<tr><td>包围盒</td><td><code>Open3D</code> · AABB / OBB API</td><td>不同 OBB 算法的优化目标</td></tr>
+<tr><td>C++ 点云工程</td><td><code>PCL</code> · <code>compute3DCentroid</code> / <code>computeCentroidAndOBB</code> / <code>MomentOfInertiaEstimation</code></td><td>接口输出的中心与轴如何定义</td></tr>
+</tbody></table></div>
+<h4>Open3D 实践接口的最小示例</h4>
+<div class="code-block"><div class="code-title"><span>Open3D · 对比不同包围盒与清理策略</span><button aria-label="复制 Open3D 示例" class="copy-btn" data-copy="o3d-example">复制代码</button></div><pre id="o3d-example"><code>import open3d as o3d
+
+pcd = o3d.io.read_point_cloud("target.ply")
+print("raw points:", len(pcd.points))
+
+# Voxel size is expressed in the point cloud's length unit.
+down = pcd.voxel_down_sample(voxel_size=0.005)
+clean, index = down.remove_statistical_outlier(
+    nb_neighbors=20, std_ratio=2.0
+)
+
+# Geometry API: PCA of convex hull, approximately enclosing OBB.
+aabb = clean.get_axis_aligned_bounding_box()
+obb_pca_hull = clean.get_oriented_bounding_box()
+
+# Version-dependent minimal-volume implementation;
+# consult the installed Open3D documentation before comparison.
+obb_min = clean.get_minimal_oriented_bounding_box()
+
+print("AABB extent:", aabb.get_extent())
+print("OBB PCA-hull extent:", obb_pca_hull.extent)
+print("OBB minimum-style extent:", obb_min.extent)</code></pre></div>
+<div class="note"><div class="note-title">参数数字不是通用经验值</div>上例中的 5 mm 体素、20 个邻居和 2.0 倍标准差只是接口演示。它们必须随实际物体尺寸、深度精度和点云密度调整；玻璃、反光与强缺深场景还应先判断深度是否具有足够可信度。</div>
+</section>
+<section class="section" id="experiments">
+<div class="section-heading"><span class="section-number">05</span><h2>四组实验，把算法能力与代价分开</h2></div>
+<p class="section-lead">不需要先接入机器人执行。利用已知几何的合成点云，随后再用真实 RGB-D 数据复验，就能把这条统计技术路线的主要问题逐个观察清楚。</p>
+<div class="experiment"><div class="exp-head"><span class="exp-id">A</span><strong>离群点：不同中心与主轴，谁更容易偏？</strong></div><p><b>输入：</b>固定一份干净点云，逐步加入少量远距离异常点。</p><p><b>比较：</b>Mean、Coordinate Median、Geometric Median、普通 PCA，以及清理后 PCA / 合适的鲁棒协方差估计。</p><p><b>记录：</b>中心位移、主轴夹角、耗时、异常点比例；特别观察清理误删主体点的情形。</p><p><b>希望认识：</b>鲁棒方法降低离群点影响，但不会自动提升所有类型的几何精度。</p></div>
+<div class="experiment"><div class="exp-head"><span class="exp-id">B</span><strong>采样密度：重复采到某块表面，会改变结果吗？</strong></div><p><b>输入：</b>保持底层几何不变，改变局部点密度；可以在同一平面或圆柱表面上的小区域加入更多采样。</p><p><b>比较：</b>原始点、Voxel 后点、合理加权后的中心 / PCA。</p><p><b>记录：</b>中心位移、协方差与主轴变化、保留点数、薄结构损失。</p><p><b>希望认识：</b>观测点统计量会反映采样过程；降采样能减轻部分密度偏差，也会引入自己的分辨率代价。</p></div>
+<div class="experiment"><div class="exp-head"><span class="exp-id">C</span><strong>遮挡：没有异常值，统计中心也能明显错吗？</strong></div><p><b>输入：</b>由已知半径和轴线的圆柱生成表面点，再只保留单侧不同角度范围的可见点。</p><p><b>比较：</b>观测 Mean、Geometric Median、PCA 主轴、PCA-OBB，与已知真实圆柱轴心和尺寸的差距。</p><p><b>记录：</b>中心到真实轴心的距离、轴夹角、尺寸偏差、可见角度比例。</p><p><b>希望认识：</b>即使全部测量点准确，观测统计量也可能偏离真实物体结构；这是观测范围导致的系统性偏差。</p></div>
+<div class="experiment"><div class="exp-head"><span class="exp-id">D</span><strong>退化：方向什么时候根本不可靠？</strong></div><p><b>输入：</b>构造细长点集、平面点集、近似球状点集；保持形态并多次改变随机噪声。</p><p><b>比较：</b>各特征值的间隔、主轴扰动角、左右手系修正前后的输出、OBB 方向变化。</p><p><b>记录：</b>主方向稳定性；对无向轴用 θ = arccos(|v₁·v₂|)，对后续完整有向姿态另外选择旋转距离。</p><p><b>希望认识：</b>不是所有分布都具有唯一、稳定的主方向；判断可观测性往往比获得一个数值结果更重要。</p></div>
+<div class="note sage"><div class="note-title">实验的判读原则</div>先以模拟数据区分<strong>估计算法本身、噪声分布、采样方式、遮挡条件</strong>。再使用真实 D435i 等 RGB-D 数据检查问题是否仍然存在。不要在尚未有数据时为算法编造“成功率”和“提高百分比”。</div>
+</section>
+<section class="section" id="closing">
+<div class="section-heading"><span class="section-number">06</span><h2>走完统计几何，最终学到了什么？</h2></div><div class="note sage"><div class="note-title">本篇现在可以独立完成的事</div>已经覆盖中心定义（含 Medoid 的精确/近似搜索）、稳健中心、点云清理、PCA 与 SVD、特征值形态分析、加权/鲁棒 PCA、AABB 与两种 OBB，以及分位数范围。所有方法都交代了<strong>核心数学想法 + 简短实现 + 选择代价</strong>；下一条《几何模型拟合》不再承担补讲这些统计工具的任务。</div>
+<p>回头看，Centroid、PCA、OBB 并不是三套相互割裂的技术。它们形成了一条非常连贯的统计求解路线：先定义位置，再描述相对位置的分布，最后利用方向和投影极值获得范围。</p>
+<div class="table-wrap"><table><thead><tr><th>学到的能力</th><th>代表性方法</th><th>不会被它自动解决的问题</th></tr></thead><tbody>
+<tr><td><strong>定义与估计中心</strong></td><td>Mean、Median、Geometric Median、Medoid、稳健损失</td><td>观测点中心 ≠ 物体真实中心</td></tr>
+<tr><td><strong>处理统计偏差</strong></td><td>Voxel、SOR、ROR、加权估计</td><td>无法凭空恢复遮挡信息</td></tr>
+<tr><td><strong>提取主方向</strong></td><td>Covariance、PCA、SVD、鲁棒协方差</td><td>主轴 ≠ 结构轴；无向 ≠ 有向</td></tr>
+<tr><td><strong>判断分布形态</strong></td><td>Eigenvalue Features、特征值间隔</td><td>不能直接识别物体真实形状</td></tr>
+<tr><td><strong>描述空间占据</strong></td><td>AABB、PCA-OBB、Minimum OBB、分位数范围</td><td>包围盒 ≠ 真实物体尺寸</td></tr>
+</tbody></table></div>
+<blockquote>统计几何可以非常准确地回答：<strong>这份观测点云是怎样分布的？</strong><br/>它却不一定回答得了：<strong>这个物体原本是什么形状？</strong></blockquote>
+<p>因此，统计几何真正提供的是一组计算便宜、定义明确、容易成为基线的几何线索。它可以帮助定位目标、估计无向主轴、描述粗略空间范围，也可以作为后续求解的初始化。</p>
+<p>但在 Stage 01 的边界下，我们最终需要的是<strong>一个预先约定抓法的 Grasp Pose 能否被可靠求出</strong>。如果任务要求真实圆柱轴线、盒体规则面或隐藏的几何中心，单纯统计点的分布可能没有足够信息。</p>
+<div class="route-card"><div><small>NEXT ROUTE · 几何模型拟合</small><strong>如果先规定“这些点应该符合什么几何结构”呢？</strong><p>从统计均值转向模型参数：直线、平面、圆柱等几何假设，怎样约束测量并改变求解目标？</p></div><div aria-hidden="true" class="route-arrow">↗</div></div>
+</section>
+<section class="section" id="resources">
+<div class="section-heading"><span class="section-number">↗</span><h2>实现参考与继续阅读</h2></div>
+<p class="section-lead">这里保留真正有工程价值的入口。文章中的技术归纳是按求解思想整理，不是按工具库品牌分类。</p>
+<ol class="source-list">
+<li><a href="https://www.open3d.org/docs/latest/tutorial/geometry/pointcloud_outlier_removal.html" rel="noopener" target="_blank">Open3D · Point Cloud Outlier Removal</a>：Voxel、SOR、ROR 的实际处理方法。</li>
+<li><a href="https://www.open3d.org/docs/latest/python_api/open3d.geometry.OrientedBoundingBox.html" rel="noopener" target="_blank">Open3D · Legacy OrientedBoundingBox API</a>：经典 OBB 的 PCA 与近似体积优化方法。</li>
+<li><a href="https://www.open3d.org/docs/latest/python_api/open3d.t.geometry.OrientedBoundingBox.html" rel="noopener" target="_blank">Open3D · Tensor OBB API</a>：PCA、MINIMAL_APPROX 和 MINIMAL_JYLANKI 的算法区分。</li>
+<li><a href="https://pointclouds.org/documentation/tutorials/moment_of_inertia.html" rel="noopener" target="_blank">PCL · Moment of Inertia and OBB</a>：PCL 在包围盒与统计轴方面的定义，以及“非最小体积”说明。</li>
+<li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html" rel="noopener" target="_blank">scikit-learn · MinCovDet</a>：MCD 鲁棒协方差估计与适用分布限制。</li>
+<li><a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.eigh.html" rel="noopener" target="_blank">NumPy · linalg.eigh</a>：实对称协方差矩阵的特征值分解。</li>
+</ol>
+<div class="bottom-nav"><a href="../"><small>返回上一级</small>← Q01｜只有一份点云，怎样得到 Grasp Pose？</a><a href="../02-geometric-model-fitting/"><small>下一篇</small>几何模型拟合｜从点的分布走向结构约束 →</a></div>
+<p style="font-size:12px;color:var(--muted)">接口校对参考：<a href="https://www.open3d.org/docs/latest/python_api/open3d.geometry.PointCloud.html" rel="noopener noreferrer" target="_blank">Open3D PointCloud</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html" rel="noopener noreferrer" target="_blank">scikit-learn MinCovDet</a> · <a href="https://github.com/PointCloudLibrary/pcl/blob/master/doc/tutorials/content/moment_of_inertia.rst" rel="noopener noreferrer" target="_blank">PCL OBB</a>。数学片段仅作为学习用最小实现，极端退化和生产环境需要进一步处理。</p></section>
+</main></div>
+<footer class="footer">沿途手记 · Q01 点云几何研究笔记 · 统计几何的探索记录<br/>方法本身并没有对错，关键是清楚它在优化什么、解决什么，以及代价在哪里。</footer>
+<script>
+(function () {
+  'use strict';
+  // Reading progress and local navigation. No external dependencies.
+  const progress = document.querySelector('#progress');
+  const links = Array.from(document.querySelectorAll('.toc a[href^="#"]'));
+  const anchors = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function updateProgress(){
+    const h = document.documentElement;
+    const max = Math.max(h.scrollHeight - window.innerHeight, 1);
+    progress.style.width = (100 * Math.min(1, Math.max(0, window.scrollY / max))) + '%';
+    let current = anchors[0];
+    for (const a of anchors) if (a.getBoundingClientRect().top <= 125) current = a;
+    links.forEach(a => a.classList.toggle('active', current && a.getAttribute('href') === '#' + current.id));
+  }
+  window.addEventListener('scroll', updateProgress, {passive:true});
+  window.addEventListener('resize', updateProgress); updateProgress();
+
+  const slider = document.getElementById('outlier');
+  const graph = document.getElementById('center-demo');
+  const NS = 'http://www.w3.org/2000/svg';
+  function svg(name,attrs,text){const el=document.createElementNS(NS,name);for(const [k,v] of Object.entries(attrs||{}))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=text;return el}
+  function drawDemo(){
+    const rest=[-.23,-.18,-.11,-.06,0,.04,.09,.15,.23];
+    const o=Number(slider.value), arr=[...rest,o].sort((a,b)=>a-b);
+    const mean=arr.reduce((a,b)=>a+b,0)/arr.length;
+    const median=(arr[4]+arr[5])/2;
+    const x=v=>44+(v+0.5)/8.8*552;
+    graph.replaceChildren();
+    graph.appendChild(svg('line',{x1:43,y1:84,x2:603,y2:84,stroke:'#d8cbba','stroke-width':2}));
+    for(let i=0;i<=8;i+=2){graph.appendChild(svg('line',{x1:x(i),y1:78,x2:x(i),y2:91,stroke:'#cdbcae','stroke-width':1}));graph.appendChild(svg('text',{x:x(i),y:110,'text-anchor':'middle',fill:'#9b897a','font-size':12},String(i)))}
+    rest.forEach((p,i)=>graph.appendChild(svg('circle',{cx:x(p),cy:77+(i%3-1)*11,r:5,fill:'#96aa93',opacity:.96})));
+    graph.appendChild(svg('circle',{cx:x(o),cy:84,r:6.5,fill:'#d2a178',stroke:'white','stroke-width':1.5}));
+    [['Mean',mean,47,'#bb7662'],['Median',median,131,'#647b70']].forEach(([label,value,y,color])=>{
+      graph.appendChild(svg('line',{x1:x(value),y1:18,x2:x(value),y2:142,stroke:color,'stroke-width':2,'stroke-dasharray':'4 4'}));
+      graph.appendChild(svg('circle',{cx:x(value),cy:84,r:5,fill:color,stroke:'white','stroke-width':1.6}));
+      graph.appendChild(svg('text',{x:Math.max(34,Math.min(607,x(value))),y,fill:color,'font-size':12,'font-weight':'bold','text-anchor':'middle'},label));
+    });
+    document.querySelector('#outlier-value').textContent=o.toFixed(1);
+    document.querySelector('#mean-value').textContent=mean.toFixed(3);
+    document.querySelector('#median-value').textContent=median.toFixed(3);
+  }
+  slider.addEventListener('input',drawDemo);drawDemo();
+  document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click',async()=>{
+    const node=document.getElementById(btn.dataset.copy);if(!node)return;
+    try{await navigator.clipboard.writeText(node.textContent);btn.textContent='已复制';setTimeout(()=>btn.textContent='复制代码',1500)}
+    catch(_){btn.textContent='请手动复制';setTimeout(()=>btn.textContent='复制代码',2000)}
+  }));
+})();
+</script>
+</body>
+</html>

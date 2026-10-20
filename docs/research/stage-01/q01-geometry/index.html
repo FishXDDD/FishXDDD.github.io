@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f9f6ef">
-<meta name="description" content="沿途手记｜只有一份点云，怎样得到 Grasp Pose？从点、线、面、体的几何依据出发，探索如何确定一份约定好的抓取姿态。">
+<meta name="description" content="沿途手记｜只有一份点云，怎样得到 Grasp Pose？从点云分布与几何关系出发，探索如何确定一次约定好的抓取姿态。">
 <title>只有一份点云，怎样得到 Grasp Pose？｜沿途手记</title>
 <style>
 :root{--bg:#f9f6ef;--paper:#fffdf8;--cream:#f7efe3;--ink:#483d34;--text:#63574d;--muted:#95887a;--line:#e6dccd;--rust:#b47d60;--rust-deep:#8e5b46;--rust-pale:#f8e9dc;--sage:#76896d;--sage-deep:#576c53;--sage-pale:#edf1e7;--gold:#d8b783;--serif:"Noto Serif SC","Songti SC", "STSong",SimSun,serif;--sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;--shadow:0 14px 40px rgba(74,55,35,.035)}
@@ -23,6 +23,60 @@ main{min-width:0}section{scroll-margin-top:95px;margin-bottom:79px}.sect-label{c
 @media(max-width:970px){.layout{grid-template-columns:155px minmax(0,1fr);gap:30px}.hero{padding:34px 35px;grid-template-columns:minmax(0,1fr) 220px}.geo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.geo{min-height:122px}.nav{gap:13px}.hero-art svg{width:220px}}
 @media(max-width:720px){.header-in{height:60px;padding:0 18px}.nav a:nth-child(1),.nav a:nth-child(2){display:none}.page-top{padding:0 17px}.crumbs{margin:17px 0 11px}.hero{grid-template-columns:1fr;padding:29px 25px 24px;gap:6px;min-height:unset}.hero h1{font-size:30px;margin:12px 0}.hero p{font-size:13px}.hero-art{display:none}.hero-note{flex-wrap:wrap;font-size:10px}.layout{display:block;padding:0 19px;margin:40px auto 0}.toc{position:relative;top:auto;max-height:unset;display:flex;flex-wrap:wrap;gap:4px 7px;padding:12px 0 13px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:40px}.toc-label{width:100%;margin:0 0 5px 2px}.toc a,.toc a.sub{display:inline-block;border:1px solid #e4d8ca;border-radius:7px;padding:5px 8px;font-size:10px;margin:0}.toc a.active,.toc a:hover{border:1px solid #cfaa92;border-radius:7px}.toc-foot{display:none}section{margin-bottom:59px}.sect-title{font-size:25px}p{font-size:13.6px;line-height:2}.map-container{padding:15px 13px}.map-head{font-size:10px}.geo{padding:13px 8px}.geo b{font-size:13px}.geo small{font-size:10px}.review-grid{grid-template-columns:1fr}.review{padding:12px 15px}.reading-index{grid-template-columns:1fr}.figure-placeholder{aspect-ratio:unset;min-height:210px}.foot{padding:20px 20px 30px;font-size:10px}.next{padding:21px 18px}.episode{padding-bottom:36px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+
+/* Q01: a two-route research map */
+.route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:17px}
+.route-card{border:1px solid #e6d8c7;border-radius:14px;padding:19px 20px 17px;background:#fffcf7;display:flex;flex-direction:column;gap:0;min-width:0}
+.route-card:nth-child(2){border-color:#d5dfd0;background:#f8faf4}
+.route-id{font:italic 12px Georgia,serif;letter-spacing:.09em;color:#bd8366;margin-bottom:9px}
+.route-card:nth-child(2) .route-id{color:#718868}
+.route-card h3{font:750 20px/1.55 var(--serif);margin:0 0 7px;color:#725440}
+.route-card:nth-child(2) h3{color:#587057}
+.route-deck{font-size:12.8px!important;line-height:1.85!important;margin-bottom:13px!important;color:#776a5c}
+.route-sketch{display:flex;align-items:center;justify-content:center;height:114px;border-radius:11px;border:1px solid #efe0d1;background:#fdf4e9;margin:1px 0 14px;overflow:hidden}
+.route-card:nth-child(2) .route-sketch{border-color:#dfe8d8;background:#edf2e8}
+.route-sketch svg{display:block;width:min(100%,260px);height:104px}
+.route-facts{border-top:1px solid #eee4d9;margin-top:auto;padding-top:13px;display:grid;gap:10px}
+.route-fact{display:grid;grid-template-columns:48px minmax(0,1fr);gap:9px;align-items:start;font-size:11.8px;line-height:1.8;color:#766c61}
+.route-fact b{font-size:11px;color:#9b7862;font-weight:700;padding-top:1px}
+.route-card:nth-child(2) .route-fact b{color:#698268}
+.route-fact strong{font-size:11.8px;color:#665346;font-weight:660}
+.route-card:nth-child(2) .route-fact strong{color:#526e56}
+.route-common{margin-top:15px;padding:14px 16px;border:1px dashed #ddd2c3;border-radius:11px;background:#fbf8f1;line-height:1.9;font-size:12px;color:#837365}
+.route-common b{color:#89654c}
+.result-strip{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap;padding:14px 16px;margin-top:15px;background:#edf1e7;border:1px solid #dce5d7;border-radius:11px;font-size:12px;color:#647861;text-align:center}
+.result-strip strong{color:#536c51}
+.journey-preface{font-size:13px;color:#807263;border-left:2px solid #cdaa8c;padding:0 0 0 14px;margin-bottom:14px;line-height:1.9}
+.idea-episode{padding:21px 0 29px;border-bottom:1px solid var(--line)}
+.idea-episode:last-child{border-bottom:0;padding-bottom:0}
+.idea-kicker{font:italic 12px Georgia,serif;letter-spacing:.13em;color:#ad856a;margin:0 0 10px}
+.idea-episode:nth-child(3) .idea-kicker{color:#72876c}
+.idea-episode h3{font:750 clamp(21px,2.3vw,25px)/1.55 var(--serif);margin:0 0 17px;color:#5f4a3e}
+.idea-episode p{margin-bottom:15px}
+.idea-episode .logic-line{font-size:12px;color:#8a7664;padding:12px 14px;border-radius:9px;background:#f7f0e7;border:1px solid #eae0d2;line-height:1.85;margin:19px 0 17px}
+.idea-episode .logic-line b{color:#916b52}
+.idea-episode:nth-child(3) .logic-line{background:#eff3eb;border-color:#dce5d6}
+.idea-episode:nth-child(3) .logic-line b{color:#657d62}
+.explore-link{position:relative;display:flex;gap:14px;align-items:center;justify-content:space-between;border:1px solid #d9b9a1;background:linear-gradient(105deg,#fcf2e7 0%,#fffaf3 100%);border-radius:14px;padding:19px 22px 17px;margin-top:20px;transition:transform .18s,border-color .18s,box-shadow .18s}
+.explore-link:hover{transform:translateY(-2px);border-color:#bb8b6c;box-shadow:0 8px 22px rgba(116,78,54,.065)}
+.explore-link.green{border-color:#bfcfba;background:linear-gradient(105deg,#eff4ec 0%,#fafbf6 100%)}
+.explore-link.green:hover{border-color:#86a281}
+.explore-kicker{display:block;font-size:10px;font-weight:750;letter-spacing:.16em;color:#af8063;margin-bottom:7px}
+.explore-link.green .explore-kicker{color:#748d6b}
+.explore-link b{font:740 17px/1.6 var(--serif);display:block;color:#805741;margin-bottom:5px}
+.explore-link.green b{color:#577153}
+.explore-link em{display:block;color:#968576;font-style:normal;font-size:11.5px;line-height:1.7}
+.explore-arrow{flex:none;width:36px;height:36px;border-radius:50%;background:#ead2be;display:grid;place-items:center;color:#8e6249;font-size:21px;transition:transform .18s}
+.explore-link:hover .explore-arrow{transform:translate(2px,-2px)}
+.explore-link.green .explore-arrow{background:#d8e5d2;color:#536e50}
+.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0 16px}
+.output-card{border:1px solid #e4dbcd;background:#fffdf8;border-radius:11px;padding:16px 17px}
+.output-card b{display:block;color:#775a48;font-size:13px;margin-bottom:7px}
+.output-card p{font-size:12.2px;line-height:1.85;margin:0}
+.output-code{font:12px/1.9 ui-monospace,Consolas,monospace;color:#667960;background:#eff3eb;border:1px solid #dbe5d6;padding:12px 15px;border-radius:10px;overflow-wrap:anywhere;margin:18px 0}
+.q01-close{color:#7a6756;padding:14px 17px;border-left:3px solid #b58d71;background:#faf2e8;border-radius:0 9px 9px 0;margin:16px 0 0;font:550 14px/1.95 var(--serif)}
+@media(max-width:720px){.route-grid,.output-grid{grid-template-columns:1fr}.route-card{padding:17px 17px 16px}.route-sketch{height:102px}.route-sketch svg{height:95px}.idea-episode{padding:19px 0 30px}.explore-link{padding:16px 15px}.explore-link b{font-size:16px}}
+
 </style>
 </head>
 <body>
@@ -30,86 +84,122 @@ main{min-width:0}section{scroll-margin-top:95px;margin-bottom:79px}.sect-label{c
 <header class="header"><div class="header-in"><a class="brand" href="https://fishxddd.github.io/"><span class="brand-icon">✳</span><span><span class="brand-name">沿途手记</span><span class="brand-note">从一个问题出发的探索路线</span></span></a><nav class="nav" aria-label="导航"><a href="https://fishxddd.github.io/research/stage-01/">← 第一站总览</a><a href="#map">本页地图</a><a class="nav-pill" href="https://fishxddd.github.io/research/stage-01/q02-known-reference/">下一篇 · 已知参考 ↗</a></nav></div></header>
 <div class="page-top">
  <div class="crumbs"><a href="https://fishxddd.github.io/">沿途手记</a><span>／</span><a href="https://fishxddd.github.io/research/stage-01/">第一站</a><span>／</span><span>几何探索</span></div>
- <header class="hero"><div class="hero-copy"><div class="eyebrow">STAGE 01 / GEOMETRY FIELD NOTES</div><h1>只有一份点云，<br><span>怎样得到 Grasp Pose？</span></h1><p>从物体的可见几何出发，找到能够确定约定抓取姿态的位置与方向。</p><div class="hero-tags"><span>单视角目标点云</span><span>两指平行夹爪</span><span>抓法已约定</span></div></div>
+ <header class="hero"><div class="hero-copy"><div class="eyebrow">STAGE 01 / GEOMETRY FIELD NOTES</div><h1>只有一份点云，<br><span>怎样得到 Grasp Pose？</span></h1><p>只看见半边物体，夹爪却要找到正确的位置和方向。点云究竟能告诉我什么？</p><div class="hero-tags"><span>单视角目标点云</span><span>两指平行夹爪</span><span>抓法已约定</span></div></div>
  <div class="hero-art" aria-hidden="true"><svg viewBox="0 0 310 238" xmlns="http://www.w3.org/2000/svg"><ellipse cx="151" cy="205" rx="114" ry="18" fill="#d7cdbb" opacity=".32"/><g opacity=".7"><path d="M66 168L164 126L255 163L153 209Z" fill="#fff8ed" stroke="#c9bea9" stroke-width="1.5"/><path d="M153 209v13l102-43v-16" fill="#efe4d5" stroke="#c9bea9" stroke-width="1.5"/></g><g fill="none" stroke="#c6b5a0" stroke-dasharray="4 5"><path d="M75 49L138 80M86 44L188 68"/></g><path d="M57 40l36-11 22 16-38 13Z" fill="#e9c9b0" stroke="#ba9173" stroke-width="2"/><circle cx="83" cy="43" r="8" fill="#b17b5d"/><circle cx="83" cy="43" r="3" fill="#fff6e8"/><path d="M111 53L154 93M70 60L129 120" stroke="#b9a28b" stroke-dasharray="4 5" fill="none"/><path d="M157 116l26-12 42 20v54l-30 16-38-17Z" fill="#d8dfd1" opacity=".75" stroke="#8a9f83" stroke-width="2"/><path d="M157 116l36 18 32-10M193 134v58" fill="none" stroke="#97a58b" stroke-width="1.5"/><g fill="#b98164"><circle cx="161" cy="139" r="2"/><circle cx="166" cy="146" r="2.3"/><circle cx="173" cy="154" r="2"/><circle cx="164" cy="162" r="2"/><circle cx="176" cy="172" r="2"/><circle cx="183" cy="146" r="2.2"/><circle cx="185" cy="163" r="2"/><circle cx="188" cy="179" r="2.4"/><circle cx="195" cy="152" r="2.2"/><circle cx="200" cy="169" r="1.8"/></g><path d="M149 147l-23 7v32l24-7M224 147l20-7v31l-18 8" fill="none" stroke="#788e73" stroke-width="9" stroke-linecap="round"/><path d="M123 160l-17-24m140 10l15-25" stroke="#788e73" stroke-width="7" stroke-linecap="round"/><path d="M184 155h26M184 155l-10-12M184 155l-2 22" stroke-width="2.3" stroke-linecap="round" stroke="#c48167" fill="none"/><circle cx="184" cy="155" r="4" fill="#c48167"/><text x="215" y="150" fill="#92664f" font-size="11" font-family="Georgia">G</text><text x="89" y="26" fill="#ac8569" font-size="11" font-family="Georgia">RGB-D</text></svg></div></header>
  <div class="hero-note"><span>研究手记 · 先看结论，再回到最初的疑问</span><span>2026.10 · Geometry / Grasp Pose</span></div>
 </div>
-<div class="layout"><aside class="toc" aria-label="本页目录"><div class="toc-label">本页路标</div><a href="#opening">问题定义</a><a href="#map">01 · 几何地图</a><a href="#journey">02 · 从头探索</a><a class="sub" href="#point">点 · 位置</a><a class="sub" href="#line">线 · 方向</a><a class="sub" href="#surface">面 · 表面</a><a class="sub" href="#volume">体 · 结构</a><a class="sub" href="#grasp">Grasp Frame</a><a href="#review">03 · 回头判断</a><a href="#reading">继续深入</a><div class="toc-foot">这里留下问题、直觉和技术判断。方法原理与代表性工作，放在下一层笔记。</div></aside>
+<div class="layout">
+<aside class="toc" aria-label="本页目录">
+  <div class="toc-label">本页路标</div>
+  <a href="#opening">00 · 这次的问题</a>
+  <a href="#map">01 · 两条几何路线</a>
+  <a href="#journey">02 · 第一性探索</a>
+  <a class="sub" href="#distribution">从分布中提取特征</a>
+  <a class="sub" href="#relations">从关系中拟合结构</a>
+  <a href="#grasp">03 · 回到 Grasp Pose</a>
+  <div class="toc-foot">先看结论，再看为什么想到这两条路。算法原理、实现与代价放在对应的最后一层笔记。</div>
+</aside>
 <main>
-<section id="opening"><div class="sect-label"><em>00</em>写在前面 · 这次的问题</div><h2 class="sect-title">只有一份点云，我能确定什么？</h2>
-<p class="intro-text">这次的问题很直接：<strong>已经知道要怎么抓，能不能只凭眼前的一份点云，把 Grasp Pose 算出来？</strong></p>
-<p>先假设目标已经找到，手里有一份单视角 RGB-D 得到的目标点云。夹爪是固定的两指平行夹爪，抓取方式也已经约定好。</p>
-<p>比如抓一个盒子，希望夹住它指定的两个侧面；抓一只瓶子，希望夹住瓶身的某个区域。这些约定描述了夹爪与物体之间的关系，却还没有告诉我，这个关系在当前场景里究竟对应什么位置和方向。</p>
-<p>这一篇想弄清楚的，是<strong>怎样从当前可见的几何中，找到足以支持约定抓法的空间约束</strong>；如果观测不足，或者抓取关系无法成立，又该如何判断。</p>
-<div class="boundary"><div class="boundary-label">这一篇要得到的结果</div><b>从目标点云与约定抓法出发，确定有几何依据的 Grasp Pose；条件不足时，明确知道缺的是什么。</b></div></section>
-<section id="map"><div class="sect-label"><em>01</em>先把探索后的认识放在前面</div><h2 class="sect-title">回头看，原来几何可以这样用。</h2>
-<p>从点云得到 Grasp Pose，关键不是套用某个算法，而是找到<strong>足以确定约定抓取位置与方向的几何约束</strong>。这些信息可以从四类熟悉的几何对象入手。</p>
-<div class="map-container"><div class="map-head"><span><i>GEOMETRY MAP</i> · 从可见几何到抓取姿态</span><span>事后整理的认识地图</span></div>
-<div class="map-input"><b>已约定的抓取关系</b><span>＋</span><b>当前目标点云</b></div><div class="map-down">↓</div>
-<div class="geo-grid">
-<div class="geo"><svg class="geo-ico" viewBox="0 0 70 43" aria-hidden="true"><g fill="#d7a98a"><circle cx="14" cy="12" r="3"/><circle cx="36" cy="8" r="3"/><circle cx="54" cy="17" r="3"/><circle cx="17" cy="30" r="3"/><circle cx="49" cy="34" r="3"/><circle cx="31" cy="26" r="2"/></g><circle cx="34" cy="22" r="6" fill="none" stroke="#9d674e" stroke-width="2"/><path d="M24 22h20M34 12v20" stroke="#9d674e" stroke-width="1.5"/></svg><b>点 · 位置</b><small>中心 / 特征点<br>接触参考点</small></div>
-<div class="geo"><svg class="geo-ico" viewBox="0 0 70 43" aria-hidden="true"><g fill="#d5bda1"><circle cx="15" cy="30" r="2"/><circle cx="25" cy="26" r="2"/><circle cx="38" cy="19" r="2"/><circle cx="52" cy="13" r="2"/><circle cx="60" cy="10" r="2"/></g><path d="M9 34L62 8" fill="none" stroke="#a47755" stroke-width="2.4"/><path d="M53 8l9 0 -4 9" fill="none" stroke="#a47755" stroke-width="2"/></svg><b>线 · 方向</b><small>主轴 / 边缘<br>中心轴</small></div>
-<div class="geo"><svg class="geo-ico" viewBox="0 0 70 43" aria-hidden="true"><path d="M13 30L40 12L61 22L34 40Z" fill="#d5dfcd" stroke="#839877" stroke-width="1.8"/><path d="M36 26l7-17" stroke="#8f614b" stroke-width="2.4"/><path d="M38 12l5-3 2 6" fill="none" stroke="#8f614b" stroke-width="2"/></svg><b>面 · 表面</b><small>平面 / 曲面<br>法线与接触</small></div>
-<div class="geo"><svg class="geo-ico" viewBox="0 0 70 43" aria-hidden="true"><path d="M16 15L38 7L56 17L34 27Z" fill="#f7dfc7" stroke="#c99d7d" stroke-width="1.6"/><path d="M16 15V33L34 42V27M34 42L56 32V17" fill="#f0d1b5" stroke="#c99d7d" stroke-width="1.6"/><path d="M34 27L56 17" stroke="#c99d7d"/></svg><b>体 · 结构</b><small>包围体 / 盒体<br>圆柱与尺度</small></div>
-</div><div class="cross-scale"><b>另一个维度：整体与局部</b>　·　看整个物体的分布，也可以只看约定夹持区域附近的表面</div><div class="map-down">↓</div><div class="map-output"><b>结合抓取约定 → Grasp Frame</b><small>抓取参考位置 · 闭合方向 · 接近方向 · 基本几何可用性</small></div><div class="map-caption">点、线、面、体是几何信息的不同描述，不是需要依次执行的四个算法。具体用哪些，取决于抓法需要哪些约束。</div></div>
-<p>整体与局部也不是两条对立的路线。有时一个清晰的整体方向就够用；有时真正重要的是指定夹持区域的局部表面。至于 PCA、RANSAC、拟合等，是<strong>估计这些几何量的工具</strong>，不应和几何对象混成一个分类。</p>
-<div class="mental-note">物体提供几何，抓法决定需要什么几何。最后不是把所有量都算一遍，而是把真正有用的约束组合成一个 Grasp Pose。</div>
-<p style="margin-top:21px">上面是走过之后整理的地图。接下来还是回到最初那份点云，看看这些认识是怎么慢慢长出来的。</p>
+<section id="opening">
+  <div class="sect-label"><em>00</em>写在前面 · 这次的问题</div>
+  <h2 class="sect-title">只看见半边瓶子，抓取中心该往哪儿放？</h2>
+  <p class="intro-text">相机只拍到瓶身朝向自己的一面，夹爪却想对准瓶身中间。<strong>只有一份不完整的点云，怎样算出那次约定好的 Grasp Pose？</strong></p>
+  <p>这次先不借助实例 CAD 或参考模板，也不寻找一大堆抓取候选。目标已经定位，抓法已经约定；剩下的问题，是从眼前的几何中找出足够可信的位置与方向。</p>
 </section>
-<section id="journey"><div class="sect-label"><em>02</em>沿着当时的想法，继续往下试</div><h2 class="sect-title">从一份点云开始，能算出多少东西？</h2>
-<p>先不追求把每种方法都讲完。这里记下每次为什么想继续往下看，以及从中发现的新问题；真正的算法原理、经典工作和实现细节，留给独立笔记。</p>
-<div class="steps"><span>点 · 位置</span><i>→</i><span>线 · 方向</span><i>→</i><span>面 · 表面</span><i>→</i><span>体 · 结构</span><i>→</i><span>Grasp Frame</span></div>
-<div class="story-lead">这是为了方便阅读而整理的思考顺序，并不是实际求解的固定流水线。同一个算法可能同时提供位置、方向和尺度。</div>
-<article class="episode" id="point"><div class="episode-kicker"><span>01 / 05</span>先给夹爪一个位置</div><h3>先找个位置，总归是第一步吧？</h3>
-<p>拿到目标点云，最容易想到的是把 XYZ 求个平均，先得到一个位置。如果约定的抓取区域就在物体中间附近，这个办法似乎够直接，也很容易做出第一个可以验证的结果。</p>
-<p>但换个观察方向就有点微妙了：相机只看到靠近自己的那部分表面，求出的平均位置会不会跟着视角走？对于一只瓶子，我真正想对准的是瓶身的什么位置？</p>
-<p><span class="focus">原来一个“中心”也有不同含义。</span> 对观测点求统计位置、根据几何结构定义中心、按抓取规则指定参考点，不一定会落在同一处。除了均值，还可以研究稳健统计和几何位置估计，但它们解决的问题也各不相同。</p>
-<div class="method">代表性入口 · 点云质心 / 位置估计</div>
-<figure class="figure" data-optional-image><div class="figure-head"><span><b>FIG 01</b> · 观察点的中心，还是物体的中心？</span><span class="figure-tag">插图位置</span></div><img alt="单视角圆柱点云的可见点集中心与物体几何中心的对照" src="images/q01-fig-02-point-cloud-center-comparison.png"><div class="figure-placeholder"><div><div class="symbol" aria-hidden="true">◌ · ⊕</div><b>算出来的中心，真的是想要的中心吗？</b><p>同一物体的可见点云与完整几何，对照两种中心的空间偏差；用俯视剖面讲清原因。</p></div></div><figcaption>这张图重点不是比较谁更“高级”，而是区分两个本来就不同的测量目标。</figcaption></figure>
-<div class="turn">如果连“位置”都要先说清楚定义，那下一步的“方向”，恐怕也不能随便找一根轴就算了。</div>
-<a class="deep-link" href="https://fishxddd.github.io/research/stage-01/q01-geometry/01-center/"><span><small>继续深入 · 点 / Position</small><b>一个“中心”，究竟有多少种定义和求法？</b></span><span class="arrow" aria-hidden="true">↗</span></a></article>
-<article class="episode" id="line"><div class="episode-kicker"><span>02 / 05</span>位置之外，还需要方向</div><h3>位置有了，夹爪又该朝哪里？</h3>
-<p>比如一只横放的瓶子，能看出它沿着某个方向伸展；一只长方体，也有明显的长边和短边。既然点云呈现出这些空间分布，那能不能从中提取方向？</p>
-<p>这时 <strong>PCA</strong> 是很自然的代表性做法：从点集分布寻找主要延展方向。可继续想想，点集延伸得最长的方向，就是我约定的夹爪闭合方向吗？如果物体近似对称，或者只看到一侧，方向又该怎么判断？</p>
-<p><span class="focus">统计上的主方向，不自动等于物体结构的方向，更不自动等于抓取方向。</span> 我开始想区分主轴、真实边线、中心轴，以及它们能提供哪些旋转约束。</p>
-<div class="method">代表性入口 · PCA / 主轴估计</div>
-<div class="turn">如果我约定的抓法本来就是夹住某两个侧面，那与其只盯着整体主方向，为什么不直接看看那些表面？</div>
-<a class="deep-link" href="https://fishxddd.github.io/research/stage-01/q01-geometry/02-orientation/"><span><small>继续深入 · 线 / Direction</small><b>从 PCA 到主轴，方向到底依据什么？</b></span><span class="arrow" aria-hidden="true">↗</span></a></article>
-<article class="episode" id="surface"><div class="episode-kicker"><span>03 / 05</span>开始关注真正接触的地方</div><h3>再往下看看，表面能告诉我什么？</h3>
-<p>如果抓的是盒子的两侧，比起整个盒子沿哪边延伸，我可能更想知道：指定侧面在哪里、朝向哪里，两指是否真的有地方接触。</p>
-<p>这样注意力便从整体分布移到了<strong>局部邻域、平面与法线</strong>。比如在一个小邻域内估计表面方向；如果有明显的平面，也可以尝试用 RANSAC 做鲁棒拟合。</p>
-<p>不过，知道一片表面的法线，并不等于已经确定了夹爪的完整姿态。另一侧在哪里？两指间距够不够？沿着表面还能转多少？这些又要看抓取约定里究竟规定了什么。</p>
-<div class="method">代表性入口 · 局部法线 / 平面拟合 / RANSAC</div>
-<div class="turn">整体方向和局部表面各有用处。要是物体本身足够规则，能不能直接用整个形状来表达这些关系？</div>
-<a class="deep-link" href="https://fishxddd.github.io/research/stage-01/q01-geometry/03-local-surface/"><span><small>继续深入 · 面 / Surface</small><b>一片表面和一根法线，究竟能约束多少 Pose？</b></span><span class="arrow" aria-hidden="true">↗</span></a></article>
-<article class="episode" id="volume"><div class="episode-kicker"><span>04 / 05</span>从局部几何，试着理解整体形状</div><h3>如果能把整个形状描述出来呢？</h3>
-<p>前面一直在寻找一个位置、一根轴线或一片表面。但对于规则的盒子和瓶子，似乎可以换一种办法：不用每个几何量都单独找，而是用一个简单形状描述整个物体。</p>
-<p>例如 <strong>OBB</strong> 能给出一种有方向的包围范围；对于接近圆柱的瓶身，可以尝试估计轴线、半径等参数。有时一次形状描述就能同时得到位置、方向与尺度。</p>
-<p>但新的问题也跟着来了：包围体是不是物体真实的外表面？只看到一部分瓶身时，拟合出来的圆柱又有多可信？<span class="focus">用规则形状补足没看到的信息，确实方便，但也引入了形状假设。</span></p>
-<p>这才发现，整体和局部不是谁比谁高级：整体结构能提供更多关联信息，局部表面可能反而更贴近真正的夹持位置。</p>
-<div class="method">代表性入口 · OBB / 盒体与圆柱拟合</div>
-<div class="turn">这一路得到了不少几何信息，可它们还是零散的。最终到底怎样把这些条件交给夹爪？</div>
-<a class="deep-link" href="https://fishxddd.github.io/research/stage-01/q01-geometry/04-shape-primitives/"><span><small>继续深入 · 体 / Shape</small><b>只看到一部分，如何合理估计整个几何结构？</b></span><span class="arrow" aria-hidden="true">↗</span></a></article>
-<article class="episode" id="grasp"><div class="episode-kicker"><span>05 / 05</span>终于回到最初的问题</div><h3>这些几何信息，怎样变成 Grasp Pose？</h3>
-<p>到这里，似乎已经收集了不少东西：位置、主轴、局部法线、尺度，甚至一个近似的完整形状。但它们还不是夹爪姿态。</p>
-<p>对于两指平行夹爪，我需要明确抓取参考位置、闭合方向与接近方向，并让它们满足一致的坐标系约定。方向约束不足时，仍然可能存在未确定的旋转；两条方向几乎重合时，也不能硬拼出一套合法的坐标轴。</p>
-<p><span class="focus">不是点、线、面、体的信息越齐全越好，而是约定的抓法究竟需要哪些约束。</span> 抓一个盒子的指定两侧，可能只需要可信的侧面位置与朝向；抓规则瓶身的固定区域，也许轴线、尺寸和抓取高度就已足够。</p>
-<p>得到完整的 <strong>Grasp Frame</strong> 之后，还需要对照夹爪尺寸、约定接触位置和基本空间条件检查。如果信息不足，或约定的抓法本身不成立，也可以明确得出不能可靠求解的结果。</p>
-<div class="method">代表性入口 · 正交坐标系 / Grasp Frame 构造</div>
-<figure class="figure" data-optional-image><div class="figure-head"><span><b>FIG 02</b> · 从方向约束到完整的抓取坐标系</span><span class="figure-tag">插图位置</span></div><img alt="两指平行夹爪的抓取参考点、闭合方向、接近方向与完整 Grasp Frame 的关系" src="images/q01-fig-07-geometry-to-complete-grasp-pose.png"><div class="figure-placeholder"><div><div class="symbol" aria-hidden="true">⊥ · XYZ</div><b>有了抓取位置和方向，怎样组成完整 Grasp Frame？</b><p>一个统一的两指夹爪场景：参考点、闭合轴、接近轴，以及方向约束不足时仍未确定的自由度。</p></div></div><figcaption>关键不是拼出一个数学矩阵，而是保证坐标轴真的对应那次约定的抓取。</figcaption></figure>
-<a class="deep-link" href="https://fishxddd.github.io/research/stage-01/q01-geometry/06-pose-construction/"><span><small>继续深入 · Grasp Frame</small><b>如何把位置和方向约束组成合法的 6D Pose？</b></span><span class="arrow" aria-hidden="true">↗</span></a></article>
+<section id="map">
+  <div class="sect-label"><em>01</em>走过之后 · 先摆结论</div>
+  <h2 class="sect-title">面对一份点云，有两种基本的几何思路。</h2>
+  <p>区别不在点、线、面、体，也不在算法名字；而在于<strong>直接描述观测点的分布</strong>，还是<strong>建立能解释这些点的几何关系</strong>。</p>
+  <div class="map-container">
+    <div class="map-head"><span><i>GEOMETRY MAP</i> · 两条技术路线</span><span>不同出发点 · 可以组合</span></div>
+    <div class="map-input"><b>当前目标点云</b><span>＋</span><b>已约定的抓取关系</b></div>
+    <div class="map-down" aria-hidden="true">↓</div>
+    <div class="route-grid">
+      <article class="route-card" aria-label="路线一：点云分布与统计特征">
+        <span class="route-id">ROUTE 01 / DISTRIBUTION</span>
+        <h3>从点云分布中提取特征</h3>
+        <p class="route-deck">先不规定物体是什么形状，研究观测点在空间中如何分布。</p>
+        <div class="route-sketch" aria-hidden="true"><svg viewBox="0 0 260 104" xmlns="http://www.w3.org/2000/svg">
+          <g fill="#d5a587" opacity=".93"><circle cx="40" cy="72" r="3"/><circle cx="52" cy="67" r="2.8"/><circle cx="58" cy="82" r="3"/><circle cx="75" cy="58" r="3.2"/><circle cx="83" cy="70" r="2.6"/><circle cx="96" cy="53" r="3"/><circle cx="110" cy="57" r="2.8"/><circle cx="117" cy="41" r="2.7"/><circle cx="127" cy="49" r="3"/><circle cx="137" cy="30" r="3.2"/><circle cx="150" cy="43" r="2.8"/><circle cx="157" cy="21" r="2.7"/><circle cx="173" cy="26" r="3"/><circle cx="184" cy="20" r="2.7"/><circle cx="194" cy="15" r="2.7"/><circle cx="102" cy="72" r="2.4"/><circle cx="155" cy="52" r="2.5"/></g>
+          <path d="M29 85L216 8" stroke="#9c624e" stroke-width="2.2" stroke-linecap="round"/><path d="M207 7l9 1-6 8" fill="none" stroke="#9c624e" stroke-width="2"/>
+          <ellipse cx="124" cy="50" rx="94" ry="27" transform="rotate(-23 124 50)" fill="none" stroke="#c39778" stroke-dasharray="5 5" stroke-width="1.5"/>
+          <circle cx="124" cy="50" r="5.5" fill="#fff9f2" stroke="#9c624e" stroke-width="2"/><path d="M124 39v22M113 50h22" stroke="#9c624e" stroke-width="1.3"/>
+        </svg></div>
+        <div class="route-facts">
+          <div class="route-fact"><b>关注</b><span>位置分布、主方向、尺度、局部离散程度</span></div>
+          <div class="route-fact"><b>方法</b><span>Centroid · PCA · AABB / OBB · 邻域统计</span></div>
+          <div class="route-fact"><b>得到</b><span>中心、分布轴、范围及局部几何特征</span></div>
+          <div class="route-fact"><b>代价</b><span>依赖当前观测的代表性；受视角、遮挡与采样影响</span></div>
+        </div>
+      </article>
+      <article class="route-card" aria-label="路线二：几何关系与模型拟合">
+        <span class="route-id">ROUTE 02 / RELATIONS</span>
+        <h3>从几何关系中估计结构</h3>
+        <p class="route-deck">假设部分观测点满足共同的几何关系，再估计解释它们的模型参数。</p>
+        <div class="route-sketch" aria-hidden="true"><svg viewBox="0 0 260 104" xmlns="http://www.w3.org/2000/svg">
+          <path d="M96 25Q130 12 164 25L164 77Q130 94 96 77Z" fill="#cbdcc8" opacity=".52" stroke="#789a78" stroke-width="1.7"/>
+          <ellipse cx="130" cy="25" rx="34" ry="13" fill="#e5eee0" stroke="#789a78" stroke-width="1.7"/>
+          <path d="M96 77Q130 94 164 77" fill="none" stroke="#789a78" stroke-width="1.8"/><path d="M130 10v88" stroke="#66866a" stroke-dasharray="5 5" stroke-width="1.7"/>
+          <g fill="#ae7c5c"><circle cx="100" cy="36" r="2.8"/><circle cx="108" cy="48" r="2.6"/><circle cx="99" cy="60" r="3"/><circle cx="112" cy="69" r="2.7"/><circle cx="143" cy="75" r="2.6"/><circle cx="153" cy="63" r="2.9"/><circle cx="163" cy="47" r="2.7"/><circle cx="155" cy="33" r="2.6"/><circle cx="125" cy="28" r="2.5"/></g>
+          <path d="M130 57H163" stroke="#96785a" stroke-width="1.8"/><path d="M159 53l4 4-4 4" stroke="#96785a" stroke-width="1.5" fill="none"/>
+          <text x="175" y="58" fill="#7b8f77" font-size="11" font-family="Georgia">r</text>
+        </svg></div>
+        <div class="route-facts">
+          <div class="route-fact"><b>关注</b><span>局部曲面、共面性、几何基元、结构参数</span></div>
+          <div class="route-fact"><b>模型</b><span>切平面 · Plane · Cylinder · Sphere 等</span></div>
+          <div class="route-fact"><b>求解</b><span>最小二乘 / SVD · RANSAC · 参数优化</span></div>
+          <div class="route-fact"><b>代价</b><span>依赖模型假设；需要检验拟合质量与参数可观测性</span></div>
+        </div>
+      </article>
+    </div>
+    <div class="route-common"><b>一个必要的区分：</b>几何模型描述“点应该满足什么关系”，最小二乘、RANSAC 和优化则是估计与验证这些关系的机制。两条路线并不互斥：局部 PCA 可以估计切平面，圆柱拟合也可能先用 PCA 估计初始轴线。</div>
+    <div class="result-strip"><strong>位置 · 方向 · 表面 · 结构参数</strong><span>＋ 预定抓法　→</span><strong>Grasp Pose</strong></div>
+  </div>
 </section>
-<section id="review"><div class="sect-label"><em>03</em>走到这里，再回头看看</div><h2 class="sect-title">几何方法的代价，究竟在哪里？</h2>
-<p>最开始以为拿到点云，就能从里面找出一切需要的量。现在更愿意先分清楚：<strong>哪种几何关系是抓取真正需要的，哪部分确实被观测到了，哪部分还依赖假设。</strong></p>
-<div class="review-grid"><div class="review"><b>先问：要什么？</b><p>是一个参考位置、一条方向、两片表面，还是一组完整的抓取约束？抓法先决定需求。</p></div><div class="review"><b>再问：看见什么？</b><p>当前点云哪里可信？整体分布稳定，还是只有局部表面能用？没看到的部分不能当作真值。</p></div><div class="review"><b>最后问：凭什么补足？</b><p>统计、局部拟合、形状假设各能补充什么，又会在什么条件下失去依据？</p></div></div>
-<p>因此，同一个物体可以有不止一种合理的几何解法。<strong>中心简单，不代表不值得用；模型复杂，也不代表就更可信。</strong> 真正值得比较的是，它们在当前观测和约定抓法下，能否提供足够、稳定而可检验的约束。</p>
-<p>如果可见几何始终无法确定某些关系，未必是应该再换一个复杂算法。有时候，我们需要的是另一种信息来源。</p>
-<div class="next"><div class="next-kicker">NEXT / 已知参考</div><h3>如果眼前的几何不够，还能借助已知信息吗？</h3><p>比如早就知道物体的尺寸、关键结构或参考关系，也许可以不再完全依靠当前可见的那部分几何。这是下一篇想继续试的方向。</p><a href="https://fishxddd.github.io/research/stage-01/q02-known-reference/">继续翻阅 · 已知参考 <span aria-hidden="true">↗</span></a></div></section>
-<section id="reading"><div class="sect-label"><em>↗</em>继续挖掘 · 留给独立笔记</div><h2 class="sect-title">有些问题，值得单独慢慢研究。</h2><p>这一页只保留整条探索的脉络。真正想弄清数学原理、代表性方法和工程实现，可以从下面继续读。</p>
-<div class="reading-index"><a href="https://fishxddd.github.io/research/stage-01/q01-geometry/01-center/"><span><span class="name">点 · 位置与中心</span><small>质心、稳健位置、不同中心的定义</small></span><i>↗</i></a><a href="https://fishxddd.github.io/research/stage-01/q01-geometry/02-orientation/"><span><span class="name">线 · 主轴与方向</span><small>PCA、方向退化与包围范围</small></span><i>↗</i></a><a href="https://fishxddd.github.io/research/stage-01/q01-geometry/03-local-surface/"><span><span class="name">面 · 局部表面</span><small>法线、平面拟合与鲁棒估计</small></span><i>↗</i></a><a href="https://fishxddd.github.io/research/stage-01/q01-geometry/04-shape-primitives/"><span><span class="name">体 · 几何形状</span><small>盒体、圆柱与形状假设</small></span><i>↗</i></a><a href="https://fishxddd.github.io/research/stage-01/q01-geometry/06-pose-construction/"><span><span class="name">Grasp Frame · 姿态构造</span><small>参考点、正交坐标系、方向约束</small></span><i>↗</i></a></div>
-<div class="side-note">旁支阅读：<a href="https://fishxddd.github.io/research/stage-01/q01-geometry/05-contact/" style="text-decoration:underline;text-underline-offset:3px">接触几何与抓取候选 ↗</a>。这篇涉及从几何中主动寻找多种抓法，和本页“恢复既定抓法”的研究重点不同，作为延伸保留。</div>
+<section id="journey">
+  <div class="sect-label"><em>02</em>研究沿途 · 两次第一性探索</div>
+  <h2 class="sect-title">这两条思路，是从哪里冒出来的？</h2>
+  <p class="journey-preface">这里不重复下一层的算法原理，只留下为什么会想到它、它带来了什么，以及继续研究时必须面对的代价。</p>
+  <article class="idea-episode" id="distribution">
+    <div class="idea-kicker">01 / DISTRIBUTION · 从观测出发</div>
+    <h3>一群 XYZ 坐标，能直接算出什么？</h3>
+    <p>最先想到的是求均值：既然夹爪需要一个位置，点云中心也许就能当作参考。再进一步，不止中心，点的离散程度还藏着主要延伸方向和空间尺度。<strong>均值、协方差、PCA、包围范围</strong>，让这些量不依赖具体物体类别，也能被直接计算。</p>
+    <p>可相机看到的只有瓶身一侧。均值描述的是<strong>可见点集的中心</strong>，PCA 描述的是<strong>可见点的主要分布方向</strong>；它们不自动等于完整物体的中心或轴线。换个视角，几何统计量可能变了，预定抓法却没有变。</p>
+    <div class="logic-line"><b>值得继续追的问题</b>：分布特征究竟有哪些可靠的测量方式？局部统计、稳健估计能改善什么，又有哪些缺失是统计方法本身补不回来的？</div>
+    <!-- Deep-dive page: ./01-statistical-geometry/index.html -->
+    <a class="explore-link" href="./01-statistical-geometry/" aria-label="深入探索一：点云分布与统计特征">
+      <span><span class="explore-kicker">继续深入 01 · 最后一层技术笔记</span><b>点云分布与统计特征，究竟能测量什么？</b><em>Centroid / PCA / OBB / 邻域统计 / 稳健估计 · 原理、实现与代价</em></span>
+      <span class="explore-arrow" aria-hidden="true">↗</span>
+    </a>
+  </article>
+  <article class="idea-episode" id="relations">
+    <div class="idea-kicker">02 / RELATIONS · 从结构出发</div>
+    <h3>如果不只看分布，点之间还有什么关系？</h3>
+    <p>假设一组点来自同一片平整表面，它们就应该近似共面。与其分别计算这些点，不如找一个平面，让它们到平面的距离尽可能小：<strong>几何关系变成了可以求解的参数估计问题。</strong></p>
+    <p>同样地，一段瓶身可能被圆柱模型解释。模型一旦成立，轴线、半径等参数就有了共同约束，比孤立地求统计中心更接近想要的结构信息。最小二乘负责拟合，RANSAC 等机制能帮助抵御离群点；但<strong>拟合残差小，不代表模型假设一定正确</strong>，也不代表残缺观测足以唯一确定参数。</p>
+    <div class="logic-line"><b>值得继续追的问题</b>：哪些关系值得建立？怎样估计和验证参数？当物体变形、局部缺失或模型退化时，什么时候应该停止相信拟合结果？</div>
+    <!-- Deep-dive page: ./02-geometric-model-fitting/index.html -->
+    <a class="explore-link green" href="./02-geometric-model-fitting/" aria-label="深入探索二：几何关系与模型拟合">
+      <span><span class="explore-kicker">继续深入 02 · 最后一层技术笔记</span><b>怎样建立、拟合并验证一段几何关系？</b><em>局部表面 / 平面 / 圆柱 / 最小二乘 / RANSAC / 优化 · 原理、实现与代价</em></span>
+      <span class="explore-arrow" aria-hidden="true">↗</span>
+    </a>
+  </article>
 </section>
-</main></div>
+<section id="grasp">
+  <div class="sect-label"><em>03</em>回到最初的问题</div>
+  <h2 class="sect-title">几何信息有了，Grasp Pose 就确定了吗？</h2>
+  <p>不一定。中心、主轴、法线或拟合模型只是几何依据；<strong>真正决定夹爪姿态的，是这些几何信息与预定抓法能否构成足够的约束。</strong></p>
+  <div class="output-grid">
+    <div class="output-card"><b>直接利用几何约束</b><p>若约定夹持区域的位置、闭合方向及接近方向都可确定，就可以直接构造 Grasp Frame。</p></div>
+    <div class="output-card"><b>先建立几何参考系</b><p>若能够得到稳定的几何结构参考 F，就可以结合预先规定的 F 到夹爪的关系计算姿态。</p></div>
+  </div>
+  <div class="output-code">camera_T_grasp = camera_T_F × F_T_grasp （当参考系 F 及其抓取关系均已定义时）</div>
+  <p>对称性可能留下无法确定的旋转，部分可见可能使参数不稳定；此时宁愿明确指出约束不足，也不把一个看似完整的 6D Pose 当作可靠结果。这里关注的是<strong>约定抓法能否成立</strong>，不是生成、评分和排序大量候选。</p>
+  <div class="q01-close">从分布中提取特征，依赖观测是否具有代表性；从关系中估计结构，依赖几何假设是否成立。技术没有哪条天然更好，重要的是它们能否在当前场景下提供足够可信的抓取约束。</div>
+  <div class="next"><div class="next-kicker">NEXT / Q02 · 已知参考</div><h3>如果眼前的几何仍然不够呢？</h3><p>有些信息，单靠当前可见的这部分点云无法确定。假如已知物体尺寸、关键结构或参考模型，能不能借助这些额外信息求解位姿？</p><a href="https://fishxddd.github.io/research/stage-01/q02-known-reference/">继续翻阅 · 已知参考 <span aria-hidden="true">↗</span></a></div>
+</section>
+</main>
+</div>
 <footer class="foot"><span>© 2026 沿途手记 · 技术的路还在继续</span><a href="#" class="back-top">回到顶部 ↑</a></footer>
 <script>
 (function(){
