@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="沿途手记 · Q02 ROUTE 01：对应已知时，怎样从 3D–2D PnP 与 3D–3D Kabsch 恢复 Object Pose？包含数学约束、代表性方法、NumPy/OpenCV 代码、RANSAC 与工程验证。">
+  <meta name="theme-color" content="#fbf7f0">
+  <title>ROUTE 01｜几个对应点，为什么就能算出 6D Pose？｜沿途手记</title>
+  <style>
+    :root{--bg:#fbf7f0;--paper:#fffdf8;--paper2:#f7f0e6;--ink:#423b34;--muted:#786d63;--subtle:#a29283;--line:#e6dace;--coral:#b86d57;--coral-bg:#f9eee7;--sage:#678678;--sage-bg:#edf4ed;--gold:#a9874d;--gold-bg:#fcf5e5;--font:"Noto Sans CJK SC","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;--serif:"Noto Serif CJK SC","Noto Serif SC","Source Han Serif SC","Songti SC",serif;--mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:105px}body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.93;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}body:before{content:"";position:fixed;inset:0;z-index:-1;background-image:radial-gradient(#bba79217 .6px,transparent .6px);background-size:10px 10px;pointer-events:none}
+    a{color:inherit;text-decoration:none}a:hover{color:var(--coral)}.wide{max-width:1210px;padding:0 30px;margin:auto}.page{max-width:1070px;margin:auto;padding:0 30px}.topbar{border-bottom:1px solid var(--line);background:#fbf7f0f2;position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)}.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px}.brand{font-family:var(--serif);font-size:17px;font-weight:700;white-space:nowrap}.flower{color:var(--coral);font-size:22px;padding-right:5px}.toplinks{display:flex;gap:23px;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}.crumb{font-size:12px;color:var(--muted);padding-top:35px;padding-bottom:17px}.crumb span{padding:0 9px;color:#c3b4a5}
+    .hero{position:relative;padding:0 0 42px;border-bottom:1px solid var(--line)}.eyebrow,.overline{font-size:11px;letter-spacing:.17em;font-weight:800;color:var(--coral);text-transform:uppercase}.eyebrow{margin-bottom:16px}h1,h2{font-family:var(--serif)}h1{font-size:clamp(31px,4.6vw,54px);line-height:1.35;letter-spacing:-.027em;margin:0 0 17px;font-weight:700}h2{font-size:clamp(25px,3.3vw,35px);line-height:1.48;letter-spacing:-.019em;font-weight:700;margin:9px 0 23px}h3{font-size:20px;line-height:1.5;margin:31px 0 14px;letter-spacing:-.013em}h4{font-size:16px;margin:20px 0 9px}p{margin:0 0 15px}strong{font-weight:750}.lead{font-size:17px;max-width:790px;color:#5f554b;line-height:1.9}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:25px 0 0}.chip{font-size:11px;line-height:1.5;padding:6px 12px;border:1px solid var(--line);border-radius:50px;background:#fffbf6;color:#7a6b5d}.takehome{max-width:860px;border-left:3px solid var(--sage);padding:10px 18px;margin:24px 0 0;background:#eef3ea;color:#526455;font-size:14px}
+    .layout{display:grid;grid-template-columns:190px minmax(0,1fr);gap:48px;align-items:start}.content{min-width:0}.toc{position:sticky;top:96px;max-height:calc(100vh - 122px);overflow:auto;margin-top:66px;padding-right:8px}.toc b{display:block;margin:0 0 11px 12px;color:var(--coral);font-size:10px;letter-spacing:.14em}.toc a{display:block;padding:7px 10px 7px 12px;border-left:2px solid transparent;color:var(--muted);font-size:11.5px;line-height:1.55;transition:.18s}.toc a:hover,.toc a.active{border-left-color:var(--coral);border-radius:0 7px 7px 0;background:var(--coral-bg);color:#8d5544}.section{margin:66px 0 85px;scroll-margin-top:104px}.section-label{font-weight:800;letter-spacing:.16em;color:var(--coral);font-size:11px}.section-intro{font-size:16px;color:#645a50;max-width:845px}.narrow{max-width:880px}.muted{color:var(--muted)}.method-flag{display:inline-flex;align-items:center;gap:8px;letter-spacing:.09em;text-transform:uppercase;color:var(--sage);font-weight:800;font-size:11px;background:var(--sage-bg);padding:5px 11px;border-radius:50px;margin-bottom:4px}.method-flag.coral{color:var(--coral);background:var(--coral-bg)}.method-flag.gold{color:var(--gold);background:var(--gold-bg)}
+    .overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:27px 0}.overview-card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--coral);border-radius:14px;padding:21px 23px;box-shadow:0 2px 14px #9b76570b}.overview-card:nth-child(2){border-top-color:var(--sage)}.overview-card small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;font-weight:800;margin-bottom:7px}.overview-card h3{margin:0 0 8px;font-size:17px}.overview-card p{font-size:13px;line-height:1.8;margin-bottom:8px}.overview-card .input{font-size:12px;color:var(--coral);font-weight:700}.overview-card:nth-child(2) .input{color:var(--sage)}
+    .equation{position:relative;border:1px solid #e7dccc;background:#fffaf3;border-radius:12px;margin:18px 0 21px;padding:11px 20px;overflow:auto;text-align:center;font-size:16px}.equation .eq-label{display:block;line-height:1.4;font-size:10px;letter-spacing:.1em;color:var(--gold);text-align:left;font-weight:800;padding-top:1px}.equation.important{border-left:3px solid var(--coral);background:#fcf3e9}.equation mjx-container{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:7px 0}.eqrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.detail{border-left:2px solid #d9cbbb;padding:0 0 0 22px;margin:20px 0 20px}.detail p:last-child{margin-bottom:0}.note{border-radius:12px;padding:17px 21px;margin:22px 0;background:var(--sage-bg);border:1px solid #dce7db;font-size:14px;color:#526457}.note strong{color:#416b53}.note.gold{background:var(--gold-bg);border-color:#eee1c4;color:#706046}.note.coral{background:var(--coral-bg);border-color:#efdcd3;color:#80584d}.note p:last-child{margin-bottom:0}
+    .storyline{margin:22px 0 25px;padding:15px 19px;border:1px dashed #d9cbb9;border-radius:10px;font-size:13px;color:#77685b;background:#fffcf7}.side-label{font-size:10px;letter-spacing:.12em;color:var(--coral);font-weight:800}.formula-caption{font-size:12px;color:var(--muted);margin-top:-12px;margin-bottom:17px}.q-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:21px 0}.q{border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:17px}.q b{display:block;font-size:13px;margin-bottom:5px}.q p{font-size:12px;color:var(--muted);line-height:1.75;margin:0}
+    .codewrap{margin:20px 0 28px;border-radius:13px;border:1px solid #decfbd;overflow:hidden;background:#f7f2ea}.codehead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 15px;background:#f0e7db;border-bottom:1px solid #decfbd;font-family:var(--mono);font-size:11px;color:#7d6d5e}.copy{appearance:none;border:1px solid #d4c2ae;border-radius:6px;color:#625447;background:#fffaf4;padding:5px 11px;font-family:var(--font);font-size:11px;cursor:pointer}.copy:hover{border-color:var(--coral);color:var(--coral)}pre{margin:0;overflow:auto;padding:17px 20px;font:12.5px/1.75 var(--mono);tab-size:4;color:#4b4947;white-space:pre}code{font-family:var(--mono)}:not(pre)>code{font-size:.86em;padding:1px 5px;border-radius:4px;background:#f3ece2;color:#8a5b49;word-break:break-word}
+    .tablewrap{overflow:auto;margin:22px 0 25px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}table{border-collapse:collapse;width:100%;font-size:13px;min-width:660px}th,td{text-align:left;padding:13px 15px;vertical-align:top;border-bottom:1px solid var(--line)}th{font-size:12px;background:#f5ebdf;color:#564b41}tr:last-child td{border:0}tr td:first-child{font-weight:700;color:#574e45}.closing{font:700 20px/1.9 var(--serif);color:#685b50;margin:23px 0}.step-line{display:flex;gap:12px;align-items:flex-start;margin:19px 0}.step-index{border:1px solid #decab7;background:#fff8ef;border-radius:50%;min-width:26px;height:26px;text-align:center;font:bold 12px/24px var(--mono);color:var(--coral);margin-top:4px}.step-line p{margin:0}.figure{margin:26px 0;background:#fffdf8;border:1px solid var(--line);border-radius:16px;padding:24px}.figure-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px;align-items:baseline}.figure-head b{font-size:15px}.figure-head span{font-size:11px;color:var(--muted)}.schematic{display:grid;grid-template-columns:1fr 1fr;gap:17px}.schematic-panel{background:#f9f5ef;border:1px solid #eee4d8;border-radius:10px;padding:18px 15px;text-align:center}.schematic-panel .fig-kicker{font-size:10px;color:var(--coral);letter-spacing:.15em;font-weight:800}.schematic-panel:nth-child(2) .fig-kicker{color:var(--sage)}.schematic-panel .fig-model{font-size:16px;font-family:var(--mono);font-weight:700;margin:12px 0 4px}.schematic-panel .fig-arrow{color:#b9a590;font-size:20px;line-height:1.4}.schematic-panel .fig-target{font-weight:700;font-size:13px}.schematic-panel .fig-expl{font-size:11px;color:var(--muted);margin:6px 0 0}.fig-note{color:var(--muted);font-size:12px;margin:14px 0 0;text-align:center}
+    .next{margin:52px 0 66px;padding:26px 28px;border-radius:16px;background:#ebf2eb;border:1px solid #d7e4d6}.next small{color:var(--sage);font-size:11px;letter-spacing:.16em;font-weight:800}.next h3{margin:8px 0 9px;font-size:20px}.next p{font-size:13px;color:#5d7566;margin:0 0 12px}.next a{font-size:13px;color:#4d7660;font-weight:800}.foot{display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding:25px 0 43px;font-size:11px;color:#978a7e} .sources{font-size:12px;color:var(--muted);margin:18px 0}.sources a{color:#7a5946;text-decoration:underline;text-decoration-color:#d1baa7;text-underline-offset:3px}
+    @media(max-width:820px){.layout{display:block}.toc{position:relative;top:auto;max-height:none;display:flex;flex-wrap:nowrap;gap:7px;margin:28px -17px 42px 0;padding:13px 17px 13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}.toc::-webkit-scrollbar{display:none}.toc b{position:sticky;left:0;z-index:1;flex:none;margin:0;padding:7px 10px 7px 0;background:linear-gradient(90deg,var(--bg) 78%,transparent);white-space:nowrap}.toc a{display:inline-flex;align-items:center;flex:none;min-height:30px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:#fffaf4;white-space:nowrap}.toc a:hover,.toc a.active{border:1px solid #c9967f;border-radius:999px}}
+    @media(max-width:700px){.wide,.page{padding-left:17px;padding-right:17px}.topbar-inner{min-height:56px}.toplinks{gap:12px}.toplinks a:nth-child(2){display:none}.crumb{padding-top:22px}.hero{padding-bottom:32px}.lead{font-size:15px}.overview,.schematic,.eqrow,.q-grid{grid-template-columns:1fr}.section{margin:52px 0 61px}h3{font-size:18px}.equation{padding:9px 12px;font-size:14px}.figure{padding:17px 13px}pre{font-size:11px;padding:15px 12px}.foot{flex-direction:column}.q{padding:14px}}
+    @media print{.topbar{position:static}body{background:white}.toc,.copy{display:none}.layout{display:block}.section{break-inside:auto}.overview-card,.note,.figure,.equation{break-inside:avoid}a{color:inherit}}
+  </style>
+  <script>
+    window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']},svg:{fontCache:'global'}};
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body id="top">
+  <header class="topbar"><div class="wide topbar-inner">
+    <a class="brand" href="https://fishxddd.github.io/"><span class="flower">✳</span>沿途手记</a>
+    <nav class="toplinks" aria-label="页面导航">
+      <a href="https://fishxddd.github.io/research/stage-01/q02-known-reference/">← Q02 已知参考</a>
+      <a href="https://fishxddd.github.io/research/stage-01/">← Stage 01</a>
+      <a href="#map">本页地图 ↓</a>
+    </nav>
+  </div></header>
+  <main class="page">
+    <div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span>/</span><a href="https://fishxddd.github.io/research/stage-01/">Stage 01</a><span>/</span><a href="https://fishxddd.github.io/research/stage-01/q02-known-reference/">Q02 已知参考</a><span>/</span>Route 01</div>
+    <div class="hero">
+      <div class="eyebrow">STAGE 01 / Q02 / ROUTE 01 · CORRESPONDENCE KNOWN</div>
+      <h1>几个对应点，<br>为什么就能算出 6D Pose？</h1>
+      <p class="lead">从 3D–2D 的相机投影约束，到 3D–3D 的刚体对齐。对应已经知道，接下来想真正弄明白的是：<strong>旋转和平移为什么能被求出来，以及什么时候不能相信这个答案。</strong></p>
+      <div class="chips"><span class="chip">明确同名点</span><span class="chip">相机已标定</span><span class="chip">PnP / IPPE</span><span class="chip">Kabsch / SVD</span><span class="chip">RANSAC 与可靠性</span><span class="chip">输出：Camera ← Object</span></div>
+      <div class="takehome"><strong>研究边界：</strong>这一篇假定目标已被定位，参考与观测中的对应点也已给出。这里研究怎样根据这些约束恢复 <strong>Object Pose</strong>，不再讨论关键点检测、未知对应搜索或 ICP 的迭代匹配。</div>
+    </div>
+    <div class="layout">
+      <aside class="toc" id="map" aria-label="本页目录"><b>ON THIS PAGE</b><a href="#problem">00 · 问题</a><a href="#pnp">01 · PnP：3D–2D</a><a href="#rigid">02 · Kabsch：3D–3D</a><a href="#ransac">03 · RANSAC</a><a href="#trust">04 · 结果可靠吗</a><a href="#compare">05 · 两种方法</a><a href="#closing">06 · 回头看</a></aside>
+      <div class="content">
+
+    <section class="section" id="problem">
+      <div class="section-label">00 / 一旦知道了点对应</div>
+      <h2>不必先认出整个表面，<br>也有机会恢复完整姿态。</h2>
+      <p class="narrow">在 Q01，我尝试过只根据可见点云去估计位置、方向与局部几何。现在多了一份已知参考：物体上的几个点，在 Object Frame 中有确定坐标；相机里，也已经知道它们分别落在哪里。</p>
+      <p class="narrow">这次先不研究对应是怎样找出来的。只接受一个前提：<strong>第 <em>i</em> 个参考点对应的，确实是第 <em>i</em> 个现场观测。</strong>剩下的是一个明确的刚体变换求解问题：</p>
+      <div class="equation important"><span class="eq-label">目标变换 · OBJECT → CAMERA</span>\[{}^{C}T_O=\begin{bmatrix}R&t\\0&1\end{bmatrix},\qquad R\in SO(3),\quad t\in\mathbb R^3\]</div>
+      <p>这里的 <code>R</code> 表示旋转，<code>t</code> 表示物体原点在相机坐标系下的位置。按列向量约定，任意参考点都满足 \(P^C=RP^O+t\)。</p>
+      <div class="figure" aria-label="已知对应的两种求解形式">
+        <div class="figure-head"><b>同一组参考点，两种现场证据</b><span>FIG 01 / 约束形式，而不是算法流水线</span></div>
+        <div class="schematic">
+          <div class="schematic-panel"><div class="fig-kicker">3D → 2D / PnP</div><div class="fig-model">\(P_i^O\)</div><div class="fig-arrow">↓ 相机投影 \(\pi\)</div><div class="fig-target">图像像素 \(u_i\)</div><p class="fig-expl">找出哪个 R、t 能把参考点投影到观测像素</p></div>
+          <div class="schematic-panel"><div class="fig-kicker">3D → 3D / Kabsch</div><div class="fig-model">\(P_i^O\)</div><div class="fig-arrow">↓ 刚体变换 \(R,t\)</div><div class="fig-target">现场三维点 \(P_i^C\)</div><p class="fig-expl">找出哪个 R、t 能让两组三维点对齐</p></div>
+        </div>
+        <p class="fig-note">两条路线的未知量都是同一个 \({}^{C}T_O\)，区别在于现场测量停留在二维还是已经具有可靠三维坐标。</p>
+      </div>
+    </section>
+
+    <section class="section" id="pnp">
+      <div class="section-label">01 / 3D–2D · 投影约束</div>
+      <h2>只有像素对应，<br>为什么也能反推出三维 Pose？</h2>
+      <div class="method-flag coral">P3P · EPnP · IPPE · ITERATIVE</div>
+      <h3>1.1｜先把 PnP 的输入、输出写清楚</h3>
+      <p>先拿一个盒子可见面的四个角点做例子。参考中知道每个角点的三维坐标 \(P_i^O=[X_i,Y_i,Z_i]^T\)，图像中则知道它对应的像素 \(u_i=[u_i,v_i]^T\)。相机的内参 \(K\) 已经标定。</p>
+      <p>如果已经知道 Pose，可以把三维点投影到图像上；现在反过来寻找一个 Pose，使预测像素与真实像素尽量一致。</p>
+      <div class="equation"><span class="eq-label">参考点变换到相机坐标</span>\[\begin{bmatrix}X_i^C\\Y_i^C\\Z_i^C\end{bmatrix}=RP_i^O+t\]</div>
+      <div class="equation"><span class="eq-label">针孔投影 · 下式假定坐标已去畸变</span>\[\hat u_i=f_x\frac{X_i^C}{Z_i^C}+c_x,\qquad\hat v_i=f_y\frac{Y_i^C}{Z_i^C}+c_y\]</div>
+      <div class="equation important"><span class="eq-label">重投影误差 / REPROJECTION ERROR</span>\[E(R,t)=\sum_{i=1}^{N}\left\|\mathbf u_i-\pi\!\left(K(RP_i^O+t)\right)\right\|_2^2\]</div>
+      <p>其中 \(\pi\) 包含透视除法。计算误差时，如果使用原始畸变图像，还必须在预测中正确处理畸变。<strong>PnP 要寻找的，就是能够解释这些像素观测的旋转和平移。</strong></p>
+      <div class="note"><strong>换一个几何直觉：</strong>已标定相机中的每个像素，对应从相机光心出发的一条空间射线。未知三维点经过刚体变换后，应当落在对应射线上。单个点约束有限，多条射线和已知的参考点间距离共同形成 Pose 约束。由于参考点具有公制坐标，位姿平移也可带有公制尺度。</div>
+
+      <h3>1.2｜三个点够了吗？——P3P</h3>
+      <p>如果对应点很少，最自然的想法是先研究最小约束。P3P（Perspective-Three-Point）使用三个已知参考三维点与三条相机射线，利用参考三角形的边长、相机射线的夹角，反推出三角形在相机前方的空间位置。</p>
+      <div class="equation"><span class="eq-label">两条射线上的余弦定理</span>\[d_{12}^{\,2}=r_1^2+r_2^2-2r_1r_2\cos\theta_{12}\]</div>
+      <p class="formula-caption">\(d_{12}\)：模型中两点距离；\(r_1,r_2\)：沿射线到相机的未知距离；\(\theta_{12}\)：两条归一化射线间的已知夹角。</p>
+      <p>三个点提供三组这样的几何关系。然而，满足这些方程的姿态不一定只有一个：<strong>P3P 在一般构型下可能产生多个候选解，最多可达四个。</strong>额外对应点或任务约束通常被用于区分解。</p>
+      <p class="muted">实现细节：OpenCV 的 <code>solvePnP</code> 在使用 <code>SOLVEPNP_P3P</code>、<code>SOLVEPNP_AP3P</code> 选项时，通常以四组输入对应点来选择解；不要将“P3P 的最小几何问题是三点”和“某个 API 必须传几组点”混为一谈。</p>
+      <div class="note gold"><strong>第一层认识：</strong>方程数量看起来够了，不代表姿态必定唯一。需要区分“存在解”“有多个解”和“某个解在噪声下是否稳定”。</div>
+
+      <h3>1.3｜对应点更多时——EPnP 与迭代优化</h3>
+      <p>如果有十几个甚至几十个准确对应点，求解器可以利用冗余约束。EPnP（Efficient PnP）是一条代表性路线：不是把每个点的相机坐标都独立求出来，而是用少量虚拟控制点表示所有参考点。</p>
+      <div class="equation"><span class="eq-label">EPnP 的控制点表示 · 一般三维参考点集</span>\[P_i^O=\sum_{j=1}^{4}\alpha_{ij}C_j^O,\qquad P_i^C=\sum_{j=1}^{4}\alpha_{ij}C_j^C\]</div>
+      <p>这里 \(\alpha_{ij}\) 是由参考几何确定的仿射组合系数。刚体变换保持这类组合关系，于是大量点的投影约束可以转化为少量控制点坐标的求解，再恢复整体 Pose。</p>
+      <p>EPnP 的意义在于高效构造初始姿态。而使用全部观测最小化重投影误差的非线性优化，例如 Gauss–Newton / Levenberg–Marquardt，又是一类有代表性的精化办法。两者经常被组合：先求一个合理初值，再减小像素误差。</p>
+      <p>但要清楚，局部优化只在初值附近寻找更好的解，不能自动消除错误初值或全部姿态歧义。</p>
+
+      <h3>1.4｜如果四个角点都在一个平面？——IPPE</h3>
+      <p>盒子的单个可见面、标签、平面标记，都很容易得到共面的 3D–2D 对应。共面点不是一概不能做 PnP，而是它们具有特殊的投影结构。</p>
+      <p>当参考平面定义为 \(Z=0\) 时：</p>
+      <div class="equation"><span class="eq-label">平面到图像的单应关系</span>\[s\begin{bmatrix}u\\v\\1\end{bmatrix}=K\begin{bmatrix}r_1&r_2&t\end{bmatrix}\begin{bmatrix}X\\Y\\1\end{bmatrix},\qquad H\sim K[r_1\ r_2\ t]\]</div>
+      <p>这里 \(H\) 是平面到图像的 Homography，\(r_1,r_2\) 是旋转矩阵的前两列。从已标定的投影关系和旋转的正交约束中，可以恢复平面姿态候选。</p>
+      <p>IPPE（Infinitesimal Plane-Based Pose Estimation）专门研究平面位姿。它能返回两个姿态候选，并比较其重投影误差。特别是在平面投影接近仿射的情况下，两个姿态可能给出非常相近的图像解释。</p>
+      <div class="note coral"><strong>这一节真正的代价：</strong>点数与精度不是唯一问题。参考点是否共面、是否近共线、投影是否足以区分不同姿态，同样决定了求解的可靠性。</div>
+      <h3>1.5｜OpenCV 最简实现：给四个平面角点求 Pose</h3>
+      <div class="codewrap"><div class="codehead"><span>Python · cv2.solvePnP / IPPE</span><button class="copy" type="button" data-copy="pnp-code">复制代码</button></div><pre><code id="pnp-code">import cv2
+import numpy as np
+
+# 示例：Object Frame 中同一矩形面的四角，单位米
+W, H = 0.12, 0.08
+object_pts = np.array([
+    [-W/2, -H/2, 0.0],
+    [ W/2, -H/2, 0.0],
+    [ W/2,  H/2, 0.0],
+    [-W/2,  H/2, 0.0],
+], dtype=np.float64)
+
+# 现场真实检测/人工标注的同名像素，按上面顺序填写
+image_pts = np.array([
+    [512.0, 290.0],
+    [684.0, 300.0],
+    [677.0, 418.0],
+    [519.0, 406.0],
+], dtype=np.float64)
+
+# 示例内参；实际应用必须换成当前相机标定值
+K = np.array([
+    [900.0, 0.0, 640.0],
+    [0.0, 900.0, 360.0],
+    [0.0, 0.0, 1.0],
+], dtype=np.float64)
+D = np.zeros(5, dtype=np.float64)  # 仅当图像已去畸变时适用
+
+# IPPE 适用于共面点；返回两组可能的位姿解
+n, rvecs, tvecs, errors = cv2.solvePnPGeneric(
+    object_pts, image_pts, K, D,
+    flags=cv2.SOLVEPNP_IPPE,
+)
+if n == 0:
+    raise RuntimeError("没有找到有效的平面位姿候选")
+
+for i, (rvec, tvec) in enumerate(zip(rvecs, tvecs)):
+    R, _ = cv2.Rodrigues(rvec)
+    T_C_O = np.eye(4)
+    T_C_O[:3, :3] = R
+    T_C_O[:3, 3] = tvec.reshape(3)
+
+    projected, _ = cv2.projectPoints(
+        object_pts, rvec, tvec, K, D)
+    pixel_err = np.linalg.norm(
+        projected.reshape(-1, 2) - image_pts, axis=1)
+    print(i, "RMSE(px)=", np.sqrt(np.mean(pixel_err**2)))
+    print(T_C_O)
+
+# 此处只是示例数值。图像点、物体尺寸、相机内参
+# 都必须替换为同一个真实标定与观测场景的数据。</code></pre></div>
+      <p class="muted">这段代码展示输入输出约定，不是经过真实数据验证的抓取 Pose。平面候选应结合误差、物体朝向、可见性与任务约束共同判断。对象角点顺序与图像角点顺序必须严格一致。</p>
+    </section>
+
+    <section class="section" id="rigid">
+      <div class="section-label">02 / 3D–3D · 空间刚体约束</div>
+      <h2>如果深度也可靠，<br>为什么还要投影回图像？</h2>
+      <div class="method-flag">KABSCH · SVD · RIGID ALIGNMENT</div>
+      <h3>2.1｜从像素反投影到三维</h3>
+      <p>对于已与 RGB 对齐的可靠深度测量，可以把对应像素反投影到相机坐标系。这里 \(Z_i\) 指相机光轴方向的深度，而不是三维欧氏距离：</p>
+      <div class="equation"><span class="eq-label">反投影 · 无畸变的针孔模型</span>\[P_i^C=Z_i\begin{bmatrix}(u_i-c_x)/f_x\\(v_i-c_y)/f_y\\1\end{bmatrix}\]</div>
+      <p>于是每组对应变成 \(P_i^O\leftrightarrow P_i^C\)。这时求解的不是像素误差，而是两组三维点之间的刚体对齐。</p>
+      <div class="equation important"><span class="eq-label">刚体最小二乘目标</span>\[\min_{R\in SO(3),\,t\in\mathbb R^3}\sum_i\left\|RP_i^O+t-P_i^C\right\|_2^2\]</div>
+      <p>在这条路线中，当前深度是输入证据。它有用，但如果深度来自透明表面、反光表面或物体边界的错误测量，三维约束反而可能比准确的二维关键点更差。</p>
+
+      <h3>2.2｜为什么 SVD 可以求出旋转？——Kabsch</h3>
+      <p>这套算法真正优雅的地方在于：先移除平移，再利用两组点之间的相对空间结构恢复旋转。</p>
+      <div class="step-line"><span class="step-index">1</span><p><strong>分别求中心。</strong>同名点的两个中心决定平移关系的一部分。</p></div>
+      <div class="equation">\[\bar P=\frac1N\sum_iP_i^O,\qquad\bar Q=\frac1N\sum_iP_i^C\]</div>
+      <div class="step-line"><span class="step-index">2</span><p><strong>两组点分别中心化。</strong>用 \(p_i=P_i^O-\bar P\)、\(q_i=P_i^C-\bar Q\) 消去整体平移。</p></div>
+      <div class="step-line"><span class="step-index">3</span><p><strong>建立互协方差并进行 SVD。</strong>在这份笔记的列向量约定下，取 \(H=\sum_i p_iq_i^T\)，再做 \(H=U\Sigma V^T\)。</p></div>
+      <div class="equation important"><span class="eq-label">最优正交刚体旋转 · 排除镜像反射</span>\[R=V\operatorname{diag}\!\bigl(1,1,\det(VU^T)\bigr)U^T\]</div>
+      <div class="step-line"><span class="step-index">4</span><p><strong>将中心移回去。</strong>已经知道旋转，平移由两组中心直接恢复：</p></div>
+      <div class="equation">\[t=\bar Q-R\bar P\]</div>
+      <p>之所以需要 \(\det(VU^T)\) 这一项，是因为正交矩阵可能包含镜像反射。机器人刚体旋转必须满足 \(R^TR=I\)、\(\det(R)=+1\)，不能把反射误认为旋转。</p>
+      <div class="note"><strong>一点重要的退化判断：</strong>对已知对应的 3D–3D 刚体配准，三个互不共线的三维点在无噪声时足以唯一确定一般刚体变换。四个点共面并不必然退化；但点全部共线时，绕该直线的旋转无法唯一确定。</div>
+
+      <h3>2.3｜能直接运行的 NumPy 实现</h3>
+      <div class="codewrap"><div class="codehead"><span>Python · Kabsch / Object → Camera</span><button class="copy" type="button" data-copy="kabsch-code">复制代码</button></div><pre><code id="kabsch-code">import numpy as np
+
+
+def kabsch(P, Q):
+    """P: Object Nx3, Q: Camera Nx3, 每行是同名点。"""
+    P = np.asarray(P, dtype=np.float64)
+    Q = np.asarray(Q, dtype=np.float64)
+
+    if P.shape != Q.shape or P.ndim != 2 or P.shape[1] != 3:
+        raise ValueError("P 和 Q 必须是形状一致的 Nx3 数组")
+    if len(P) &lt; 3 or not np.isfinite(P).all() or not np.isfinite(Q).all():
+        raise ValueError("至少需要三个有限的三维对应点")
+
+    cp, cq = P.mean(axis=0), Q.mean(axis=0)
+    X, Y = P - cp, Q - cq
+    if np.linalg.matrix_rank(X) &lt; 2:
+        raise ValueError("参考点共线，旋转无法唯一确定")
+
+    H = X.T @ Y
+    U, S, Vt = np.linalg.svd(H)
+    D = np.diag([1.0, 1.0, np.linalg.det(Vt.T @ U.T)])
+
+    R = Vt.T @ D @ U.T
+    t = cq - R @ cp
+
+    return R, t
+
+
+# 坐标约定：P_C = R @ P_O + t
+# 最终可构造 T_C_O（Object → Camera）
+# 检查：np.linalg.det(R) ≈ +1
+# 验证：np.linalg.norm((R @ P.T).T + t - Q, axis=1)</code></pre></div>
+      <p>与 PnP 相同，代码本身并不知道“谁是 Object、谁是 Camera”。<strong>传入参数的顺序决定返回变换方向。</strong>本例中求得的就是 \({}^{C}T_O\)，不是它的逆变换。</p>
+      <h3>2.4｜为什么 3D–3D 未必比 PnP 更准确？</h3>
+      <p>3D–3D 看起来提供了更多信息，但测量也引入了更多误差来源。深度噪声通常具有方向性，边缘像素容易发生深度混合，透明和反光表面可能直接缺失深度；RGB 与深度未对齐时，还会产生系统性误差。</p>
+      <p>一个二维角点可以在图像上清楚可见，却不一定拥有准确深度。强行把错误的深度反投影成三维坐标，可能比直接用可靠的二维角点求 PnP 更差。</p>
+      <div class="note gold"><strong>第二层认识：</strong>多一个观测维度并不自动换来更高精度。真正决定效果的，是被拿来建立约束的观测是否可靠，以及采用的误差模型是否符合传感器特性。</div>
+    </section>
+
+    <section class="section" id="ransac">
+      <div class="section-label">03 / 错误对应与鲁棒估计</div>
+      <h2>如果有几个对应点错了，<br>最小二乘还可信吗？</h2>
+      <p>前面的 PnP 和 Kabsch 都假设对应点足够可靠。但现场可能出现关键点定位错误、点身份交换、错误深度或误匹配。若把它们全部放进平方误差目标，求解器会试图同时解释正确和错误的对应。</p>
+      <p>RANSAC 因而值得单独认识一次：它不是一个新的 Pose 几何模型，而是<strong>包裹在 PnP、三维刚体估计等最小求解器外面的鲁棒估计机制</strong>。</p>
+      <div class="storyline"><span class="side-label">RANSAC 的基本动作</span><br>抽取最小样本 → 求候选姿态 → 计算所有对应残差 → 统计内点 → 重复抽样 → 利用内点重新估计。</div>
+      <div class="eqrow"><div class="equation"><span class="eq-label">PnP / 像素残差</span>\[e_i^{2D}=\|\mathbf u_i-\hat{\mathbf u}_i(R,t)\|_2\]</div><div class="equation"><span class="eq-label">3D–3D / 空间残差</span>\[e_i^{3D}=\|P_i^C-(RP_i^O+t)\|_2\]</div></div>
+      <p>一个单位是像素，一个单位是米或毫米，因此阈值绝不能照搬。内点判断需要与测量噪声模型一致。</p>
+      <h3>3.1｜为什么迭代次数会突然变得很多？</h3>
+      <p>假设一个随机对应是内点的概率为 \(w\)，一次抽取 \(s\) 个样本。在独立、近似均匀抽样的假设下，一次全部抽到内点的概率约为 \(w^s\)。要让至少一次全内点抽样发生的概率达到 \(p\)，有：</p>
+      <div class="equation important"><span class="eq-label">经典 RANSAC 迭代估计</span>\[N\geq\frac{\ln(1-p)}{\ln(1-w^s)}\]</div>
+      <p>例如，若 \(p=0.99\)、\(w=0.5\)、\(s=4\)，理想公式得到大约 <strong>72 次</strong>。实际工程中还需要考虑样本退化、内点率估计误差、重复解和计算预算。</p>
+      <p>当正确对应比例下降时，所需采样次数会迅速增加。这是 RANSAC 的一个真实计算代价，而不是把迭代次数设得越大越好。</p>
+      <div class="note coral"><strong>第三层认识：</strong>RANSAC 提高了对一部分错误对应的容忍度，但若错误对应本身形成一致的几何解释，它仍可能稳定地输出错误 Pose。鲁棒估计不能代替可观测性或物体身份验证。</div>
+    </section>
+
+    <section class="section" id="trust">
+      <div class="section-label">04 / 从求出姿态到信任姿态</div>
+      <h2>求解器返回 success，<br>并不意味着抓取 Pose 已经正确。</h2>
+      <p>拿到了旋转和平移之后，我反而需要开始认真检查这个答案究竟代表什么。单凭求解器返回成功，甚至单凭很小的优化残差，都无法排除几何退化、系统性测量误差或多解。</p>
+      <div class="q-grid"><div class="q"><b>01 · 约束几何</b><p>点是否过于集中、近共线或共面？不同姿态在当前视角下是否可区分？</p></div><div class="q"><b>02 · 测量可信</b><p>像素、内参、畸变、深度、对齐和参考尺寸是否可靠？有无系统性偏差？</p></div><div class="q"><b>03 · 任务足够</b><p>投影误差小之外，恢复的抓取位置与方向是否满足预先约定的几何约束？</p></div></div>
+      <h3>4.1｜对应点数量够了，为什么依然不稳定？</h3>
+      <p>点都挤在同一个小区域，即使局部残差很小，旋转估计中的微小误差也可能在远处放大。近共线的空间点对于绕所在直线旋转尤其敏感；平面 3D–2D 观测则需要额外分析歧义，而 3D–3D 共面并不必然意味着刚体解不唯一。</p>
+      <p>同样地，对称或重复关键点可能让不同身份解释对应到不同 Pose。<strong>是否有足够独立的几何约束，比单纯统计点数更重要。</strong></p>
+      <h3>4.2｜数学误差小，真实姿态误差也一定小吗？</h3>
+      <p>对 PnP 来说，关键点像素误差、相机内参和畸变参数、参考模型的实际尺度都会影响结果。对 3D–3D 来说，还要考虑深度测量的偏差、RGB-Depth 对齐以及坐标单位。</p>
+      <p>如果所有观测都朝同一个方向发生系统偏差，最小二乘依然可能给出很漂亮的残差。因此，误差要先用来验证<strong>模型能否解释测量</strong>，而不能直接当成真实 Pose 精度的证明。</p>
+      <h3>4.3｜怎么做最基本的工程检查？</h3>
+      <div class="detail"><p><strong>第一层：数值一致性。</strong>统计 PnP 重投影 RMSE、各点误差、RANSAC 内点数量/比例；对于 3D–3D，查看三维 RMSE 和异常残差分布。</p><p><strong>第二层：空间合理性。</strong>验证 \(R^TR\approx I\)、\(\det R\approx 1\)，检查正深度、参考点重新投影、物体尺寸和可见方向是否与图像相符。</p><p><strong>第三层：抓取可用性。</strong>把约定的 Object → Grasp 变换带到相机坐标系下，检查 Grasp Frame 是否落在约定位置、朝向是否正确。</p></div>
+      <div class="equation important"><span class="eq-label">从物体姿态恢复预先约定的抓取姿态</span>\[{}^{C}T_G={}^CT_O\;{}^OT_G\]</div>
+      <p>如果关键点集中在物体的一端，那么微小角度误差对距离很远的夹持位置可能造成明显偏移。对于抓取任务，最终更值得评价的是 <strong>Pose 误差怎样传播到约定的 Grasp Pose</strong>。</p>
+    </section>
+
+    <section class="section" id="compare">
+      <div class="section-label">05 / 把两种直接求解分清楚</div>
+      <h2>它们求的都是 R、t，<br>但用的是不同的观测证据。</h2>
+      <div class="tablewrap"><table><thead><tr><th>问题</th><th>3D–2D / PnP</th><th>3D–3D / Kabsch</th></tr></thead><tbody>
+      <tr><td>参考输入</td><td>Object Frame 下的 3D 点</td><td>Object Frame 下的 3D 点</td></tr>
+      <tr><td>当前观测</td><td>同名二维像素</td><td>同名三维点</td></tr>
+      <tr><td>核心约束</td><td>透视投影一致</td><td>三维刚体一致</td></tr>
+      <tr><td>是否需要当前深度</td><td>不需要</td><td>需要可靠三维位置来源</td></tr>
+      <tr><td>代表方法</td><td>P3P / EPnP / IPPE / 迭代 PnP</td><td>Kabsch / SVD</td></tr>
+      <tr><td>常用残差</td><td>重投影误差（px）</td><td>三维点残差（m/mm）</td></tr>
+      <tr><td>典型代价</td><td>投影歧义、关键点定位和相机标定误差</td><td>深度误差、空间构型退化、坐标系误用</td></tr>
+      <tr><td>适用条件</td><td>参考关键点与图像位置可靠</td><td>参考点与现场三维测量可靠</td></tr>
+      </tbody></table></div>
+      <p class="muted">还可以把二维与三维残差放入统一优化框架，但应使用正确的误差尺度、权重或协方差模型。简单相加并不意味着信息得到了合理融合。</p>
+    </section>
+
+    <section class="section" id="closing">
+      <div class="section-label">06 / 回头看</div>
+      <h2>少量对应点，<br>真正带来了什么能力？</h2>
+      <p>一路看下来，已经不需要再把已知参考理解成“一个完整模型必须和整份点云匹配”。当几个参考位置与现场观测之间拥有可靠的一一对应关系时，位姿估计就能变成清楚的数学约束问题。</p>
+      <p>PnP 通过相机投影，从三维参考与二维像素恢复 Pose；Kabsch 借助两组三维点的相对结构，通过中心化与 SVD 恢复刚体变换。它们不是相互替代的先进版本，而是在不同观测条件下利用不同的几何证据。</p>
+      <p>沿途也逐渐认识了真正重要的代价：对应关系可能错、点的分布可能退化、相机观测可能有系统偏差；即使残差很小，Pose 也可能不是唯一或正确的解释。</p>
+      <p class="closing">明确对应的最大价值，是把 Pose 求解变成一个可以直接建模、计算和验证的问题；它最大的依赖，是这些对应点必须足够可靠，而且真的约束住了任务所需要的自由度。</p>
+      <p>于是下一条路线的问题就自然出现了：<strong>如果我拥有完整参考模型，却完全不知道参考中的哪个位置对应当前观测，该怎么办？</strong></p>
+      <div class="next"><small>NEXT / Q02 · ROUTE 02</small><h3>没有明确对应，能不能从三维几何中寻找匹配？</h3><p>PPF、局部几何描述子与全局配准，尝试从未知对应中寻找物体姿态；而 ICP 等局部精化留给具有初值的专门探索。</p><a href="https://fishxddd.github.io/research/stage-01/q02-known-reference/">返回 Q02 总页，继续研究下一条路线 ↗</a></div>
+    </section>
+      </div>
+    </div>
+
+    <div class="sources">实现参考：<a href="https://docs.opencv.org/4.x/d5/d1f/calib3d_solvePnP.html" target="_blank" rel="noopener noreferrer">OpenCV · solvePnP</a>　·　<a href="https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html" target="_blank" rel="noopener noreferrer">OpenCV · calib3d API</a></div>
+    <footer class="foot"><span>© 2026 沿途手记 · Stage 01 / Q02 / Route 01</span><a href="#top">回到顶部 ↑</a></footer>
+  </main>
+  <script>
+    const jumpLinks = [...document.querySelectorAll('.toc a[href^="#"]')];
+    const jumpTargets = jumpLinks.map(link => document.getElementById(link.getAttribute('href').slice(1))).filter(Boolean);
+    let jumpUpdatePending = false;
+    function updateJump(){
+      let active = jumpTargets[0];
+      for (const target of jumpTargets) if (target.getBoundingClientRect().top <= 135) active = target;
+      jumpLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + (active?.id || '')));
+      jumpUpdatePending = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!jumpUpdatePending) {
+        jumpUpdatePending = true;
+        requestAnimationFrame(updateJump);
+      }
+    }, {passive:true});
+    window.addEventListener('resize', updateJump);
+    updateJump();
+
+    document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
+      const source = document.getElementById(btn.dataset.copy);
+      const content = source?.textContent || '';
+      try {
+        await navigator.clipboard.writeText(content);
+        const before = btn.textContent;
+        btn.textContent = '已复制 ✓';
+        setTimeout(() => btn.textContent = before, 1500);
+      } catch (e) {
+        const range = document.createRange();
+        range.selectNodeContents(source);
+        getSelection().removeAllRanges();
+        getSelection().addRange(range);
+        btn.textContent = '请手动复制';
+      }
+    }));
+  </script>
+</body>
+</html>
