@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>相机真的知道东西在哪里吗？｜沿途手记</title>
+<style>
+:root{--paper:#faf6ef;--ink:#44352f;--muted:#7f7067;--line:#e7dcd0;--rust:#b86c50;--sage:#7b947e;--apricot:#f8e5d5;--card:#fffdf9}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:35px}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;line-height:1.9}body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:radial-gradient(#b78c6e 0.4px,transparent .4px);background-size:9px 9px}.wrap{max-width:1250px;margin:auto;padding:50px 38px 110px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:48px}main{grid-column:2;grid-row:1;min-width:0}.crumb{font-size:13px;color:var(--muted);letter-spacing:.04em}.crumb a{color:inherit;text-decoration:none}.eyebrow{font-size:13px;color:var(--rust);font-weight:700;letter-spacing:.12em;margin:30px 0 8px}h1{font-family:Georgia,"Noto Serif CJK SC","Songti SC",serif;font-size:clamp(31px,4vw,46px);line-height:1.3;margin:0 0 20px;letter-spacing:-.04em}h2{font-size:25px;margin:0 0 12px;line-height:1.4;letter-spacing:-.02em}h3{font-size:19px;margin:0 0 10px;line-height:1.5}p{margin:0 0 17px}strong{color:#634536}.intro{font-size:16px;max-width:730px}.soft{background:#f8ece0;border-left:3px solid #d69e7d;padding:17px 21px;border-radius:0 12px 12px 0;margin:28px 0}.section{margin-top:74px;scroll-margin-top:35px}.section-head{display:flex;align-items:center;gap:12px;margin-bottom:19px}.num{font-size:12px;font-weight:800;color:var(--rust);letter-spacing:.14em}.divider{height:1px;background:var(--line);margin:30px 0}.road{padding:28px 30px;background:var(--card);border:1px solid var(--line);border-radius:17px;margin:22px 0}.road .kicker{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--sage);margin-bottom:7px}.road p:last-of-type{margin-bottom:0}.deep{display:inline-flex;align-items:center;gap:7px;margin-top:19px;color:#a55e43;text-decoration:none;font-size:14px;font-weight:700;border-bottom:1px solid #d7ae98;padding-bottom:3px}.deep:hover{color:#7e3827;border-color:#7e3827}.tags{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 0}.tags span{font-size:12px;color:#76675d;background:#f5eee6;border:1px solid #ede0d4;padding:3px 9px;border-radius:99px}.summary{background:#eef2e9;border-radius:16px;padding:25px 28px;margin-top:27px}.summary p:last-child{margin-bottom:0}.side{position:relative;grid-column:1;grid-row:1;align-self:stretch}.toc{position:sticky;top:44px;padding:16px 0;border-left:1px solid var(--line)}.toc .label{font-size:12px;letter-spacing:.13em;color:#9a8b80;margin:0 0 14px 17px;font-weight:700}.toc a{display:block;color:#8b7b70;font-size:13px;text-decoration:none;padding:9px 12px 9px 17px;border-left:2px solid transparent;margin-left:-1px;line-height:1.55}.toc a:hover,.toc a.active{color:#a65e43;border-left-color:#ba7657;background:#f8ede5}.foot{color:var(--muted);font-size:13px;margin-top:70px;border-top:1px solid var(--line);padding-top:25px}.note{font-size:13px;color:var(--muted)}@media(max-width:720px){.wrap{display:flex;flex-direction:column;padding:26px 24px 80px;gap:0}main{grid-column:auto;grid-row:auto}.side{order:-1;grid-column:auto;grid-row:auto}.toc{position:static;border-left:0;border-bottom:1px solid var(--line);padding:0 0 14px;margin-bottom:30px;display:flex;overflow-x:auto;gap:2px}.toc .label{display:none}.toc a{flex-shrink:0;border-left:0;border-bottom:2px solid transparent;padding:9px 12px;margin:0;white-space:nowrap}.toc a.active{border-bottom-color:var(--rust);border-left:0}h1{font-size:32px}.section{margin-top:55px}.road{padding:22px 20px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body><div class="wrap"><main>
+<nav class="crumb"><a href="/">沿途手记</a>　/　<a href="/research/stage-01/">Stage 01</a>　/　<a href="/research/stage-01/q03-target-in-2d/">Q03</a>　/　相机与三维测量</nav>
+<header id="top"><div class="eyebrow">Q03 · CAMERA &amp; 3D MEASUREMENT</div><h1>相机真的知道东西在哪里吗？</h1><div class="intro">
+<p>拿起 RGB-D 相机，对着桌上的瓶子拍一张。RGB 有了，Depth 也有了，似乎套个公式就能得到一堆 XYZ。</p>
+<p>可是，相机为什么能把光变成图像？照片明明是平的，一个像素又凭什么变成三维坐标？深度从哪里来？为什么瓶子在彩色图里清清楚楚，深度却可能缺了一块？</p>
+<p><strong>看来，“拍到一张图”“算出 XYZ”和“这个 XYZ 靠谱”，是三个不同层次的问题。</strong> 这次先把路认清楚，具体的原理和方法，再沿着每条小路慢慢挖。</p>
+</div></header>
+<section class="section" id="map">
+<div class="section-head"><span class="num">01 / ROADMAP</span></div>
+<h2>先认认路：五件需要弄明白的小事</h2>
+<p>从桌上的瓶子到一份 XYZ，首先得有图像，然后才谈得上像素与空间的几何关系、深度、设备标定和测量质量。它们有关联，却并非简单的先后流水线：例如深度恢复同样依赖相机参数。这里先把各自回答的问题分开。</p>
+<div class="soft"><strong>光如何变成像素 → 像素指向哪里 → 距离从哪里来 → 真实相机如何对上公式 → 结果到底可不可信。</strong></div>
+</section><section class="section" id="imaging"><div class="road">
+<div class="kicker">02 / IMAGE FORMATION</div>
+<h2>光进了镜头，怎么就成了一张图？</h2>
+<p>先别急着讨论 XYZ。桌上的红色瓶子，为什么在图像里也是红的？相机并不知道什么叫“红瓶子”：环境光照到物体表面，一部分光被反射，穿过镜头并落在传感器上；传感器把接收到的光转成电信号，经过读出和图像处理，我们才看见一张照片。</p>
+<p>这里也藏着不少工程细节。镜头、光圈和对焦影响成像是否清晰；曝光时间与增益决定信号亮度和噪声；常见的 Bayer 彩色 CMOS 并非在每个感光单元直接测出完整 RGB，而是经过插值、白平衡和 ISP 处理形成彩色图像。运动模糊、过曝、反光与低照度，往往在几何计算之前就已经改变了观测。</p>
+<p><strong>这条路先想明白：像素值究竟是怎样产生的，为什么图像里的颜色和亮度不能直接等同于物体本身的属性。</strong> 至于这个像素出现在图像的哪个位置，则交给下一条路的成像几何。</p>
+<div class="tags"><span>光照与表面反射</span><span>镜头 / 光圈 / 对焦</span><span>CMOS 与曝光</span><span>Bayer / ISP</span><span>快门与运动模糊</span></div>
+<a class="deep" href="./image-formation/">继续探索 · 光如何变成 RGB 像素 ↗</a>
+</div></section>
+<section class="section" id="geometry"><div class="road"><div class="kicker">03 / CAMERA GEOMETRY</div><h2>照片是平的，空间去哪儿了？</h2><p>上一条路解释了像素值从哪里来，但还没说清像素为什么出现在这个位置。相机把三维世界投影到二维画面上，看起来好像丢了什么。试着沿一个像素往回找，才发现它不对应唯一的三维点，而对应一条空间射线。</p><p>于是这一层要弄清：<strong>空间点怎样经过投影落到 (u, v)，内参如何决定这条射线，以及没有深度时究竟丢失了什么。</strong> 这里关心的是像素的几何位置，而不是它的颜色。</p><div class="tags"><span>针孔模型</span><span>相机坐标系</span><span>投影与反投影</span><span>内参的几何含义</span></div><a class="deep" href="./camera-geometry/">继续探索 · 从空间点到像素射线 ↗</a></div></section>
+<section class="section" id="depth"><div class="road"><div class="kicker">04 / DEPTH MEASUREMENT</div><h2>方向知道了，距离谁来告诉我？</h2><p>知道一个像素对应哪条射线，好像还是没法确定瓶子离相机有多远。既然少了距离，那就想办法把距离测出来。</p><p>双目相机利用两个视角的差异，主动立体还会自己投射纹理，ToF 则从光的传播特性里找答案。它们都叫“深度”，却并不靠同一套办法工作。</p><p><strong>这条路想搞清楚的，是深度究竟怎么测出来、每种方法又最容易在哪儿犯难。</strong> 以及一个容易被忽略的小问题：深度图给出的，到底是哪一种“距离”？</p><div class="tags"><span>双目视差</span><span>主动立体</span><span>ToF</span><span>Z-depth 与径向距离</span></div><a class="deep" href="./depth-measurement/">继续探索 · 深度是怎样被测出来的 ↗</a></div></section>
+<section class="section" id="calibration"><div class="road"><div class="kicker">05 / CALIBRATION &amp; ALIGNMENT</div><h2>公式好像没错，怎么点云还是歪了？</h2><p>有了像素和深度，反投影公式总算能用上了。不过公式里的焦距、主点从哪里来？镜头真的和理想针孔一样吗？</p><p>更有趣的是，RGB 和 Depth 明明都是图像，相同位置的像素却不一定看向同一个空间点。直接把两张图叠在一起，可能悄悄拿到了背景的深度。</p><p>这就需要回过头认识<strong>标定、畸变和 RGB-D 的几何配准</strong>。这一段关心的不是公式写得多漂亮，而是如何让公式真正对应手里的设备。</p><div class="tags"><span>内参与畸变</span><span>相机标定</span><span>Color–Depth 外参</span><span>三维重投影对齐</span></div><a class="deep" href="./calibration-and-alignment/">继续探索 · 让模型对上真实相机 ↗</a></div></section>
+<section class="section" id="quality"><div class="road"><div class="kicker">06 / MEASUREMENT RELIABILITY</div><h2>一个 XYZ 都有了，还能哪里不对？</h2><p>对着纸盒测量，点云可能规规矩矩；换成玻璃瓶，深度一下缺了一块。物体边缘偶尔冒出飞点，多拍几帧又会有轻微波动。甚至在得到深度之前，RGB 就可能因为过曝、模糊或反光而丢失细节。</p><p>这些“不对劲”并不是同一种问题：有的是成像条件造成的信息损失，有的是深度测量的随机噪声或系统偏差，还有的是<strong>压根没有得到可信测量</strong>。解决办法自然也不一样。</p><p>比起先找一套万能滤波参数，我更想弄明白：<strong>什么时候该滤波、什么时候该重新标定，什么时候应该干脆承认“这里没测到”？</strong></p><div class="tags"><span>成像质量</span><span>深度误差</span><span>无效值与飞点</span><span>空间／时间滤波</span><span>透明与反光</span><span>精度验证</span></div><a class="deep" href="./depth-reliability/">继续探索 · 哪些三维点值得相信 ↗</a></div></section>
+<section class="section" id="recap"><div class="section-head"><span class="num">07 / LOOKING BACK</span></div><h2>回头看：相机到底告诉了我什么？</h2><p>走到这里，问题就清楚多了。<strong>相机成像</strong>解释光如何变成像素；<strong>成像几何</strong>告诉我像素对应哪条空间射线；<strong>深度测量</strong>补上距离；<strong>标定与配准</strong>让计算关系对应真实设备；<strong>观测可靠性</strong>提醒我，不是每份图像和深度都值得相信。</p><div class="summary"><p>最后想拿到的，并不只是一个漂亮的点云，而是<strong>有明确坐标含义、来源可解释、质量可检查的三维观测</strong>。</p><p>有了这些，再把目标区域交给 Q01 的几何方法，或者为 Q02 的已知参考提供投影依据，就踏实多了。</p></div><p class="note" style="margin-top:17px">边界留在这里：本页只认识相机与测量。目标究竟是谁、相机坐标怎样交给机器人，分别留给 Q03 的另外两条路线。</p></section>
+<footer class="foot">沿途手记 · Stage 01 / Q03　｜　这一页先把问题认清，细节留在各自的探索笔记里。</footer>
+</main><aside class="side"><nav aria-label="本页导览" class="toc"><div class="label">ON THIS PAGE / 导览</div>
+<a href="#top">开场 · 相机知道在哪里吗</a>
+<a href="#map">01 · 先认认路</a>
+<a href="#imaging">02 · 相机成像</a>
+<a href="#geometry">03 · 成像几何</a>
+<a href="#depth">04 · 深度测量</a>
+<a href="#calibration">05 · 标定与配准</a>
+<a href="#quality">06 · 测量可靠性</a>
+<a href="#recap">07 · 回头看</a></nav></aside></div>
+<script>const links=[...document.querySelectorAll('.toc a')],ids=links.map(a=>a.getAttribute('href').slice(1));const observer=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);if(visible.length){const id=visible[0].target.id;links.forEach(a=>{const yes=a.getAttribute('href')==='#'+id;a.classList.toggle('active',yes);if(yes)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')})}},{rootMargin:'-12% 0px -67% 0px',threshold:0});ids.forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el)});links[0]?.classList.add('active');</script>
+</body></html>
