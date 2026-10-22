@@ -38,6 +38,7 @@ a{color:inherit;text-decoration:none}a:focus-visible{outline:2px solid var(--ter
 .hero-tags{margin-top:22px;display:flex;gap:8px;flex-wrap:wrap}.hero-tags span{font-size:11px;padding:5px 11px;border-radius:50px;border:1px solid #e5d4c2;color:#97765e;background:#fff9ef}
 .hero-art{z-index:1;align-self:center}.hero-art svg{display:block;width:100%;height:auto;max-width:360px;margin:auto}
 .hero-footer{display:flex;justify-content:space-between;gap:12px;padding:13px 4px 0;color:#aea395;font-size:11px}
+.summary-art{margin:30px 0 0;border:1px solid #e2d7c7;border-radius:16px;overflow:hidden;background:#fffaf3;box-shadow:var(--shadow)}.summary-art a{display:block}.summary-art img{display:block;width:100%;height:auto}
 .body-layout{max-width:1160px;display:grid;grid-template-columns:196px minmax(0,788px);gap:65px;justify-content:center;margin:75px auto 0}
 .toc{position:sticky;top:103px;align-self:start;padding:5px 0;max-height:calc(100vh - 130px);overflow:auto}
 .toc-label{font-weight:700;color:#b09c8c;font-size:10px;letter-spacing:.15em;padding:0 12px;margin-bottom:14px}
@@ -88,7 +89,7 @@ article p{font-size:14.5px;color:var(--soft-ink);line-height:2.08;margin:0 0 18p
 .figure-empty:before{content:"";position:absolute;inset:17px;border:1px dashed #e4d6c2;border-radius:11px;pointer-events:none}
 .figure-empty .placeholder-icon{display:inline-grid;place-items:center;width:45px;height:45px;border-radius:50%;border:1px solid #e2d2bd;color:#c49b7c;font-size:23px;margin-bottom:10px}
 .figure-empty b{display:block;font-family:var(--serif);font-size:16px;color:#9a7d66;margin-bottom:7px}.figure-empty p{font-size:12px;margin:0;color:#aa9a88;line-height:1.8;max-width:430px}
-.figure-hole figcaption{padding:11px 16px;color:#aa9e92;font-size:11px;line-height:1.8;border-top:1px solid #eae1d6;background:#fffcf8}
+.figure-hole figcaption{padding:11px 16px;color:#aa9e92;font-size:11px;line-height:1.8;border-top:1px solid #eae1d6;background:#fffcf8}.figure-hole>a{display:block}.figure-hole img{display:block;width:100%;height:auto}
 .final-grid{display:grid;gap:0;border-top:1px solid #e2d5c5;margin:25px 0 16px}
 .final-row{display:grid;grid-template-columns:132px 1fr;gap:20px;border-bottom:1px solid #e9ded0;padding:17px 0}
 .final-row b{font-size:13px;color:#93694e;line-height:1.85}.final-row p{font-size:13.5px;line-height:1.95;margin:0}
@@ -141,6 +142,7 @@ article p{font-size:14.5px;color:var(--soft-ink);line-height:2.08;margin:0 0 18p
  </svg></div>
 </header>
 <div class="hero-footer"><span>研究手记 · 先理清问题，再去研究方法</span><span>一张不断补全的地图</span></div>
+<figure class="summary-art"><a href="./stage-01-overview.png" target="_blank" rel="noopener noreferrer"><img src="./stage-01-overview.png" alt="Stage 01 总图" loading="lazy"></a></figure>
 <div class="body-layout">
 <aside class="toc" aria-label="本页章节"><div class="toc-label">本页路标</div>
   <a href="#opening">写在前面 · 我想解决什么</a>
@@ -207,9 +209,8 @@ article p{font-size:14.5px;color:var(--soft-ink);line-height:2.08;margin:0 0 18p
   <p>但稍微往下想，又觉得有些地方不太对劲。比如相机只拍到盒子的一面，求出来的中心还算中心吗？如果换成圆柱形瓶子，又该怎么找方向？甚至“抓两侧”到底需要知道哪些几何信息，我好像也没想得特别清楚。</p>
   <p>既然如此，就从最简单的中心和方向开始，看看一份点云到底能帮我做到哪一步。</p>
   <figure class="figure-hole" data-figure="fig-01-visible-geometry">
-   <div class="figure-head"><span><b>FIG 01</b>　可见点云与真实几何</span><span class="fig-tag">插图待补</span></div>
-   <!-- 配图时，用 <img src="/assets/research/stage-01/fig-01-visible-geometry.webp" alt="同一圆柱的可见点云中心与真实几何中心之间的偏差"> 替换以下 figure-empty。 -->
-   <div class="figure-empty"><div><span class="placeholder-icon" aria-hidden="true">✎</span><b>算出来的中心，真的是物体的中心吗？</b><p>同一个瓶子：真实几何中心与可见点集中心的对照；用一张俯视截面讲清偏差来源。</p></div></div>
+   <div class="figure-head"><span><b>FIG 01</b>　可见点云与真实几何</span><span class="fig-tag">插图已补</span></div>
+   <a href="./q01-geometry/" aria-label="进入 Q01：只有一份点云，怎样得到 Grasp Pose？"><img src="./q01-geometry/q01-overview.png" alt="Q01 总图" loading="lazy"></a>
    <figcaption>这一张图只解释为什么「点云中心」和「抓取需要的几何中心」可能不是同一个位置。</figcaption>
   </figure>
   <a class="deep-link" href="./q01-geometry/"><span><small>继续翻阅 · 几何探索</small><strong>只有一份点云，怎样得到 Grasp Pose？</strong></span><span class="arrow" aria-hidden="true">↗</span></a>
@@ -223,6 +224,7 @@ article p{font-size:14.5px;color:var(--soft-ink);line-height:2.08;margin:0 0 18p
   <p>那能不能先在参考物体上把抓法定好，真正看到它时，只需要找到它现在的位置和朝向，再把那份关系搬过来？</p>
   <p>听起来似乎省事了不少。不过又冒出一个问题：<strong>眼前这个物体，和事先保存的参考，到底怎么对应上？</strong> 它可能转了个角度，也可能只露出一部分。如果我只有尺寸、几个点或者一张参考图，又能确定多少？</p>
   <p>于是，我开始试试另一条路：先找回物体和已知参考之间的关系，再得到约定的抓取姿态。具体怎么找、哪些情况下能找到，留给下一篇慢慢研究。</p>
+  <figure class="figure-hole"><a href="./q02-known-reference/" aria-label="进入 Q02：已经知道物体的一些信息，怎样找回它的 Pose？"><img src="./q02-known-reference/q02-overview.png" alt="Q02 总图" loading="lazy"></a></figure>
   <a class="deep-link" href="./q02-known-reference/"><span><small>继续翻阅 · 已知参考</small><strong>已经知道物体的一些信息，怎样找回它的 Pose？</strong></span><span class="arrow" aria-hidden="true">↗</span></a>
  </div>
  <div class="episode" id="camera">

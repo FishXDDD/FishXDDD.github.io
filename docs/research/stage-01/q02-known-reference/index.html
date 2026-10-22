@@ -62,6 +62,7 @@
     @media(max-width:820px){.layout{display:block}.toc{position:relative;top:auto;max-height:none;display:flex;flex-wrap:wrap;gap:5px 7px;margin:28px 0 42px;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:visible}.toc strong{width:100%;margin:0 0 4px 2px}.toc a,.toc a.sub{display:inline-block;padding:5px 8px;border:1px solid var(--line);border-radius:7px;font-size:10px}.toc a:hover,.toc a.active{border:1px solid #c9967f;border-radius:7px}.toc .route-link{margin-top:0}}
     @media(max-width:700px){.wide,.page{padding-left:18px;padding-right:18px}.toplinks{gap:11px}.toplinks a:nth-child(2){display:none}.breadcrumbs{margin-top:28px}.hero{padding-bottom:35px}.routes,.deep-grid{grid-template-columns:1fr}.question-grid{grid-template-columns:1fr}.explore{padding-left:23px}.step:before{left:-30px}.method-box{grid-template-columns:1fr}.route{padding:19px}}
     @media print{.topbar{position:static}body{background:#fff}section{break-inside:auto}.route,.deep,.fignote{break-inside:avoid}}
+    .summary-art{margin:30px 0 0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--paper);box-shadow:0 8px 30px #70533a0b}.summary-art a{display:block}.summary-art img{display:block;width:100%;height:auto}
   </style>
 </head>
 <body id="top">
@@ -82,6 +83,7 @@
       <div class="tags"><span class="tag">单视角 · 已标定相机</span><span class="tag">已定位目标</span><span class="tag">已有物体参考</span><span class="tag">抓取关系已约定</span><span class="tag">目标：Object Pose → Grasp Pose</span></div>
       <div class="intro-call">与 Q01 的边界：前面已经尝试只凭可见点云的统计分布和通用几何关系构造抓取约束。这一页不再重复中心、PCA 或几何模型拟合，而是研究<strong>怎样利用事先掌握的物体参考，恢复它在相机中的姿态</strong>。</div>
     </div>
+    <figure class="summary-art"><a href="./q02-overview.png" target="_blank" rel="noopener noreferrer"><img src="./q02-overview.png" alt="Q02 总图" loading="lazy"></a></figure>
     <div class="layout">
       <aside class="toc" aria-label="本页目录">
         <strong>ON THIS PAGE</strong>
@@ -187,6 +189,7 @@
           <p>这种思路减少了对有效三维测量的依赖，但并不是说二维图像天然能确定完整 6D Pose。已知尺度、参考相机、模型几何、候选姿态覆盖或额外约束仍然可能是必要条件；不同姿态也可能产生相近投影。</p>
           <div class="insight"><strong>收获：</strong>深度缺失时，还能使用外观与投影几何。<br><strong>代价：</strong>视角覆盖、光照变化、遮挡、外观重复与姿态搜索成本，可能成为新的瓶颈。</div>
           <p>到这里，已经找到三种并列的 Pose 获取思路。但无论哪一种，最终得到的初值都可能略微偏离真实观测。<strong>假如物体的大致位置已经知道，还有必要重新全局搜索吗？</strong></p>
+          <a class="article-bridge" href="./route-03-image-projection-matching/" aria-label="继续阅读 Route 03：深度不可靠时，怎样用图像与投影匹配找回 Pose？"><span><small>继续深入 · ROUTE 03</small><b>深度不可靠时，怎样用图像与投影匹配找回 Pose？</b></span><span class="arrow" aria-hidden="true">↗</span></a>
         </article>
         <article class="step k4" id="refinement">
           <div class="step-marker">04 / 已经知道大概在哪</div>
@@ -197,6 +200,7 @@
           <div class="method-box"><div class="label">代表方法</div><div><strong>Point-to-Point ICP：</strong>反复更新对应并最小化三维点距。<br><strong>Point-to-Plane / GICP：</strong>进一步利用局部表面方向或协方差描述建立残差。</div></div>
           <div class="insight"><strong>收获：</strong>初值合理时，把优化限制在局部可以高效改善几何一致性。<br><strong>代价：</strong>它不会自动纠正错误的全局初值；局部重复结构、低重叠和遮挡可能造成错误收敛。</div>
           <p>而且还不能只看最后的残差。一个错误的对齐也可能把局部可见表面对得非常好。更深一层的问题随之出现：<strong>如果不同姿态在观测里根本不可区分，所谓“唯一正确的 Pose”真的存在吗？</strong></p>
+          <a class="article-bridge" href="./route-04-local-registration/" aria-label="继续阅读 Route 04：有了初值，怎样用局部配准继续精化 Pose？"><span><small>继续深入 · ROUTE 04</small><b>有了初值，怎样用局部配准继续精化 Pose？</b></span><span class="arrow" aria-hidden="true">↗</span></a>
         </article>
         <article class="step k5" id="ambiguity">
           <div class="step-marker">05 / 不是第五条算法路线，而是共同边界</div>
@@ -240,8 +244,8 @@
       <div class="deep-grid">
         <a class="deep" href="./route-01-correspondence-known/"><small>NOTE 01</small><b>已知对应 · 直接求解</b><p>PnP / IPPE / Kabsch · 投影约束、刚体变换、退化与多解</p><em>进入独立笔记 ↗</em></a>
         <div class="deep"><small>NOTE 02</small><b>未知对应 · 三维几何匹配</b><p>PPF / FPFH / RANSAC · 局部描述、全局姿态、验证成本</p><em>独立笔记待补</em></div>
-        <div class="deep"><small>NOTE 03</small><b>图像约束 · 投影匹配</b><p>LINEMOD / Template / Render-and-Compare · 轮廓、参考视图与姿态搜索</p><em>独立笔记待补</em></div>
-        <div class="deep"><small>NOTE 04</small><b>已知初值 · 局部精化</b><p>ICP / Point-to-Plane / GICP · 残差、初值、收敛与误差诊断</p><em>独立笔记待补</em></div>
+        <a class="deep" href="./route-03-image-projection-matching/"><small>NOTE 03</small><b>图像约束 · 投影匹配</b><p>LINEMOD / Template / Render-and-Compare · 轮廓、参考视图与姿态搜索</p><em>进入独立笔记 ↗</em></a>
+        <a class="deep" href="./route-04-local-registration/"><small>NOTE 04</small><b>已知初值 · 局部精化</b><p>ICP / Point-to-Plane / GICP · 残差、初值、收敛与误差诊断</p><em>进入独立笔记 ↗</em></a>
       </div>
       <aside class="next"><small>NEXT / 从参考回到观测</small><h3>但前面一直默认，目标已经被找到了。</h3><p>真实相机看到的是一整幅场景。要用上这些几何求解器，先要知道哪一部分图像或点云属于当前目标。</p><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">继续翻阅 Q03 · 从图像里找到目标 ↗</a></aside>
     </section>
