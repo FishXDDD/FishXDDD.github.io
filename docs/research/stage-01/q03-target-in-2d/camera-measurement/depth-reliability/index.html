@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>07 · Measurement Reliability｜深度图变平滑了，就能放心用了吗？</title>
+  <meta name="description" content="沿途手记｜从可输出深度，到知道何时可以相信它：RealSense、Orbbec、采集控制、失效机理与测量验收。">
+  <style>
+    :root{--paper:#fbf8f1;--white:#fffdf9;--ink:#392e2a;--muted:#80766e;--line:#e9ded1;--orange:#b97150;--orange-lite:#f5e4d8;--green:#657d70;--green-lite:#e7ede4;--yellow:#ead7a6;--pink:#e8cfcd;--red:#a45d50;--shadow:0 15px 36px rgba(101,69,51,.055)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;font-size:15.5px;line-height:1.92;-webkit-font-smoothing:antialiased}
+    a{color:var(--orange);text-decoration:none}a:hover{text-decoration:underline}::selection{background:#eed1b9}
+    .page{max-width:1200px;margin:0 auto;padding:0 26px 90px}.topbar{padding:25px 0 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:20px;font-size:12px;color:var(--muted);letter-spacing:.07em}.brand{color:var(--ink);font-weight:750;letter-spacing:.1em}.breadcrumbs{opacity:.9}.hero{max-width:930px;padding:72px 0 46px;position:relative}.eyebrow{font-size:12px;letter-spacing:.21em;color:var(--orange);font-weight:800;text-transform:uppercase}.hero h1{font-family:"Noto Serif CJK SC","Songti SC",serif;font-size:clamp(31px,4.15vw,55px);font-weight:650;letter-spacing:.015em;line-height:1.35;margin:18px 0 27px}.hero p{font-size:17px;line-height:2.1;max-width:850px}.hero strong{background:linear-gradient(transparent 64%,#efd7c8 64%)}.hero .spark{font-size:12px;color:var(--muted);letter-spacing:.07em;margin-top:16px}
+    .grid{display:grid;grid-template-columns:218px minmax(0,1fr);gap:44px;align-items:start}.sidebar{position:sticky;top:18px;border:1px solid var(--line);border-radius:16px;background:var(--white);padding:22px 16px;box-shadow:var(--shadow);font-size:12.5px}.sidebar-title{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:0 10px 12px}.sidebar a{display:block;color:#6b5d53;padding:9px 10px;border-radius:9px;line-height:1.5}.sidebar a:hover{background:#f6eee6;text-decoration:none;color:var(--orange)}.content{min-width:0}.block{margin:0 0 64px;scroll-margin-top:30px}.sec-kicker{font-size:11px;font-weight:800;letter-spacing:.15em;color:var(--orange);text-transform:uppercase}.block h2{font-family:"Noto Serif CJK SC","Songti SC",serif;font-size:29px;line-height:1.45;letter-spacing:.01em;margin:8px 0 23px}.block h3{font-size:20px;font-weight:750;line-height:1.55;margin:42px 0 11px}.block h4{font-size:16px;margin:26px 0 5px;color:var(--orange)}p{margin:12px 0 18px}strong{font-weight:730}.sublead{color:var(--muted);font-size:14px;line-height:1.9;margin:0 0 18px}.divider{border:0;border-top:1px solid var(--line);margin:42px 0}.route{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:22px 0 26px}.route-card{border:1px solid var(--line);padding:16px 12px;border-radius:12px;background:var(--white);min-height:126px}.route-card .num{font-size:11px;font-weight:850;color:var(--orange);letter-spacing:.07em}.route-card b{display:block;margin:7px 0 6px;font-size:13px;line-height:1.5}.route-card small{color:var(--muted);font-size:11px;line-height:1.6}.route-card a{color:var(--ink)}.route-card a:hover{color:var(--orange)}
+    .note,.result,.warn{padding:18px 22px;border-radius:12px;margin:22px 0;border-left:3px solid var(--orange);background:#f8ede3}.note p:last-child,.result p:last-child,.warn p:last-child{margin-bottom:0}.result{background:var(--green-lite);border-left-color:var(--green)}.warn{background:#f7e7e4;border-left-color:var(--red)}.micro{font-size:11px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.11em;margin:0 0 6px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--white);margin:22px 0}table{border-collapse:collapse;width:100%;min-width:580px;line-height:1.65;font-size:13px}th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#f5eee5;color:#685950;font-size:12px;font-weight:780}tr:last-child td{border-bottom:none}td:first-child{font-weight:700;color:#5e5149}.math{margin:19px 0;background:#fffaf3;border:1px solid var(--line);border-radius:12px;overflow:auto;padding:17px 18px;font-size:16px;text-align:center}.math .formula{font-family:Georgia,"Times New Roman",serif;white-space:nowrap;letter-spacing:.02em}.math .explain{display:block;margin-top:8px;color:var(--muted);font-size:12px;text-align:center}.diagram{padding:18px 14px;background:#fffdf9;border:1px solid var(--line);border-radius:14px;margin:24px 0;box-shadow:var(--shadow)}.diagram svg{display:block;width:100%;height:auto}.diagram figcaption{font-size:12px;color:var(--muted);padding:8px 12px 4px;text-align:center}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0}.panel{border:1px solid var(--line);border-radius:12px;background:var(--white);padding:19px}.panel h4{margin:0 0 9px;color:var(--ink);font-size:15px}.panel p{font-size:13px;margin:6px 0;line-height:1.8}.pill{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--orange);background:var(--orange-lite);padding:3px 9px;border-radius:99px;margin-bottom:9px}.pill.green{color:var(--green);background:var(--green-lite)}.pill.red{color:var(--red);background:#f4e4e0}.steps{counter-reset:step;display:grid;gap:12px;margin:18px 0 24px}.step{padding:16px 18px 16px 58px;border:1px solid var(--line);background:var(--white);border-radius:12px;position:relative;font-size:14px}.step:before{counter-increment:step;content:counter(step,decimal-leading-zero);position:absolute;left:16px;top:15px;color:var(--orange);font-weight:900;font-size:14px}.step strong{display:block;margin-bottom:4px}.step p{margin:0;color:#665951;font-size:13px}.check-list{list-style:none;margin:15px 0 25px;padding:0;display:grid;gap:9px}.check-list li{border-bottom:1px dotted var(--line);padding:6px 0 9px 29px;position:relative;font-size:14px}.check-list li:before{content:"↗";position:absolute;left:5px;color:var(--green);font-weight:700}.small{font-size:12px;color:var(--muted)}.sources{border-top:1px solid var(--line);padding-top:18px}.sources a{word-break:break-word}.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:23px;margin-top:38px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}.chapter{border-left:3px solid var(--green);padding:5px 0 5px 20px;margin:24px 0}.chapter p{margin:7px 0}.chapter strong{font-size:17px}.label{font-size:12px;letter-spacing:.1em;color:var(--muted)}.matrix-h{margin-top:24px}.stack{font-family:monospace;font-size:13px;color:var(--orange);background:#f9f0e8;border-radius:6px;padding:2px 6px}details{margin:22px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;padding:13px 18px}details>summary{cursor:pointer;color:var(--orange);font-weight:750;list-style:none}details>summary:before{content:"＋ ";font-weight:900}details[open]>summary:before{content:"－ "}details p{font-size:14px}.print{color:var(--muted);font-size:12px;cursor:pointer;border:1px solid var(--line);border-radius:9px;background:var(--white);padding:8px 12px}.print:hover{border-color:var(--orange);color:var(--orange)}
+    @media(max-width:990px){.grid{grid-template-columns:1fr;gap:15px}.sidebar{position:static;display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:10px}.sidebar-title{width:100%;margin:6px 8px}.sidebar a{font-size:12px;padding:8px}.route{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{padding:48px 0 32px}}
+    @media(max-width:610px){.page{padding:0 16px 60px}.topbar{padding:14px 0}.breadcrumbs{display:none}.hero{padding:37px 0 19px}.hero h1{font-size:30px}.hero p{font-size:15px}.block h2{font-size:23px}.block h3{font-size:18px}.route{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.route-card{min-height:120px}.two{grid-template-columns:1fr}.sidebar{display:block}.sidebar a{display:inline-block}.math{font-size:14px}.note,.result,.warn{padding:14px 16px}table{min-width:560px}}
+    @media print{body{background:white}.page{max-width:none;padding:0}.sidebar,.print{display:none}.grid{display:block}.block{break-inside:auto}.panel,.note,.math,figure{break-inside:avoid}.hero{padding-top:25px}.route{grid-template-columns:repeat(5,minmax(0,1fr))}a{color:var(--ink)}}
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand"><a href="../">沿途手记</a> <span style="font-weight:400;color:var(--muted)">/ Stage 01 · Camera Measurement / 07</span></div>
+    <button class="print" onclick="window.print()">打印 / 保存 PDF</button>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">07 / Measurement Reliability</div>
+    <h1>深度图变平滑了，<br>就能放心用了吗？</h1>
+    <p>把深度图滤得平平整整，新的问题反而更明显了：强光下为什么突然测不到？玻璃瓶为什么经常缺失？距离越远，误差为何越来越明显？如果 RGB 和 Depth 不在同一时刻采集，运动中的物体又会发生什么？</p>
+    <p>这些问题未必能靠滤波解决。有些来自<strong>设备怎样获取信号</strong>，有些来自<strong>材质与环境的测量极限</strong>，还有些来自<strong>采集时序和数据处理的选择</strong>。</p>
+    <p>这一站不再追求让点云更好看，而是认识深度测量的可信边界：什么时候值得相信，什么时候可以调整条件，什么时候应该承认<strong>这里没有可靠测量</strong>。</p>
+    <div class="spark">一份关于真实设备、失效机理与工程验收的收尾手记。</div>
+  </section>
+  <div class="grid">
+    <nav class="sidebar" aria-label="本页目录">
+      <div class="sidebar-title">CONTENTS</div>
+      <a href="#route">01 · 技术路线</a>
+      <a href="#failure">02.1 · 测量失效的形态</a>
+      <a href="#control">02.2 · 采集控制与厂商做法</a>
+      <a href="#environment">02.3 · 距离、材质和环境</a>
+      <a href="#time">02.4 · 时间一致性</a>
+      <a href="#acceptance">02.5 · 测量验收</a>
+      <a href="#closing">回头看</a>
+      <a href="#sources">厂商资料</a>
+    </nav>
+    <main class="content">
+      <section id="route" class="block">
+        <div class="sec-kicker">01 · Research Map</div>
+        <h2>这一站要解决的，不是“怎么把图像滤漂亮”</h2>
+        <p>前面的相机成像、几何配准和后处理已经告诉我们，深度数据怎样产生、怎样变成 XYZ，以及怎样处理明显的噪声。接下来要追问的是：<strong>这些 XYZ 的可靠程度由什么决定？</strong></p>
+        <div class="route">
+          <div class="route-card"><div class="num">01 / OBSERVATION</div><b><a href="#failure">失效形态</a></b><small>没有值、错误值、过期值</small></div>
+          <div class="route-card"><div class="num">02 / CONTROLS</div><b><a href="#control">采集控制</a></b><small>改变信号与取舍条件</small></div>
+          <div class="route-card"><div class="num">03 / LIMITS</div><b><a href="#environment">物理边界</a></b><small>距离、强光、材质、多路径</small></div>
+          <div class="route-card"><div class="num">04 / TIMING</div><b><a href="#time">时间关系</a></b><small>不同曝光时刻与同步</small></div>
+          <div class="route-card"><div class="num">05 / ACCEPTANCE</div><b><a href="#acceptance">测量验收</a></b><small>量化边界，决定能否使用</small></div>
+        </div>
+        <div class="result"><div class="micro">本章的分工</div><p><strong>Depth Post-processing</strong> 讨论“拿到的数据怎么处理”；<strong>Measurement Reliability</strong> 讨论“这些数据为何可信、何时失效，以及能否满足任务”。它们有联系，但不是同一件事。</p></div>
+      </section>
+
+      <section id="failure" class="block">
+        <div class="sec-kicker">02 · First-principles Exploration / 01</div>
+        <h2>相机给了一个深度值，就代表它测到了吗？</h2>
+        <p>最容易判断的问题，是深度图里根本没有数据：像素值为零，或者被标记为无效。但真实的危险并不总是这么明显。有时相机输出一个连续、平滑、看似合理的表面，它的位置却是错的。</p>
+        <p>这说明我们首先应该区分三种不同的失败，而不是把它们都叫做“深度噪声”。</p>
+        <div class="two">
+          <div class="panel"><span class="pill red">A · NO MEASUREMENT</span><h4>没有可靠观测</h4><p>匹配找不到、返回光太弱、红外饱和、超出有效范围，深度被置为无效。</p><p><strong>正确处理：</strong>保留无效状态，不要因为缺一个数字就凭空补出表面。</p></div>
+          <div class="panel"><span class="pill">B · WRONG MEASUREMENT</span><h4>有数值，却测错了</h4><p>错误立体匹配、反射、多路径或跨边缘混合，使深度落在错误位置。</p><p><strong>正确处理：</strong>不能只检测零值，还需结合信号证据、几何与场景条件。</p></div>
+          <div class="panel"><span class="pill green">C · INCONSISTENT TIME</span><h4>每个数都可能对，却不是同一时刻</h4><p>RGB、Depth 或机器人状态各自有效，但对应的是不同采集时刻。</p><p><strong>正确处理：</strong>明确曝光时间与时间戳，建立同步或运动补偿。</p></div>
+          <div class="panel"><span class="pill">D · PROCESSING ARTIFACT</span><h4>处理后看起来合理</h4><p>空间/时间滤波、插值可能把噪声抹平，也可能跨越真实的几何边界。</p><p><strong>正确处理：</strong>保存原始深度和有效掩码，必要时区分真实测量与推断补值。</p></div>
+        </div>
+        <p>这里还有一个细节：<strong>有效深度</strong>和<strong>置信度</strong>并不是一回事。有效掩码只表示数据通过某些设备或软件的有效性检查；置信度可能来自立体匹配代价、红外幅度、相位一致性或厂商内部阈值。不同设备未必公开逐像素置信度，更不能把某个 0–255 数字当成通用的“深度正确概率”。</p>
+        <div class="result"><div class="micro">第一条认识</div><p>先承认“不知道”，再讨论怎样测得更好。没有数据、错误数据、时间错位和算法补全，是四件需要分开处理的事。</p></div>
+      </section>
+
+      <section id="control" class="block">
+        <div class="sec-kicker">02 · First-principles Exploration / 02</div>
+        <h2>Advanced Controls 到底是在控制什么？</h2>
+        <p>如果深度不可靠，最直接的想法是去调曝光、增益、激光功率或深度预设。但为什么相同的操作，在不同相机上效果完全不同？</p>
+        <p>因为这些控制项并不是统一的“深度增强开关”，它们实际作用于测量链的不同位置。</p>
+        <h3>01 / RealSense D435i：让双目更容易找到正确对应</h3>
+        <p>D435i 的深度主要来自<strong>主动双目</strong>：左右红外相机寻找对应点，通过视差计算距离。红外投射器负责提供纹理线索，本身并不是直接测量飞行时间。</p>
+        <p>因此，对它最重要的并不是“照得越亮越好”，而是让两台红外相机得到<strong>足够清晰、不过曝、能够可靠匹配的图案</strong>。</p>
+        <div class="table-wrap"><table><thead><tr><th>控制项</th><th>影响到哪里</th><th>它不能保证什么</th></tr></thead><tbody>
+        <tr><td>IR Exposure / Gain</td><td>左右红外成像的信号亮度、噪声与运动模糊</td><td>延长曝光不能恢复已饱和或无法匹配的区域</td></tr>
+        <tr><td>Emitter / Laser Power</td><td>主动投射纹理的强弱，可能帮助弱纹理区域匹配</td><td>不能让透明玻璃自动变成不透明，也未必在强环境红外下有效</td></tr>
+        <tr><td>Visual Preset</td><td>匹配可靠性与深度覆盖率之间的选择</td><td>High Density 不等于高精度；High Accuracy 也不代表深度更完整</td></tr>
+        <tr><td>Advanced Mode</td><td>对立体匹配、深度生成等内部参数作更细调节</td><td>不是后处理滤镜；参数需要针对应用验证，不宜盲目逐项修改</td></tr>
+        </tbody></table></div>
+        <p>RealSense 官方的 Visual Presets 正好暴露了这种取舍：<strong>High Density</strong> 倾向保留更多深度，<strong>High Accuracy</strong> 倾向通过更严格的接受条件减少可疑深度，因此有效覆盖率可能降低。厂商还提供可保存为 JSON 的 Advanced Mode 配置。<a href="https://dev.realsenseai.com/docs/d400-series-visual-presets" target="_blank" rel="noopener noreferrer">查看官方说明 ↗</a></p>
+        <div class="note"><div class="micro">一个经常搞混的控制对象</div><p>调整彩色相机的 RGB Exposure，主要改变的是颜色画面；D435i 双目匹配依赖红外成像，不能把 RGB 的曝光参数直接当作深度测量曝光。检查配置时，先弄清参数作用的是哪一个传感器。</p></div>
+        <h3>02 / Orbbec Femto Bolt：不是匹配图案，而是测量返回光的相位</h3>
+        <p>Femto Bolt 使用 AMCW iToF：向场景发射调制近红外光，再通过返回信号的相位信息恢复距离。除了深度图，设备还可以提供反映接收光信号强度的 Active IR 图像。</p>
+        <p>因此，这里的控制思路首先变成了：<strong>收到了多少可用的调制光？返回信号是否足够清晰？多次反射有没有让相位发生混合？</strong></p>
+        <p>Femto Bolt 提供不同的视场与像素合并（Binning）模式。降低空间分辨率可能换来更大的有效测距范围，并不是所有模式都能同时拥有最高分辨率、最大视野与最长距离。</p>
+        <div class="table-wrap"><table><thead><tr><th>官方深度模式</th><th>分辨率</th><th>官方典型工作范围*</th><th>主要取舍</th></tr></thead><tbody>
+        <tr><td>NFOV Unbinned</td><td>640 × 576</td><td>0.50–3.86 m</td><td>较窄视场，保留采样分辨率</td></tr>
+        <tr><td>NFOV 2×2 Binned</td><td>320 × 288</td><td>0.50–5.46 m</td><td>空间采样变粗，换取更远工作距离</td></tr>
+        <tr><td>WFOV 2×2 Binned</td><td>512 × 512</td><td>0.25–2.88 m</td><td>更大覆盖范围，但远距能力有限</td></tr>
+        <tr><td>WFOV Unbinned</td><td>1024 × 1024</td><td>0.25–2.21 m</td><td>宽视场高分辨率，工作距离较短</td></tr>
+        </tbody></table></div>
+        <p class="small">*范围来自 Orbbec Femto Bolt 硬件规格中特定反射率、环境光与误差条件下的定义，不能当作对所有物体和所有环境的保证。<a href="https://doc.orbbec.com/documentation/Orbbec%20Femto%20Bolt%20Documentation/Femto%20Bolt%20Hardware%20Specifications" target="_blank" rel="noopener noreferrer">原始规格 ↗</a></p>
+        <p>厂商还在深度引擎中进行相位相关计算，并对过弱、饱和、多路径等不可用观测做<strong>失效判定</strong>。一个被置零的像素，有时不是算法忘了填它，而是系统主动拒绝输出不可信的测量。</p>
+        <div class="two">
+          <div class="panel"><span class="pill">D435i / 主动双目</span><h4>核心问题：有没有匹配对？</h4><p>纹理、双目图像质量、视差搜索、匹配筛选和投射器参数影响深度生成。</p></div>
+          <div class="panel"><span class="pill green">Femto Bolt / iToF</span><h4>核心问题：返回信号能否解释为距离？</h4><p>信号强度、饱和、相位求解、多路径以及测距模式影响输出。</p></div>
+        </div>
+        <div class="result"><div class="micro">这一站的关键</div><p>Advanced Controls 应当按<strong>它改变了哪一种观测证据</strong>来理解，而不是记住一串按钮。先知道设备靠什么测深，再决定该调什么。</p></div>
+      </section>
+
+      <section id="environment" class="block">
+        <div class="sec-kicker">02 · First-principles Exploration / 03</div>
+        <h2>为什么距离、强光和玻璃，会让同一台相机突然失效？</h2>
+        <p>有些失败来自参数没有选好；另一些并不是调参能解决的。要区分两者，我们仍然需要回到测距原理。</p>
+        <h3>01 / 为什么双目距离越远越难测准？</h3>
+        <p>双目深度满足一个熟悉的关系：</p>
+        <div class="math"><div class="formula">Z = f · b / d</div><span class="explain">Z：深度；f：像素单位焦距；b：双目基线；d：视差</span></div>
+        <p>远处物体的视差越来越小。假设匹配中存在微小的视差误差 σ<sub>d</sub>，把它传递到深度，会得到近似关系：</p>
+        <div class="math"><div class="formula">σ<sub>Z</sub> ≈ Z² · σ<sub>d</sub> / (f · b)</div><span class="explain">在固定焦距、基线及相近视差精度下，双目深度不确定性近似随距离平方增大</span></div>
+        <p>这意味着：即使视差匹配的亚像素精度没有变差，物体从 1 m 移到 2 m，深度误差尺度也可能接近原来的四倍。<strong>这是几何放大效应，不是单靠平滑就可以消除的误差。</strong></p>
+        <figure class="diagram">
+          <svg viewBox="0 0 760 230" role="img" aria-label="双目视差随距离增长而变小的示意图">
+            <rect x="12" y="10" width="736" height="210" rx="11" fill="#fffaf3"/>
+            <line x1="110" y1="187" x2="676" y2="187" stroke="#ddd0c2" stroke-width="2"/>
+            <circle cx="124" cy="174" r="10" fill="#b97150"/><circle cx="228" cy="174" r="10" fill="#657d70"/>
+            <text x="96" y="205" font-size="13" fill="#685950">Left</text><text x="207" y="205" font-size="13" fill="#685950">Right</text>
+            <circle cx="360" cy="108" r="8" fill="#bd7756"/><circle cx="638" cy="34" r="8" fill="#bd7756"/>
+            <line x1="124" y1="174" x2="360" y2="108" stroke="#b97150" stroke-width="2"/>
+            <line x1="228" y1="174" x2="360" y2="108" stroke="#657d70" stroke-width="2"/>
+            <line x1="124" y1="174" x2="638" y2="34" stroke="#b97150" stroke-width="2" stroke-dasharray="6 5" opacity=".8"/>
+            <line x1="228" y1="174" x2="638" y2="34" stroke="#657d70" stroke-width="2" stroke-dasharray="6 5" opacity=".8"/>
+            <text x="373" y="105" font-size="15" font-weight="700" fill="#7f4e36">近处：较大视差</text><text x="525" y="22" font-size="15" font-weight="700" fill="#7f4e36">远处：较小视差</text>
+          </svg>
+          <figcaption>概念示意：远处同一目标对应的左右观测方向差更小，深度对微小视差变化更敏感（不按比例绘制）。</figcaption>
+        </figure>
+        <p>对于 iToF，距离增长时也会因为返回信号减弱、反射率、光学结构和相位测量条件而损失精度，但它不遵循双目的同一套视差误差公式。<strong>不能把 Z² 视差关系直接套给所有 ToF 相机。</strong></p>
+        <h3>02 / 强光为什么可能让主动深度更差？</h3>
+        <p>主动双目与 iToF 都可能依赖近红外信号。强烈环境光，尤其是强红外背景，可能削弱主动投射纹理的对比度，或者压缩 ToF 接收信号可用的动态范围。</p>
+        <p>这并不等于“一到室外就一定不能测”。是否可用还取决于光谱、距离、传感器曝光、滤光结构、物体反射率以及设备本身的设计。</p>
+        <p>面对强光，需要先看原始 IR 图是否过曝或对比度不足，再决定尝试曝光、增益或模式调整，而不是直接对深度做更强的滤波。</p>
+        <h3>03 / 为什么玻璃、金属和黑色物体各有麻烦？</h3>
+        <div class="table-wrap"><table><thead><tr><th>物体 / 环境</th><th>可能破坏的测量假设</th><th>值得优先考虑的动作</th></tr></thead><tbody>
+        <tr><td>透明玻璃 / 透明塑料</td><td>光会透射、折射或从背景返回；观测可能落在背景、表面或多条光路的混合结果上</td><td>不能默认深度属于物体；必要时依据 RGB 轮廓、其他视角或其他测量手段</td></tr>
+        <tr><td>镜面金属 / 高反光表面</td><td>镜面反射方向偏离接收器，或形成复杂反射路径；可能产生缺失与虚假深度</td><td>尝试改变观察角度与照明几何；无法解决时标记不可测区域</td></tr>
+        <tr><td>深色吸光表面</td><td>返回的红外光不足，匹配纹理或调制信号变弱</td><td>检查 IR 信号；在硬件允许范围内优化采集条件与距离</td></tr>
+        <tr><td>墙角 / 凹腔 / 多重反射</td><td>ToF 中多条回波叠加产生多路径干扰（MPI）</td><td>改变视角、减少反射路径；参考设备内置的无效化策略</td></tr>
+        <tr><td>深度突变边界</td><td>像素足迹同时包含前景与背景；双目也可能出现遮挡与错误匹配</td><td>对边缘保留谨慎处理，不把插值结果当作真实接触表面</td></tr>
+        <tr><td>多台主动相机同时工作</td><td>其他主动光源可能干扰纹理或调制测距</td><td>针对设备采用时分、触发同步、相机布置或模式调整</td></tr>
+        </tbody></table></div>
+        <p>尤其值得注意的是 Femto Bolt 的厂商说明：深度引擎会把<strong>IR 信号过低、饱和、有效照明范围之外、疑似多路径</strong>等像素判为无效。它的做法不只是“把所有数值滤平”，还包括主动地拒绝给出某些深度。<a href="https://doc.orbbec.com/documentation/Orbbec%20Femto%20Bolt%20Documentation/Depth%20Camera%20%28Femto%20Bolt%29" target="_blank" rel="noopener noreferrer">查看工作原理与无效化说明 ↗</a></p>
+        <div class="result"><div class="micro">这一站的关键</div><p>失效时不要先问“用哪个滤镜”，而应该问“哪一种物理测量条件被破坏了”。有些条件可以调整，有些只能通过换视角、换传感器或承认不可测来解决。</p></div>
+      </section>
+
+      <section id="time" class="block">
+        <div class="sec-kicker">02 · First-principles Exploration / 04</div>
+        <h2>几何配准已经正确，运动物体为什么仍然会错位？</h2>
+        <p>前面的 Color–Depth Alignment 解决了空间坐标关系。但是它还有一个隐藏假设：两次观测对应的空间场景没有变化。</p>
+        <p>假设彩色相机在 t<sub>C</sub> 拍到瓶子，而深度相机在 t<sub>D</sub> 测到瓶子。即使内外参完美，只要瓶子或相机在运动，两份观测就不再描述同一个瞬间。</p>
+        <div class="math"><div class="formula">Δx ≈ v · |t<sub>C</sub> − t<sub>D</sub>|</div><span class="explain">简化的一维匀速运动近似：位移由相对速度与采集时间差决定</span></div>
+        <p>例如物体相对相机以 0.5 m/s 运动，两路采集如果相差 20 ms，就可能引入约 10 mm 的空间位移。对于厘米级的抓取目标，这已不再是可以忽略的偏移。</p>
+        <figure class="diagram">
+          <svg viewBox="0 0 760 195" role="img" aria-label="RGB与Depth不同采集时刻对应不同物体位置">
+            <rect x="12" y="12" width="736" height="171" rx="11" fill="#fffaf3"/>
+            <line x1="78" y1="130" x2="680" y2="130" stroke="#b8aa9b" stroke-width="2"/>
+            <rect x="200" y="76" width="73" height="45" rx="12" fill="#efd5c8" stroke="#b97150" stroke-width="2"/>
+            <rect x="415" y="76" width="73" height="45" rx="12" fill="#dfeae1" stroke="#657d70" stroke-width="2"/>
+            <text x="210" y="62" font-size="14" fill="#9a5c3f">tC · RGB</text><text x="419" y="62" font-size="14" fill="#577365">tD · Depth</text>
+            <line x1="282" y1="95" x2="402" y2="95" stroke="#9e8e83" stroke-width="2" stroke-dasharray="5 5"/>
+            <path d="M 396 90 L 408 95 L 396 100" stroke="#9e8e83" fill="none" stroke-width="2"/>
+            <text x="333" y="80" font-size="12" fill="#8a796e">运动</text><text x="278" y="159" font-size="12" fill="#73665d">空间模型相同 ≠ 采集时刻相同</text>
+          </svg>
+          <figcaption>颜色与深度各自可能测对了，却组合成了一个现实中从未同时存在过的 RGB-D 观测。</figcaption>
+        </figure>
+        <h3>要分开认识三种“同步”</h3>
+        <div class="steps">
+          <div class="step"><strong>数据配对：是否把对应帧放到了一起？</strong><p>软件能按时间戳寻找相近帧，但“相近”不等于“同时曝光”。</p></div>
+          <div class="step"><strong>硬件同步：不同传感器是否在约定时刻采样？</strong><p>触发、传感器时钟、曝光起止时间和实际设备支持情况，共同决定同步能力。</p></div>
+          <div class="step"><strong>机器人状态同步：位姿属于哪一刻？</strong><p>机械臂运动时，RGB-D 应与对应采集时刻的机器人位姿关联；否则手眼外参本身正确也不够。</p></div>
+        </div>
+        <p>还需要留意曝光是一段时间，而不只是一个理想时间点。滚动快门的不同图像行甚至可能对应不同采集时刻。SDK 提供的硬件时间戳、系统时间戳或 frameset 关系，也不能在未确认时钟域和曝光定义前混为一谈。</p>
+        <p>Femto Bolt 官方提供同步 RGB/Depth 流与可配置的帧间延迟，并支持多设备外部同步。RealSense 的多相机文档则明确强调硬件时钟与系统时钟域的差异，说明“时间戳看起来对齐”未必能证明真正同时采样。<a href="https://doc.orbbec.com/documentation/Orbbec%20Femto%20Bolt%20Documentation/Orbbec%20SDK%20and%20Orbbec%20SDK%20K4A%20Wrapper%20%28Femto%20Bolt%29" target="_blank" rel="noopener noreferrer">Orbbec 同步能力 ↗</a>　<a href="https://dev.realsenseai.com/docs/multiple-depth-cameras-configuration/" target="_blank" rel="noopener noreferrer">RealSense 时钟说明 ↗</a></p>
+        <div class="result"><div class="micro">这一站的关键</div><p>几何对齐回答“从哪里看”，时间同步回答“在什么时候看”。运动场景只有同时考虑空间和时间，才可能得到一致的三维观测。</p></div>
+      </section>
+
+      <section id="acceptance" class="block">
+        <div class="sec-kicker">02 · First-principles Exploration / 05</div>
+        <h2>怎样决定一份深度“可以用”？</h2>
+        <p>现在知道了各种失效原因，但工程上仍然要作出一个决定：这台设备、这组参数、这类场景，是否能满足我的任务？</p>
+        <p>不能只展示一张深度彩图。至少需要把<strong>看不看得到、测得准不准、稳不稳定、能不能及时拿到</strong>分开。</p>
+        <h3>01 / 四种不能混用的测量指标</h3>
+        <div class="table-wrap"><table><thead><tr><th>指标</th><th>一个直接的定义</th><th>它回答什么</th></tr></thead><tbody>
+        <tr><td>Valid / Fill Rate</td><td>目标 ROI 中有效深度像素数 / ROI 总像素数</td><td>物体有多少区域真正被测到？</td></tr>
+        <tr><td>Systematic Error / Bias</td><td>固定真值下，多帧平均深度与真值的偏差</td><td>测量是否整体偏深或偏浅？</td></tr>
+        <tr><td>Temporal Random Error</td><td>静止目标同一位置，多帧深度的标准差</td><td>重复测量是否稳定？</td></tr>
+        <tr><td>Spatial Plane Residual</td><td>平面点云到最佳拟合平面的残差 RMS</td><td>局部平面是否凹凸抖动？</td></tr>
+        <tr><td>Timing / Availability</td><td>采集时间差、端到端延迟、有效帧率与掉帧</td><td>动态系统能否及时、持续得到观测？</td></tr>
+        </tbody></table></div>
+        <p>注意，空间平面残差小，只说明拟合出来的表面平滑；<strong>它不能证明整个平面离真实位置很近。</strong> 一个偏移了 2 cm 的平面，也可能有极小的 RMS 残差。</p>
+        <div class="math"><div class="formula">bias = mean(Z<sub>meas</sub>) − Z<sub>GT</sub></div><div class="formula" style="margin-top:7px">σ<sub>t</sub> = std(Z<sub>meas,1</sub>, …, Z<sub>meas,N</sub>)</div><span class="explain">仅为某个固定目标/位置的简化定义；真实验收还需明确坐标系、真值来源和有效像素筛选规则</span></div>
+        <h3>02 / 把验收设计成“可解释的对照实验”</h3>
+        <p>不用一下子做复杂的大型实验。先固定设备、距离、目标位置与后处理状态；每次只改变一个条件，就能判断哪个环节真正影响了测量。</p>
+        <div class="steps">
+          <div class="step"><strong>建立一个参考场景</strong><p>使用已知距离的漫反射平面或已知尺寸的几何物体。分别保存原始深度、IR、RGB、相机模式、时间戳与参数配置。</p></div>
+          <div class="step"><strong>做距离扫描</strong><p>选近距离、典型工作距离和远距离，比较有效率、系统偏差与时间标准差，观察可工作区间怎样变化。</p></div>
+          <div class="step"><strong>做材质与环境对照</strong><p>保持距离不变，依次测试普通白纸、黑色哑光、反光面、透明容器以及不同环境光。区分“没值”和“错误有效值”。</p></div>
+          <div class="step"><strong>做参数 A/B 对照</strong><p>D435i 比较 IR 曝光、投射器和预设；Femto Bolt 比较 NFOV/WFOV、Binning 等支持的模式。参数修改前后采用相同的目标与采样规则。</p></div>
+          <div class="step"><strong>最后测试运动与多相机工况</strong><p>加入目标运动、机器人运动或多台设备，检查时序误差与互相干扰。静态验收合格，并不自动意味着动态场景合格。</p></div>
+        </div>
+        <h3>03 / 不是所有像素，都要追求同一种可信度</h3>
+        <p>如果任务只是判断桌面前方是否存在大障碍物，少量缺失点可能可以容忍；但如果要在玻璃瓶边缘确定夹爪接触位置，相同的缺失比例可能完全无法接受。</p>
+        <p>因此，验收应该从应用反推约束：<strong>容许多大的位置误差？必须保留多少可见表面？需要多快更新？哪些接触区域绝对不能靠插值补出来？</strong></p>
+        <div class="table-wrap"><table><thead><tr><th>结论</th><th>典型证据</th><th>下一步</th></tr></thead><tbody>
+        <tr><td>可以使用</td><td>关键 ROI 有足够有效点，偏差、抖动和时延满足任务要求</td><td>固定配置并记录适用范围</td></tr>
+        <tr><td>调整采集条件</td><td>IR 信号不足、曝光不合适、当前模式范围不足、时间不同步</td><td>改曝光 / 工作距离 / 深度模式 / 触发条件后重新验证</td></tr>
+        <tr><td>不应强行使用</td><td>透明与镜面导致错误回波，显著多路径，关键区域长期不可观测</td><td>改变视角、融合其他观测或明确输出“不可信”</td></tr>
+        </tbody></table></div>
+        <p>最后一点尤其重要：对于真实机器人，把“不可信”作为一种允许的输出，并不是系统能力不足。相反，它避免了下游算法把虚假的 XYZ 当作确定事实。</p>
+        <div class="result"><div class="micro">这一站的关键</div><p>测量验收不是给相机打一个抽象总分，而是为<strong>具体场景、具体距离、具体物体和具体动作</strong>定义一个可信的工作范围。超出范围时，系统需要知道应该改条件，还是停止相信它。</p></div>
+      </section>
+
+      <section id="closing" class="block">
+        <div class="sec-kicker">03 · Looking Back</div>
+        <h2>回头看｜深度可靠，不等于深度好看</h2>
+        <p>从最初的一张深度图，到一台真实 RGB-D 相机能否参与机器人操作，我们已经经历了三个层次：</p>
+        <div class="chapter"><div class="label">FIRST</div><strong>能输出</strong><p>相机知道如何根据光学信号获得深度，再把像素提升到三维空间。</p></div>
+        <div class="chapter"><div class="label">THEN</div><strong>能处理</strong><p>标定、配准和后处理，让不同观测建立几何关系，并改善数据的可用形态。</p></div>
+        <div class="chapter"><div class="label">FINALLY</div><strong>知道什么时候不该相信</strong><p>测量机理、设备控制、物理极限、时间一致性与任务验收，共同划出一条可信边界。</p></div>
+        <p>这一站最终留下的工程判断可以很简单：</p>
+        <div class="result"><strong>测得可靠，就使用；条件可改善，就调整；没有可靠观测，就坦然承认“不知道”。</strong><p>让相机输出 XYZ 只是开始，知道这些 XYZ 在什么条件下成立，才是测量工程真正完成的标志。</p></div>
+      </section>
+
+      <section id="sources" class="block sources">
+        <div class="sec-kicker">Reference / Manufacturer Documents</div>
+        <h2>沿途参考</h2>
+        <p class="sublead">以下主要采用设备厂商公开技术资料。型号、固件和 SDK 版本可能改变支持的参数或模式；实际使用应以当前设备查询结果为准。</p>
+        <ul class="check-list">
+          <li><a href="https://dev.realsenseai.com/docs/realsense-d400-advanced-mode/" target="_blank" rel="noopener noreferrer">RealSense · D400 Advanced Mode</a> — 内部深度生成参数和高级设置。</li>
+          <li><a href="https://dev.realsenseai.com/docs/d400-series-visual-presets/" target="_blank" rel="noopener noreferrer">RealSense · D400 Series Visual Presets</a> — High Density 与 High Accuracy 的取舍。</li>
+          <li><a href="https://dev.realsenseai.com/docs/intel-realsense-self-calibration-for-d400-series-depth-cameras/" target="_blank" rel="noopener noreferrer">RealSense · Self-Calibration</a> — 平面 RMS、深度噪声与标定相关评价。</li>
+          <li><a href="https://doc.orbbec.com/documentation/Orbbec%20Femto%20Bolt%20Documentation/Depth%20Camera%20%28Femto%20Bolt%29" target="_blank" rel="noopener noreferrer">Orbbec · Depth Camera (Femto Bolt)</a> — AMCW iToF、有效性判定、多路径与误差定义。</li>
+          <li><a href="https://doc.orbbec.com/documentation/Orbbec%20Femto%20Bolt%20Documentation/Femto%20Bolt%20Hardware%20Specifications" target="_blank" rel="noopener noreferrer">Orbbec · Femto Bolt Hardware Specifications</a> — NFOV / WFOV 工作模式与范围。</li>
+          <li><a href="https://doc.orbbec.com/documentation/Orbbec%20Femto%20Bolt%20Documentation/Orbbec%20SDK%20and%20Orbbec%20SDK%20K4A%20Wrapper%20%28Femto%20Bolt%29" target="_blank" rel="noopener noreferrer">Orbbec · SDK K4A Wrapper</a> — 数据获取、时间戳与同步功能。</li>
+        </ul>
+        <p class="small">本文讨论的是深度数据作为观测证据的可信性，未把软件推断、形状先验与插值补出的三维点视作真实测量。验收指标与是否允许使用补全数据，均应按下游任务单独约定。</p>
+      </section>
+    </main>
+  </div>
+  <footer class="foot"><span><a href="../calibration-and-alignment/">← 上一篇 · 标定与配准</a>　<a href="../">返回总览</a></span><span>07 · Measurement Reliability — End of Camera Measurement</span></footer>
+</div>
+</body>
+</html>

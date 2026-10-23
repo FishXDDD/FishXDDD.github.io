@@ -17,9 +17,9 @@
 </div></header>
 <section class="section" id="map">
 <div class="section-head"><span class="num">01 / ROADMAP</span></div>
-<h2>先认认路：五件需要弄明白的小事</h2>
-<p>从桌上的瓶子到一份 XYZ，首先得有图像，然后才谈得上像素与空间的几何关系、深度、设备标定和测量质量。它们有关联，却并非简单的先后流水线：例如深度恢复同样依赖相机参数。这里先把各自回答的问题分开。</p>
-<div class="soft"><strong>光如何变成像素 → 像素指向哪里 → 距离从哪里来 → 真实相机如何对上公式 → 结果到底可不可信。</strong></div>
+<h2>先认认路：六件需要弄明白的小事</h2>
+<p>从桌上的瓶子到一份 XYZ，首先得有图像，然后才谈得上像素与空间的几何关系、深度、深度后处理、设备标定和测量质量。它们有关联，却并非简单的先后流水线：例如深度恢复本身也依赖相机参数，而标定数据通常需要事先准备。这里先把每条路回答的问题分开。</p>
+<div class="soft"><strong>光如何变成像素 → 像素指向哪里 → 距离从哪里来 → 测量结果怎样改进 → 真实相机如何对上公式 → 结果到底可不可信。</strong></div>
 </section><section class="section" id="imaging"><div class="road">
 <div class="kicker">02 / IMAGE FORMATION</div>
 <h2>光进了镜头，怎么就成了一张图？</h2>
@@ -30,19 +30,29 @@
 <a class="deep" href="./image-formation/">继续探索 · 光如何变成 RGB 像素 ↗</a>
 </div></section>
 <section class="section" id="geometry"><div class="road"><div class="kicker">03 / CAMERA GEOMETRY</div><h2>照片是平的，空间去哪儿了？</h2><p>上一条路解释了像素值从哪里来，但还没说清像素为什么出现在这个位置。相机把三维世界投影到二维画面上，看起来好像丢了什么。试着沿一个像素往回找，才发现它不对应唯一的三维点，而对应一条空间射线。</p><p>于是这一层要弄清：<strong>空间点怎样经过投影落到 (u, v)，内参如何决定这条射线，以及没有深度时究竟丢失了什么。</strong> 这里关心的是像素的几何位置，而不是它的颜色。</p><div class="tags"><span>针孔模型</span><span>相机坐标系</span><span>投影与反投影</span><span>内参的几何含义</span></div><a class="deep" href="./camera-geometry/">继续探索 · 从空间点到像素射线 ↗</a></div></section>
-<section class="section" id="depth"><div class="road"><div class="kicker">04 / DEPTH MEASUREMENT</div><h2>方向知道了，距离谁来告诉我？</h2><p>知道一个像素对应哪条射线，好像还是没法确定瓶子离相机有多远。既然少了距离，那就想办法把距离测出来。</p><p>双目相机利用两个视角的差异，主动立体还会自己投射纹理，ToF 则从光的传播特性里找答案。它们都叫“深度”，却并不靠同一套办法工作。</p><p><strong>这条路想搞清楚的，是深度究竟怎么测出来、每种方法又最容易在哪儿犯难。</strong> 以及一个容易被忽略的小问题：深度图给出的，到底是哪一种“距离”？</p><div class="tags"><span>双目视差</span><span>主动立体</span><span>ToF</span><span>Z-depth 与径向距离</span></div><a class="deep" href="./depth-measurement/">继续探索 · 深度是怎样被测出来的 ↗</a></div></section>
-<section class="section" id="calibration"><div class="road"><div class="kicker">05 / CALIBRATION &amp; ALIGNMENT</div><h2>公式好像没错，怎么点云还是歪了？</h2><p>有了像素和深度，反投影公式总算能用上了。不过公式里的焦距、主点从哪里来？镜头真的和理想针孔一样吗？</p><p>更有趣的是，RGB 和 Depth 明明都是图像，相同位置的像素却不一定看向同一个空间点。直接把两张图叠在一起，可能悄悄拿到了背景的深度。</p><p>这就需要回过头认识<strong>标定、畸变和 RGB-D 的几何配准</strong>。这一段关心的不是公式写得多漂亮，而是如何让公式真正对应手里的设备。</p><div class="tags"><span>内参与畸变</span><span>相机标定</span><span>Color–Depth 外参</span><span>三维重投影对齐</span></div><a class="deep" href="./calibration-and-alignment/">继续探索 · 让模型对上真实相机 ↗</a></div></section>
-<section class="section" id="quality"><div class="road"><div class="kicker">06 / MEASUREMENT RELIABILITY</div><h2>一个 XYZ 都有了，还能哪里不对？</h2><p>对着纸盒测量，点云可能规规矩矩；换成玻璃瓶，深度一下缺了一块。物体边缘偶尔冒出飞点，多拍几帧又会有轻微波动。甚至在得到深度之前，RGB 就可能因为过曝、模糊或反光而丢失细节。</p><p>这些“不对劲”并不是同一种问题：有的是成像条件造成的信息损失，有的是深度测量的随机噪声或系统偏差，还有的是<strong>压根没有得到可信测量</strong>。解决办法自然也不一样。</p><p>比起先找一套万能滤波参数，我更想弄明白：<strong>什么时候该滤波、什么时候该重新标定，什么时候应该干脆承认“这里没测到”？</strong></p><div class="tags"><span>成像质量</span><span>深度误差</span><span>无效值与飞点</span><span>空间／时间滤波</span><span>透明与反光</span><span>精度验证</span></div><a class="deep" href="./depth-reliability/">继续探索 · 哪些三维点值得相信 ↗</a></div></section>
-<section class="section" id="recap"><div class="section-head"><span class="num">07 / LOOKING BACK</span></div><h2>回头看：相机到底告诉了我什么？</h2><p>走到这里，问题就清楚多了。<strong>相机成像</strong>解释光如何变成像素；<strong>成像几何</strong>告诉我像素对应哪条空间射线；<strong>深度测量</strong>补上距离；<strong>标定与配准</strong>让计算关系对应真实设备；<strong>观测可靠性</strong>提醒我，不是每份图像和深度都值得相信。</p><div class="summary"><p>最后想拿到的，并不只是一个漂亮的点云，而是<strong>有明确坐标含义、来源可解释、质量可检查的三维观测</strong>。</p><p>有了这些，再把目标区域交给 Q01 的几何方法，或者为 Q02 的已知参考提供投影依据，就踏实多了。</p></div><p class="note" style="margin-top:17px">边界留在这里：本页只认识相机与测量。目标究竟是谁、相机坐标怎样交给机器人，分别留给 Q03 的另外两条路线。</p></section>
+<section class="section" id="depth"><div class="road"><div class="kicker">04 / DEPTH MEASUREMENT</div><h2>方向知道了，距离谁来告诉我？</h2><p>知道一个像素对应哪条射线，好像还是没法确定瓶子离相机有多远。既然少了距离，那就想办法把距离测出来。</p><p>双目相机利用两个视角的差异，主动立体还会自己投射纹理，ToF 则从光的传播特性里找答案。它们都叫“深度”，却并不靠同一套办法工作。</p><p><strong>这条路想搞清楚的，是深度究竟怎么测出来、每种方法又最容易在哪儿犯难。</strong> 以及一个容易被忽略的小问题：深度图给出的，到底是哪一种“距离”？</p><div class="tags"><span>双目视差</span><span>主动立体</span><span>ToF</span><span>Z-depth 与径向距离</span></div><a class="deep" href="./depth-measurement/">继续探索 · 深度是怎样被测出来的 ↗</a></div></section><section class="section" id="postprocessing">
+<div class="road">
+<div class="kicker">05 / DEPTH POST-PROCESSING</div>
+<h2>深度测出来了，为什么还是坑坑洼洼？</h2>
+<p>对着桌上不动的瓶子，深度值却一帧一帧地跳；瓶身边缘混进了背景，某些地方又突然空了一块。距离虽然算出来了，但深度图不一定已经适合拿来构建三维几何。</p>
+<p>既然相邻像素常常来自同一片表面，连续帧又在观察同一个场景，能不能借助这些额外的信息，让测量更干净、更稳定？于是有了<strong>离群值剔除、空间滤波、时间滤波、视差域处理与空洞填补</strong>。它们看起来都在“修深度”，利用的证据和付出的代价却不一样。</p>
+<p><strong>这条路真正想弄清楚的，不是怎样把深度图修得更好看，而是哪些处理保留了真实几何，哪些又可能把边缘抹掉、把没有测到的表面补出来。</strong> 对机器人来说，一块诚实的空洞，有时比一块平滑的假表面更有价值。</p>
+<div class="tags"><span>离群值与飞点</span><span>空间 / 双边滤波</span><span>时间滤波</span><span>视差域处理</span><span>空洞填补</span><span>边界与细节保留</span></div>
+<a class="deep" href="./depth-post-processing/">继续探索 · 深度图到底该怎么修 ↗</a>
+</div>
+</section>
+<section class="section" id="calibration"><div class="road"><div class="kicker">06 / CALIBRATION &amp; ALIGNMENT</div><h2>公式好像没错，怎么点云还是歪了？</h2><p>有了像素和深度，反投影公式总算能用上了。不过公式里的焦距、主点从哪里来？镜头真的和理想针孔一样吗？</p><p>更有趣的是，RGB 和 Depth 明明都是图像，相同位置的像素却不一定看向同一个空间点。直接把两张图叠在一起，可能悄悄拿到了背景的深度。</p><p>这就需要回过头认识<strong>标定、畸变和 RGB-D 的几何配准</strong>。这一段关心的不是公式写得多漂亮，而是如何让公式真正对应手里的设备。</p><div class="tags"><span>内参与畸变</span><span>相机标定</span><span>Color–Depth 外参</span><span>三维重投影对齐</span></div><a class="deep" href="./calibration-and-alignment/">继续探索 · 让模型对上真实相机 ↗</a></div></section>
+<section class="section" id="quality"><div class="road"><div class="kicker">07 / MEASUREMENT RELIABILITY</div><h2>深度图变平滑了，就能放心用了吗？</h2><p>把深度图滤得平平整整，新的问题反而更明显了：强光下相机为什么突然测不到？玻璃瓶为什么经常缺失？距离越远，误差为何越来越明显？如果 RGB 和 Depth 不是同一时刻采到的，运动中的物体又会发生什么？</p><p>这些问题不一定能靠滤波补救。有些来自曝光、投射与测距模式，有些是材质和环境带来的测量极限，还有些是时间同步和设备设置造成的。这里需要认识 <strong>Advanced Controls、有效深度与置信度、系统误差与重复性，以及实际的测量验收方法</strong>。</p><p><strong>这条路最终要回答的是：什么条件下可以相信一份深度，什么时候应该调整采集条件，什么时候又必须承认“这里没有可靠测量”？</strong> 让相机输出 XYZ 只是开始，知道它们的可信边界才是工程上的终点。</p><div class="tags"><span>Advanced Controls</span><span>曝光 / 投射设置</span><span>透明与反光</span><span>有效深度 / 置信度</span><span>精度与重复性</span><span>时间同步与验收</span></div><a class="deep" href="./depth-reliability/">继续探索 · 什么时候能相信这份测量 ↗</a></div></section>
+<section class="section" id="recap"><div class="section-head"><span class="num">08 / LOOKING BACK</span></div><h2>回头看：相机到底告诉了我什么？</h2><p>走到这里，问题就清楚多了。<strong>相机成像</strong>解释光如何变成像素；<strong>成像几何</strong>告诉我像素对应哪条空间射线；<strong>深度测量</strong>补上距离；<strong>深度后处理</strong>尝试减少测量错误，但也要小心虚假的几何；<strong>标定与配准</strong>让计算关系对应真实设备；<strong>测量可靠性</strong>提醒我，不是每份深度都值得相信。</p><div class="summary"><p>最后想拿到的，并不只是一个漂亮的点云，而是<strong>有明确坐标含义、来源可解释、质量可检查的三维观测</strong>。</p><p>有了这些，再把目标区域交给 Q01 的几何方法，或者为 Q02 的已知参考提供投影依据，就踏实多了。</p></div><p class="note" style="margin-top:17px">边界留在这里：本页只认识相机与测量。目标究竟是谁、相机坐标怎样交给机器人，分别留给 Q03 的另外两条路线。</p></section>
 <footer class="foot">沿途手记 · Stage 01 / Q03　｜　这一页先把问题认清，细节留在各自的探索笔记里。</footer>
 </main><aside class="side"><nav aria-label="本页导览" class="toc"><div class="label">ON THIS PAGE / 导览</div>
-<a href="#top">开场 · 相机知道在哪里吗</a>
-<a href="#map">01 · 先认认路</a>
-<a href="#imaging">02 · 相机成像</a>
-<a href="#geometry">03 · 成像几何</a>
-<a href="#depth">04 · 深度测量</a>
-<a href="#calibration">05 · 标定与配准</a>
-<a href="#quality">06 · 测量可靠性</a>
-<a href="#recap">07 · 回头看</a></nav></aside></div>
+
+
+
+
+
+
+
+<a href="#top">开场 · 相机知道在哪里吗</a><a href="#map">01 · 先认认路</a><a href="#imaging">02 · 相机成像</a><a href="#geometry">03 · 成像几何</a><a href="#depth">04 · 深度测量</a><a href="#postprocessing">05 · 深度后处理</a><a href="#calibration">06 · 标定与配准</a><a href="#quality">07 · 测量可靠性</a><a href="#recap">08 · 回头看</a></nav></aside></div>
 <script>const links=[...document.querySelectorAll('.toc a')],ids=links.map(a=>a.getAttribute('href').slice(1));const observer=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);if(visible.length){const id=visible[0].target.id;links.forEach(a=>{const yes=a.getAttribute('href')==='#'+id;a.classList.toggle('active',yes);if(yes)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')})}},{rootMargin:'-12% 0px -67% 0px',threshold:0});ids.forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el)});links[0]?.classList.add('active');</script>
 </body></html>

@@ -231,7 +231,10 @@
     <h2>回头看：我们到底从相机里拿到了什么？</h2>
     <p>现在再看一张 RGB 图像，就不只是「一个三通道数组」了：物体和照明共同决定进入镜头的光；镜头决定它被怎样聚焦；CMOS 在曝光期间积累电荷；颜色采样和 ISP 再把这些读数转成可用的 RGB。</p>
     <div class="summary"><p><strong>这一页最重要的结论：</strong>RGB 是整条成像链的输出，不是物体固有颜色的直接测量。曝光、光照、对焦、快门和 ISP 都可能改变图像里的证据。</p><p>如果要进一步求三维，还差另一个问题：<strong>为什么某个空间点，恰好会落在这个像素坐标上？</strong> 那是「相机成像几何」要接着解决的事。</p></div>
-    <a class="border-link" href="../camera-geometry/">继续探索 · 照片是平的，空间去哪儿了？ ↗</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:22px">
+      <a class="border-link" href="../">← 返回 · 相机与三维测量总览</a>
+      <a class="border-link" href="../camera-geometry/">下一篇 · 从空间点到像素射线 →</a>
+    </div>
     <p class="small" style="margin-top:19px">本页边界：不展开相机投影矩阵、内参与标定；不讨论如何从双目 / 结构光 / ToF 得到 Depth。这些分别留给相邻章节。</p>
   </section>
   <footer class="foot">沿途手记 · Stage 01 / Q03 / 相机与三维测量 / 01 相机成像<br>从一束光开始，先弄明白像素怎么来。</footer>

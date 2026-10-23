@@ -662,11 +662,11 @@ print('ideal ray distance:', r, 'm')
 <p><strong>ToF</strong> 绕开左右图像匹配，转而估计光传播的延迟；dToF 从回波时间事件中找距离，iToF 从相关采样中恢复相位，再处理周期歧义与多路径。</p>
 <p>最后所有结果还要回到同一个工程问题：<strong>Depth Map 的数值具体是什么，配套哪个相机坐标模型，哪些像素确实测到了可信深度？</strong></p>
 <p>到这里才算真正打通了上一章的空间射线与这一章的距离来源。</p>
-<p>下一篇「标定与配准」再研究：如何获得正确内外参，以及 RGB、Depth 不在同一光学中心时，怎样建立正确的像素关系；「测量可靠性」则更深入研究无效深度、随机噪声、系统偏差和补全代价。</p>
+<p>下一篇「深度后处理」先研究：怎样减少已有误差、拒绝不可信测量，并区分测量与补全；之后再进入「标定与配准」和「测量可靠性」。</p>
 
 <details class="references"><summary>参考资料 · 官方接口与原理说明</summary><p>用于核对主动双目与结构光的区别、结构光解码接口及 Femto Bolt 深度含义；正文的数值小实验为教学示例，并非厂商内部算法复现。</p><ul><li><a href="https://github.com/realsenseai/librealsense/blob/master/doc/depth-from-stereo.md" target="_blank" rel="noopener">RealSense · Depth from Stereo ↗</a></li><li><a href="https://dev.realsenseai.com/docs/projectors/" target="_blank" rel="noopener">RealSense · Projectors for D400 ↗</a></li><li><a href="https://docs.opencv.org/4.11.0/d1/dec/classcv_1_1structured__light_1_1GrayCodePattern.html" target="_blank" rel="noopener">OpenCV · GrayCodePattern / getProjPixel ↗</a></li><li><a href="https://docs.opencv.org/4.12.0/d0/de8/tutorial_capture_sinusoidal_pattern.html" target="_blank" rel="noopener">OpenCV · Capture Sinusoidal Pattern ↗</a></li><li><a href="https://doc.orbbec.com/documentation/Orbbec%20Femto%20Bolt%20Documentation/Depth%20Camera%20%28Femto%20Bolt%29" target="_blank" rel="noopener">Orbbec · Femto Bolt Depth Camera ↗</a></li></ul></details>
 <p class="strong-point"><strong>这份笔记最后想保留的判断：</strong>在低纹理场景，主动投射提供的是更多可用证据；结构光编码只有通过投影器—相机几何求交才能真正得到米数；ToF 四相位只在真实信号满足单主光路等假设时，才能稳定恢复距离。<strong>每个方法的优点都来自它引入的测量证据，局限也来自该证据最容易失效的地方。</strong></p>
-<footer class="meta">沿途手记 · 技术探索笔记 · 原文公式为内嵌 SVG，新增计算式采用原生 HTML 数学排版；全文可离线阅读。<br/><a href="#top" class="toplink">↑ 回到开头</a></footer></main></div>
+<footer class="meta">沿途手记 · 技术探索笔记 · 原文公式为内嵌 SVG，新增计算式采用原生 HTML 数学排版；全文可离线阅读。<br/><a href="../camera-geometry/" class="toplink">← 上一篇 · 相机成像几何</a>　<a href="../" class="toplink">总览</a>　<a href="../depth-post-processing/" class="toplink">下一篇 · 深度后处理 →</a>　<a href="#top" class="toplink">↑ 回到开头</a></footer></main></div>
 <script>
 const links=[...document.querySelectorAll('.toc a')], sections=links.map(a=>document.querySelector(a.getAttribute('href')));
 const observer=new IntersectionObserver(entries=>{for(const e of entries) if(e.isIntersecting){links.forEach(a=>a.classList.toggle('active',a.hash==='#'+e.target.id))}},{rootMargin:'-14% 0px -72% 0px',threshold:0});

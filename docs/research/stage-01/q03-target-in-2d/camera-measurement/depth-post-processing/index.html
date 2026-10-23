@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fbf7ef">
+<meta name="description" content="沿途手记 · 深度后处理：从 RealSense 的视差域与 Domain Transform，到 Luxonis 的可信度、Orbbec 的错误机制与 HDR、Zivid 反射处理，以及学习式深度增强。">
+<title>深度已经测出来了，为什么还要再修一遍？｜沿途手记</title>
+<style>
+:root{--paper:#fbf7ef;--white:#fffdf9;--ink:#4a3b33;--muted:#817468;--line:#e6dacb;--rust:#b77251;--rust-dark:#965438;--sage:#708c78;--sage-light:#ecf2e9;--apricot:#f8e8d8;--sand:#f3ecdf;--rose:#f5e5e0;--shadow:0 14px 45px rgba(100,74,48,.055)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:32px}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.95 -apple-system,BlinkMacSystemFont,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.18;background-image:radial-gradient(#cdbbab .55px,transparent .55px);background-size:8px 8px}
+a{color:var(--rust-dark);text-underline-offset:3px}a:hover{color:#723c29}strong{color:#935039}p{margin:12px 0 19px}em{font-style:normal;color:var(--rust-dark)}h1,h2,.serif{font-family:Georgia,"Noto Serif SC","Source Han Serif SC","Songti SC",serif}h1{font-size:clamp(30px,3.6vw,45px);line-height:1.45;letter-spacing:-.025em;font-weight:650;margin:14px 0 18px}h2{font-size:clamp(23px,2.6vw,29px);line-height:1.45;letter-spacing:-.015em;margin:0 0 26px;font-weight:650}h3{font-size:19px;line-height:1.5;margin:36px 0 14px}h4{font-size:15px;margin:24px 0 8px;color:#875c47}.eyebrow,.label,.step-no{font-weight:750;font-size:11px;letter-spacing:.14em}.eyebrow{color:var(--sage)}
+.layout{max-width:1300px;padding:46px 33px 100px;margin:0 auto;display:grid;grid-template-columns:226px minmax(0,920px);gap:50px}.aside{min-width:0;grid-column:1;grid-row:1}.sticky{position:sticky;top:27px;max-height:calc(100vh - 49px);overflow-y:auto;border-left:1px solid var(--line);padding:11px 0 24px}.brand{padding-left:18px;font:650 20px/1.5 Georgia,"Noto Serif SC",serif;color:var(--rust-dark);letter-spacing:.04em}.brand a{color:inherit;text-decoration:none}.sublabel{font-size:10.5px;letter-spacing:.15em;color:var(--muted);padding:4px 0 17px 18px;font-weight:700}.toc a{display:block;padding:8px 12px 8px 17px;margin-left:-1px;border-left:2px solid transparent;border-radius:0 8px 8px 0;text-decoration:none;font-size:12px;line-height:1.6;color:#837367}.toc a:hover,.toc a.active{color:var(--rust-dark);background:#f7e9dc;border-left-color:var(--rust)}.toc a.sub{font-size:11px;padding-left:30px;color:#9a8779}.aside-note{margin:19px 14px 0;padding:13px;border-radius:11px;background:#f2efe4;color:#84776d;font-size:11.5px;line-height:1.75}
+main{grid-column:2;grid-row:1;min-width:0}.crumb{font-size:12px;color:var(--muted);margin:0 0 29px}.crumb a{color:inherit;text-decoration:none}.hero{padding:35px 40px 33px;border:1px solid #e4d8c8;border-radius:21px;background:linear-gradient(134deg,#f7efe3 0%,#fffefa 67%);box-shadow:var(--shadow)}.hero .intro{max-width:770px;font-size:15.5px}.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:26px}.tag{font-size:11.5px;color:#8f674d;padding:4px 12px;border-radius:25px;border:1px solid #e7d3bd;background:#fff9f1}.micro{font-size:12px;color:var(--muted);line-height:1.7}.hero-foot{border-top:1px solid #e8ddce;padding-top:17px;margin-top:22px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}.section{margin-top:67px;border-top:1px solid var(--line);padding-top:53px;scroll-margin-top:32px}.section:first-of-type{border-top:0;margin-top:35px;padding-top:5px}.section-id{font-size:11px;letter-spacing:.16em;color:var(--rust);font-weight:800;margin-bottom:11px}.section .lead{font-size:16px}.subsection{scroll-margin-top:32px}table{width:100%;border-collapse:collapse;background:var(--white);margin:24px 0 34px;font-size:13px;line-height:1.75;border:1px solid var(--line)}th,td{padding:13px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:#f0e6d9;color:#725646;font-weight:750}tr:nth-child(even) td{background:#fdfaf5}.table-scroll{overflow:auto;border-radius:12px}.table-scroll table{min-width:650px;margin:0}.note,.quote,.question{padding:17px 23px;margin:28px 0;border-radius:0 11px 11px 0}.note{background:var(--sage-light);border-left:3px solid var(--sage)}.quote{background:#f9eade;border-left:3px solid #cf8d63}.question{background:#f4eae6;border-left:3px solid #bd8c7b}.note p:last-child,.quote p:last-child,.question p:last-child{margin-bottom:0}.note p:first-child,.quote p:first-child,.question p:first-child{margin-top:0}.pillline{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 26px}.pill{background:#f0eadf;border:1px solid #e6daca;border-radius:20px;padding:3px 11px;font-size:11.5px;color:#8b715f}.formula{border:1px solid #e3dbce;background:#fffdf9;border-radius:12px;padding:17px 20px;margin:24px 0;overflow-x:auto}.formula .expression{font:500 21px/1.75 Georgia,"Times New Roman",serif;text-align:center;white-space:nowrap;color:#654a3e}.formula .desc{font-size:12px;color:var(--muted);text-align:center;line-height:1.8;margin-top:7px}.key{color:var(--rust-dark);font-weight:700}.diagram{border:1px solid var(--line);background:#fffdf9;border-radius:15px;margin:30px 0;padding:18px 22px 14px}.diagram svg{width:100%;height:auto;display:block}.caption{font-size:12px;line-height:1.75;color:var(--muted);margin:8px 1px 2px}.method{border:1px solid #e8dcd0;background:var(--white);border-radius:15px;padding:20px 24px;margin:25px 0}.method h4{margin:0 0 7px}.method p{margin:8px 0}.method .method-type{font-size:10px;letter-spacing:.12em;color:var(--sage);font-weight:800}.source{font-size:12px;margin:25px 0 0;padding:13px 15px;border-top:1px dashed var(--line);color:var(--muted)}.source a{overflow-wrap:anywhere}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:25px 0}.mini-card{padding:19px;background:#fffdf9;border:1px solid var(--line);border-radius:14px}.mini-card h4{margin:0 0 9px;font-size:15px}.mini-card p{font-size:13px;margin:0}.roadmap{display:grid;gap:10px;margin:25px 0 30px}.road{display:grid;grid-template-columns:46px minmax(0,1fr);gap:13px;align-items:start;background:var(--white);border:1px solid var(--line);padding:15px;border-radius:13px}.roadnum{display:grid;place-items:center;background:var(--apricot);color:var(--rust-dark);font:700 16px Georgia,serif;border-radius:9px;min-height:45px}.road b{font-size:14px;color:#5b473b}.road p{font-size:13px;line-height:1.7;color:var(--muted);margin:2px 0 0}.boundary{padding:18px 21px;border:1px dashed #c6b7a4;border-radius:13px;background:#f7f3ec;margin:25px 0}.boundary .label{color:#896b53}.boundary p{margin:7px 0 0}.divider{height:1px;background:var(--line);margin:36px 0}.refs{padding:24px 29px;background:#f7f1e7;border-radius:15px;border:1px solid var(--line);font-size:12.5px}.refs h3{margin:0 0 13px}.refs li{margin:8px 0;overflow-wrap:anywhere}.refs ul{padding-left:20px;margin:0}.next{margin-top:40px;display:block;text-decoration:none;padding:23px 27px;background:#ecf2e9;border:1px solid #d7e2d3;border-radius:14px}.next b{display:block;color:#49674e;font-size:15px}.next span{color:#78917a;font-size:12px}.footer{padding:40px 0 20px;text-align:center;font-size:12px;color:#998a7d}.toplink{font-size:12px;text-align:right;margin-top:18px}.toplink a{color:var(--muted)}
+@media(max-width:950px){.layout{display:block;padding:25px 17px 80px}.aside{margin-bottom:34px}.sticky{position:relative;top:auto;max-height:none;border-left:0;border-bottom:1px solid var(--line);padding:5px 0 16px}.brand,.sublabel{padding-left:0}.toc{display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin;padding-bottom:6px}.toc a,.toc a.sub{flex:none;font-size:11.5px;padding:8px 10px;white-space:nowrap;border-radius:22px;border:1px solid var(--line);background:#fffaf5}.toc a.active{border-color:#b77655}.aside-note{display:none}.crumb{margin-top:10px}.hero{padding:26px 22px}.two-col{grid-template-columns:1fr}.section{margin-top:44px;padding-top:35px}.diagram{padding:13px 10px}.method{padding:16px 18px}}
+@media(max-width:560px){body{font-size:14px}h1{font-size:31px}h2{font-size:23px}h3{font-size:17px}.formula .expression{font-size:18px}.hero{border-radius:15px}th,td{padding:10px}.road{grid-template-columns:38px 1fr;padding:12px}.roadnum{min-height:38px}.note,.quote,.question{padding:13px 15px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="layout" id="top">
+  <aside class="aside" aria-label="章节导航"><div class="sticky"><div class="brand"><a href="/">沿途手记</a></div><div class="sublabel">STAGE 01 / Q03 · CAMERA MEASUREMENT</div>
+    <nav class="toc" aria-label="本页导览">
+      <a href="#opening">00 · 开场</a>
+      <a href="#map">01 · 技术路线</a>
+      <a href="#filter">02 · RealSense：平滑与视差</a>
+      <a href="#confidence">03 · Luxonis：测量可信度</a>
+      <a href="#mechanism">04 · Orbbec / Zivid：错误机制</a>
+      <a href="#holes">05 · 空洞该不该补</a>
+      <a href="#multiframe">06 · HDR 与互补观测</a>
+      <a href="#learning">07 · 学习式增强</a>
+      <a href="#recap">08 · 回头看</a>
+      <a href="#sources">资料与边界</a>
+    </nav><div class="aside-note">研究的不是“怎么打开滤波器”，而是现代深度相机怎样一步步改善测量，以及每种方法凭什么有效。</div>
+  </div></aside>
+  <main>
+    <div class="crumb"><a href="/research/stage-01/">Stage 01</a>　/　<a href="/research/stage-01/q03-target-in-2d/">Q03 · 目标在二维哪里</a>　/　<a href="../">相机与三维测量</a>　/　深度后处理</div>
+    <header class="hero" id="opening">
+      <div class="eyebrow">05 / DEPTH POST-PROCESSING · 研究手记</div>
+      <h1>深度已经测出来了，<br>为什么还要再修一遍？</h1>
+      <div class="intro">
+        <p>上一段终于弄清楚了深度相机怎样测量距离。按理说，每个像素有了深度，就可以恢复三维点云了。</p>
+        <p>但实际测量并不总是顺利。平整的桌面有些起伏，物体边缘偶尔出现飞点，静止的瓶子在连续帧中轻微抖动。遇到反光、透明或弱纹理表面，有些位置甚至完全没有深度。</p>
+        <p>最直接的想法，是把这些数据滤一遍。不过，仔细看看 RealSense、Orbbec、Luxonis、Zivid 等厂商的做法，会发现事情远不止平滑和去噪。</p>
+        <p><strong>如果一个深度本来就是错的，为什么要修正它，而不是直接拒绝？如果测量根本没有得到有效信息，又凭什么能够把它补回来？</strong></p>
+        <p>这两个问题，让深度质量的探索逐渐从数值修正，走向测量可信度、物理错误识别、多观测融合，以及学习式增强。</p>
+      </div>
+      <div class="tags"><span class="tag">传统滤波</span><span class="tag">置信度</span><span class="tag">错误机制</span><span class="tag">多观测融合</span><span class="tag">学习式深度增强</span></div>
+      <div class="hero-foot"><span class="micro">这一页关注技术思想与代表性工业实践，不讨论 ROS 话题及部署开关。</span><span class="micro">小鱼 · 沿途手记</span></div>
+    </header>
+
+    <section class="section" id="map"><div class="section-id">01 / RESEARCH MAP</div><h2>技术路线｜我们究竟还能利用什么信息？</h2>
+      <p>深度图的问题，可以先分成五类：错误值、空间噪声、时间波动、无效区域，以及数据冗余。</p>
+      <p>不过，按照现象分类还不足以理解现代厂商为什么选择不同算法。更值得问的是：<strong>一张已经算出来的深度图，还能够借助什么信息改善自身？</strong></p>
+      <div class="roadmap">
+        <div class="road"><div class="roadnum">01</div><div><b>利用邻域与时间的统计关系</b><p>空间滤波、时序滤波、视差域处理｜RealSense</p></div></div>
+        <div class="road"><div class="roadnum">02</div><div><b>利用测量过程的可信度</b><p>匹配代价、左右一致性、可信度引导修正｜Luxonis</p></div></div>
+        <div class="road"><div class="roadnum">03</div><div><b>利用错误产生机制的特征</b><p>假深度形态、反射干扰、传感器物理证据｜Orbbec / Zivid</p></div></div>
+        <div class="road"><div class="roadnum">04</div><div><b>利用互补观测获取新的证据</b><p>HDR Merge、多曝光、不同采集条件｜Orbbec</p></div></div>
+        <div class="road"><div class="roadnum">05</div><div><b>利用学习到的视觉与几何先验</b><p>RGB-D 增强、神经网络深度估计｜LingBot-Depth / ZED</p></div></div>
+      </div>
+      <div class="boundary"><div class="label">一个需要提前说明的边界</div><p>这些并不是严格的年代顺序，也不是五种互相替代的方案。第一、二、三类包含深度后处理或紧贴深度计算的质量检查；HDR 采集、Neural Stereo 等方法已经部分进入<strong>深度生成阶段</strong>。这里研究它们，是为了看清“已有深度不够好”时，业界走出了哪些不同的技术路线。</p></div>
+    </section>
+
+    <section class="section" id="filter"><div class="section-id">02 / CLASSICAL FILTERING</div><h2>从平滑开始｜为什么 RealSense 不直接使用普通均值滤波？</h2>
+      <p>假设相机看向一张平整的桌面。理想情况下，反投影得到的点应该落在一个平面上。但实际测量中，相邻像素的深度可能轻微波动。</p>
+      <p>如果波动主要来自随机噪声，用邻域求平均确实有帮助。问题是，瓶子与桌面在深度图中同样彼此相邻。如果对所有邻居一视同仁，瓶子的边缘也会被平均到背景里。</p>
+      <div class="question"><p>于是，问题从“怎样平滑深度”变成：<strong>怎样只在可能属于同一个表面的像素之间平滑？</strong></p></div>
+      <div class="subsection" id="filter-edge"><h3>02.1 · 从普通平滑到边缘保持</h3>
+        <p>Median Filter 通过邻域中位数降低孤立异常值的影响；Bilateral Filter 同时考虑空间距离与数值差异，让深度差别很大的像素不轻易互相影响。</p>
+        <p>但实时深度相机还需要计算足够快。RealSense D400 系列的 Spatial Filter 采用基于 <strong>Domain Transform</strong> 的边缘保持滤波，而不只是对每个像素直接计算二维双边加权。</p>
+        <p>它将水平和垂直方向的处理分解为多次一维遍历：如果相邻像素之间的深度变化很小，就允许平滑信息传播；如果出现较大的深度突变，就减弱跨越边界的影响。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 790 215" role="img" aria-label="空间平滑与边缘保持的对比：均值滤波会让前景背景边界变缓，边缘保持滤波尽量维持阶跃边界">
+            <rect x="11" y="9" width="370" height="192" rx="12" fill="#fbf4ec" stroke="#eadfce"/><rect x="407" y="9" width="372" height="192" rx="12" fill="#f0f5ee" stroke="#dae6d7"/>
+            <g font-family="sans-serif" fill="#5a483d"><text x="29" y="34" font-size="15" font-weight="700">普通平滑 · 边界被抹开</text><text x="425" y="34" font-size="15" font-weight="700">边缘保持 · 同表面内平滑</text></g>
+            <path d="M40 65V169H348 M436 65V169H746" fill="none" stroke="#b0a398" stroke-width="1.4"/>
+            <path d="M42 149 L100 147 L134 150 L163 146 L191 149 L191 92 L222 92 L249 95 L284 89 L348 90" stroke="#a4aaa1" stroke-dasharray="4 5" stroke-width="2" fill="none"/>
+            <path d="M42 148 C132 147 138 145 161 136 C183 128 191 113 204 106 C226 92 241 93 348 91" stroke="#ca825d" stroke-width="4" fill="none"/>
+            <path d="M438 149 L500 149 L542 147 L582 149 L582 93 L623 93 L668 91 L744 91" stroke="#a4aaa1" stroke-dasharray="4 5" stroke-width="2" fill="none"/>
+            <path d="M438 148 L522 148 Q559 147 579 148 L581 94 Q628 92 744 92" stroke="#6f947c" stroke-width="4" fill="none"/>
+            <g font-size="12" font-family="sans-serif" fill="#84766b"><text x="40" y="188">前景与背景的过渡被拉宽</text><text x="436" y="188">仍需付出平滑与细节保留的取舍</text></g>
+          </svg><div class="caption">概念示意：深度突变通常提示不同表面，但真实斜面、薄物体等情况会让边缘判断更复杂。</div>
+        </div>
+        <p>因此，RealSense 的几个常见参数并非简单“画质增强等级”：<strong>Smooth Alpha</strong> 决定原始与滤波结果之间的混合权重，<strong>Smooth Delta</strong> 影响边缘判定，<strong>Filter Magnitude</strong> 决定处理迭代程度。</p>
+        <p>它选择的是一个明确的工程方向：在较低延迟内完成平滑，同时尽量阻止跨物体边界的信息混合。</p>
+      </div>
+      <div class="subsection" id="filter-disparity"><h3>02.2 · 为什么还要回到视差域？</h3>
+        <p>在双目相机里，深度与视差的关系是：</p>
+        <div class="formula"><div class="expression">Z = fB / d</div><div class="desc">Z 为光轴方向深度，f 为焦距，B 为双目基线，d 为视差</div></div>
+        <p>对误差做局部近似，有：</p>
+        <div class="formula"><div class="expression">|ΔZ| ≈ Z<sup>2</sup> |Δd| / (fB)</div><div class="desc">相同视差误差对应的深度误差，随距离增大而显著扩大</div></div>
+        <p>这意味着对不同距离的深度一律套用相同的平滑尺度，未必符合双目测量的误差结构。RealSense D400 的推荐 SDK 处理链包含 <strong>Depth → Disparity → Spatial / Temporal → Depth</strong>。</p>
+        <p><strong>真正的思路不是换个数值单位，而是回到更贴近双目测量误差的空间处理数据。</strong> 但这种物理动机属于双目相机，不能直接照搬到 ToF 的测距模型。</p>
+      </div>
+      <div class="subsection" id="filter-temporal"><h3>02.3 · 一帧不稳定，历史帧能不能帮忙？</h3>
+        <p>Spatial 利用空间邻域；Temporal 利用时间邻域。最简单的办法是指数滑动平均：</p>
+        <div class="formula"><div class="expression">Ẑ<sub>t</sub> = α Z<sub>t</sub> + (1 − α) Ẑ<sub>t−1</sub></div><div class="desc">当场景近似静止、历史测量有效时，能够降低帧间随机波动</div></div>
+        <p>RealSense Temporal Filter 还提供 <strong>Persistency</strong> 规则：当前像素无效时，可以参考近期帧的有效性历史，决定是否沿用过去的测量。</p>
+        <p>但如果瓶子移动、相机自身移动，过去同一像素的位置可能已经看向另一个物体。时间滤波越坚持历史，就越容易产生拖影或残留表面。</p>
+        <p>再进一步，可以先根据运动把历史观测对齐到当前帧，然后融合。但这要求更复杂的运动估计与几何关联，已经不是简单逐像素时间滤波。</p>
+      </div>
+      <div class="note"><p><strong>这一阶段的结论：</strong> 经典滤波没有过时。它在延迟、资源占用、可解释性和确定性方面仍很有价值。但它主要利用已有深度的统计关系，无法保证识别所有系统性错误。</p></div>
+      <div class="source">进一步查阅：<a href="https://dev.realsenseai.com/docs/post-processing-filters" target="_blank" rel="noopener noreferrer">RealSense · Post-processing Filters ↗</a></div>
+    </section>
+
+    <section class="section" id="confidence"><div class="section-id">03 / MEASUREMENT CONFIDENCE</div><h2>不再修正所有深度｜能不能先判断哪些测量可信？</h2>
+      <p>空间滤波暗含一个前提：参与平滑的数值，大体围绕真实值波动。但双目匹配错了位置，可能得到一片很稳定、却完全错误的深度。</p>
+      <p>如果错误本身不是随机噪声，再怎么平均都未必能修回来。于是问题变了：<strong>既然深度来自一套计算过程，能不能从这套过程里找出“它是否可信”的证据？</strong></p>
+      <div class="subsection" id="confidence-score"><h3>03.1 · Luxonis：从匹配代价到 Confidence</h3>
+        <p>双目匹配不是凭空产生一个视差。对于左图像素，算法需要在右图相应极线上寻找候选位置，并评估匹配代价。</p>
+        <p>如果某个候选明显好于其他位置，匹配可能较可信。如果许多候选看起来都差不多——例如一大片低纹理白墙——就很难知道哪个位置才对。</p>
+        <p>Luxonis DepthAI 的 StereoDepth 提供置信度阈值，根据立体匹配产生的质量信息拒绝部分不可靠视差。</p>
+        <div class="quote"><p>过去问的是“这个深度该修成多少”。现在先问：<strong>这个深度有没有足够证据值得留下？</strong></p></div>
+      </div>
+      <div class="subsection" id="confidence-lr"><h3>03.2 · 左右一致性：为什么不反过来再算一次？</h3>
+        <p>从左图找到右图对应点之后，再从右图反向寻找左图。如果两次匹配准确且该位置可见，它们应该大致互相一致。</p>
+        <div class="formula"><div class="expression">|d<sub>L</sub>(x,y) − d<sub>R</sub>(x−d<sub>L</sub>,y)| &lt; τ</div><div class="desc">以相同视差方向约定描述的左右一致性检验；超过阈值 τ 的匹配可判为不可信</div></div>
+        <div class="diagram"><svg viewBox="0 0 790 227" role="img" aria-label="左右一致性检查示意图：左图匹配到右图后反向匹配；返回同一位置时认为一致，不一致时拒绝">
+          <rect x="20" y="30" width="332" height="157" rx="12" fill="#faf0e5" stroke="#dccbb8"/><rect x="438" y="30" width="332" height="157" rx="12" fill="#eef4ec" stroke="#d5e3d4"/>
+          <text x="37" y="52" fill="#845b42" font-family="sans-serif" font-size="15" font-weight="700">Left view</text><text x="456" y="52" fill="#54735c" font-family="sans-serif" font-size="15" font-weight="700">Right view</text>
+          <path d="M36 113H335 M454 113H753" stroke="#bfb0a1" stroke-dasharray="5 6" stroke-width="1.3"/>
+          <circle cx="237" cy="112" r="8" fill="#c67c53"/><circle cx="558" cy="112" r="8" fill="#6e9879"/>
+          <path d="M233 93 C349 38 441 42 558 93" stroke="#b77750" fill="none" stroke-width="2.4"/><polygon points="555,87 560,93 553,98" fill="#b77750"/>
+          <path d="M558 131 C432 190 342 180 237 132" stroke="#73937d" fill="none" stroke-width="2.4"/><polygon points="244,130 237,132 239,140" fill="#73937d"/>
+          <text x="343" y="39" fill="#916348" font-size="12" font-family="sans-serif">左 → 右</text><text x="344" y="190" fill="#63846f" font-size="12" font-family="sans-serif">右 → 左</text>
+          <text x="20" y="214" fill="#827568" font-size="12" font-family="sans-serif">返回原位置附近 → 一致性较好　｜　反向找不到或差异过大 → 可拒绝深度</text>
+        </svg><div class="caption">示意而非具体硬件实现。遮挡区域天生可能无法双向匹配，因此检查也会减少可用深度。</div></div>
+        <p>它比普通平滑多利用了一条几何关系：<strong>可靠对应应该尽可能具备双向一致性。</strong> 但错误有时可能碰巧一致；真实遮挡边缘也常常无法通过检查。</p>
+      </div>
+      <div class="subsection" id="confidence-adaptive"><h3>03.3 · 既然知道可信度，能不能只修不可靠的区域？</h3>
+        <p>Luxonis 的较新处理架构提供自适应中值滤波等能力，利用匹配质量等线索，针对可疑深度做更有选择的修正。</p>
+        <p>其区域引导的空洞处理方向，也不再满足于从左、右、上方复制某个邻居，而是尝试先在图像中找到具有相似性质的区域，再结合可信深度估计缺失值。</p>
+        <p>这个方向的核心变化是：<strong>已经可信的值不必反复修改；缺乏依据的值才需要进一步检查、修正或拒绝。</strong></p>
+      </div>
+      <div class="note"><p><strong>这一阶段的结论：</strong> 置信度能够让“修正”变成有条件的决策。不过低置信度往往集中在小物体、边界和弱纹理处，阈值过严也可能删除真正重要的几何。</p></div>
+      <div class="source">进一步查阅：<a href="https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/stereo_depth" target="_blank" rel="noopener noreferrer">Luxonis · StereoDepth ↗</a></div>
+    </section>
+
+    <section class="section" id="mechanism"><div class="section-id">04 / FAILURE-MECHANISM AWARE</div><h2>错误并不只有一种｜能否直接针对错误产生的原因？</h2>
+      <p>置信度是更聪明的第一步，但不同深度相机产生错误的原因并不一样。双目可能错误匹配；结构光可能受到多次反射干扰；ToF 可能受到多径、相位噪声或信号强度影响。</p>
+      <p>这些问题最后都可能呈现为飞点或虚假表面，可它们的形成过程完全不同。于是另一种想法出现了：<strong>利用测量失败所留下的特定形态或物理信号，而不是将全部错误当作随机噪声。</strong></p>
+      <div class="subsection" id="orbbec"><h3>04.1 · Orbbec：普通 Noise Removal 为什么不够？</h3>
+        <p>Orbbec Gemini 330 系列的 NoiseRemovalFilter 使用深度区域聚类：通过相邻深度差异建立连通区域，再结合规模等规则删除可疑小区域。</p>
+        <p>这能够处理局部孤立错误，却存在天然矛盾：<strong>细小真实结构与一小块错误深度，在连通区域统计上可能十分相似。</strong></p>
+        <p>于是还需要 FalsePositiveFilter。公开文档将其区分为几类失效现象：</p>
+        <div class="method"><div class="method-type">FAILURE MODE 01</div><h4>Edge Bleed｜为什么物体边缘会向外延伸？</h4><p>一些错误会形成横向延伸、数值不合理地重复的区域。Orbbec 使用特定的深度形态规则，例如长串相同深度值，识别疑似边缘扩散。</p><p class="micro">代价：真实平坦结构有时也可能表现出相似形态，因而需要限制适用范围。</p></div>
+        <div class="method"><div class="method-type">FAILURE MODE 02</div><h4>Texture Sparsity｜没有纹理，为什么更容易测错？</h4><p>双目对应关系缺乏唯一线索时，会产生低可信甚至错误的深度。专门的弱纹理错误规则利用特定区域和深度特征进行识别。</p><p class="micro">代价：弱纹理并不必然等于错误，过度拒绝会损失整片真实表面。</p></div>
+        <div class="method"><div class="method-type">FAILURE MODE 03</div><h4>Pattern Ambiguity｜重复纹理为什么更加危险？</h4><p>周期性纹理可能让多个候选位置都具有相似匹配代价，错误视差甚至可能组成一片连续表面。识别这种错误需要利用更具体的噪声形态与场景条件。</p><p class="micro">代价：专门规则通常有适用场景，不能保证覆盖所有错误模式。</p></div>
+        <p>这里的探索已经从“所有噪声都用一个阈值处理”，发展到了“<strong>不同的测量失败机制应该寻找不同证据</strong>”。</p>
+      </div>
+      <div class="subsection" id="zivid"><h3>04.2 · Zivid：既然知道自己投射了什么，为什么不用这些信息？</h3>
+        <p>工业结构光相机 Zivid 面对的某些错误，来源于反射路径而非一般随机噪声。光线在反光物体之间发生多次反射，返回时不再满足算法预期的路径，就可能生成悬浮在物体之间的虚假表面（Ghost Planes）。</p>
+        <p>普通点云离群点剔除能清除部分问题，但它并不知道这些点为什么产生。Zivid 的 Reflection Filter 则能够利用投射光与相机接收到的信号关系，寻找疑似受反射影响的测量。</p>
+        <div class="diagram"><svg viewBox="0 0 790 228" role="img" aria-label="结构光在反光物体间产生间接反射，虚假表面与直接返回光线的关系示意">
+          <rect x="19" y="14" width="752" height="196" rx="13" fill="#fbf7f0" stroke="#e9ddcd"/>
+          <g stroke="#a48c77" stroke-width="2" fill="none"><path d="M95 176 L95 57 L161 57 L161 176"/><path d="M95 57 L128 28 L161 57"/></g>
+          <circle cx="130" cy="67" r="12" fill="#d2a27d"/><path d="M130 77 L130 95" stroke="#aa8569" stroke-width="3"/>
+          <rect x="350" y="106" width="74" height="73" rx="7" fill="#deb39b" stroke="#b77756" stroke-width="2"/><rect x="545" y="83" width="100" height="96" rx="6" fill="#d7e4d8" stroke="#73947f" stroke-width="2"/>
+          <path d="M147 76L376 113" stroke="#b77756" stroke-width="3"/><polygon points="372,105 384,115 369,120" fill="#b77756"/>
+          <path d="M384 114L553 100" stroke="#caa64b" stroke-width="3" stroke-dasharray="8 5"/><path d="M553 100L145 76" stroke="#caa64b" stroke-width="3" stroke-dasharray="8 5"/>
+          <path d="M376 113L146 76" stroke="#73947f" stroke-width="2" stroke-dasharray="5 4"/>
+          <circle cx="487" cy="68" r="9" fill="#c77e6b"/><text x="500" y="60" fill="#935b4e" font-size="12" font-family="sans-serif">可能形成虚假三维点</text>
+          <text x="76" y="198" font-size="12" fill="#79695c" font-family="sans-serif">相机 / 投射器</text><text x="351" y="197" font-size="12" fill="#79695c" font-family="sans-serif">物体 A</text><text x="557" y="197" font-size="12" fill="#79695c" font-family="sans-serif">反光物体 B</text>
+        </svg><div class="caption">概念性光路示意，用于解释直接反射与多次反射的区别；具体 Zivid 算法内部不等同于图中几何规则。</div></div>
+        <p>其 Reflection Filter 还提供不同的取舍模式。更积极地清除反射相关异常，可能同时伤及细薄、尖锐的真实结构；在一些场景里需要选择更偏向局部保留的处理策略。</p>
+        <p>这和 Orbbec 的想法有共通之处：不是简单判断“偏离邻居的深度是错的”，而是使用更贴近传感器物理原理的证据。</p>
+      </div>
+      <div class="boundary"><div class="label">技术不可随意移植</div><p>双目错误匹配与 ToF 多径反射都可能生成飞点，但两者的原始证据不同。双目可以检查视差匹配关系；ToF 则可能需要分析相位、调制信号或回波特征。名称相同的“后处理”，未必属于同一算法。</p></div>
+      <div class="note"><p><strong>这一阶段的结论：</strong> 更先进的深度处理，有时并非一个更复杂的通用滤波器，而是针对特定失效机制引入更准确的判断依据。</p></div>
+      <div class="source">进一步查阅：<a href="https://doc.orbbec.com/documentation/Orbbec%20Gemini%20330%20Series%20Documentation/Detailed%20Filter%20Reference" target="_blank" rel="noopener noreferrer">Orbbec · Detailed Filter Reference ↗</a>　/　<a href="https://support.zivid.com/en/latest/camera/reference-articles/settings/processing-settings/reflection-filter.html" target="_blank" rel="noopener noreferrer">Zivid · Reflection Filter ↗</a></div>
+    </section>
+
+    <section class="section" id="holes"><div class="section-id">05 / MISSING DEPTH</div><h2>没有深度怎么办｜填洞，还是承认不知道？</h2>
+      <p>前面的方法让深度更平滑，也删除了不可信的测量。但这样得到的深度图，很可能仍然存在空洞。</p>
+      <p>简单 Hole Filling 可以把附近有效像素复制到无效位置。RealSense 和 Orbbec 都提供了类似策略。对一片连续平面上的小空洞，这往往很实用。</p>
+      <p>但如果空洞恰好出现在瓶子与背景的交界处，旁边那个看似“最近”的有效深度，可能属于完全不同的表面。</p>
+      <div class="two-col"><div class="mini-card"><h4>情况 A：连续表面中的小空洞</h4><p>邻域测量有机会为缺失值提供约束。谨慎插值可能改善点云连续性。</p></div><div class="mini-card"><h4>情况 B：遮挡或无法测量的区域</h4><p>邻域并不一定属于同一个表面。直接补值可能把背景画到前景上。</p></div></div>
+      <p>这解释了为什么厂商会探索区域引导填洞、置信度约束、修复严格程度等方法：不仅要看有没有相邻的有效深度，还要判断那些深度是否真能解释当前缺失区域。</p>
+      <div class="question"><p>对于视觉呈现，一张填满的深度图常常更讨喜。但对于真实三维测量，<strong>保留“未知”，有时比填入一个看起来合理的值更正确。</strong></p></div>
+      <p>因此，应当区分<strong>原始有效测量、经过数值滤波的测量、根据邻域补出的估计</strong>。如果将三者视为完全同等可信，下游几何计算就可能在错误的表面上做出十分确定的判断。</p>
+      <div class="note"><p><strong>这一阶段的结论：</strong> 深度完整率不是唯一质量指标。填洞真正要解决的是“能否合理推断”，而不只是“能否消除空像素”。</p></div>
+      <div class="source">进一步查阅：<a href="https://support.zivid.com/en/2026.09/camera/api-reference/camera-basic/settings/processing.html" target="_blank" rel="noopener noreferrer">Zivid · Processing Settings ↗</a></div>
+    </section>
+
+    <section class="section" id="multiframe"><div class="section-id">06 / COMPLEMENTARY OBSERVATIONS</div><h2>如果原始信息不够｜为什么不改变观测条件？</h2>
+      <p>前面的办法，大多仍在处理已有观测。但如果一块表面在当前曝光下根本得不到可靠信号，再复杂的空间滤波也不能保证凭空恢复它。</p>
+      <p>于是有一个简单却重要的转折：<strong>与其在缺失值上反复猜测，为什么不换一种观测条件，再测一次？</strong></p>
+      <div class="subsection" id="hdr"><h3>06.1 · Orbbec：HDR 不只是把画面调亮</h3>
+        <p>Orbbec Gemini 330 系列支持深度 HDR 相关功能，通过在不同曝光或增益设置之间采集并融合深度，使不同亮度/反射条件下的有效观测互相补充。</p>
+        <p>一档曝光可能更适合低信号区域，另一档更适合避免强反射区域出现信号过强。<strong>HDR Merge 引入的是新的观测证据，而不只是对旧数据平滑。</strong></p>
+        <div class="diagram"><svg viewBox="0 0 790 178" role="img" aria-label="两次不同曝光获得不同有效区域，再融合为更完整深度的概念示意图">
+          <g font-family="sans-serif" font-size="13" fill="#645347" text-anchor="middle"><text x="133" y="21">曝光 A</text><text x="385" y="21">曝光 B</text><text x="656" y="21">HDR Merge</text></g>
+          <rect x="20" y="33" width="224" height="108" rx="10" fill="#ede8dd" stroke="#d7cabc"/><rect x="273" y="33" width="224" height="108" rx="10" fill="#ede8dd" stroke="#d7cabc"/><rect x="545" y="33" width="222" height="108" rx="10" fill="#ecf3e9" stroke="#cddfcb"/>
+          <path d="M35 124L75 111L102 79L132 76" stroke="#c3825d" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M158 78L188 94L228 121" stroke="#bcb4aa" stroke-width="5" stroke-dasharray="4 8" fill="none"/>
+          <path d="M288 123L325 113L358 80" stroke="#bcb4aa" stroke-width="5" stroke-dasharray="4 8" fill="none"/><path d="M390 75L435 92L481 120" stroke="#c3825d" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <path d="M561 121L594 109L625 78L655 76L691 91L749 119" stroke="#75977d" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <text x="133" y="162" font-size="11.5" fill="#907e6e" text-anchor="middle" font-family="sans-serif">一部分位置有效</text><text x="385" y="162" font-size="11.5" fill="#907e6e" text-anchor="middle" font-family="sans-serif">另一部分位置有效</text><text x="656" y="162" font-size="11.5" fill="#68856c" text-anchor="middle" font-family="sans-serif">尽可能组合可靠观测</text>
+        </svg><div class="caption">仅为多曝光互补性的概念示意，非厂商 HDR 算法的内部流程图。</div></div>
+        <p>但它有明显代价：不同曝光可能发生在不同时间。相机或物体一旦运动，直接融合就可能发生错位，实时性也会受到限制。而且 HDR 只改善与采集条件互补性有关的问题，不能消除所有遮挡与物理测量限制。</p>
+      </div>
+      <div class="subsection" id="extra-observation"><h3>06.2 · 从多曝光到多观测</h3><p>相同的思想可以延伸到不同照明、不同视角、不同时间的互补观测。但越往后，越需要解决时序和几何对齐问题。</p><p>这里不继续展开多视角重建；重要的是看清：<strong>一旦信息在采集时已经缺失，增加互补证据与凭邻域猜测，是两条本质不同的路。</strong></p></div>
+      <div class="note"><p><strong>这一阶段的结论：</strong> 对受采集条件限制的区域，改变观测方式有时比更复杂的后处理更有价值；但它会将问题带到采集策略与多观测融合。</p></div>
+      <div class="source">进一步查阅：<a href="https://orbbec.github.io/docs/OrbbecSDKv2_API_User_Guide/source/3_Application_Guide/ApplicationGuide.html" target="_blank" rel="noopener noreferrer">Orbbec SDK v2 · Application Guide ↗</a></div>
+    </section>
+
+    <section class="section" id="learning"><div class="section-id">07 / LEARNED ENHANCEMENT</div><h2>能不能让模型恢复深度｜学习式增强已经走到哪里了？</h2>
+      <p>到这里，大部分方法还在依赖明确的统计、几何或物理规则。可透明、反光、弱纹理或细小结构等困难区域，往往缺少足够的局部几何证据。</p>
+      <p>如果为每一种失败条件手工编写规则，维护起来又会很复杂。于是新的思路出现了：<strong>能不能利用 RGB 图像和大量数据中学习到的结构规律，去推断缺失或错误的深度？</strong></p>
+      <div class="subsection" id="lingbot"><h3>07.1 · Orbbec LingBot-Depth：不只靠几何邻域补洞</h3>
+        <p>Orbbec SDK v2 提供了 LingBot Enhanced Depth Filter 的公开集成方案。根据厂商资料，它联合 RGB 与已有深度信息，针对噪声、空洞以及物体边缘等问题进行深度增强。</p>
+        <p>这和简单的 Hole Filling 不一样。原始深度中某片区域缺失，但 RGB 仍然可能提供轮廓、纹理、外观与局部结构线索；模型尝试把它们与已有三维观测联系起来。</p>
+        <p>于是，算法使用的不再只有“附近深度是多少”，还包含“画面看起来可能具有什么几何结构”。</p>
+        <div class="method"><div class="method-type">已知与未知的边界</div><h4>可以确认：RGB-D 联合的学习式增强已进入厂商工具链</h4><p>公开资料说明其增强目标与部署要求，但没有完整披露模型内部网络层、训练损失和推理细节。因此不能仅凭功能名称推断具体网络架构，也不能将所有宣传效果当作跨场景精度保证。</p></div>
+      </div>
+      <div class="subsection" id="zed"><h3>07.2 · Stereolabs：让网络直接参与深度解算</h3>
+        <p>Stereolabs ZED SDK 提供 NEURAL LIGHT、NEURAL、NEURAL PLUS 等神经网络深度模式，旨在不同质量与计算预算之间取舍。</p>
+        <p>这比“先求出一张深度图，再用模型修复”走得更远：学习模型已经进入双目深度生成本身，在复杂纹理、细节恢复等方面尝试突破传统匹配方法的限制。</p>
+        <p>因此，它更准确地属于<strong>学习式深度估计</strong>，不应被强行归成普通后处理。但它说明：当学习模型可以同时参与深度生成和增强时，传统边界正在变化。</p>
+      </div>
+      <div class="subsection" id="hallucination"><h3>07.3 · 恢复出来的几何，什么时候可以相信？</h3>
+        <p>假设透明瓶身的深度原本完全缺失。模型利用 RGB 轮廓与部分深度恢复了一片连续表面。</p>
+        <p>从视觉效果看，这片表面可能非常自然。但它也可能只是训练数据中常见的瓶身形状，并非当前物体的真实测量。</p>
+        <p>对于三维抓取，表面位置偏差可能直接影响接触位置。因此不能简单用“补全了多少像素”证明几何精度。</p>
+        <div class="question"><p><strong>恢复得完整 ≠ 测量得准确。</strong> 学习式方法提供更丰富的先验，也引入了泛化误差和推断结果可能看似真实的问题。</p></div>
+      </div>
+      <div class="note"><p><strong>这一阶段的结论：</strong> 学习式增强让深度恢复突破简单局部规则，但必须区分原始有效测量、数值修正与模型估计。</p></div>
+      <div class="source">进一步查阅：<a href="https://github.com/orbbec/OrbbecSDK_v2/blob/main/docs/tutorial/enhanced_depth_filter.md" target="_blank" rel="noopener noreferrer">Orbbec · Enhanced Depth Filter ↗</a>　/　<a href="https://docs.stereolabs.com/depth-sensing/depth-modes" target="_blank" rel="noopener noreferrer">Stereolabs · Depth Modes ↗</a></div>
+    </section>
+
+    <section class="section" id="recap"><div class="section-id">08 / LOOKING BACK</div><h2>回头看｜深度后处理究竟发展出了哪些思想？</h2>
+      <p>重新看这些方法，会发现它们并不在解决同一类问题。</p>
+      <p><strong>RealSense</strong> 的 Domain Transform 与视差域处理，代表对测量误差和实时计算的认真权衡。</p>
+      <p><strong>Luxonis</strong> 的置信度与左右一致性检查，提醒我们与其修正全部深度，不如先判断哪些值值得相信。</p>
+      <p><strong>Orbbec</strong> 的 FalsePositiveFilter 尝试识别特定错误形态；<strong>Zivid</strong> 的 Reflection Filter 则利用主动投射系统独有的物理信息。</p>
+      <p><strong>Orbbec HDR Merge</strong> 通过互补观测弥补单次采集的局限；<strong>LingBot-Depth 与 ZED Neural Depth</strong> 则展示了学习模型参与深度增强与生成的实际路线。</p>
+      <div class="table-scroll"><table><thead><tr><th>依据什么信息？</th><th>可以做出什么处理？</th><th>主要付出什么代价？</th></tr></thead><tbody>
+        <tr><td><strong>空间 / 时间邻域</strong></td><td>平滑、历史融合</td><td>细节损失、延迟、拖影</td></tr>
+        <tr><td><strong>匹配质量与一致性</strong></td><td>拒绝不可信深度</td><td>有效区域减少、边缘误删</td></tr>
+        <tr><td><strong>特定错误机制</strong></td><td>针对性异常检测</td><td>适用场景受限</td></tr>
+        <tr><td><strong>互补采集条件</strong></td><td>增加有效观测</td><td>采集、时序与融合成本</td></tr>
+        <tr><td><strong>学习得到的先验</strong></td><td>增强、修复、重新推断</td><td>算力、泛化和可信度问题</td></tr>
+      </tbody></table></div>
+      <p>另外，Decimation、Threshold、常规降采样仍然很重要，只是它们主要解决计算效率、数据范围和表达成本，不该和深度真实性提升混为一谈。</p>
+      <h3>有没有一种方法，可以直接取代其他所有方法？</h3>
+      <p>似乎没有。</p>
+      <p>规则、静态、测量本身可靠的表面，经典滤波往往足够；错误匹配更多时，可信度判断比强行平滑更有依据；反光或信号异常场景，专门的物理机制检测可能更有价值；采集信息不足时，互补曝光可以增加证据；学习式方法可以尝试突破传统局部规则，却需要面对新的不确定性。</p>
+      <p>所以，“厂商还在用经典滤波”不等于技术落后。更现实的判断标准始终是<strong>真实几何精度、鲁棒性、延迟、硬件资源与可解释性</strong>之间的平衡。</p>
+      <h3>最后，回到真正需要的三维观测</h3>
+      <p>深度图不是最终作品。对于机器人而言，我们最终需要的是能够支撑几何计算、物体定位和真实操作的三维信息。</p>
+      <p>一张非常平滑的瓶身，如果轮廓已被拉歪，并不比原始深度更准确。一片补得很完整的透明表面，如果没有测量证据，也不应该被直接视为真实接触面。</p>
+      <div class="quote"><p><strong>深度后处理真正值得追求的，不是让所有像素都有一个 XYZ，而是尽可能区分：哪些几何是测量得到的，哪些被修正过，哪些只是有依据的估计。</strong></p></div>
+      <p>到这里，深度后处理就不再只是“把图像修得更干净”，而是包含三种不同的行为：<strong>减少已有误差、拒绝不可信测量、利用额外信息推断未知几何。</strong></p>
+      <p>可即使每个深度都足够可靠，假如相机内参、畸变或 RGB-D 对齐关系存在偏差，恢复出来的三维点仍然可能落在错误位置。</p>
+      <p>接下来，就该回过头检查数学模型与真实设备之间的关系。</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px">
+        <a class="next" href="../depth-measurement/"><b>← 上一篇 · 深度测量</b><span>方向知道了，距离谁来告诉我？</span></a>
+        <a class="next" href="../"><b>返回 · 相机与三维测量总览</b><span>查看完整学习路线</span></a>
+        <a class="next" href="../calibration-and-alignment/"><b>下一篇 · 标定与几何对齐 →</b><span>公式没有错，为什么点云还是歪了？</span></a>
+      </div>
+    </section>
+
+    <section class="section" id="sources"><div class="section-id">NOTES & REFERENCES</div><h2>资料与研究边界</h2>
+      <p>以下为本页技术主张的主要厂商资料入口。商业设备的内部实现与功能支持会因型号、固件与 SDK 版本变化；这里不把公开功能介绍等同于完整算法细节，也不把示意图当作真实实现结构。</p>
+      <div class="refs"><h3>官方技术资料</h3><ul>
+        <li><a href="https://dev.realsenseai.com/docs/post-processing-filters" target="_blank" rel="noopener noreferrer">RealSense · Post-processing Filters</a> — Domain Transform、时序、视差域、填洞</li>
+        <li><a href="https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/stereo_depth" target="_blank" rel="noopener noreferrer">Luxonis · StereoDepth</a> — Confidence、左右一致性及相关滤波</li>
+        <li><a href="https://doc.orbbec.com/documentation/Orbbec%20Gemini%20330%20Series%20Documentation/Detailed%20Filter%20Reference" target="_blank" rel="noopener noreferrer">Orbbec · Detailed Filter Reference</a> — Noise Removal、False Positive 及后处理</li>
+        <li><a href="https://support.zivid.com/en/latest/camera/reference-articles/settings/processing-settings/reflection-filter.html" target="_blank" rel="noopener noreferrer">Zivid · Reflection Filter</a> — 反光与虚假三维点处理</li>
+        <li><a href="https://orbbec.github.io/docs/OrbbecSDKv2_API_User_Guide/source/3_Application_Guide/ApplicationGuide.html" target="_blank" rel="noopener noreferrer">Orbbec SDK v2 · Application Guide</a> — HDR 及处理接口</li>
+        <li><a href="https://github.com/orbbec/OrbbecSDK_v2/blob/main/docs/tutorial/enhanced_depth_filter.md" target="_blank" rel="noopener noreferrer">Orbbec · Enhanced Depth Filter</a> — 学习式 RGB-D 增强</li>
+        <li><a href="https://docs.stereolabs.com/depth-sensing/depth-modes" target="_blank" rel="noopener noreferrer">Stereolabs · Depth Modes</a> — 神经网络双目深度模式</li>
+      </ul></div>
+      <p class="micro" style="margin-top:18px">说明：论文中对“发展”的讨论指技术思想之间的逻辑递进，不代表这些方法依该顺序发明。表述有意识地区分了<strong>公开确认的产品功能</strong>与<strong>为了理解其动机而使用的概念推演</strong>。</p>
+      <p class="toplink"><a href="#top">↑ 回到页首</a></p>
+    </section>
+    <footer class="footer">沿途手记 · Stage 01 / Q03 · Depth Post-processing</footer>
+  </main>
+</div>
+<script>
+(() => {const a=[...document.querySelectorAll('.toc a[href^="#"]')];const pairs=a.map(link=>({link,section:document.querySelector(link.getAttribute('href'))})).filter(x=>x.section);const observer=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((x,y)=>x.boundingClientRect.top-y.boundingClientRect.top);if(!visible.length)return;const id=visible[0].target.id;pairs.forEach(({link})=>{const active=link.getAttribute('href')==='#'+id;link.classList.toggle('active',active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current')})},{rootMargin:'-9% 0px -70% 0px'});pairs.forEach(x=>observer.observe(x.section));if(a[0])a[0].classList.add('active')})();
+</script>
+</body>
+</html>

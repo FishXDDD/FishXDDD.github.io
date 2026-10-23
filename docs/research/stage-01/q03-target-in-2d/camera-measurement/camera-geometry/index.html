@@ -1,3 +1,638 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>从空间点到像素射线｜沿途手记</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script><style>
-:root{--bg:#f9f5ed;--paper:#fffdf8;--ink:#4d4038;--muted:#8c7d70;--accent:#bb7758;--line:#e9dcd0;--green:#759883}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.93}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.layout{display:grid;grid-template-columns:240px minmax(0,850px);gap:52px;max-width:1320px;margin:auto;padding:44px 34px 110px}aside{position:sticky;top:28px;align-self:start;max-height:calc(100vh - 55px);overflow:auto;padding:22px 8px}.brand{font-size:17px;font-weight:800;letter-spacing:2px;margin-bottom:3px}.subbrand{font-size:12px;color:var(--muted);margin-bottom:32px}.nav-label{font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:15px}nav{display:grid;gap:4px}nav a{padding:9px 12px;border-radius:10px;color:#75675e;font-size:12px;line-height:1.5;display:flex;align-items:baseline;gap:9px;border-left:2px solid transparent}nav a span{color:#af8f7c;font-size:11px}nav a.active{background:#f2e4d9;color:#88543f;border-left-color:#bd7958;font-weight:700}main{min-width:0}.breadcrumb{font-size:12px;color:var(--muted);letter-spacing:.2px}header{padding:41px 0 35px;border-bottom:1px solid var(--line)}header .stage{font-size:12px;color:var(--accent);font-weight:750;letter-spacing:2px}h1{font-size:clamp(30px,4vw,47px);line-height:1.35;letter-spacing:-1px;margin:15px 0}header p{color:var(--muted);font-size:14px}.chapter{padding:52px 0 43px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.eyebrow{color:var(--accent);font-size:12px;letter-spacing:2px;font-weight:800}h2{font-size:27px;line-height:1.5;letter-spacing:-.5px;margin:12px 0 25px}h3{font-size:18px;line-height:1.6;margin:33px 0 12px;color:#655044}p{font-size:15px;margin:13px 0}strong{color:#744e3a}table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.65;margin:20px 0 25px;background:#fffaf3}th,td{border-bottom:1px solid var(--line);text-align:left;padding:13px 12px;vertical-align:top}th{background:#efe8dd;color:#755948}td:first-child{font-weight:600}.eq{font-family:Georgia,"Times New Roman",serif;text-align:center;padding:20px 10px;margin:19px 0;background:#f3eee5;border:1px solid #e9ddd0;border-radius:12px;overflow-x:auto;white-space:pre-wrap;color:#5b453b;font-size:17px}.katex-display{margin:0!important;overflow-x:auto;overflow-y:hidden}.note{border-left:3px solid var(--green);padding:14px 18px;background:#edf1e9;border-radius:0 9px 9px 0;margin:24px 0;font-size:14px}figure{margin:20px 0;padding:18px;border:1px solid var(--line);background:#fffaf5;border-radius:14px}figure svg{display:block;width:100%;max-height:270px}figure text{font-family:system-ui,sans-serif;font-size:14px;fill:#64534a}figcaption{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}.experiments{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}.experiments>div{background:#fffaf4;border:1px solid var(--line);border-radius:12px;padding:14px}.experiments b{color:#8d654d}.experiments p{font-size:13px;color:#73675f;margin:6px 0 0}.closing{background:#f4e7df;border-radius:12px;padding:24px;margin-top:30px;font-weight:650;color:#83533f}footer{padding:35px 0;color:var(--muted);font-size:12px}@media(max-width:900px){.layout{display:block;padding:18px 18px 65px}aside{position:relative;top:auto;max-height:none;padding:8px 0 16px;border-bottom:1px solid var(--line)}.brand,.subbrand{display:none}.nav-label{margin-bottom:4px}nav{display:flex;overflow-x:auto;gap:5px;padding:4px 0}nav a{white-space:nowrap;flex:none}header{padding:29px 0 27px}.chapter{padding:38px 0 30px}h2{font-size:23px}.experiments{grid-template-columns:1fr}}
-</style></head><body><div class="layout"><aside><div class="brand">沿途手记</div><div class="subbrand">从一个问题出发的探索路线</div><div class="nav-label">本篇目录 / CONTENTS</div><nav><a href="#intro" data-target="intro"><span>00</span>照片明明是平的，空间去哪了？</a><a href="#map" data-target="map"><span>01</span>先摆结论：究竟有哪些几何关系？</a><a href="#pinhole" data-target="pinhole"><span>02</span>为什么三维点会落在那个像素？</a><a href="#ray" data-target="ray"><span>03</span>为什么一个像素只对应一条射线？</a><a href="#distortion" data-target="distortion"><span>04</span>为什么针孔公式正确，图像却可能弯曲？</a><a href="#fisheye" data-target="fisheye"><span>05</span>鱼眼为什么不能无脑套针孔公式？</a><a href="#experiments" data-target="experiments"><span>06</span>让公式在 Python / OpenCV 里真正动起来</a><a href="#summary" data-target="summary"><span>07</span>空间和像素到底是什么关系？</a></nav></aside><main><div class="breadcrumb">Stage 01 / Q03 / 相机与三维测量 / Camera Geometry</div><header><div class="stage">CAMERA GEOMETRY · 独立技术笔记</div><h1>从空间点到像素射线</h1><p>从针孔模型到逆投影、镜头畸变与大视场成像，认真弄清照片里到底保留了哪些空间信息。</p></header><section class="chapter" id="intro"><div class="eyebrow">00 · 开场</div><h2>照片明明是平的，空间去哪了？</h2><p>拿相机对着桌上的瓶子拍张照片，明明瓶子有长度、宽度和深度，照片里却只剩下二维像素。近处看起来更大，远处更小；相机动一动，瓶子又跑到了别的位置。</p><p>如果已知三维点 XYZ，似乎能算出像素 UV。<strong>反过来，只有一个像素，能不能找回真正的三维点？</strong></p><p>这次先不研究深度是怎样测出来的，也不研究标定程序怎么运行。只跟着一个问题：<strong>相机怎样建立空间点与图像像素的几何关系？</strong></p></section><section class="chapter" id="map"><div class="eyebrow">01 · 技术路线</div><h2>先摆结论：究竟有哪些几何关系？</h2><p>这不是一大堆互相竞争的算法，而是对同一个“空间方向 ↔ 像素”问题的逐层建模。</p><table><thead><tr><th>技术体系</th><th>核心机制</th><th>何时需要</th></tr></thead><tbody><tr><td>针孔 / 透视投影</td><td>中心投影、相似三角形、内参 K</td><td>普通相机的 3D → 2D</td></tr><tr><td>逆投影</td><td>使用 K⁻¹ 恢复空间射线</td><td>像素 → 空间方向</td></tr><tr><td>畸变模型</td><td>Brown–Conrady、Rational、Thin Prism</td><td>真实镜头偏离理想模型</td></tr><tr><td>广角 / 全向模型</td><td>角度投影、Kannala–Brandt、Unified Model</td><td>大视场相机</td></tr><tr><td>工程计算</td><td>OpenCV 正投影与去畸变</td><td>参数、像素状态一致性验证</td></tr></tbody></table><div class="note"><strong>两条主线</strong>：3D → 2D，确定空间点投影在哪个像素；2D → Ray，确定某个像素对应哪个空间方向。距离仍需额外约束。</div></section><section class="chapter" id="pinhole"><div class="eyebrow">02 · 理想相机</div><h2>为什么三维点会落在那个像素？</h2><h3>02.1 · 从小孔与相似三角形开始</h3><p>假设相机中心为 O，光轴取 Z，空间点为 P=(X,Y,Z)。使用位于相机前方的<strong>虚拟成像平面</strong>，它到 O 的距离为 f。投影点、相机中心和空间点在同一条直线上，因此相似三角形给出：</p><div class="eq">x=f\frac{X}{Z},\qquad y=f\frac{Y}{Z}</div><figure><svg viewBox="0 0 700 270" role="img" aria-label="针孔投影与相似三角形"><line x1="64" y1="221" x2="652" y2="221" stroke="#a99b8f" stroke-dasharray="5 5"/><line x1="64" y1="221" x2="64" y2="25" stroke="#75675a"/><line x1="250" y1="26" x2="250" y2="239" stroke="#cf926b" stroke-width="3"/><line x1="64" y1="221" x2="603" y2="42" stroke="#759883" stroke-width="3"/><circle cx="64" cy="221" r="6" fill="#53443d"/><circle cx="250" cy="159" r="6" fill="#cf926b"/><circle cx="603" cy="42" r="7" fill="#759883"/><line x1="603" y1="42" x2="603" y2="221" stroke="#759883" stroke-dasharray="4 4"/><text x="42" y="240">O</text><text x="615" y="37">P (X,Z)</text><text x="266" y="153">x</text><text x="150" y="240">f</text><text x="250" y="257" text-anchor="middle">虚拟成像平面</text><text x="651" y="240">Z</text><text x="42" y="21">X</text></svg><figcaption>一个空间点沿穿过投影中心的直线落到虚拟成像平面。</figcaption></figure><p>为什么一定要除以 Z？假设横向 X 固定，深度 Z 加倍，则投影偏移减半：近大远小来自中心投影几何，并不是软件主动缩放。对任意正数 λ，(λX,λY,λZ) 的投影完全一样——这预告了逆投影的尺度歧义。</p><h3>02.2 · 为什么 f 变成了 fx、fy？</h3><p>几何成像位置不是像素坐标。先令归一化坐标 <code>xn=X/Z, yn=Y/Z</code>，再考虑像素尺度和主点偏移：</p><div class="eq">u=f_x\frac{X}{Z}+c_x,\qquad v=f_y\frac{Y}{Z}+c_y</div><p>其中 fx、fy 以像素为单位，cx、cy 是主点。它通常靠近图像中心，却不保证精确等于宽高的一半。</p><h3>02.3 · K 的含义究竟是什么？</h3><div class="eq">K=\begin{bmatrix}f_x&0&c_x\\0&f_y&c_y\\0&0&1\end{bmatrix},\qquad Z\begin{bmatrix}u\\v\\1\end{bmatrix}=K\begin{bmatrix}X\\Y\\Z\end{bmatrix}</div><p>这里采用零 skew 的常见形式。<strong>透视除法</strong>先形成 X/Z 与 Y/Z，K 再把归一化位置变成像素位置；K 自己并不是三维到二维的全部。</p><h3>02.4 · 世界坐标为什么不能直接投影？</h3><p>投影公式使用相机坐标。如果点先表示在世界坐标系，需要先使用外参：</p><div class="eq">P_C=R_{CW}P_W+t_{CW}</div><div class="eq">Z_C\tilde p=K(R_{CW}P_W+t_{CW})</div><p>外参描述坐标系之间的几何关系；如何估计它们，留到标定专题。这里先牢牢记住顺序：<strong>世界坐标 → 相机坐标 → 归一化平面 → 像素</strong>。</p></section><section class="chapter" id="ray"><div class="eyebrow">03 · 逆投影</div><h2>为什么一个像素只对应一条射线？</h2><h3>03.1 · 把公式反过来</h3><p>从像素出发：</p><div class="eq">X=\frac{u-c_x}{f_x}Z,\qquad Y=\frac{v-c_y}{f_y}Z</div><p>此时两个方程却有 X、Y、Z 三个未知量。不是计算技巧不够好，而是投影已经丢掉了沿光线方向的距离。</p><div class="eq">\mathbf d=K^{-1}\begin{bmatrix}u\\v\\1\end{bmatrix}=\begin{bmatrix}x_n\\y_n\\1\end{bmatrix},\quad P_C(Z)=Z\mathbf d</div><figure><svg viewBox="0 0 700 220" role="img" aria-label="一个像素的反投影射线"><line x1="52" y1="181" x2="662" y2="37" stroke="#779a85" stroke-width="3"/><line x1="210" y1="20" x2="210" y2="196" stroke="#ce926d" stroke-width="3"/><circle cx="52" cy="181" r="6" fill="#584841"/><circle cx="210" cy="144" r="6" fill="#ce926d"/><circle cx="330" cy="115" r="7" fill="#779a85"/><circle cx="465" cy="84" r="7" fill="#779a85"/><circle cx="605" cy="51" r="7" fill="#779a85"/><text x="36" y="206">O</text><text x="212" y="212" text-anchor="middle">图像平面</text><text x="326" y="98">P₁</text><text x="462" y="68">P₂</text><text x="600" y="36">P₃</text><text x="235" y="131">同一像素</text></svg><figcaption>多个深度不同的空间点，仍然投影到同一个像素。</figcaption></figure><h3>03.2 · Z-depth 和 Ray-distance 为什么不一样？</h3><p>向量 d 的第三分量是 1，通常不是单位方向；因此 P=Zd 中的 Z 是<strong>光轴方向深度</strong>。如果单位化 d，令 P=r d/‖d‖，此时 r 才是沿射线的欧氏距离：</p><div class="eq">r=Z\sqrt{1+x_n^2+y_n^2}</div><p>例如 d=(0.6,0.8,1) 时，Z=1 m 对应 r≈1.414 m。把这两种深度直接混用，会得到系统性错误的三维坐标。</p><h3>03.3 · 射线变换到世界坐标时，平移加在哪里？</h3><div class="eq">P_W(\lambda)=t_{WC}+\lambda R_{WC}\mathbf d_C</div><p>射线原点要旋转平移，射线方向只旋转、不平移。这个区别在机器人坐标变换中非常重要。</p><h3>03.4 · 如何把射线变回唯一的点？</h3><p>必须补上一条约束。已知 Z-depth 时直接反投影；知道空间平面时求射线与平面交点；另一台相机提供第二条射线时可以三角测量；已知模型点与图像点对应时则连接到 PnP。</p><div class="eq">\mathbf n^TP+d=0,\quad P(\lambda)=\mathbf o+\lambda\mathbf v</div><div class="eq">\lambda=-\frac{\mathbf n^T\mathbf o+d}{\mathbf n^T\mathbf v}</div><p>这是射线和平面求交的例子。要求分母非零，且交点位于射线前方。它也说明：<strong>额外几何先验能弥补丢失的信息，但必须确保先验成立。</strong></p></section><section class="chapter" id="distortion"><div class="eyebrow">04 · 真实镜头</div><h2>为什么针孔公式正确，图像却可能弯曲？</h2><h3>04.1 · 先区分 K 与畸变 D</h3><p>K 描述理想归一化坐标到像素的映射；畸变模型描述实际镜头相对理想模型的非线性偏移。常见路线是 <strong>3D → 理想归一化坐标 → 畸变归一化坐标 → 原始像素</strong>。</p><h3>04.2 · 径向畸变从哪里来？</h3><p>如果畸变大致围绕光轴对称，那么偏移自然可以依赖到中心的距离。令：</p><div class="eq">r^2=x^2+y^2,\quad L(r)=1+k_1r^2+k_2r^4+k_3r^6</div><div class="eq">x_d=xL(r),\qquad y_d=yL(r)</div><p>在 r=0 时 L=1；图像越靠边，高阶项往往越显著。径向压缩或扩张对应桶形、枕形畸变趋势。但畸变形状由多项系数共同决定，不能只看某个系数正负。</p><h3>04.3 · 切向畸变又是什么？</h3><p>镜头与传感器的装配等因素可能引入非径向偏移。常用参数 p₁、p₂ 表示：</p><div class="eq">x_d=xL+2p_1xy+p_2(r^2+2x^2)</div><div class="eq">y_d=yL+p_1(r^2+2y^2)+2p_2xy</div><p>Brown–Conrady 是一套有效的参数化几何模型，并不是所有真实镜头的唯一精确光学定律。扩展的 Rational 模型将径向项变成分式，还存在 Thin Prism 等扩展项。<strong>参数更多并不必然更准</strong>，标定观测不足时容易过拟合。</p><h3>04.4 · 去畸变是在求一个逆函数</h3><p>正向畸变是从 (x,y) 到 (xd,yd)。真实相机首先给出畸变像素；想获得理想射线，就需要解逆问题。因为畸变非线性，通常通过数值迭代完成，不是把畸变系数简单取反。</p><p>OpenCV 的 <code>undistortPoints</code> 可恢复对应的理想归一化坐标（根据是否设置输出投影矩阵而定）。几何求点并不一定需要先对整张图做去畸变和插值。</p><div class="note"><strong>工程检查：</strong>原始图像使用匹配的原始 K+D；去畸变图像使用其输出 K′ 和相应模型；裁剪、缩放后须更新像素坐标系和内参。1280×720 改为 640×360 的等比例缩放，与改成 640×480 的非等比例变换，不是一回事。</div></section><section class="chapter" id="fisheye"><div class="eyebrow">05 · 其他相机模型</div><h2>鱼眼为什么不能无脑套针孔公式？</h2><h3>05.1 · 针孔大视角问题来自哪里？</h3><p>令光线与光轴夹角为 θ，则普通针孔投影的理想半径满足：</p><div class="eq">r=f\tan\theta</div><p>当 θ 接近 90°，投影半径趋于无穷。有限的透视成像平面无法装下整个半球方向；鱼眼镜头则希望把更大的方向范围压进有限图像。</p><h3>05.2 · 换掉角度到半径的映射</h3><table><thead><tr><th>理想模型</th><th>投影半径</th><th>几何特性</th></tr></thead><tbody><tr><td>Rectilinear</td><td>r=f tan θ</td><td>透视投影；大角度增长迅速</td></tr><tr><td>Equidistant</td><td>r=f θ</td><td>角度增量对应相同径向增量</td></tr><tr><td>Equisolid-angle</td><td>r=2f sin(θ/2)</td><td>理想等立体角成像</td></tr><tr><td>Stereographic</td><td>r=2f tan(θ/2)</td><td>理想保角投影</td></tr><tr><td>Orthographic</td><td>r=f sin θ</td><td>半径对应方向横向分量</td></tr></tbody></table><h3>05.3 · Kannala–Brandt 为什么出现？</h3><p>真实鱼眼往往不严格符合某一种理想公式。于是直接让入射角 θ 进入多项式映射：</p><div class="eq">\theta_d=\theta+k_1\theta^3+k_2\theta^5+k_3\theta^7+k_4\theta^9</div><p>与常规 Brown–Conrady 从理想透视坐标半径建立畸变不同，它围绕光线入射角描述成像。这就是为什么 OpenCV <code>fisheye</code> 与普通 <code>calib3d</code> 的畸变参数不能混用。</p><h3>05.4 · 全向投影的另一个想法</h3><p>某些中心全向成像系统可使用 Unified Camera Model。一个常见归一化形式是：</p><div class="eq">x=\frac{X}{Z+\xi\sqrt{X^2+Y^2+Z^2}},\quad y=\frac{Y}{Z+\xi\sqrt{X^2+Y^2+Z^2}}</div><p>当 ξ=0 时退化为普通针孔归一化投影形式（仍需满足对应有效定义域）。这不意味着所有全向系统都具有共同的投影中心：非中心系统需要更一般的射线模型。</p><h3>05.5 · 我该选哪个？</h3><p>普通 RGB-D 相机通常首先考虑针孔与匹配的畸变模型；宽视场鱼眼考虑 Kannala–Brandt 类角度模型；特殊全向系统按光学结构与标定方案选用 Unified 或其他模型。<strong>模型选择不是算法排行榜，而是让数学描述与实际光学系统相符。</strong></p></section><section class="chapter" id="experiments"><div class="eyebrow">06 · 动手验证</div><h2>让公式在 Python / OpenCV 里真正动起来</h2><p>一篇独立笔记不必把所有实验代码硬塞进正文，但至少应当明确每个实验验证哪个物理或几何结论。</p><div class="experiments"><div><b>A · 近大远小</b><p>固定真实尺寸 W，让 Z 从 0.5 m 增加到 4 m，验证像素宽度 w=fxW/Z。</p></div><div><b>B · 焦距与主点</b><p>固定 3D 点，分别改变 fx、fy、cx、cy。区分尺度变化与像素偏移。</p></div><div><b>C · 一个像素，多组 XYZ</b><p>计算 K⁻¹[u,v,1]ᵀ，在多种 Z 下生成点并重新投影，验证 UV 相同。</p></div><div><b>D · 畸变与去畸变</b><p>在规则网格上添加 Brown–Conrady 畸变，再尝试逆变换；比较参数正确和错误时的结果。</p></div><div><b>E · 完整闭环</b><p>3D → 投影 → UV；与原始有效 Z 一起反投影 → 3D′，比较 ‖P′−P‖。理想一致模型下应接近 0。</p></div></div><div class="note">实验时把<strong>模型误差、像素量化误差、深度测量误差</strong>分开控制；只有这样才能知道误差从哪里来。</div></section><section class="chapter" id="summary"><div class="eyebrow">07 · 回头看</div><h2>空间和像素到底是什么关系？</h2><p>走完这一段，可以把问题归结成三类操作。</p><table><thead><tr><th>操作</th><th>已知</th><th>能得到什么</th></tr></thead><tbody><tr><td>Projection</td><td>XYZ + 正确相机模型</td><td>像素 UV（有效视野内）</td></tr><tr><td>Unprojection</td><td>UV + 正确相机模型</td><td>空间射线</td></tr><tr><td>Back-projection with Depth</td><td>UV + 正确相机模型 + 有效深度</td><td>确定的相机坐标 XYZ</td></tr></tbody></table><p><strong>透视投影除以 Z，是相似三角形的结果；一个像素只确定方向，是投影丢失了距离自由度；真实相机需要匹配实际镜头与图像状态的模型。</strong></p><p>下一段才继续追问：深度相机如何补上距离？真实参数如何标定？RGB 与 Depth 如何配准？这些不属于本文的投影几何核心，但会决定最后的 XYZ 究竟可信到什么程度。</p><div class="closing">相机不是把 XYZ 直接装进照片里；它先记录了空间方向。我们再依靠距离或额外几何约束，沿着方向重新找回三维世界。</div></section><footer>沿途手记 · 研究笔记｜本篇聚焦投影几何，不替代相机标定与深度测量专题。</footer></main></div><script>window.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.eq').forEach(el=>{let latex=el.textContent; if(window.katex){try{katex.render(latex,el,{displayMode:true,throwOnError:false})}catch(e){}}});const nav=[...document.querySelectorAll('nav a')];const observer=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){nav.forEach(a=>a.classList.toggle('active',a.dataset.target===e.target.id))}})},{rootMargin:'-10% 0px -65% 0px',threshold:0});document.querySelectorAll('.chapter').forEach(s=>observer.observe(s));})</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f9f5ed">
+  <meta name="description" content="沿途手记 · 从空间点到像素射线：从一个成像问题出发，逐步发现透视投影、逆投影、畸变模型和大视场成像。">
+  <title>从空间点到像素射线｜沿途手记</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <style>
+    :root { --bg:#f9f5ed; --paper:#fffdf8; --ink:#4d4038; --muted:#8c7d70; --accent:#bb7758; --accent-dark:#88543f; --line:#e9dcd0; --green:#759883; --green-bg:#eff3ec; --soft:#f4e8df; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--bg); font:15px/1.98 "Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif; }
+    a { color:var(--accent-dark); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .layout { display:grid; grid-template-columns:238px minmax(0,860px); gap:58px; max-width:1365px; padding:44px 36px 100px; margin:0 auto; }
+    aside { position:sticky; align-self:start; top:23px; max-height:calc(100vh - 46px); overflow-y:auto; padding:20px 6px; scrollbar-width:thin; }
+    .brand { font-weight:800; font-size:18px; letter-spacing:2px; }
+    .subbrand { font-size:11px; letter-spacing:.5px; color:var(--muted); margin:3px 0 36px; }
+    .nav-label { font-size:10px; font-weight:800; letter-spacing:2.1px; color:var(--muted); margin-bottom:12px; }
+    nav { display:grid; gap:5px; }
+    nav a { display:flex; gap:11px; align-items:baseline; padding:10px 10px; border-left:2px solid transparent; border-radius:0 9px 9px 0; font-size:12px; line-height:1.65; color:#76685e; transition:background .2s,border-color .2s; }
+    nav a .num { flex:none; font-weight:700; color:#b89b86; font-size:11px; }
+    nav a.active { background:#f2e4d9; border-left-color:var(--accent); color:var(--accent-dark); font-weight:750; }
+    main { min-width:0; }
+    .breadcrumb { font-size:11px; letter-spacing:.5px; color:var(--muted); }
+    header { padding:43px 0 42px; border-bottom:1px solid var(--line); }
+    .eyebrow { color:var(--accent); font-size:11px; letter-spacing:2.1px; font-weight:800; }
+    header h1 { font-size:clamp(32px,4vw,49px); letter-spacing:-1.6px; line-height:1.36; margin:15px 0 16px; color:#4f3d34; }
+    header .intro { max-width:690px; color:#887769; font-size:15px; line-height:1.95; margin:0; }
+    .chapter { padding:55px 0 46px; border-bottom:1px solid var(--line); scroll-margin-top:20px; }
+    h2 { margin:11px 0 24px; font-size:27px; line-height:1.56; letter-spacing:-.45px; color:#59483e; }
+    h3 { margin:37px 0 16px; font-size:19px; line-height:1.6; color:#73513e; }
+    p { margin:13px 0 18px; }
+    strong { color:#754c38; font-weight:750; }
+    .lead { color:#746359; font-size:15.5px; }
+    .question { padding:18px 21px; border-left:3px solid var(--accent); border-radius:0 11px 11px 0; background:#f7ebe1; margin:22px 0; font-weight:670; color:#794d3a; }
+    .discovery { padding:17px 20px; border-left:3px solid var(--green); border-radius:0 10px 10px 0; background:var(--green-bg); margin:23px 0; color:#52685b; }
+    .discovery strong { color:#486b57; }
+    .transition { margin:29px 0 6px; padding:17px 21px; border-top:1px solid #e6d2c3; border-bottom:1px solid #e6d2c3; background:linear-gradient(100deg,#faf1e9,transparent); font-weight:600; color:#815744; }
+    .eq { font-family:Georgia,"Times New Roman",serif; color:#5b453b; text-align:center; padding:20px 14px; margin:21px 0; background:#f3eee5; border:1px solid #e9ddd0; border-radius:12px; overflow-x:auto; white-space:pre-wrap; font-size:18px; }
+    .katex-display { margin:0!important; overflow-x:auto; overflow-y:hidden; padding:2px 0; }
+    .katex { font-size:1.07em; }
+    table { border-collapse:collapse; width:100%; background:#fffaf4; font-size:13px; line-height:1.8; margin:22px 0 27px; }
+    thead { background:#efe6dc; }
+    th,td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:#725544; font-weight:750; }
+    td:first-child { font-weight:700; color:#775741; }
+    ul,ol { padding-left:25px; margin:13px 0 18px; }
+    li { padding:3px 0; }
+    figure { margin:24px 0 29px; padding:18px 20px; background:#fffaf5; border:1px solid var(--line); border-radius:15px; }
+    figure svg { display:block; width:100%; height:auto; }
+    figure svg text { font-family:system-ui,sans-serif; fill:#68594e; font-size:13px; }
+    figcaption { text-align:center; font-size:12px; color:var(--muted); line-height:1.8; padding-top:12px; }
+    .path { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:28px 0; }
+    .path .step { background:#fff9f1; border:1px solid var(--line); padding:14px 10px; border-radius:11px; text-align:center; font-size:12px; line-height:1.75; }
+    .path .step b { display:block; font-size:12px; color:#8c5e45; margin-bottom:5px; }
+    code { color:#80533d; background:#f3e8db; padding:1px 5px; border-radius:4px; font-size:.94em; }
+    .experiment-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:24px 0 25px; }
+    .experiment { border:1px solid var(--line); background:#fffaf4; border-radius:13px; padding:19px; }
+    .experiment .tag { color:var(--accent); font-size:11px; font-weight:800; letter-spacing:1px; }
+    .experiment h3 { margin:7px 0 11px; font-size:16px; }
+    .experiment p { color:#75695f; font-size:13px; margin:7px 0 10px; }
+    .experiment .eq { padding:12px 6px; font-size:14px; margin:10px 0; }
+    .closing { border-radius:12px; padding:25px; background:var(--soft); color:#80543f; font-weight:650; margin:29px 0 8px; }
+    footer { padding:36px 0 5px; font-size:12px; color:var(--muted); line-height:2.4; }
+    .backtop { display:inline-block; margin-top:17px; font-size:12px; }
+    @media (max-width:940px) { .layout { display:block; padding:15px 22px 70px; } aside { position:static; max-height:none; padding:10px 0 16px; border-bottom:1px solid var(--line); } .brand,.subbrand { display:none; } .nav-label { margin-bottom:5px; } nav { display:flex; gap:5px; overflow-x:auto; padding-bottom:5px; scrollbar-width:thin; } nav a { flex:none; white-space:nowrap; border-left:none; border-bottom:2px solid transparent; border-radius:8px; padding:7px 11px; } nav a.active { border-left:none; border-bottom-color:var(--accent); } header { padding:31px 0; } .chapter { padding:39px 0 31px; } h2 { font-size:23px; } .path { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:620px) { body { font-size:14px; } .layout { padding:14px 15px 55px; } .experiment-grid { grid-template-columns:1fr; } figure { padding:12px 9px; } .eq { font-size:15px; padding:14px 6px; } th,td { padding:9px 9px; font-size:12px; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside aria-label="章节目录">
+    <div class="brand">沿途手记</div>
+    <div class="subbrand">从一个问题出发的探索路线</div>
+    <div class="nav-label">本篇目录 / CONTENTS</div>
+    <nav>
+      <a href="#intro" data-target="intro"><span class="num">00</span>照片明明是平的，空间去哪了？</a>
+      <a href="#map" data-target="map"><span class="num">01</span>从空间到像素，要建立哪些关系？</a>
+      <a href="#pinhole" data-target="pinhole"><span class="num">02</span>一个三维点为什么落在这个像素？</a>
+      <a href="#ray" data-target="ray"><span class="num">03</span>一个像素为什么找不回一个点？</a>
+      <a href="#distortion" data-target="distortion"><span class="num">04</span>为什么照片里的直线会弯曲？</a>
+      <a href="#fisheye" data-target="fisheye"><span class="num">05</span>想看得更广，模型还成立吗？</a>
+      <a href="#experiments" data-target="experiments"><span class="num">06</span>让几何关系真正动起来</a>
+      <a href="#summary" data-target="summary"><span class="num">07</span>最后，我们究竟理解了什么？</a>
+    </nav>
+  </aside>
+  <main>
+    <div class="breadcrumb">Stage 01 / Q03 / 相机与三维测量 / Camera Geometry</div>
+    <header>
+      <div class="eyebrow">CAMERA GEOMETRY · 第一性探索</div>
+      <h1>从空间点到像素射线</h1>
+      <p class="intro">从一个空间点为什么会出现在某个像素开始，逐渐理解透视投影、逆投影、真实镜头与大视场成像。不从名词表出发，而是让每个新模型都从一个尚未解决的问题里出现。</p>
+    </header>
+
+    <section class="chapter" id="intro">
+      <div class="eyebrow">00 · 开场</div>
+      <h2>照片明明是平的，空间去哪了？</h2>
+      <p>拿相机对着桌上的瓶子拍一张照片。</p>
+      <p>眼前的瓶子有长度、宽度和深度，但照片里只有一张由像素组成的平面。近处的瓶子看起来更大，远处的更小；相机稍微移动，瓶子又会出现在另一个位置。</p>
+      <p>这件事似乎很自然，但仔细想想，里面藏着两个不同的问题：</p>
+      <ul><li>如果已经知道一个点在空间中的位置，怎样计算它会出现在照片的哪个像素？</li><li>如果只知道照片中的一个像素，又能不能找回它对应的空间位置？</li></ul>
+      <p>第一个问题，是<strong>空间如何变成图像</strong>。第二个问题，是<strong>图像究竟保留了多少空间信息</strong>。</p>
+      <p>如果能弄清这两个问题，RGB-D 相机后续的三维测量便有了几何基础。</p>
+      <p>这次先不研究深度究竟怎样测出来，也不讨论标定程序的具体实现。我们从最简单的成像假设开始，再看看真实相机为什么迫使我们不断修改这个假设。</p>
+    </section>
+
+    <section class="chapter" id="map">
+      <div class="eyebrow">01 · 技术路线</div>
+      <h2>从空间到像素，我们最终需要建立哪些关系？</h2>
+      <p>先摆结论。相机几何并不是许多互不相关的算法，而是对同一个问题不断扩展的数学描述。</p>
+      <table><thead><tr><th>探索方向</th><th>最初的问题</th><th>最终需要掌握的能力</th></tr></thead><tbody>
+        <tr><td>理想成像</td><td>空间点为什么会落在某个像素？</td><td>从三维位置计算二维像素</td></tr>
+        <tr><td>逆向恢复</td><td>知道像素为什么还找不回空间点？</td><td>恢复空间方向，并结合距离确定三维位置</td></tr>
+        <tr><td>真实镜头</td><td>理想公式为什么不能完全解释真实图像？</td><td>描述镜头偏移，并恢复正确的空间方向</td></tr>
+        <tr><td>大视场成像</td><td>想看见更大的范围，原来的成像方式还成立吗？</td><td>用不同的方向到像素映射，描述鱼眼与特殊全向相机</td></tr>
+      </tbody></table>
+      <p>这四个方向并不是平行的名词目录。它们之间存在一条很自然的探索路线：</p>
+      <div class="path"><div class="step"><b>先建立假设</b>空间点怎样投影？</div><div class="step"><b>尝试反过来</b>丢掉了什么信息？</div><div class="step"><b>走向真实镜头</b>为什么预测不一致？</div><div class="step"><b>扩展成像范围</b>几何模型的边界在哪？</div></div>
+      <p>先弄清理想空间如何投影，再尝试把投影反过来；随后检查真实相机是否遵守这个模型，最后思考模型本身能覆盖多大的视场。</p>
+    </section>
+
+    <section class="chapter" id="pinhole">
+      <div class="eyebrow">02 · 理想成像</div>
+      <h2>一个三维点，为什么会落在那个像素？</h2>
+      <h3>02.1 · 先不考虑镜头，只留下一个小孔</h3>
+      <p>想象一个完全封闭的暗盒，在盒子前方开一个非常小的孔，后面放一张接收光线的平面。</p>
+      <p>空间中的一个发光点，可以有许多方向的光线，但只有经过小孔的那部分能够到达接收平面。</p>
+      <p>于是，空间点、小孔与成像位置之间出现了一个简单关系：<strong>三者位于同一条直线上。</strong></p>
+      <p>如果把小孔记作 O，把空间点记作 P，那么 P 的成像位置，就是直线 OP 与成像平面的交点。</p>
+      <p>真实小孔相机会形成倒立图像。不过为了避免反复处理负号，我们可以把一个<strong>虚拟成像平面</strong>放在小孔前方。这个平面不是真实传感器的位置，只是方便计算的几何表示。</p>
+      <p>现在建立坐标：O 是投影中心；Z 轴指向相机前方；空间点为 P=(X,Y,Z)；虚拟成像平面位于 Z=f。</p>
+      <figure>
+        <svg viewBox="0 0 760 275" role="img" aria-label="投影中心与空间点共线，相似三角形决定成像位置">
+          <line x1="68" y1="227" x2="720" y2="227" stroke="#afa196" stroke-dasharray="5 5"/>
+          <line x1="68" y1="227" x2="68" y2="20" stroke="#807568" stroke-width="1.5"/>
+          <line x1="285" y1="18" x2="285" y2="245" stroke="#c88662" stroke-width="3"/>
+          <line x1="68" y1="227" x2="638" y2="47" stroke="#759883" stroke-width="3"/>
+          <line x1="638" y1="47" x2="638" y2="227" stroke="#91ae99" stroke-dasharray="5 5"/>
+          <line x1="285" y1="159" x2="285" y2="227" stroke="#d9a07e" stroke-width="4" opacity=".55"/>
+          <circle cx="68" cy="227" r="6" fill="#55453c"/><circle cx="285" cy="158.5" r="6" fill="#c88662"/><circle cx="638" cy="47" r="7" fill="#759883"/>
+          <text x="43" y="250">O</text><text x="644" y="37">P (X,Z)</text><text x="301" y="152">x</text><text x="170" y="250">f</text><text x="285" y="267" text-anchor="middle">虚拟成像平面</text><text x="715" y="250">Z</text><text x="42" y="20">X</text>
+        </svg>
+        <figcaption>空间点、小孔与投影位置在同一直线上。把真实倒立像改画成前方的虚拟成像平面，只是为了让几何表达更直观。</figcaption>
+      </figure>
+      <p>由于三点共线，观察 XZ 截面就会得到两个相似三角形：</p>
+      <div class="eq">\frac{x}{f}=\frac{X}{Z}</div>
+      <p>因此：</p>
+      <div class="eq">x=f\frac{X}{Z},\qquad y=f\frac{Y}{Z}</div>
+      <p>这就是最简单的透视投影关系，也就是常说的<strong>针孔相机模型</strong>。</p>
+      <div class="discovery">真正重要的发现是：<strong>三维点的位置，通过一条穿过固定中心的直线，转换成了二维平面上的位置。</strong></div>
+      <p>这个关系立即解释了熟悉的现象。假设两个同样大小的瓶子，距离相机分别为 1 m 和 2 m。它们真实尺寸相同，但根据公式，远处瓶子的成像尺寸只有近处的一半。</p>
+      <p>所谓“近大远小”，并不需要特别设计一个缩放算法，而是相似三角形自然产生的结果。</p>
+      <div class="transition">不过，现在算出来的是成像平面上的 x、y。我们真正想要的，却是照片中的像素 u、v。这两者还是一回事吗？</div>
+
+      <h3>02.2 · 为什么有了焦距，还不能直接算像素？</h3>
+      <p>刚才的 x、y 是几何平面上的位置，可以用毫米等长度单位描述。但数字照片不是连续平面，而是一张离散的像素网格。</p>
+      <p>例如，一张 1280×720 的图像，我们通常通过列号 u 和行号 v 来指定位置。</p>
+      <div class="question">几何平面上距离中心 1 mm 的位置，究竟对应图像中多少个像素？</div>
+      <p>必须知道几何长度与像素尺度之间的关系。再仔细观察，横向和纵向也不一定完全相同。传感器像素间距、图像缩放方式，都可能让相同的几何长度在两个方向对应不同的像素数量。</p>
+      <p>因此，与其只使用一个以长度为单位的 f，不如把焦距和每个方向的像素尺度合在一起，分别用两个以像素为单位的量表示：</p>
+      <div class="eq">f_x,\qquad f_y</div>
+      <p>于是：</p>
+      <div class="eq">u=f_x\frac{X}{Z},\qquad v=f_y\frac{Y}{Z}</div>
+      <p>但还有一个细节。上面的表达式默认成像中心就是像素坐标的原点。现实中，我们通常从图像左上角开始计数。</p>
+      <p>相机光轴与图像平面的交点，并不一定在像素坐标 (0,0)，也不保证刚好位于图像正中央。所以还需要两个偏移量：</p>
+      <div class="eq">c_x,\qquad c_y</div>
+      <p>它们表示理想投影中心在像素坐标中的位置，通常称为<strong>主点坐标</strong>。</p>
+      <p>最后得到：</p>
+      <div class="eq">\boxed{u=f_x\frac{X}{Z}+c_x,\qquad v=f_y\frac{Y}{Z}+c_y}</div>
+      <p>到这里，我们才真正获得了从三维点到像素位置的计算方法。</p>
+      <table><thead><tr><th>参数</th><th>为什么需要它</th></tr></thead><tbody>
+        <tr><td>fx</td><td>横向几何位置如何换算为像素偏移</td></tr><tr><td>fy</td><td>纵向几何位置如何换算为像素偏移</td></tr><tr><td>cx</td><td>光轴中心在图像水平方向的什么位置</td></tr><tr><td>cy</td><td>光轴中心在图像垂直方向的什么位置</td></tr>
+      </tbody></table>
+      <p>这里还有一个容易忽略的区别：焦距 f 原本是几何长度，而 fx、fy 已经把焦距与像素尺度结合起来。因此，即使 fx 与 fy 不相等，也不意味着真实镜头有两个不同的物理焦距。</p>
+      <div class="transition">四个参数已经出现了。可是每次都分开写，很难把它们与其他几何变换连接起来。能不能统一表示？</div>
+
+      <h3>02.3 · 四个参数总要一起出现，能不能统一表示？</h3>
+      <p>假设之后需要计算成千上万个三维点。每次都把 fx、fy、cx、cy 分开写，不仅繁琐，也不方便把不同几何变换连接起来。</p>
+      <p>于是，我们可以把刚才得到的四个参数整理成一个矩阵：</p>
+      <div class="eq">K=\begin{bmatrix}f_x&amp;0&amp;c_x\\0&amp;f_y&amp;c_y\\0&amp;0&amp;1\end{bmatrix}</div>
+      <p>这个矩阵就是相机的<strong>内参矩阵</strong>。它不是凭空增加的数学概念，只是把已经推导出的像素变换关系整理成统一形式。</p>
+      <p>先把空间点的方向表示为：</p>
+      <div class="eq">x_n=\frac{X}{Z},\qquad y_n=\frac{Y}{Z}</div>
+      <p>因为这里暂时去掉了焦距与像素尺度的影响，xn、yn 被称为<strong>归一化成像坐标</strong>。</p>
+      <p>再使用 K：</p>
+      <div class="eq">\begin{bmatrix}u\\v\\1\end{bmatrix}=K\begin{bmatrix}x_n\\y_n\\1\end{bmatrix}</div>
+      <p>或者合并为：</p>
+      <div class="eq">Z\begin{bmatrix}u\\v\\1\end{bmatrix}=K\begin{bmatrix}X\\Y\\Z\end{bmatrix}</div>
+      <p>这里采用的是常见的零 skew 模型，也就是默认两个像素坐标轴没有额外的斜切关系。</p>
+      <div class="discovery"><strong>先通过 X/Z、Y/Z 确定空间方向在理想平面上的位置，再通过 K 把它换算成像素坐标。</strong>内参矩阵没有消除透视关系；真正造成近大远小的，依然是前面的除以 Z。</div>
+      <div class="transition">投影公式看起来完整了。但它使用的 XYZ 究竟是相对于谁的？如果换一个坐标系，原来的公式还能直接使用吗？</div>
+
+      <h3>02.4 · 为什么同一个空间点，换台相机就算不对了？</h3>
+      <p>现在假设机器人工作台上放着一个瓶子。我们已经知道瓶子某个点在工作台坐标系中的三维位置，也拥有相机的 K。能不能直接代入投影公式？</p>
+      <p>还不行。因为刚才所有的推导，都默认三维坐标是相对于相机中心描述的，并且 Z 轴沿相机光轴方向。</p>
+      <p>但工作台的原点可能在桌角，机器人基座的原点可能在机械臂底部，而相机又安装在另外一个位置。同一个点，换一个坐标系描述，XYZ 自然就不同。</p>
+      <p>因此，在计算投影之前，必须先把空间点转换到相机坐标系。</p>
+      <p>两个刚性坐标系之间的位置关系，可以用旋转 R 和平移 t 描述：</p>
+      <div class="eq">P_C=R_{CW}P_W+t_{CW}</div>
+      <p>其中 PW 是点在世界坐标系中的位置，PC 是点在相机坐标系中的位置；R、t 负责把世界坐标转换到相机坐标。</p>
+      <p>这种描述相机与外部坐标系之间相对位置和朝向的参数，通常称为<strong>外参</strong>。</p>
+      <div class="eq">P_W\xrightarrow{R,t}P_C\xrightarrow{\text{透视投影}}(x_n,y_n)\xrightarrow{K}(u,v)</div>
+      <p>这里先不讨论 R、t 是怎样标定出来的，只需要理解为什么必须存在这一步。</p>
+      <p><strong>内参描述相机如何把空间方向转换成像素；外参描述同一个空间点怎样从别的坐标系转换到相机坐标系。</strong></p>
+      <div class="transition">到这里，正向投影已经基本清楚了。不过，每次计算 u、v 时，X 和 Y 都被 Z 除了一次。这会不会意味着，有一部分三维信息已经消失了？</div>
+    </section>
+    <section class="chapter" id="ray">
+      <div class="eyebrow">03 · 逆向恢复</div>
+      <h2>知道一个像素，为什么还找不回原来的三维点？</h2>
+      <h3>03.1 · 试着把刚才的公式反过来</h3>
+      <p>先拿到照片中的一个像素 (u,v)，假设相机内参已知，也暂时不考虑镜头畸变。我们想重新找到原来的 XYZ。</p>
+      <p>从刚才的公式出发：</p>
+      <div class="eq">u=f_x\frac{X}{Z}+c_x</div>
+      <p>把 X 单独移到等式一边：</p>
+      <div class="eq">X=\frac{u-c_x}{f_x}Z</div>
+      <p>同样：</p>
+      <div class="eq">Y=\frac{v-c_y}{f_y}Z</div>
+      <p>看起来似乎已经算出了 X 和 Y。但仔细一看，结果仍然依赖 Z。</p>
+      <p>如果 Z=1 m，可以得到一个空间点；如果 Z=2 m，又得到另一个空间点。而这两个点代回投影公式，居然会落在完全相同的像素上。</p>
+      <div class="discovery"><strong>这不是求解方法不够先进，而是一个根本性的几何事实：所有位于同一条投影直线上的空间点，在理想针孔相机中都会落到同一个像素。</strong></div>
+      <figure>
+        <svg viewBox="0 0 760 250" role="img" aria-label="不同距离的多个三维点投影到同一个像素">
+          <line x1="60" y1="208" x2="706" y2="43" stroke="#759883" stroke-width="3"/>
+          <line x1="245" y1="18" x2="245" y2="229" stroke="#c88662" stroke-width="3"/>
+          <circle cx="60" cy="208" r="7" fill="#5d4b40"/><circle cx="245" cy="161" r="6" fill="#c88662"/>
+          <circle cx="374" cy="128" r="7" fill="#759883"/><circle cx="501" cy="96" r="7" fill="#759883"/><circle cx="645" cy="59" r="7" fill="#759883"/>
+          <text x="44" y="235">O</text><text x="245" y="245" text-anchor="middle">成像平面</text><text x="363" y="112">P₁</text><text x="490" y="80">P₂</text><text x="634" y="43">P₃</text><text x="260" y="151">同一像点</text>
+          <text x="475" y="185" fill="#759883">沿着同一方向，距离却不同</text>
+        </svg>
+        <figcaption>单个像素不能决定物体离相机有多远：这条直线上的多个位置有同一个投影。</figcaption>
+      </figure>
+      <p>原来的三维位置经过投影，只剩下两个独立的图像坐标。沿着投影直线的距离信息，已经无法从单个像素中确定。</p>
+      <div class="transition">既然无法找回唯一的空间点，能不能至少找回它所在的方向？</div>
+
+      <h3>03.2 · 找不到唯一的点，至少能不能找到方向？</h3>
+      <p>虽然 Z 不知道，但下面两个量却可以直接计算：</p>
+      <div class="eq">x_n=\frac{u-c_x}{f_x},\qquad y_n=\frac{v-c_y}{f_y}</div>
+      <p>还记得它们是什么吗？它们正是之前从 XYZ 中得到的归一化成像坐标。</p>
+      <p>既然同一像素对应的所有点都满足 X/Z=xn、Y/Z=yn，就可以把这些点写成同一条直线：</p>
+      <div class="eq">P_C(Z)=Z\begin{bmatrix}x_n\\y_n\\1\end{bmatrix}</div>
+      <p>其中：</p>
+      <div class="eq">\mathbf d=\begin{bmatrix}x_n\\y_n\\1\end{bmatrix}</div>
+      <p>就是从相机中心指向该像素对应空间方向的一个向量。</p>
+      <p>于是，虽然没有恢复出唯一的空间点，我们已经恢复出了一条从相机中心发出的<strong>空间射线</strong>。</p>
+      <p>这种从像素恢复空间方向的过程，称为<strong>逆投影</strong>。</p>
+      <p>由于刚才使用 K 把归一化坐标转换成像素，反过来就可以使用它的逆矩阵：</p>
+      <div class="eq">\boxed{\mathbf d=K^{-1}\begin{bmatrix}u\\v\\1\end{bmatrix}}</div>
+      <p>这并不是一个需要额外记忆的新算法，而是对前面像素变换的直接求逆。</p>
+      <p>这里还有一个限制：目前恢复出来的射线，建立在理想中心投影模型成立的前提下。真实镜头的非线性偏移，后面还需要处理。</p>
+      <div class="transition">如果射线方向已经知道，是不是再知道这个点沿射线有多远，就可以得到三维坐标？</div>
+
+      <h3>03.3 · 既然有了射线，再知道距离不就行了吗？</h3>
+      <p>现在我们知道了空间方向，还缺什么？只缺这个点沿射线走了多远。</p>
+      <p>于是，如果另一个测量过程能够给我们一个有效距离，就可以把二维像素恢复成三维点。但是，这里马上又会出现一个容易混淆的细节。</p>
+      <p>假设射线方向为：</p>
+      <div class="eq">\mathbf d=(0.6,0.8,1)</div>
+      <p>如果告诉我们 Z=1 m，那么空间点为 P=(0.6,0.8,1)。这个点距离相机中心的实际直线距离是多少？</p>
+      <div class="eq">\|P\|=\sqrt{0.6^2+0.8^2+1^2}\approx1.414\,\mathrm m</div>
+      <p>也就是说，<strong>沿相机 Z 轴方向的深度，和沿着真实射线的距离，并不总是相同。</strong></p>
+      <p>因此，需要区分两种测量值。</p>
+      <p>第一种是 <strong>Z-depth</strong>，也就是点在相机坐标系 Z 轴上的坐标。这种情况下：</p>
+      <div class="eq">P_C=Z\begin{bmatrix}x_n\\y_n\\1\end{bmatrix}</div>
+      <p>第二种是沿射线测量的欧氏距离，通常称为 <strong>Ray-distance</strong> 或 range。</p>
+      <p>此时必须先把方向向量变成单位长度：</p>
+      <div class="eq">\hat{\mathbf d}=\frac{\mathbf d}{\|\mathbf d\|}</div>
+      <p>再计算：</p>
+      <div class="eq">P_C=r\hat{\mathbf d}</div>
+      <p>其中 r 表示实际射线距离。两者的关系是：</p>
+      <div class="eq">r=Z\sqrt{1+x_n^2+y_n^2}</div>
+      <div class="discovery">同样是“测到一米”，如果不知道深度的定义，就可能恢复出不同的三维坐标。<strong>以后使用深度相机时，必须确认设备输出究竟采用哪种距离定义。</strong></div>
+      <div class="transition">如果没有深度相机，也没有直接测得距离，还有没有别的几何办法找到射线上的那个点？</div>
+
+      <h3>03.4 · 如果没有深度相机，还有没有办法确定那个点？</h3>
+      <p>既然一个像素缺少沿射线方向的距离，那么解决问题的方向其实已经很清楚：<strong>能否从其他地方得到一条额外的几何约束？</strong></p>
+      <p>例如，假设已经知道这个像素对应的点位于桌面上。虽然不知道具体距离，但我们知道整个桌面对应一个空间平面。</p>
+      <p>于是，只需要计算刚才那条射线与桌面的交点。</p>
+      <p>如果平面满足：</p>
+      <div class="eq">\mathbf n^TP+d=0</div>
+      <p>射线表示为：</p>
+      <div class="eq">P(\lambda)=\mathbf o+\lambda\mathbf v</div>
+      <p>将射线代入平面方程：</p>
+      <div class="eq">\mathbf n^T(\mathbf o+\lambda\mathbf v)+d=0</div>
+      <p>整理得到：</p>
+      <div class="eq">\boxed{\lambda=-\frac{\mathbf n^T\mathbf o+d}{\mathbf n^T\mathbf v}}</div>
+      <p>这样就能确定交点，前提是射线不与平面平行，而且交点处于有效的前向射线范围。</p>
+      <div class="discovery"><strong>恢复三维位置，不一定非要直接测量深度；只要能找到足够的额外几何约束，同样可能确定空间点。</strong></div>
+      <p>还可以继续想象另一种情况。如果有两台相机，从不同位置观察同一个空间点，那么每台相机都能提供一条射线。</p>
+      <p>理想情况下，两条射线应该相交于同一个空间点。在真实测量存在误差时，可以寻找距离两条射线都尽可能接近的位置。</p>
+      <p>这种通过不同视角的几何关系恢复空间位置的方法，称为<strong>三角测量</strong>。</p>
+      <p>到这里，我们已经能理解为什么深度相机、双目视觉、已知平面约束可以通过不同途径解决三维恢复问题。不过本文暂时不继续深入它们具体怎样获得这些约束。</p>
+      <div class="transition">还有最后一个小问题：相机找出的射线，如果需要交给机器人，是否可以像普通三维点一样进行坐标变换？</div>
+
+      <h3>03.5 · 如果还要转换到机器人坐标系呢？</h3>
+      <p>前面恢复出的点和射线，都在相机坐标系下。但机器人可能需要世界坐标系下的位置和方向。</p>
+      <p>对于已经确定的三维点，直接使用旋转和平移即可。对于尚未确定距离的射线，则要注意：<strong>射线的起点需要旋转和平移，射线的方向只需要旋转。</strong></p>
+      <p>假设相机中心在世界坐标系中的位置为 tWC，方向变换为 RWC，那么：</p>
+      <div class="eq">P_W(\lambda)=t_{WC}+\lambda R_{WC}\mathbf d_C</div>
+      <p>这个表达式揭示了一个重要区别：位置和方向并不是同一种几何量。方向没有位置原点，因此不应该增加平移。</p>
+      <div class="transition">现在正向与逆向关系都建立了。但它们有一个共同前提：真实图像真的遵守理想投影公式吗？</div>
+    </section>
+
+    <section class="chapter" id="distortion">
+      <div class="eyebrow">04 · 真实镜头</div>
+      <h2>为什么数学已经正确，照片里的直线却可能弯曲？</h2>
+      <h3>04.1 · 理想模型第一次遇到了真实世界</h3>
+      <p>到目前为止，我们一直假设所有光线都经过同一个投影中心，并且按照透视关系落在成像平面上。</p>
+      <p>在这种理想模型下，一条空间直线，只要它能正常投影，成像后仍然是一条直线。</p>
+      <p>于是可以做一个简单实验：找一面具有规则直线边缘或棋盘格的平面，让真实相机拍摄。</p>
+      <p>如果发现图像中心的直线基本正常，但越靠近边缘越弯曲，那么原来的模型就解释不完这些现象了。</p>
+      <p>当然，需要先排除真实物体本身不直、拍摄运动和其他误差来源。</p>
+      <div class="question">如果确认这种偏移来自镜头成像，能不能在理想投影之外，再增加一个修正关系，把理想位置映射到真实观测位置？</div>
+      <p>这样不需要直接放弃已经建立的透视几何。我们可以先用原来的模型计算理想位置，再研究真实镜头究竟让它偏移了多少。</p>
+      <p>这个额外的非线性映射，就是后面要讨论的<strong>镜头畸变模型</strong>。</p>
+      <figure>
+        <svg viewBox="0 0 760 260" role="img" aria-label="理想直线网格与发生桶形畸变的网格对比">
+          <rect x="28" y="24" width="325" height="206" rx="10" fill="#fffdf8" stroke="#ddccbd"/>
+          <rect x="407" y="24" width="325" height="206" rx="10" fill="#fffdf8" stroke="#ddccbd"/>
+          <g stroke="#a9bcae" stroke-width="1.4" opacity=".95">
+            <path d="M69 36V218 M122 36V218 M175 36V218 M228 36V218 M281 36V218 M334 36V218"/>
+            <path d="M40 56H341 M40 91H341 M40 126H341 M40 161H341 M40 196H341"/>
+          </g>
+          <g stroke="#c38b6b" stroke-width="1.5" fill="none" opacity=".95">
+            <path d="M441 34 Q456 126 441 220 M493 34 Q499 126 493 220 M546 34 Q546 126 546 220 M599 34 Q593 126 599 220 M651 34 Q636 126 651 220 M704 34 Q681 126 704 220"/>
+            <path d="M421 54 Q570 69 720 54 M421 90 Q570 95 720 90 M421 126 H720 M421 162 Q570 157 720 162 M421 198 Q570 183 720 198"/>
+          </g>
+          <text x="190" y="250" text-anchor="middle">理想透视模型：直线仍为直线</text>
+          <text x="570" y="250" text-anchor="middle">镜头非线性偏移：线条发生弯曲（示意）</text>
+        </svg>
+        <figcaption>先预测理想像点，再观察真实像点如何系统性地偏离它——这才是建立畸变模型的入口。</figcaption>
+      </figure>
+      <div class="transition">观察误差之后，如果发现图像中心附近很小、越靠边越明显，能不能找到一个简单的规律？</div>
+
+      <h3>04.2 · 如果误差主要发生在边缘，会不会和离中心的距离有关？</h3>
+      <p>先观察一种比较规则的误差。图像中心附近的位置基本正确，而离中心越远，偏移通常越明显。而且，这种偏移大致沿着从中心向外的方向出现。</p>
+      <p>一个很自然的猜想是：<strong>畸变量可能主要取决于像点离光轴中心有多远。</strong></p>
+      <p>于是，回到理想归一化坐标 (x,y)，定义它到中心的距离：</p>
+      <div class="eq">r^2=x^2+y^2</div>
+      <p>如果只考虑绕光轴近似对称的畸变，可以尝试让 x、y 同时乘上一个只与 r 有关的尺度因子：</p>
+      <div class="eq">x_d=xL(r),\qquad y_d=yL(r)</div>
+      <p>其中 xd、yd 是畸变之后的归一化位置。</p>
+      <p>那 L(r) 应该长什么样？我们希望它满足几个条件：</p>
+      <ul><li>在中心附近接近 1。</li><li>随着距离增加，可以逐渐压缩或扩大成像半径。</li><li>参数能够通过实际观测拟合出来。</li></ul>
+      <p>一种简单的经验建模方式是使用多项式：</p>
+      <div class="eq">L(r)=1+k_1r^2+k_2r^4+k_3r^6</div>
+      <p>为什么主要使用 r 的偶次幂？因为我们假设畸变量由到中心的距离决定，使用 r²=x²+y² 可以自然地构造绕中心对称、在中心附近平滑变化的修正。</p>
+      <p>于是：</p>
+      <div class="eq">x_d=x(1+k_1r^2+k_2r^4+k_3r^6)</div>
+      <div class="eq">y_d=y(1+k_1r^2+k_2r^4+k_3r^6)</div>
+      <p>这种沿图像径向发生的修正，就称为<strong>径向畸变</strong>。它能够描述常见的桶形和枕形畸变趋势。</p>
+      <div class="discovery"><strong>观察到一种近似对称的误差分布，于是使用距离中心的半径构造一个可拟合的修正函数。</strong>这是模型最重要的思想，而不仅仅是记住 k1、k2、k3。</div>
+      <div class="transition">径向模型解释了一部分问题。但如果有些像点的偏移并不朝向中心、也不沿着向外的方向，它还能解释吗？</div>
+
+      <h3>04.3 · 如果偏移并不沿着径向发生呢？</h3>
+      <p>径向模型似乎已经解决了直线弯曲问题。但继续观察，会发现某些镜头的偏移不完全围绕中心对称。</p>
+      <p>例如，图像同样远离中心的两个位置，误差方向和幅度却不符合之前的径向规律。这意味着只依赖 r 的模型还不够。</p>
+      <p>为什么会出现这种情况？真实镜头由多个光学元件构成，镜头与传感器的装配也可能存在偏心、倾斜等非理想因素。这些因素可能让畸变不再是简单的向中心收缩或向外扩张。</p>
+      <p>于是需要新的思路：<strong>除了径向缩放，还允许像点在水平和垂直方向产生耦合偏移。</strong></p>
+      <p>一种常见的参数化方式是增加两个系数 p1、p2：</p>
+      <div class="eq">\Delta x=2p_1xy+p_2(r^2+2x^2)</div>
+      <div class="eq">\Delta y=p_1(r^2+2y^2)+2p_2xy</div>
+      <p>这组修正通常称为<strong>切向畸变</strong>或偏心畸变项。</p>
+      <p>于是，径向与切向畸变可以合在一起：</p>
+      <div class="eq">x_d=xL(r)+2p_1xy+p_2(r^2+2x^2)</div>
+      <div class="eq">y_d=yL(r)+p_1(r^2+2y^2)+2p_2xy</div>
+      <p>到这里，我们实际上已经构造出一种经典的相机畸变描述，它通常被归入 <strong>Brown–Conrady 畸变模型</strong>。</p>
+      <p>现在再看这个名称，它就不应该显得陌生了：先用径向函数描述围绕光轴的系统性偏移，再增加非径向项解释剩余的不对称误差。</p>
+      <div class="transition">但是，如果这些参数还是无法解释实际镜头的误差，是否可以继续增加模型的描述能力？代价又是什么？</div>
+
+      <h3>04.4 · 如果这些参数还是解释不了真实镜头呢？</h3>
+      <p>是不是只要继续增加多项式的阶数，就能让模型无限接近真实镜头？从数学上看，更复杂的函数确实可能拟合更多变化。</p>
+      <p>但真正值得思考的是：<strong>我们有没有足够的观测，去约束越来越多的参数？</strong></p>
+      <p>在实际应用中，有两种值得认识的进一步扩展。</p>
+      <p><strong>第一种：让径向函数拥有更灵活的变化形状。</strong></p>
+      <p>前面使用的是一个多项式 L(r)。如果想描述更复杂的径向变化，可以尝试让两个多项式形成比值：</p>
+      <div class="eq">L(r)=\frac{1+k_1r^2+k_2r^4+k_3r^6}{1+k_4r^2+k_5r^4+k_6r^6}</div>
+      <p>这种表示方式称为 <strong>Rational Model，也就是有理函数畸变模型</strong>。</p>
+      <p>它的核心思路很简单：当普通多项式的形状不够灵活时，尝试使用分式函数增加描述能力。但它并不是天然更加正确，只是提供了更大的拟合空间，也带来了更多参数、数值条件和过拟合风险。</p>
+      <p><strong>第二种：如果径向和切向模型仍存在有结构的二维残差呢？</strong></p>
+      <p>假设经过前面修正后，剩余误差仍然呈现特定的水平或垂直偏移，而且简单的切向项不足以描述。可以进一步引入与 r²、r⁴ 有关的额外二维偏移：</p>
+      <div class="eq">\Delta x=s_1r^2+s_2r^4,\qquad \Delta y=s_3r^2+s_4r^4</div>
+      <p>这种扩展通常称为 <strong>Thin Prism Model，薄棱镜畸变项</strong>。</p>
+      <p>它可以用于描述某些更复杂的光学偏差，而不是把所有非径向误差都强行归给 p1、p2。</p>
+      <div class="discovery">这些扩展模型并不是沿着一条必然正确的技术路线不断升级。<strong>只有观测表明简单模型确实无法充分解释误差，并且数据足以约束新增参数时，增加复杂度才有意义。</strong></div>
+      <div class="transition">到目前为止，都在研究“理想位置如何变成真实像素”。可是实际使用时，我们拿到的是已经畸变的图像，能否把这个过程反过来？</div>
+
+      <h3>04.5 · 既然镜头会让位置发生偏移，怎样从真实像素恢复正确方向？</h3>
+      <p>之前研究投影时，我们的关系是：空间点 → 理想归一化坐标 → 像素。</p>
+      <p>现在知道真实镜头会引入畸变，那么关系应该更新成：</p>
+      <div class="path"><div class="step"><b>空间点</b>已知 XYZ</div><div class="step"><b>理想投影</b>得到 (x,y)</div><div class="step"><b>镜头畸变</b>得到 (xd,yd)</div><div class="step"><b>像素尺度</b>得到原始 (u,v)</div></div>
+      <p>正向计算时并不困难：先计算理想投影，再应用畸变公式即可。</p>
+      <p>但平时面对的往往是另一个方向：相机已经给了一张真实照片，我们想知道某个像素对应的空间方向。</p>
+      <div class="question">什么样的理想位置，经过镜头畸变之后，才会落在当前观测位置？</div>
+      <p>这本质上是在求一个非线性映射的逆。而非线性函数通常不能像普通矩阵那样直接取逆。</p>
+      <p>一种实用的想法是迭代：</p>
+      <ol><li>先猜一个理想位置。</li><li>使用畸变模型预测它应该落在哪里。</li><li>将预测位置与真实像素对应的位置比较。</li><li>根据误差不断调整猜测，直到足够接近。</li></ol>
+      <p>因此，所谓<strong>去畸变</strong>，并不是简单地把 k1、k2 等系数改成负数，而是求解一个逆映射问题。</p>
+      <p>实际开发中，可以使用 OpenCV 的 <code>undistortPoints</code> 等函数完成对应计算。但它并不是恢复物体三维位置，而是尝试从畸变像素恢复理想相机模型中对应的方向。</p>
+      <p>如果需要重采样整张图像，还会涉及输出图像的新像素坐标系与相应内参。这也解释了为什么原始图像、去畸变图像、缩放图像不能不加区分地使用同一组像素参数。</p>
+      <div class="transition">普通镜头的偏移有办法描述了。但如果相机希望看到更大的范围，问题可能不只是“畸变程度更大”，而是原来的透视投影本身开始遇到几何限制。</div>
+    </section>
+    <section class="chapter" id="fisheye">
+      <div class="eyebrow">05 · 大视场成像</div>
+      <h2>如果想让相机看见更广阔的世界，原来的模型还成立吗？</h2>
+      <h3>05.1 · 针孔模型到底能看到多大的范围？</h3>
+      <p>先回到最初的相似三角形：</p>
+      <div class="eq">x=f\frac{X}{Z}</div>
+      <p>假设只研究一条光线与相机光轴的夹角，把这个角度记为 θ。</p>
+      <p>根据直角三角形：</p>
+      <div class="eq">\tan\theta=\frac{\sqrt{X^2+Y^2}}{Z}</div>
+      <p>而它在理想成像平面上距离中心的半径满足：</p>
+      <div class="eq">\boxed{r=f\tan\theta}</div>
+      <p>这个关系非常重要。它说明，普通透视投影并不是随意地把光线方向映射到图像，而是使用正切函数，把入射角转换成成像半径。</p>
+      <p>对于较小角度，这个关系表现得很自然。但如果希望相机看见越来越侧面的方向呢？</p>
+      <p>随着 θ 接近 90°：</p>
+      <div class="eq">\tan\theta\longrightarrow\infty</div>
+      <p>也就是说，一条与光轴几乎垂直的光线，在理想透视平面上的成像位置会越来越远。有限的平面无法容纳这个方向的有限投影位置。</p>
+      <p>这暴露了普通透视成像的一个几何限制。</p>
+      <p>之前增加畸变修正，是为了描述真实镜头相对于理想透视关系的偏离。但现在面对的问题不同：</p>
+      <div class="question">如果成像范围本来就超出了透视投影容易表示的范围，我们是否应该从一开始就使用另一种角度到半径的映射？</div>
+      <div class="transition">先不记任何新模型的名字。给定光线入射角 θ，究竟还可以用什么方式把它映射到图像半径 r？</div>
+
+      <h3>05.2 · 如果不使用 tanθ，还能怎样描述空间方向？</h3>
+      <p>给定一条光线与光轴的夹角 θ，我们希望用一个有限的图像半径 r 表示这个方向。那么，可以怎样设计 r 与 θ 的关系？</p>
+      <p><strong>第一个想法：让角度变化多少，图像半径就按比例变化多少。</strong></p>
+      <p>例如，入射角每增加 10°，图像中的半径就增加相同长度。这意味着：</p>
+      <div class="eq">r=f\theta</div>
+      <p>这种映射叫作<strong>等距投影（Equidistant）</strong>。它并不是说图像中的实际物体距离都保持不变，而是说径向图像距离与入射角成正比。</p>
+      <p><strong>第二个想法：能不能让相同大小的空间立体角，对应相同的图像面积？</strong></p>
+      <p>从光轴开始，一个半角为 θ 的圆锥方向范围，其单位球面上的立体角为：</p>
+      <div class="eq">\Omega=2\pi(1-\cos\theta)</div>
+      <p>如果希望图像中圆形区域的面积 πr² 与这个立体角成正比，那么可以得到：</p>
+      <div class="eq">r=2f\sin(\theta/2)</div>
+      <p>这种关系称为<strong>等立体角投影（Equisolid-angle）</strong>。它追求的不是保留透视关系，而是建立空间立体角与图像面积之间的对应。</p>
+      <p><strong>第三个想法：如果希望尽量保持局部角度关系呢？</strong></p>
+      <p>可以先把空间方向看作单位球面上的一个点，再从球面上的一个固定极点，把它投影到平面。通过这种球面几何构造，可以得到：</p>
+      <div class="eq">r=2f\tan(\theta/2)</div>
+      <p>它叫作<strong>立体投影（Stereographic）</strong>。这类映射的重要性质是局部保角，即在有效范围内保持局部曲线交角。</p>
+      <p><strong>第四个想法：能不能干脆把球面上的方向沿平行方向压到一个平面？</strong></p>
+      <p>如果把空间方向表示为单位球面上的点，再取它在垂直于光轴平面上的横向分量，就会得到：</p>
+      <div class="eq">r=f\sin\theta</div>
+      <p>这种关系称为<strong>正交投影（Orthographic）</strong>。它还有一个限制：对于超过某些视角范围的方向，单靠半径可能无法区分不同的入射角，因此必须考虑映射的有效定义域。</p>
+      <p>至此，我们终于可以把这些映射放在一起比较。</p>
+      <table><thead><tr><th>成像方式</th><th>半径关系</th><th>背后的想法</th></tr></thead><tbody>
+        <tr><td>普通透视投影</td><td>r=f tanθ</td><td>光线与平面相交，保持透视几何</td></tr>
+        <tr><td>等距投影</td><td>r=fθ</td><td>让径向距离与入射角成正比</td></tr>
+        <tr><td>等立体角投影</td><td>r=2f sin(θ/2)</td><td>让图像面积与空间立体角成比例</td></tr>
+        <tr><td>立体投影</td><td>r=2f tan(θ/2)</td><td>使用球面投影保留局部角度关系</td></tr>
+        <tr><td>正交投影</td><td>r=f sinθ</td><td>将单位球面方向正交投影到平面</td></tr>
+      </tbody></table>
+      <figure>
+        <svg id="angular-curves" viewBox="0 0 760 350" role="img" aria-label="五种投影模型的入射角与半径变化曲线，等效焦距归一化">
+          <rect x="0" y="0" width="760" height="350" rx="8" fill="#fffaf5"/>
+          <g id="angular-plot"></g>
+        </svg>
+        <figcaption>五种模型的 r/f 对 θ 关系。曲线只展示 0°–85° 的示意比较，并不意味着每种真实镜头都能覆盖全部角度。</figcaption>
+      </figure>
+      <div class="discovery">这些名称不是五个需要死记硬背的公式，而是对同一个问题给出的不同几何回答：<strong>我们究竟希望空间中的角度，以什么规律分布在有限的图像平面上？</strong></div>
+      <div class="transition">但这些都是清晰的理想角度映射。真实的鱼眼镜头，会严格遵守其中某一种公式吗？</div>
+
+      <h3>05.3 · 真实鱼眼镜头会严格遵守其中某一种公式吗？</h3>
+      <p>前面得到了几种理想的角度映射。但真实的鱼眼镜头由复杂光学结构构成，未必精确符合其中某一个表达式。</p>
+      <p>这有点像之前的普通镜头畸变问题：理想关系已经建立，但真实成像仍然存在偏移。</p>
+      <p>那么，能不能直接把入射角 θ 作为自变量，使用一个能够拟合实际镜头的函数？</p>
+      <p>最简单的做法之一，是从近似线性的角度映射出发，增加高阶修正：</p>
+      <div class="eq">\theta_d=\theta+k_1\theta^3+k_2\theta^5+k_3\theta^7+k_4\theta^9</div>
+      <p>这里 θd 可以理解为经过模型修正后的角度型径向坐标。然后，再根据光线的方位角确定图像中水平和垂直方向的位置，并通过像素尺度、主点参数转换为像素。</p>
+      <p>这种围绕入射角进行多项式建模的典型方案，就是 <strong>Kannala–Brandt 鱼眼模型</strong>。</p>
+      <p>现在可以看出，它与之前的普通畸变模型有一个重要区别。</p>
+      <p>普通 Brown–Conrady 模型，通常先通过透视关系得到理想归一化坐标，再针对其半径建立非线性修正；而 Kannala–Brandt 这类模型，则直接围绕光线入射角构造成像半径的关系。</p>
+      <p>这也解释了为什么同样叫“畸变系数”，不同相机模型中的参数却不能随意混用。</p>
+      <div class="discovery"><strong>参数名称相似，不代表它们修正的是同一种几何映射。</strong></div>
+      <div class="transition">到这里，所有模型仍然默认空间光线可以经过一个共同的有效投影中心。特殊反射镜或全向系统，也一定遵守这个前提吗？</div>
+
+      <h3>05.4 · 如果相机的光学结构本身又不一样呢？</h3>
+      <p>到目前为止，不管使用普通透视模型还是鱼眼模型，我们都保留了一个关键假设：空间中的光线可以由一个共同的有效投影中心来描述。</p>
+      <p>但是，如果相机使用了特殊反射镜或其他全向光学结构，直接使用之前的平面交点或角度多项式，可能并不是最合适的描述。</p>
+      <div class="question">能不能建立一种新的几何投影方式，把某些特殊中心全向相机也放进统一的数学表达？</div>
+      <p>一种思路是先考虑空间点到中心的距离：</p>
+      <div class="eq">\rho=\sqrt{X^2+Y^2+Z^2}</div>
+      <p>再让投影分母不仅依赖 Z，还加入一个与空间距离有关的项：</p>
+      <div class="eq">x=\frac{X}{Z+\xi\rho},\qquad y=\frac{Y}{Z+\xi\rho}</div>
+      <p>其中 ξ 是描述这种投影几何的参数。</p>
+      <p>这样构造的意义在于：改变方向到归一化图像位置的映射，用一个额外参数描述某些中心全向成像系统的投影性质。</p>
+      <p>而且当 ξ=0 时，公式便退化为：</p>
+      <div class="eq">x=\frac{X}{Z},\qquad y=\frac{Y}{Z}</div>
+      <p>也就是最初的普通透视归一化投影（仍需满足各模型的有效定义域）。</p>
+      <p>这种思路构成了 <strong>Unified Camera Model（统一相机模型）</strong> 的基础。</p>
+      <p>它并不是在普通相机上增加更多径向畸变项，而是从成像几何本身建立另一种描述。</p>
+      <p>当然，它也不是所有全向相机的万能模型。如果某种光学系统无法用单一有效投影中心来描述，那么不同像素的观测射线可能并不经过同一个空间原点。此时就需要更一般的射线表示，不能再沿用最初那套“所有射线都从 O 出发”的几何假设。</p>
+
+      <h3>05.5 · 回头看，为什么需要这么多相机模型？</h3>
+      <p>现在重新观察这条探索路线：</p>
+      <p>一开始，我们通过一个小孔和一张平面建立了透视投影。接着发现真实镜头存在系统性的非线性偏移，于是引入畸变修正。</p>
+      <p>当视角进一步扩大时，普通透视关系出现几何限制，于是开始直接研究入射角与成像半径的关系。最后，当光学结构本身发生变化时，又需要不同的投影几何。</p>
+      <p>因此，这些方法并不应该简单理解成从旧到新的算法升级，它们解决的问题层次不同：</p>
+      <ul>
+        <li><strong>针孔模型：</strong>理想中心投影如何建立。</li>
+        <li><strong>Brown–Conrady 等畸变模型：</strong>真实镜头怎样偏离理想透视投影。</li>
+        <li><strong>鱼眼角度模型：</strong>如何描述更大入射角范围的成像。</li>
+        <li><strong>统一全向模型：</strong>某些特殊中心成像系统如何使用另一种投影几何表示。</li>
+      </ul>
+      <div class="discovery">它们之间有联系，也有各自的适用前提。<strong>选择哪种模型，首先取决于真实相机的光学成像关系，而不是模型参数数量或名称是否先进。</strong></div>
+    </section>
+
+    <section class="chapter" id="experiments">
+      <div class="eyebrow">06 · 动手验证</div>
+      <h2>怎样确认自己真的理解了这些几何关系？</h2>
+      <p>走到这里，数学上已经建立了许多关系。不过，只有把这些关系放进实际计算，才能真正看清不同参数和模型分别改变了什么。</p>
+      <p>想做的并不是把 OpenCV 函数调用一遍，而是通过几个可控实验，检查前面每一次推理是否成立。</p>
+      <div class="experiment-grid">
+        <div class="experiment"><div class="tag">EXPERIMENT A</div><h3>近大远小，真的是因为除以 Z 吗？</h3><p>构造一个固定尺寸的三维矩形，保持朝向不变，只修改距离 Z，分别计算 0.5、1、2、4 m 时的投影尺寸。</p><div class="eq">w=\frac{f_xW}{Z}</div><p>距离增加一倍，像素宽度应减半。验证的是透视几何本身，而不是视觉算法。</p></div>
+        <div class="experiment"><div class="tag">EXPERIMENT B</div><h3>焦距和主点究竟改变了什么？</h3><p>固定同一个三维点，依次修改 fx、fy、cx、cy。</p><p>改变 fx、fy 会改变相对于主点的投影尺度；改变 cx、cy 会移动主点对应的像素位置。</p></div>
+        <div class="experiment"><div class="tag">EXPERIMENT C</div><h3>同一个像素，真的对应多组 XYZ 吗？</h3><p>选一个像素，计算 K⁻¹[u,v,1]ᵀ，然后使用多个不同 Z 生成空间点，再将这些点投影回图像。</p><p>理想情况下它们应落在同一像素，以此确认单个像素的距离歧义。</p></div>
+        <div class="experiment"><div class="tag">EXPERIMENT D</div><h3>畸变模型到底怎样改变直线？</h3><p>在规则网格上分别施加径向、切向及组合畸变，再尝试逆向恢复，并对照使用错误参数时的结果。</p><p>区分镜头几何变形与错误模型造成的恢复偏差。</p></div>
+        <div class="experiment"><div class="tag">EXPERIMENT E</div><h3>不同大视场映射，看见的世界有什么不同？</h3><p>让入射角从 0° 逐渐增加，画出几种 r/f 与 θ 的关系，尤其比较接近 90° 时的差异。</p><p>注意有效角度范围：数学曲线可以画出来，不等于真实镜头在所有范围都有一一对应成像。</p></div>
+        <div class="experiment"><div class="tag">EXPERIMENT F</div><h3>最后，把空间点完整地走一遍</h3><p>三维点 → 正向投影 → 像素 → 逆投影 → 加入原始深度 → 三维点。比较恢复前后的误差：</p><div class="eq">e=\|P_{\text{recovered}}-P_{\text{original}}\|</div><p>分别引入像素量化、深度误差、错误内参和畸变参数，观察它们怎样影响结果。</p></div>
+      </div>
+      <div class="discovery">在理想无噪声、正逆模型一致时，空间点闭环误差应接近数值精度范围。<strong>只有把模型误差、像素量化和深度测量误差分开，才能知道问题究竟出在哪里。</strong></div>
+    </section>
+
+    <section class="chapter" id="summary">
+      <div class="eyebrow">07 · 回头看</div>
+      <h2>空间点和像素，究竟是什么关系？</h2>
+      <p>最初，我只是想知道为什么一个三维点能够落在照片中的某个像素。</p>
+      <p>从一个理想的小孔开始，我们发现空间点可以沿着穿过投影中心的直线落到成像平面上。相似三角形给出了透视关系，而像素尺度与主点偏移进一步把它转换成真实图像坐标。</p>
+      <p>但当我们试图把公式反过来时，又发现一个像素并不能唯一确定三维位置。它首先提供的是空间方向，只有增加距离或者其他几何约束，才能进一步恢复空间中的点。</p>
+      <p>随后，真实镜头让我们认识到：理想投影并不总能直接解释观测像素的位置。因此需要研究偏移的结构，使用合适的畸变函数，才能从真实像素恢复符合模型的空间方向。</p>
+      <p>而对于大视场或特殊光学结构的相机，问题还可能更进一步：不仅要修正投影位置，甚至需要重新描述空间方向与成像位置之间的关系。</p>
+      <p>最终，可以把整段探索凝练成三个基本操作：</p>
+      <table><thead><tr><th>操作</th><th>已知什么</th><th>能够得到什么</th></tr></thead><tbody>
+        <tr><td>正向投影</td><td>三维点、坐标关系、相机模型</td><td>有效视场内的像素位置</td></tr>
+        <tr><td>逆向投影</td><td>像素、相机模型</td><td>对应的空间方向，或更一般的观测射线</td></tr>
+        <tr><td>三维恢复</td><td>空间射线、有效距离或其他几何约束</td><td>确定的三维位置</td></tr>
+      </tbody></table>
+      <p>这篇笔记最终得到的并不是一套万能的相机公式，而是三个值得一直记住的认识：</p>
+      <ul>
+        <li><strong>空间到图像的映射，来自明确的成像几何假设。</strong></li>
+        <li><strong>从图像恢复三维时，必须面对投影过程丢失的信息。</strong></li>
+        <li><strong>真实相机的数学模型必须与实际成像方式一致，不能把不同模型的参数和公式随意混用。</strong></li>
+      </ul>
+      <p>至此，我们已经知道了相机怎样把空间方向映射成像素，以及怎样从像素重新找到空间方向。</p>
+      <p>不过，离真正可靠的三维测量，还差一件关键的事情：<strong>我们可以找到射线，却仍然不知道物体究竟位于射线上的什么位置。</strong></p>
+      <p>接下来，才继续追问：深度相机究竟怎样测出这个距离？</p>
+      <div class="closing">相机并没有把 XYZ 原封不动地装进一张照片里。它先建立了空间方向与像素之间的关系；我们再依靠距离或额外的几何约束，沿着那个方向重新寻找三维世界。</div>
+    </section>
+
+    <footer>
+      <a href="../image-formation/">← 上一篇 · 相机成像</a>　·　<a href="../">返回总览</a>　·　<a href="../depth-measurement/">下一篇 · 深度测量 →</a>
+      <div>沿途手记 · Stage 01 / Q03 · 本篇聚焦投影几何，深度测量、相机参数标定与 RGB-Depth 配准留在后续专题。</div>
+      <a class="backtop" href="#intro">↑ 返回开头</a>
+    </footer>
+  </main>
+</div>
+<script>
+(function(){
+  function renderMath(){
+    if (!window.katex) return;
+    document.querySelectorAll('.eq').forEach(function(el){
+      var source = el.dataset.tex || el.textContent.trim();
+      el.dataset.tex = source;
+      try { window.katex.render(source, el, {displayMode:true,throwOnError:false,strict:'ignore'}); }
+      catch(err) { el.textContent = source; }
+    });
+  }
+  function installNavigation(){
+    var links = Array.from(document.querySelectorAll('nav a[data-target]'));
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          links.forEach(function(a){
+            var active = a.dataset.target === entry.target.id;
+            a.classList.toggle('active',active);
+            if(active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
+          });
+        }
+      });
+    },{rootMargin:'-12% 0px -72% 0px',threshold:0});
+    document.querySelectorAll('.chapter').forEach(function(s){observer.observe(s);});
+  }
+  function drawAngleCurves(){
+    var svg = document.getElementById('angular-plot');
+    if (!svg) return;
+    var ns='http://www.w3.org/2000/svg', x0=74, y0=270, pw=470, ph=216, xmax=85, ymax=5;
+    function el(tag, attrs, parent){
+      var o=document.createElementNS(ns,tag);
+      Object.keys(attrs).forEach(function(k){o.setAttribute(k,attrs[k]);});
+      (parent||svg).appendChild(o);return o;
+    }
+    function txt(x,y,t,attrs){var o=el('text',Object.assign({x:x,y:y,'font-size':12,fill:'#75685e'},attrs||{}));o.textContent=t;return o;}
+    function sx(theta){return x0+pw*theta/xmax;}
+    function sy(r){return y0-ph*r/ymax;}
+    for(var y=0;y<=5;y++){
+      el('line',{x1:x0,y1:sy(y),x2:x0+pw,y2:sy(y),stroke:'#ebdfd4','stroke-width':1});
+      txt(x0-11,sy(y)+4,String(y),{'text-anchor':'end'});
+    }
+    for(var t=0;t<=80;t+=20){
+      el('line',{x1:sx(t),y1:y0,x2:sx(t),y2:y0-ph,stroke:'#f0e7df','stroke-width':1});
+      txt(sx(t),y0+20,String(t)+'°',{'text-anchor':'middle'});
+    }
+    el('line',{x1:x0,y1:y0,x2:x0+pw+8,y2:y0,stroke:'#9f9284','stroke-width':1.7});
+    el('line',{x1:x0,y1:y0,x2:x0,y2:y0-ph-8,stroke:'#9f9284','stroke-width':1.7});
+    txt(x0+pw/2,y0+47,'入射角 θ',{'text-anchor':'middle','font-weight':600});
+    txt(22,35,'r / f',{'font-weight':700});
+    var curves=[
+      {name:'普通透视',color:'#b66d4d',fun:function(t){return Math.tan(t);}},
+      {name:'等距投影',color:'#739781',fun:function(t){return t;}},
+      {name:'等立体角',color:'#b89a4f',fun:function(t){return 2*Math.sin(t/2);}},
+      {name:'立体投影',color:'#9471a8',fun:function(t){return 2*Math.tan(t/2);}},
+      {name:'正交投影',color:'#6d9cab',fun:function(t){return Math.sin(t);}}
+    ];
+    curves.forEach(function(c,i){
+      var points=[];
+      for(var a=0;a<=xmax;a+=.35){
+        var v=c.fun(a*Math.PI/180);
+        if(!Number.isFinite(v)||v>ymax) break;
+        points.push(sx(a).toFixed(1)+','+sy(v).toFixed(1));
+      }
+      el('polyline',{points:points.join(' '),fill:'none',stroke:c.color,'stroke-width':2.6,'stroke-linejoin':'round','stroke-linecap':'round'});
+      var lx=566,ly=73+i*35;
+      el('line',{x1:lx,y1:ly,x2:lx+25,y2:ly,stroke:c.color,'stroke-width':3,'stroke-linecap':'round'});
+      txt(lx+35,ly+4,c.name,{'font-size':13});
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){installNavigation();drawAngleCurves();renderMath();});
+  } else { installNavigation(); drawAngleCurves(); renderMath(); }
+  window.addEventListener('load',renderMath,{once:true});
+})();
+</script>
+</body>
+</html>

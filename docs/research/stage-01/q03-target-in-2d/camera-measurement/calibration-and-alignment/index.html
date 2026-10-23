@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="沿途手记 · Stage 01：从相机模型与畸变、张正友标定，到 Color–Depth 外参与 RGB-D 几何配准的第一性探索。">
+  <meta name="color-scheme" content="light">
+  <title>06 · 标定与配准｜从理想相机到真实 RGB-D 观测 — 沿途手记</title>
+  <style>
+    :root{
+      --paper:#fbf8f0;--paper-deep:#f3efe5;--white:#fffdfa;
+      --ink:#493f36;--ink-deep:#302c27;--muted:#80766d;--soft:#9f968b;
+      --line:#e6dfd3;--apricot:#e6a28b;--terracotta:#bc765e;
+      --peach:#f7e6db;--sage:#809b83;--sage-light:#e9f0e7;
+      --wheat:#ead49c;--wheat-light:#faf4df;
+      --shadow:0 20px 55px rgba(73,56,35,.045);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:34px}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;font-size:16px;line-height:1.92;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.23;background-image:radial-gradient(#b5a28a 0.42px,transparent .42px);background-size:8px 8px;z-index:-1}
+    a{color:var(--terracotta);text-decoration:none}
+    a:hover{text-decoration:underline;text-underline-offset:3px}
+    ::selection{background:#f7d9cb;color:#493f36}
+    .progress{position:fixed;top:0;left:0;width:0;height:3px;background:var(--terracotta);z-index:20;transition:width .08s linear}
+    .sitebar{height:66px;border-bottom:1px solid var(--line);background:rgba(251,248,240,.93);backdrop-filter:blur(16px)}
+    .sitebar-inner{max-width:1192px;height:100%;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{font-family:"Noto Serif CJK SC","Songti SC",serif;color:var(--ink-deep);font-size:17px;letter-spacing:.065em;font-weight:700}
+    .brand .logo{font-size:12px;vertical-align:3px;color:var(--terracotta);padding-right:7px}
+    .sitepath{font-size:12px;color:var(--muted);letter-spacing:.05em;white-space:nowrap}
+    .sitepath span{color:#b7ada2;padding:0 9px}
+    .hero{position:relative;max-width:1192px;margin:46px auto 0;padding:0 28px}
+    .hero-inner{border:1px solid var(--line);border-radius:18px;background:var(--white);box-shadow:var(--shadow);overflow:hidden;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr)}
+    .hero-copy{padding:57px 58px 52px}
+    .eyebrow{display:flex;align-items:center;gap:12px;margin:0 0 20px;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--terracotta);text-transform:uppercase}
+    .eyebrow:before{content:"";width:20px;height:2px;background:var(--apricot)}
+    h1,h2,h3,h4{font-family:"Noto Serif CJK SC","Source Han Serif SC","Songti SC","SimSun",serif;color:var(--ink-deep);font-weight:700}
+    h1{font-size:clamp(30px,3.15vw,43px);line-height:1.47;letter-spacing:-.035em;margin:0 0 21px}
+    .hero-lead{font-size:15px;color:#71675d;max-width:590px;line-height:2.15;margin:0}
+    .hero-lead strong{font-weight:700;color:var(--ink)}
+    .hero-actions{display:flex;gap:17px;align-items:center;flex-wrap:wrap;margin-top:26px}
+    .backlink{display:inline-flex;align-items:center;gap:8px;border-bottom:1px solid #cfb2a4;padding-bottom:2px;font-size:12px;color:var(--terracotta);font-weight:700}
+    .hero-note{font-size:11px;color:var(--soft)}
+    .hero-art{background:linear-gradient(145deg,#f7e9dd 0%,#f5f0e3 63%,#edf0e5 100%);border-left:1px solid var(--line);position:relative;display:flex;align-items:center;justify-content:center;padding:22px}
+    .hero-art:after{content:"a little more than a formula";position:absolute;bottom:19px;right:21px;color:#a99c8e;font:italic 11px Georgia,serif;letter-spacing:.035em}
+    .layout{max-width:1192px;display:grid;grid-template-columns:222px minmax(0,1fr);column-gap:56px;margin:0 auto;padding:62px 28px 110px;align-items:start}
+    .sidebar{position:sticky;top:28px;align-self:start;padding-top:5px}
+    .toc-label{font-size:11px;font-weight:800;letter-spacing:.17em;color:var(--muted);margin:0 0 17px}
+    .toc{display:flex;flex-direction:column;gap:3px;border-left:1px solid var(--line)}
+    .toc a{display:block;padding:11px 12px 11px 18px;margin-left:-1px;border-left:2px solid transparent;font-size:12px;color:#80756a;line-height:1.7;transition:.2s}
+    .toc a.active,.toc a:hover{border-left-color:var(--terracotta);color:var(--ink-deep);background:rgba(242,225,214,.40);text-decoration:none}
+    .toc a b{font-size:11px;color:var(--terracotta);margin-right:7px;letter-spacing:.08em}
+    .sideline{border-top:1px solid var(--line);margin:23px 0}
+    .sidenote{font-size:12px;line-height:1.9;color:var(--muted);margin:0}
+    .content{min-width:0;max-width:825px}
+    .intro{margin:0 0 74px}
+    .section-kicker{color:var(--terracotta);font-size:11px;font-weight:800;letter-spacing:.15em;margin:0 0 14px}
+    .intro h2{font-size:27px;line-height:1.55;margin:0 0 20px}
+    .intro p,.chapter p,.ending p{margin:0 0 18px}
+    strong{color:var(--ink-deep);font-weight:700}
+    .question{padding:18px 24px;margin:29px 0 31px;background:#f8ece6;border-left:3px solid var(--apricot);border-radius:0 9px 9px 0;color:#694d3f;font-family:"Noto Serif CJK SC","Songti SC",serif;font-size:17px;line-height:1.85;font-weight:700}
+    .route-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:32px 0 0}
+    .route-mini{background:var(--white);border:1px solid var(--line);border-radius:8px;padding:13px 10px;text-align:center;min-width:0}
+    .route-mini b{display:block;font:800 10px system-ui;color:var(--terracotta);margin-bottom:3px}
+    .route-mini span{font-size:12px;color:var(--ink);font-weight:700}
+    .chapter{padding-top:54px;margin-top:13px;border-top:1px solid var(--line);scroll-margin-top:25px}
+    .chapter-head{display:flex;align-items:center;gap:18px;margin-bottom:8px}
+    .chapter-number{flex:0 0 48px;width:48px;height:48px;border-radius:13px;display:grid;place-items:center;background:var(--peach);color:var(--terracotta);font:bold 19px Georgia,serif}
+    .chapter-number.sage{background:var(--sage-light);color:var(--sage)}
+    .chapter-number.wheat{background:var(--wheat-light);color:#a88740}
+    .chapter-label{font:800 10px system-ui;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin:0}
+    .chapter h2{font-size:clamp(23px,2.3vw,29px);line-height:1.55;letter-spacing:-.02em;margin:0 0 13px}
+    .chapter .deck{font-size:15px;color:#796e63;line-height:1.95;margin:0 0 33px}
+    .chapter h3{font-size:19px;line-height:1.55;margin:43px 0 14px;position:relative;padding-left:17px}
+    .chapter h3:before{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--terracotta);left:0;top:13px}
+    .chapter h4{font-size:16px;margin:27px 0 8px}
+    .inline-formula{color:#594b3e;white-space:nowrap}
+    .mathblock{margin:24px 0;padding:17px 20px;background:var(--white);border:1px solid var(--line);border-radius:10px;overflow-x:auto;text-align:center;font-size:15px}
+    .mathblock.small{padding:13px 20px}
+    .mathblock .MathJax{max-width:100%}
+    .figure{margin:33px 0;padding:20px 20px 13px;background:var(--white);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+    .figure svg{display:block;width:100%;height:auto;max-height:310px}
+    .fig-label{font-size:10px;letter-spacing:.13em;font-weight:800;color:var(--terracotta);margin-bottom:10px}
+    .figure figcaption{border-top:1px solid var(--line);padding-top:12px;margin-top:10px;font-size:12px;line-height:1.8;color:var(--muted)}
+    .callout{margin:24px 0;padding:20px 23px;border:1px solid #e3e7dc;background:#f0f4ed;border-radius:10px}
+    .callout .label{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--sage);margin:0 0 8px}
+    .callout p:last-child{margin:0}
+    .muted-note{font-size:13px;color:var(--muted)}
+    .table-wrap{overflow-x:auto;margin:26px 0 30px;border:1px solid var(--line);border-radius:11px;background:var(--white)}
+    table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.8;min-width:575px}
+    th,td{padding:12px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+    th{background:#f5efe5;color:var(--ink-deep);font-size:12px;white-space:nowrap}
+    tr:last-child td{border-bottom:0}
+    td:first-child{font-weight:700;color:#645040}
+    .steps{display:grid;grid-template-columns:1fr;gap:10px;margin:26px 0 30px}
+    .step{display:flex;align-items:flex-start;gap:15px;padding:15px 18px;background:var(--white);border:1px solid var(--line);border-radius:9px}
+    .step i{display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px;border-radius:7px;background:var(--peach);color:var(--terracotta);font-style:normal;font-family:Georgia,serif;font-weight:bold;font-size:14px}
+    .step p{margin:0!important;font-size:14px}
+    .endpoint{border-top:1px solid var(--line);margin:39px 0 5px;padding-top:25px}
+    .endpoint .ep-label{font-size:10px;letter-spacing:.13em;font-weight:800;color:var(--sage);margin:0 0 9px}
+    .endpoint p{font-size:14px;line-height:2;color:#675e54;margin:0}
+    .ending{margin-top:75px;padding:38px 41px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#fffdfa,#f7f2e8)}
+    .ending h2{font-size:25px;line-height:1.5;margin:0 0 20px}
+    .ending ul{list-style:none;padding:0;margin:23px 0 25px}
+    .ending li{padding:10px 0 10px 24px;position:relative;border-bottom:1px dashed #e2d8ca;font-size:14px}
+    .ending li:before{content:"✦";position:absolute;left:0;top:10px;color:var(--terracotta);font-size:11px}
+    .last-line{font-family:"Noto Serif CJK SC","Songti SC",serif;font-size:17px!important;color:#60493d;margin-top:19px!important;font-weight:700}
+    .endlinks{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:30px 0 0}
+    .endlinks a{font-weight:700;font-size:12px}
+    .footer{max-width:1192px;padding:22px 28px 30px;margin:0 auto;border-top:1px solid var(--line);font-size:11px;color:var(--soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    code{font:13px/1.65 "SFMono-Regular",Consolas,Monaco,monospace;word-break:break-all;color:#815d48;background:#f8eee6;border-radius:4px;padding:1px 5px}
+    .arrowlist{list-style:none;padding:0;margin:23px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .arrowlist li{position:relative;text-align:center;border:1px solid #e1dbce;border-radius:8px;background:#fffdf9;padding:15px 8px;font-size:12px;font-weight:700;line-height:1.75}
+    .arrowlist li:not(:last-child):after{content:"→";position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:var(--terracotta);font-size:15px;background:var(--paper);width:15px;z-index:1}
+    @media(max-width:1000px){.hero-copy{padding:44px 35px}.layout{grid-template-columns:178px minmax(0,1fr);gap:34px}.sitepath{display:none}}
+    @media(max-width:760px){html{scroll-padding-top:22px}.sitebar{height:58px}.sitebar-inner,.hero,.layout,.footer{padding-left:20px;padding-right:20px}.hero{margin-top:22px}.hero-inner{grid-template-columns:1fr}.hero-copy{padding:35px 28px 31px}.hero-art{border-left:0;border-top:1px solid var(--line);min-height:180px;padding:0 25px}.hero-art svg{max-width:360px;max-height:180px}.hero-art:after{display:none}.layout{display:block;padding-top:44px;padding-bottom:55px}.sidebar{position:static;margin-bottom:47px;padding:0}.toc-label{margin-bottom:8px}.toc{display:flex;flex-direction:row;overflow-x:auto;border:0;padding-bottom:3px;gap:7px}.toc a{white-space:nowrap;margin:0;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--white)}.toc a.active{border:1px solid var(--terracotta)}.sideline,.sidenote{display:none}.intro{margin-bottom:52px}.intro h2{font-size:23px}.chapter{padding-top:43px}.chapter-head{gap:12px}.chapter-number{width:42px;height:42px;flex-basis:42px}.chapter h3{margin-top:36px}.route-strip{grid-template-columns:repeat(2,1fr)}.arrowlist{grid-template-columns:repeat(2,1fr)}.arrowlist li:nth-child(2):after{display:none}.figure{padding:12px}.ending{padding:28px 24px}.ending h2{font-size:22px}.mathblock{padding:13px 9px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.progress{transition:none}}
+    @media print{body{background:#fff;font-size:12px}.sitebar,.sidebar,.progress,.hero-actions,.endlinks{display:none!important}.hero{margin:0;max-width:none;padding:0}.hero-inner{border:0;box-shadow:none}.hero-copy{padding:0}.hero-art{display:none}.layout{display:block;margin:0;padding:0}.content{max-width:none}.chapter{break-before:page}.figure,.table-wrap,.mathblock{break-inside:avoid}.ending{break-inside:avoid}}
+  </style>
+  <script>
+    window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <div class="progress" id="readProgress" aria-hidden="true"></div>
+  <header class="sitebar">
+    <div class="sitebar-inner">
+      <a class="brand" href="/"> <span class="logo">✳</span>沿途手记</a>
+      <div class="sitepath">STAGE 01 <span>/</span> CAMERA MEASUREMENT <span>/</span> 06</div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">06 · Calibration &amp; Alignment</p>
+        <h1>从理想相机，<br>到真实 RGB-D 观测</h1>
+        <p class="hero-lead">反投影公式已经能把像素和深度变成三维坐标。可公式默认的<strong>镜头、参数和坐标系</strong>，真的与手里的相机一致吗？这一段从四个连续的问题出发，把理想成像一步步接到真实设备上。</p>
+        <div class="hero-actions">
+          <a class="backlink" href="../">← 返回相机与三维测量总览</a>
+          <span class="hero-note">一份关于相机几何的小小探索</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="lensgrad" x1="0" x2="1"><stop stop-color="#e9b1a0"/><stop offset="1" stop-color="#d6927d"/></linearGradient></defs>
+          <g stroke="#c4b6a7" stroke-width="1.4" fill="none" stroke-dasharray="4 5" opacity=".8">
+            <path d="M40 68 L168 136 L310 63"/><path d="M40 222 L168 136 L310 220"/><path d="M168 136 L334 136"/>
+          </g>
+          <g transform="translate(98 74)">
+            <rect x="0" y="35" width="99" height="69" rx="13" fill="#a9bb9d" stroke="#77927b" stroke-width="2"/>
+            <rect x="-17" y="46" width="34" height="46" rx="5" fill="#d9cbb9" stroke="#bba997" stroke-width="1.5"/>
+            <circle cx="59" cy="69" r="27" fill="#f8eddf" stroke="#6b8973" stroke-width="3"/>
+            <circle cx="59" cy="69" r="14" fill="#d9ab98" stroke="#ad7664" stroke-width="3"/>
+            <circle cx="59" cy="69" r="5" fill="#746f65"/>
+            <circle cx="59" cy="69" r="34" stroke="#738d7d" stroke-width="1.3" stroke-dasharray="3 5" fill="none"/>
+            <rect x="14" y="27" width="40" height="9" rx="4" fill="#d49a81"/>
+          </g>
+          <g stroke="#bc806b" stroke-width="1.8" fill="none" opacity=".8">
+            <path d="M168 143 L302 74"/><path d="M168 143 L309 141"/><path d="M168 143 L302 215"/>
+          </g>
+          <g transform="translate(271 77) rotate(-9)">
+            <rect width="57" height="118" rx="5" fill="#fffaf4" stroke="#bdad9a"/>
+            <path d="M12 0 V118 M24 0 V118 M36 0 V118 M48 0 V118 M0 16 H57 M0 31 H57 M0 46 H57 M0 61 H57 M0 76 H57 M0 91 H57 M0 106 H57" stroke="#d6c7b6" stroke-width=".8"/>
+            <path d="M4 13 Q27 24 53 12 M4 103 Q27 93 53 104" stroke="#bb7a60" stroke-width="2.7" fill="none"/>
+            <circle cx="28" cy="60" r="4" fill="#799b80"/>
+          </g>
+          <g font-family="Georgia,serif" fill="#a58f7a" font-size="12" font-style="italic"><text x="40" y="53">3D</text><text x="300" y="63">2D</text><text x="142" y="225">K · D · R · t</text></g>
+          <path d="M88 249 Q145 269 212 252" stroke="#cabfad" stroke-width="1.6" fill="none" stroke-dasharray="3 6"/>
+          <circle cx="215" cy="252" r="3" fill="#d39881"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="本页目录">
+      <p class="toc-label">ON THIS PAGE · 探索目录</p>
+      <nav class="toc">
+        <a href="#opening" class="active">从公式留下的问题开始</a>
+        <a href="#camera-model"><b>01</b>相机模型与畸变</a>
+        <a href="#camera-calibration"><b>02</b>相机标定</a>
+        <a href="#color-depth-extrinsics"><b>03</b>Color–Depth 外参</a>
+        <a href="#geometric-alignment"><b>04</b>RGB-D 几何配准</a>
+        <a href="#reflection">回头看 · 几何关系终于完整</a>
+      </nav>
+      <div class="sideline"></div>
+      <p class="sidenote">这里先把<strong>成像模型和几何对应</strong>说清楚。精度评估、误差诊断与点云异常，留给下一章再展开。</p>
+    </aside>
+
+    <main class="content" id="main">
+      <section class="intro" id="opening">
+        <p class="section-kicker">THE STARTING POINT</p>
+        <h2>我们究竟默认了什么？</h2>
+        <p>反投影公式已经告诉我们，如何利用一个像素的位置和深度恢复三维坐标。但仔细想想，公式其实默认了不少事情：焦距和主点是已知的，镜头满足选定的相机模型，像素和深度能够正确对应。</p>
+        <p>现实中的 RGB-D 相机未必天然满足这些假设。与其继续往公式里代数值，不如回到观测本身，逐个弄清这些关系从哪里来。</p>
+        <div class="question">怎样让理想的像素—空间关系，真正对应手里的 RGB-D 相机？</div>
+        <div class="route-strip" aria-label="四段探索路线">
+          <div class="route-mini"><b>01 / MODEL</b><span>描述成像</span></div>
+          <div class="route-mini"><b>02 / CALIBRATION</b><span>求出参数</span></div>
+          <div class="route-mini"><b>03 / EXTRINSICS</b><span>连接坐标系</span></div>
+          <div class="route-mini"><b>04 / ALIGNMENT</b><span>统一观测</span></div>
+        </div>
+      </section>
+
+      <section class="chapter" id="camera-model">
+        <div class="chapter-head"><span class="chapter-number">01</span><p class="chapter-label">Camera Model &amp; Distortion</p></div>
+        <h2>相机模型与畸变｜真实镜头真的符合针孔模型吗？</h2>
+        <p class="deck">先从最熟悉的针孔模型开始。它把光线和像素连接得很漂亮，可真实镜头的表现，似乎总有一点不一样。</p>
+
+        <h3>从理想模型开始</h3>
+        <p>在针孔模型中，一个空间点 \(P=(X,Y,Z)\) 经过透视投影，落在归一化像平面上：</p>
+        <div class="mathblock">\[x=\frac{X}{Z},\qquad y=\frac{Y}{Z}\]</div>
+        <p>再通过相机内参矩阵 \(K\)，转换为图像中的像素坐标。在常见的零 Skew 假设下：</p>
+        <div class="mathblock">\[K=\begin{bmatrix}f_x&0&c_x\\0&f_y&c_y\\0&0&1\end{bmatrix},\qquad \begin{cases}u=f_xx+c_x\\v=f_yy+c_y\end{cases}\]</div>
+        <p>其中，\(f_x,f_y\) 是以像素为单位的焦距，\(c_x,c_y\) 是主点位置。这个模型的核心非常简单：<strong>空间点、光心和成像位置之间，可以通过一条直线建立关系。</strong></p>
+        <p>但真实镜头由多个透镜组成。光线经过镜片时，可能偏离理想针孔模型给出的方向；这种差异在图像边缘往往更明显。</p>
+        <div class="question">能不能保留针孔模型的结构，再增加一层修正，描述真实镜头的偏差？</div>
+
+        <h3>第一种修正：径向畸变</h3>
+        <p>观察广角镜头拍摄的直线，有时会发现它向外鼓起，或者向内弯曲。一个很自然的想法是：让偏移量与像素到中心的距离有关。</p>
+        <p>在归一化像平面上，定义 \(r^2=x^2+y^2\)，使用径向多项式：</p>
+        <div class="mathblock">\[\begin{aligned}x_d&=x(1+k_1r^2+k_2r^4+k_3r^6)\\y_d&=y(1+k_1r^2+k_2r^4+k_3r^6)\end{aligned}\]</div>
+        <p>它表达的是：<strong>距离中心越远，允许产生越大的径向修正。</strong>不同系数能够描述常见的桶形畸变、枕形畸变及更复杂的径向变化。</p>
+        <figure class="figure">
+          <div class="fig-label">FIG 01 · 直线为什么会弯曲？</div>
+          <svg viewBox="0 0 680 225" role="img" aria-label="左侧为理想针孔直线网格，右侧为桶形畸变示意，直线向边缘弯曲">
+            <g transform="translate(24 15)"><text x="145" y="5" text-anchor="middle" font-size="13" fill="#6e6256">理想针孔投影</text><rect y="24" width="294" height="160" rx="8" fill="#f9f5ed" stroke="#dcd4c8"/><g stroke="#a5b5a3" stroke-width="1.3" fill="none" opacity=".95"><path d="M49 24 V184 M98 24 V184 M147 24 V184 M196 24 V184 M245 24 V184"/><path d="M0 56 H294 M0 88 H294 M0 120 H294 M0 152 H294"/></g><circle cx="147" cy="104" r="4" fill="#c78168"/><text x="147" y="208" text-anchor="middle" font-size="12" fill="#a29587">直线仍然是直线</text></g>
+            <g transform="translate(363 15)"><text x="145" y="5" text-anchor="middle" font-size="13" fill="#6e6256">径向畸变 · 桶形示意</text><rect y="24" width="294" height="160" rx="8" fill="#f9f5ed" stroke="#dcd4c8"/><g stroke="#c48976" stroke-width="1.4" fill="none"><path d="M55 24 Q42 104 55 184 M101 24 Q95 104 101 184 M147 24 V184 M193 24 Q199 104 193 184 M239 24 Q252 104 239 184"/><path d="M0 61 Q147 48 294 61 M0 91 Q147 85 294 91 M0 117 Q147 123 294 117 M0 147 Q147 160 294 147"/></g><circle cx="147" cy="104" r="4" fill="#c78168"/><text x="147" y="208" text-anchor="middle" font-size="12" fill="#a29587">边缘的位置随半径变化</text></g>
+          </svg>
+          <figcaption>示意图只强调几何趋势：针孔模型保持直线成像，径向畸变可能让图像中的直线弯曲；具体方向和程度取决于镜头及模型系数。</figcaption>
+        </figure>
+
+        <h3>第二种修正：切向畸变</h3>
+        <p>刚才默认偏移大致围绕光轴呈旋转对称。但真实镜头的光学元件可能存在偏心或倾斜，偏移不一定沿着径向发生。</p>
+        <p>于是再引入切向畸变系数 \(p_1,p_2\)，与径向畸变合在一起，形成常见的 <strong>Brown–Conrady 模型</strong>：</p>
+        <div class="mathblock">\[\begin{aligned}
+x_d={}&x(1+k_1r^2+k_2r^4+k_3r^6)\\&+2p_1xy+p_2(r^2+2x^2)\\[3pt]
+y_d={}&y(1+k_1r^2+k_2r^4+k_3r^6)\\&+p_1(r^2+2y^2)+2p_2xy
+\end{aligned}\]</div>
+        <p>这样，完整的成像关系就可以理解为三个步骤：<strong>三维透视投影 → 畸变修正 → 内参转换为像素坐标。</strong> OpenCV 常规相机标定便广泛采用这一类模型。</p>
+
+        <h3>如果视角大到普通针孔模型也不合适呢？</h3>
+        <p>对于大视场鱼眼镜头，问题可能不再是给针孔投影增加几个修正项，而是投影关系本身需要改变。</p>
+        <p>针孔投影中的归一化半径与入射角满足 \(r=\tan\theta\)。当视角接近甚至跨越 180° 时，它难以作为整个视场的合适描述。</p>
+        <p>另一类思路是直接描述光线入射角 \(\theta\) 与成像半径之间的关系。例如 <strong>Kannala–Brandt</strong> 类型的角度多项式：</p>
+        <div class="mathblock small">\[\theta_d=\theta(1+k_1\theta^2+k_2\theta^4+k_3\theta^6+k_4\theta^8)\]</div>
+        <p>之后根据 \(\theta_d\) 与光线方位角确定图像位置。这与在普通针孔投影上叠加畸变系数，是两种不同的建模选择。</p>
+        <div class="table-wrap"><table><thead><tr><th>模型</th><th>核心想法</th><th>典型适用情况</th></tr></thead><tbody>
+          <tr><td>Pinhole</td><td>理想中心透视投影</td><td>理论建模、已去畸变的透视图像</td></tr>
+          <tr><td>Brown–Conrady</td><td>在针孔投影后叠加径向与切向畸变</td><td>常规透视镜头</td></tr>
+          <tr><td>Rational Polynomial</td><td>使用有理多项式增强径向畸变表达</td><td>畸变较复杂的透视镜头</td></tr>
+          <tr><td>Fisheye / Kannala–Brandt</td><td>以入射角建立成像关系</td><td>大视场、鱼眼镜头</td></tr>
+        </tbody></table></div>
+
+        <h3>回到反投影：从真实像素怎么找回空间光线？</h3>
+        <p>这里有一个容易被忽略的方向问题：畸变模型一般先描述的是<strong>理想光线如何变成畸变像素</strong>；而深度反投影需要的是反方向，即<strong>实际像素对应哪条空间光线</strong>。</p>
+        <p>对于 Brown–Conrady，反向关系一般不能简单地把畸变系数取负，而需要通过数值求解等方式恢复无畸变归一化坐标。OpenCV 的 <code>cv2.undistortPoints()</code> 就可以完成对应模型下的这项工作。</p>
+        <div class="callout"><p class="label">A SMALL BUT IMPORTANT DISTINCTION</p><p>如果使用的是已经去畸变、校正后的图像，就应使用<strong>与这张新图像相匹配的内参</strong>，而不是再把原始畸变模型重复施加一遍。</p></div>
+        <div class="endpoint"><p class="ep-label">这一站留下的认识</p><p>真实像素与空间光线的对应关系，不仅需要 K，还需要与图像状态一致的畸变模型。反投影之前，要先确认手里的是原始图像还是已经校正过的图像。</p></div>
+      </section>
+
+      <section class="chapter" id="camera-calibration">
+        <div class="chapter-head"><span class="chapter-number sage">02</span><p class="chapter-label">Camera Calibration</p></div>
+        <h2>相机标定｜知道模型以后，参数从哪里来？</h2>
+        <p class="deck">成像模型终于清楚了，可 \(f_x,f_y,c_x,c_y\) 和那些畸变系数，并不会自己出现在公式里。怎样从真实观测中反推出它们？</p>
+
+        <h3>先从已知的空间点想起</h3>
+        <p>如果知道一个空间点的三维位置，也知道它在图像中的像素位置，那么模型预测的像素，就必须与真实观测相符。</p>
+        <p>更多的 3D–2D 对应，意味着更多约束。理论上，我们可以利用这些对应反推出未知的相机参数。</p>
+        <p>可在真实三维空间里精确布置大量标记点并不轻松。有更方便的办法吗？</p>
+
+        <h3>一张平面棋盘格，为什么能完成标定？</h3>
+        <p>棋盘格提供了已知的几何结构。只要知道方格边长，就能在标定板坐标系中给每个角点定义位置，例如：</p>
+        <div class="mathblock small">\[(0,0,0),\ (20,0,0),\ (40,0,0),\ \ldots\quad\text{(mm)}\]</div>
+        <p>虽然全部角点都在同一个平面上，反而能利用一条特殊的投影关系：在忽略畸变的针孔模型下，平面点与图像点之间存在 <strong>Homography（单应变换）</strong>。</p>
+        <div class="mathblock">\[s\begin{bmatrix}u\\v\\1\end{bmatrix}=H\begin{bmatrix}X\\Y\\1\end{bmatrix}\]</div>
+        <p>只要能找到棋盘角点的平面坐标与图像坐标对应，就可以估计这次拍摄的 H。</p>
+        <p>不过，H 不是内参。它同时包含相机内参，以及当前标定板相对于相机的位姿。</p>
+        <div class="question">如果每次拍摄姿态都不同，但使用的始终是同一台相机，能不能从这些变化中把固定内参分离出来？</div>
+
+        <h3>张正友标定：用多个姿态，寻找不变的内参</h3>
+        <p>这正是张正友平面标定法的重要思想。对于标定板所在的 \(Z=0\) 平面，有：</p>
+        <div class="mathblock">\[H=K\begin{bmatrix}r_1&r_2&t\end{bmatrix}\]</div>
+        <p>这里的 \(r_1,r_2\) 是旋转矩阵的前两列，t 是平移。关键在于：旋转矩阵的两个列向量并非任意取值，它们必须互相垂直且长度相等。</p>
+        <div class="mathblock small">\[r_1^{\mathsf T}r_2=0,\qquad \|r_1\|=\|r_2\|=1\]</div>
+        <p>于是，每个观测到的 H 都能为内参提供约束。让标定板在不同视角和倾斜角度下被拍摄，就能从多个 Homography 中恢复共享的 K；在常见五内参参数化下，至少需要多个非退化姿态，通常远不止拍几张就结束。</p>
+        <figure class="figure">
+          <div class="fig-label">FIG 02 · 变的是标定板姿态，不变的是相机内参</div>
+          <svg viewBox="0 0 680 245" role="img" aria-label="同一相机观察三个不同倾斜姿态的棋盘格，形成不同单应性矩阵但共享相机内参">
+            <g transform="translate(8 15)">
+              <g fill="none" stroke="#bc9d86" stroke-width="1.4" opacity=".8"><path d="M328 191 L87 46 M328 191 L343 36 M328 191 L590 54" stroke-dasharray="4 6"/></g>
+              <g transform="translate(44 40) skewY(-10)"><rect width="107" height="78" fill="#f8f0e5" stroke="#bda997"/><path d="M26 0 V78 M53 0 V78 M80 0 V78 M0 19 H107 M0 39 H107 M0 58 H107" stroke="#9aab9a" stroke-width="1.1"/><rect width="26" height="19" fill="#dcb19c" opacity=".85"/><rect x="53" width="27" height="19" fill="#dcb19c" opacity=".85"/><rect x="26" y="19" width="27" height="20" fill="#dcb19c" opacity=".85"/></g>
+              <g transform="translate(287 16) rotate(9)"><rect width="113" height="86" fill="#f8f0e5" stroke="#bda997"/><path d="M28 0 V86 M56 0 V86 M84 0 V86 M0 21 H113 M0 43 H113 M0 64 H113" stroke="#9aab9a" stroke-width="1.1"/><rect width="28" height="21" fill="#dcb19c" opacity=".85"/><rect x="56" width="28" height="21" fill="#dcb19c" opacity=".85"/><rect x="28" y="21" width="28" height="22" fill="#dcb19c" opacity=".85"/></g>
+              <g transform="translate(552 47) rotate(-12) skewX(-11)"><rect width="91" height="74" fill="#f8f0e5" stroke="#bda997"/><path d="M23 0 V74 M46 0 V74 M69 0 V74 M0 18 H91 M0 37 H91 M0 56 H91" stroke="#9aab9a" stroke-width="1.1"/><rect width="23" height="18" fill="#dcb19c" opacity=".85"/><rect x="46" width="23" height="18" fill="#dcb19c" opacity=".85"/><rect x="23" y="18" width="23" height="19" fill="#dcb19c" opacity=".85"/></g>
+              <g transform="translate(285 172)"><rect width="86" height="48" rx="9" fill="#a8baa4" stroke="#77907a" stroke-width="1.4"/><circle cx="44" cy="24" r="16" fill="#f9f4eb" stroke="#788f7b" stroke-width="3"/><circle cx="44" cy="24" r="6" fill="#cb9684"/></g>
+              <g font-size="12" fill="#9b7966"><text x="75" y="139">H₁</text><text x="345" y="119">H₂</text><text x="596" y="134">H₃</text><text x="387" y="202">共享 K</text></g>
+            </g>
+          </svg>
+          <figcaption>棋盘格的角点几何不变；不同拍摄姿态提供不同的平面投影约束，帮助从变化的外参中分离出固定内参。</figcaption>
+        </figure>
+
+        <h3>为什么还需要非线性重投影优化？</h3>
+        <p>通过平面几何约束，可以获得内参初值。但这一过程通常先采用理想针孔假设，而真实图像还存在镜头畸变以及角点定位的不完美。</p>
+        <p>接下来，就可以把内参、畸变参数和每张图像的标定板位姿放进同一个优化问题：</p>
+        <div class="mathblock">\[\hat p_{ij}=\pi(K,D,R_i,t_i,P_j)\]</div>
+        <div class="mathblock">\[\min_{K,D,\{R_i,t_i\}}\sum_{i,j}\left\|p_{ij}-\hat p_{ij}\right\|^2\]</div>
+        <p>其中，\(p_{ij}\) 是实际检测到的角点，\(\hat p_{ij}\) 是根据当前参数重新投影得到的像素。通过 Levenberg–Marquardt 等非线性最小二乘算法，寻找让预测与观测尽量一致的一组参数。</p>
+        <p>这便构成了一条经典的求解路线：<strong>平面几何给出初值，再用完整成像模型进行联合优化。</strong></p>
+
+        <h3>一定要用棋盘格吗？</h3>
+        <p>并不需要。标定问题真正依赖的是可靠的参考几何和像素对应，棋盘格只是其中一种实现。</p>
+        <div class="table-wrap"><table><thead><tr><th>参考物</th><th>怎样建立对应</th><th>更有价值的场景</th></tr></thead><tbody>
+          <tr><td>Chessboard</td><td>规则棋盘角点与已知网格坐标</td><td>常规高质量相机标定</td></tr>
+          <tr><td>Circle Grid</td><td>圆心与规则排列关系</td><td>圆点定位稳定、布置方便的场景</td></tr>
+          <tr><td>ChArUco</td><td>编码标记提供身份，棋盘角点提供精确位置</td><td>标定板部分可见、存在遮挡</td></tr>
+          <tr><td>AprilTag Grid</td><td>独立标签 ID 与已知板面布局</td><td>多视角、大面积参考布置</td></tr>
+        </tbody></table></div>
+        <p>这些参考物并不代表四套完全不同的内参求解理论。它们首先解决的是<strong>怎样找到已知参考点与图像像素之间可靠的对应</strong>。</p>
+        <p>另外，拍摄标定板也不只是收集更多图像。如果所有图像几乎来自同一个方向，就只是在重复近似的约束。让标定板产生适度的平移、倾斜和视角变化，才更有利于区分未知参数。</p>
+
+        <h3>得到 K 之后，还能一直照搬吗？</h3>
+        <p>参数应当对应实际使用的图像坐标定义。例如，图像从 \(1280\times720\) 等比或非等比缩放到另一尺寸时，焦距和主点的像素数值需要随对应轴缩放；如果图像被裁剪，主点还要减去裁剪偏移。</p>
+        <p>而对于经过整流、去畸变的图像，还可能存在一组新的有效投影内参。因此，比起只保存一串 \(f_x,f_y,c_x,c_y\)，更重要的是知道：<strong>这组参数究竟属于哪种图像。</strong></p>
+        <div class="endpoint"><p class="ep-label">这一站留下的认识</p><p>相机标定不是把棋盘格交给一个 API，而是利用已知几何与图像观测建立约束。张正友标定提供平面求解思路，非线性重投影优化把畸变也纳入了模型。</p></div>
+      </section>
+
+      <section class="chapter" id="color-depth-extrinsics">
+        <div class="chapter-head"><span class="chapter-number wheat">03</span><p class="chapter-label">Color–Depth Extrinsics</p></div>
+        <h2>Color–Depth 外参｜同一个像素，为什么不代表同一个点？</h2>
+        <p class="deck">一台相机的几何关系已经建立。可 RGB-D 设备不是简单地给 RGB 图像附上一列深度数值——颜色与深度，可能来自两个不同的观察位置。</p>
+
+        <h3>两张图像，不一定站在同一个地方观察</h3>
+        <p>以主动双目 RGB-D 设备为例，它可能包含一台 Color 相机、两台红外相机以及一个红外投射器。深度图可能对应某个红外参考相机的坐标系，而 RGB 图像来自独立的彩色相机。</p>
+        <p>它们的光心、光轴、焦距、分辨率和畸变模型，都可能不同。</p>
+        <p>因此，<strong>Color 图像中的 \((u,v)\) 与原始 Depth 图像中的同名像素，不保证观察的是同一条空间射线。</strong></p>
+
+        <h3>一个数字例子：为什么不能固定平移图像？</h3>
+        <p>假设两台相机已经极线校正，光轴平行，焦距为 600 px，水平基线为 5 cm。在这种理想双目情况下，同一空间点的水平视差近似满足：</p>
+        <div class="mathblock">\[d=\frac{fb}{Z}\]</div>
+        <p>当物体位于 0.5 m 处，视差约为 60 px；当物体位于 1 m 处，视差就变成约 30 px。</p>
+        <p>换句话说，<strong>两台相机的相对位置没有变，但像素偏移仍然取决于物体的深度。</strong></p>
+        <figure class="figure">
+          <div class="fig-label">FIG 03 · 同一个空间点，在两台相机里的位置不相同</div>
+          <svg viewBox="0 0 680 245" role="img" aria-label="左右相机观察近处和远处两个点，近点和远点形成不同视差">
+            <g transform="translate(20 8)">
+              <g fill="none" stroke="#c1ae99" stroke-width="1.3" stroke-dasharray="4 5"><path d="M185 191 L285 30 L495 191 M495 191 L285 30"/><path d="M185 191 L335 83 M495 191 L335 83"/></g>
+              <g fill="#b6c8b3" stroke="#839c86" stroke-width="1.5"><rect x="139" y="173" width="90" height="42" rx="9"/><rect x="450" y="173" width="90" height="42" rx="9"/></g>
+              <g fill="#fdfbf6" stroke="#859a86" stroke-width="2"><circle cx="184" cy="194" r="12"/><circle cx="495" cy="194" r="12"/></g>
+              <circle cx="285" cy="30" r="8" fill="#c98069"/><circle cx="335" cy="83" r="8" fill="#d9ba75"/>
+              <g fill="#786b5b" font-size="13"><text x="297" y="27">近点</text><text x="348" y="83">远点</text><text x="183" y="234" text-anchor="middle">Camera D</text><text x="494" y="234" text-anchor="middle">Camera C</text></g>
+              <g stroke="#b98c78" stroke-width="1.5"><path d="M231 204 H445"/><path d="M231 199 L231 209 M445 199 L445 209"/></g><text x="338" y="195" text-anchor="middle" font-size="12" fill="#b17662">baseline</text>
+            </g>
+          </svg>
+          <figcaption>示意不同观察位置带来的视差。空间点的距离不同，像素位置差异也不同；固定二维平移通常无法对齐完整的三维场景。</figcaption>
+        </figure>
+        <p>对于只有一个平面、纯旋转等特殊情况，固定 Homography 可能成立。但具有多个深度层次的一般三维场景，不能指望用同一个二维变换把所有物体精确叠好。</p>
+        <div class="question">既然像素关系随着深度变化，能不能先把两台相机放到同一个三维空间里？</div>
+
+        <h3>用外参连接两个观察者</h3>
+        <p>定义 Depth 相机坐标系为 D，Color 相机坐标系为 C。若三维点在 D 坐标系下的位置为 \(P_D\)，它在 C 坐标系下的位置由刚体变换给出：</p>
+        <div class="mathblock">\[P_C=R_{CD}P_D+t_{CD}\]</div>
+        <div class="mathblock">\[\begin{bmatrix}P_C\\1\end{bmatrix}={}^CT_D\begin{bmatrix}P_D\\1\end{bmatrix}\]</div>
+        <p>这里的 \({}^CT_D\) 是 <strong>Depth → Color</strong> 的坐标变换；R 表示相对旋转，t 表示相对平移，整体属于 SE(3) 刚体变换。</p>
+        <p>由于 Color 与 Depth 相机通常固定安装在同一设备内部，这个相对变换一般可以当作固定值使用。</p>
+
+        <h3>两台相机之间的外参从哪里来？</h3>
+        <p>本质上仍然依赖<strong>共同的几何约束</strong>，只是未知量从单台相机内参，变成了两个坐标系之间的相对位姿。</p>
+        <div class="table-wrap"><table><thead><tr><th>技术思路</th><th>怎样获得外参</th><th>适用前提</th></tr></thead><tbody>
+          <tr><td>共同标定板</td><td>分别求出标定板在两相机下的位姿，再组合坐标变换</td><td>两套传感器均可观测同一参考</td></tr>
+          <tr><td>3D–3D 对应</td><td>建立共同三维点对应，用 Kabsch / SVD 等方法求刚体变换</td><td>两边能恢复可对应的三维结构</td></tr>
+          <tr><td>联合标定优化</td><td>利用多组观测联合优化多传感器的几何参数</td><td>需要统一处理多相机参数和位姿</td></tr>
+        </tbody></table></div>
+        <p>对于 RealSense 等集成式 RGB-D 相机，通常可以直接向 SDK 查询出厂标定的外参，不需要每次从头求解。</p>
+        <div class="callout"><p class="label">别忘了确认参考坐标系</p><p>设备提供的 Depth 图像，可能已经经过双目整流，甚至已经对齐到 Color。使用外参之前，要先确认<strong>当前图像究竟属于哪个参考相机坐标系</strong>，避免重复变换。</p></div>
+        <div class="endpoint"><p class="ep-label">这一站留下的认识</p><p>Color–Depth 外参连接的是两套三维坐标系，而不是直接定义两个像素之间的固定移动量。只有先统一空间坐标，才能讨论一个空间点应该出现在哪个 RGB 像素。</p></div>
+      </section>
+
+      <section class="chapter" id="geometric-alignment">
+        <div class="chapter-head"><span class="chapter-number sage">04</span><p class="chapter-label">RGB-D Geometric Alignment</p></div>
+        <h2>RGB-D 几何配准｜如何让颜色与深度真正对应？</h2>
+        <p class="deck">相机模型、标定参数和 Color–Depth 外参终于都到位了。接下来不是寻找更复杂的二维图像变换，而是让两个观察者回到同一个三维空间。</p>
+
+        <h3>第一步：从 Depth 像素回到三维空间</h3>
+        <p>给定原始 Depth 图像中的像素 \(p_D=(u_D,v_D)\) 及深度值 \(Z_D\)，先依据 Depth 相机的模型去畸变，恢复归一化光线方向 \((x_D,y_D,1)\)。</p>
+        <p>如果深度图存储的是相机光轴方向的 Z 深度，则：</p>
+        <div class="mathblock">\[P_D=Z_D\begin{bmatrix}x_D\\y_D\\1\end{bmatrix}\]</div>
+        <p>这一步必须留意两个定义：深度图可能以设备原始整数单位存储，需要通过 <code>depth_scale</code> 等参数转换为长度；而有的距离测量表示的是到光心的欧氏距离，不可以直接冒充 Z 深度。</p>
+
+        <h3>第二步：把点变换到 Color 相机</h3>
+        <p>现在，Depth 坐标系下的三维点已经存在。使用刚才获得的外参：</p>
+        <div class="mathblock small">\[P_C=R_{CD}P_D+t_{CD}=(X_C,Y_C,Z_C)\]</div>
+        <p>点没有移动，改变的是描述它的坐标系：原先由 Depth 相机描述，现在由 Color 相机描述。</p>
+
+        <h3>第三步：让 Color 相机重新投影这个点</h3>
+        <p>把点 \(P_C\) 投影回 Color 相机。如果目标是原始 Color 图像，就使用它的畸变模型和原始内参；如果目标是校正后的图像，则使用对应的校正投影模型。</p>
+        <div class="mathblock">\[x_C=\frac{X_C}{Z_C},\qquad y_C=\frac{Y_C}{Z_C}\]</div>
+        <p>在无畸变的简化情况下：</p>
+        <div class="mathblock small">\[u_C=f_{x,C}x_C+c_{x,C},\qquad v_C=f_{y,C}y_C+c_{y,C}\]</div>
+        <p>终于可以知道：原始 Depth 像素 \((u_D,v_D)\) 对应到 Color 图像的哪个位置。</p>
+        <figure class="figure">
+          <div class="fig-label">FIG 04 · Depth-to-Color 的三维几何链</div>
+          <svg viewBox="0 0 680 170" role="img" aria-label="从深度像素反投影到三维，变换坐标系，再投影到彩色图像">
+            <g font-family="sans-serif" text-anchor="middle">
+              <rect x="8" y="37" width="138" height="91" rx="11" fill="#f8e9df" stroke="#dfb5a2"/><text x="77" y="73" font-size="14" font-weight="bold" fill="#825b49">Depth 像素</text><text x="77" y="94" font-size="12" fill="#997e6c">(uᴅ, vᴅ, Zᴅ)</text>
+              <rect x="180" y="37" width="138" height="91" rx="11" fill="#f0f3ed" stroke="#becdbd"/><text x="249" y="73" font-size="14" font-weight="bold" fill="#597462">反投影</text><text x="249" y="94" font-size="12" fill="#859387">Pᴅ</text>
+              <rect x="352" y="37" width="138" height="91" rx="11" fill="#f0f3ed" stroke="#becdbd"/><text x="421" y="73" font-size="14" font-weight="bold" fill="#597462">外参变换</text><text x="421" y="94" font-size="12" fill="#859387">Pᴄ</text>
+              <rect x="524" y="37" width="148" height="91" rx="11" fill="#f8e9df" stroke="#dfb5a2"/><text x="598" y="73" font-size="14" font-weight="bold" fill="#825b49">Color 像素</text><text x="598" y="94" font-size="12" fill="#997e6c">(uᴄ, vᴄ, Zᴄ)</text>
+              <g stroke="#b9917c" stroke-width="2" fill="none"><path d="M146 82 H176 M318 82 H348 M490 82 H520"/><path d="M170 77 L176 82 L170 87 M342 77 L348 82 L342 87 M514 77 L520 82 L514 87"/></g>
+              <g font-size="11" fill="#ab8a75"><text x="163" y="29">Kᴅ</text><text x="335" y="29">R,t</text><text x="507" y="29">Kᴄ</text></g>
+            </g>
+          </svg>
+          <figcaption>先重建 Depth 观察到的三维点，再转换到 Color 相机并重新投影。像素对应是这条三维几何链的结果，而不是预先假设。</figcaption>
+        </figure>
+
+        <h3>第四步：把单点映射变成整张对齐深度图</h3>
+        <p>对整张 Depth 图像，最直接的实现可以按照以下过程：</p>
+        <div class="steps">
+          <div class="step"><i>1</i><p>遍历原始 Depth 图像中的有效像素，读取对应深度值并转换到实际长度单位。</p></div>
+          <div class="step"><i>2</i><p>根据 Depth 成像模型反投影，得到 Depth 坐标系中的三维点 \(P_D\)。</p></div>
+          <div class="step"><i>3</i><p>通过 \({}^CT_D\) 将点转换到 Color 坐标系，得到 \(P_C\)。</p></div>
+          <div class="step"><i>4</i><p>投影到目标 Color 图像网格，并处理取整/采样、有效像素和深度冲突。</p></div>
+        </div>
+        <p>这里有个细节容易被忽略：对齐后的深度如果定义为 <strong>Color 相机光轴方向的 Z 深度</strong>，原则上应写入 \(Z_C\)，而不是在所有情况下直接照搬原始的 \(Z_D\)。</p>
+        <p>当相机之间存在相对旋转或沿光轴方向的平移时，这两个值可能并不相等。</p>
+
+        <h3>多个 Depth 点投到同一个 Color 像素，应该留谁？</h3>
+        <p>由于两个图像网格不同，重投影后可能会出现多个深度点落在同一个 Color 像素的情况。</p>
+        <p>对普通不透明场景，最自然的思路来自计算机图形学：<strong>Z-buffer。</strong>比较这些点在 Color 坐标系下的有效正深度，保留更靠近 Color 相机的表面。</p>
+        <p>与此同时，有些 Color 像素可能根本得不到深度：可能是采样间隔、视场差异，也可能是 Color 看得见、Depth 却被遮挡的区域。</p>
+        <p>这些空洞有时能通过邻域投影、插值或深度补全改善，但物体边缘存在前景与背景的深度突变，不能随意把背景深度填到前景上。</p>
+        <div class="callout"><p class="label">对齐不等于补齐</p><p>几何配准负责确定<strong>已有观测应当对应哪里</strong>；它不能凭空保证每个 RGB 像素都拥有真实有效的深度。</p></div>
+
+        <h3>为什么还存在 Color-to-Depth Alignment？</h3>
+        <p>刚才的路线选择 Color 图像作为参考网格，让 Depth 观测对齐到它上面。也可以反过来，保持 Depth 的参考网格，让 Color 信息对应到深度采样位置。</p>
+        <div class="table-wrap"><table><thead><tr><th>对齐方向</th><th>参考图像网格</th><th>常见用途</th></tr></thead><tbody>
+          <tr><td>Depth-to-Color</td><td>Color</td><td>RGB 检测、分割后提取目标对应深度与点云</td></tr>
+          <tr><td>Color-to-Depth</td><td>Depth</td><td>为深度像素关联颜色、生成彩色点云</td></tr>
+        </tbody></table></div>
+        <p>虽然坐标变换可以求逆，但两种对齐方向的有效像素覆盖、可见性和采样策略并不完全对称。并不能只把矩阵求逆，就假定得到了一张没有空洞的新图像。</p>
+
+        <h3>那 SDK 里的 Align 究竟封装了什么？</h3>
+        <p>到了这里，RealSense 和 Orbbec 的对齐接口就不再神秘：其核心仍是已知的内外参、三维反投影、坐标变换和目标图像的重采样。</p>
+        <p>例如 ROS 中的 <code>/camera/aligned_depth_to_color/image_raw</code>，通常表示已经对齐到 Color 图像参考网格的深度数据。</p>
+        <p>如果随后要根据 RGB 检测框或者 Mask 提取点云，应使用与这张对齐后深度图一致的 Color 相机几何模型；不要再拿原始 Depth 相机内参直接套上去，也不要对已经完成的对齐再次重复外参变换。</p>
+        <p>同样，Depth 图像的名称不能代替坐标系定义。先确定<strong>图像属于哪个采样网格、使用哪个相机模型、深度表示哪个坐标系下的 Z</strong>，再进行反投影。</p>
+        <div class="endpoint"><p class="ep-label">这一站留下的认识</p><p>RGB-D 几何配准不是把两张二维图强行叠在一起，而是通过三维空间建立对应，再把观测投回目标图像网格。对齐后的像素关系，来自真正的空间几何。</p></div>
+      </section>
+
+      <section class="ending" id="reflection">
+        <p class="section-kicker">LOOKING BACK · 回头看</p>
+        <h2>真实 RGB-D 相机的几何关系，终于完整了。</h2>
+        <p>最初，我们只有一套理想针孔模型。发现真实镜头并不完全理想，于是引入畸变模型；发现模型参数未知，于是通过已知几何与图像观测进行标定；发现 Color 和 Depth 站在不同位置观察世界，于是建立它们之间的外参。</p>
+        <p>最后，利用反投影、坐标变换和重投影，让两套观测在三维空间中真正发生联系。</p>
+        <ul>
+          <li><strong>相机模型：</strong>定义像素与空间光线的关系。</li>
+          <li><strong>相机标定：</strong>根据已知几何与观测求出模型参数。</li>
+          <li><strong>Color–Depth 外参：</strong>连接不同相机的三维坐标系。</li>
+          <li><strong>RGB-D 几何配准：</strong>把颜色与深度关联到一致的空间位置。</li>
+        </ul>
+        <p>反投影公式从来没有要求我们使用某一组固定的焦距和主点。它真正要求的是：输入的像素、深度、相机模型和坐标系，必须描述同一种观测。</p>
+        <p class="last-line">公式终于不只是纸上的公式，而是真正接到了手里的相机上。</p>
+        <p class="muted-note">至于几何关系已经建立，为什么测量仍可能不理想——留给下一章继续探索。</p>
+        <div class="endlinks"><a href="../depth-post-processing/">← 上一篇 · 深度后处理</a><a href="../">相机与三维测量总览</a><a href="../depth-reliability/">下一篇 · 测量可靠性 →</a><a href="#opening">↑ 回到本页开头</a></div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer"><span>沿途手记 · 从一个问题出发的探索路线</span><span>Stage 01 / Q03 / Camera Measurement / 06</span></footer>
+  <script>
+    (() => {
+      const bar = document.getElementById('readProgress');
+      const toc = Array.from(document.querySelectorAll('.toc a'));
+      const sections = toc.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+      let ticking = false;
+      function update() {
+        const root = document.documentElement;
+        const total = Math.max(1, root.scrollHeight - innerHeight);
+        bar.style.width = Math.min(100, Math.max(0, scrollY / total * 100)).toFixed(2) + '%';
+        const point = scrollY + Math.min(innerHeight * .30, 230);
+        let current = sections[0];
+        for (const sec of sections) if (sec.offsetTop <= point) current = sec;
+        toc.forEach(a => { const active = a.getAttribute('href') === '#' + current.id; a.classList.toggle('active', active); if (active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); });
+        ticking = false;
+      }
+      addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } }, {passive:true});
+      addEventListener('resize', update);
+      update();
+    })();
+  </script>
+</body>
+</html>
