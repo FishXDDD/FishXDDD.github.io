@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="沿途手记 · Stage 01：从相机模型与畸变、张正友标定，到 Color–Depth 外参与 RGB-D 几何配准的第一性探索。">
   <meta name="color-scheme" content="light">
-  <title>06 · 标定与配准｜从理想相机到真实 RGB-D 观测 — 沿途手记</title>
+  <title>05 · 标定与配准｜从理想相机到真实 RGB-D 观测 — 沿途手记</title>
   <style>
     :root{
       --paper:#fbf8f0;--paper-deep:#f3efe5;--white:#fffdfa;
@@ -127,14 +127,14 @@
   <header class="sitebar">
     <div class="sitebar-inner">
       <a class="brand" href="/"> <span class="logo">✳</span>沿途手记</a>
-      <div class="sitepath">STAGE 01 <span>/</span> CAMERA MEASUREMENT <span>/</span> 06</div>
+      <div class="sitepath">STAGE 01 <span>/</span> CAMERA MEASUREMENT <span>/</span> 05</div>
     </div>
   </header>
 
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-copy">
-        <p class="eyebrow">06 · Calibration &amp; Alignment</p>
+        <p class="eyebrow">05 · Calibration &amp; Alignment</p>
         <h1>从理想相机，<br>到真实 RGB-D 观测</h1>
         <p class="hero-lead">反投影公式已经能把像素和深度变成三维坐标。可公式默认的<strong>镜头、参数和坐标系</strong>，真的与手里的相机一致吗？这一段从四个连续的问题出发，把理想成像一步步接到真实设备上。</p>
         <div class="hero-actions">
@@ -462,12 +462,12 @@ y_d={}&y(1+k_1r^2+k_2r^4+k_3r^6)\\&+p_1(r^2+2y^2)+2p_2xy
         <p>反投影公式从来没有要求我们使用某一组固定的焦距和主点。它真正要求的是：输入的像素、深度、相机模型和坐标系，必须描述同一种观测。</p>
         <p class="last-line">公式终于不只是纸上的公式，而是真正接到了手里的相机上。</p>
         <p class="muted-note">至此，相机与三维测量的五条专题路线已经闭环：从图像形成和成像几何出发，经由深度测量与后处理，最后让数学模型真正对应手里的设备。</p>
-        <div class="endlinks"><a href="../depth-post-processing/">← 上一篇 · 深度后处理</a><a href="../">返回 · 相机与三维测量总览</a><a href="#opening">↑ 回到本页开头</a></div>
+        <div class="endlinks"><a href="../04-depth-post-processing/">← 上一篇 · 深度后处理</a><a href="../">返回 · 相机与三维测量总览</a><a href="#opening">↑ 回到本页开头</a></div>
       </section>
     </main>
   </div>
 
-  <footer class="footer"><span>沿途手记 · 从一个问题出发的探索路线</span><span>Stage 01 / Q03 / Camera Measurement / 06</span></footer>
+  <footer class="footer"><span>沿途手记 · 从一个问题出发的探索路线</span><span>Stage 01 / Q03 / Camera Measurement / 05</span></footer>
   <script>
     (() => {
       const bar = document.getElementById('readProgress');
