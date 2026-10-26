@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f3">
+  <meta name="description" content="沿途手记｜二维目标定位：明确任务边界，认识传统视觉、参考匹配与学习式视觉三条技术路线。">
+  <title>二维目标定位｜从图像中找到目标 · 沿途手记</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper:#faf8f3; --canvas:#fffefa; --ink:#493d34; --body:#62574d;
+      --muted:#96887b; --line:#e8ded2; --rust:#ae7256; --rust-dark:#93573f;
+      --rust-pale:#f5e8dc; --sage:#698475; --sage-pale:#edf3eb;
+      --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+      --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:32px}
+    body{margin:0;background:var(--paper);color:var(--body);font:15px/1.95 var(--sans);-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}
+    a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:3px}
+    ::selection{background:#efdcc9;color:#50392d}
+    .rn-skip{position:fixed;left:16px;top:-80px;z-index:99;padding:10px 15px;background:#fff;border:2px solid var(--rust);border-radius:8px;color:var(--ink);font-weight:700}
+    .rn-skip:focus{top:14px}
+    .progress{position:fixed;inset:0 auto auto 0;width:0;height:3px;background:#ba856a;z-index:90;pointer-events:none}
+
+    /* 沿途手记｜共用阅读导航：固定左侧栏、当前章节、返回与下层链接 */
+    .rn-layout{display:grid;grid-template-columns:282px minmax(0,1fr);min-height:100vh;align-items:start}
+    .rn-sidebar{position:sticky;top:0;height:100vh;min-height:0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;background:#f6f3ec;border-right:1px solid #e5dfd5;padding:34px 23px 23px;scrollbar-width:thin;scrollbar-color:#d9d0c4 transparent;z-index:30}
+    .rn-side-top{padding:0 12px 22px;border-bottom:1px solid #e5dfd5}
+    .rn-brand{display:inline-flex;align-items:center;gap:11px;font-weight:760;font-size:19px;letter-spacing:.05em;color:#463d36;line-height:1.4}
+    .rn-brand:hover{color:var(--rust)}
+    .rn-flower{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:10px;background:#e9d5c8;color:#986a57;font-size:15px;flex:none}
+    .rn-tagline{margin:8px 0 0 39px;font-size:11px;color:#988e83;letter-spacing:.025em;line-height:1.5}
+    .rn-back{margin:19px 4px 24px;display:flex;gap:9px;align-items:center;padding:10px 12px;border:1px solid #e3d9cc;background:#fffdfa85;border-radius:10px;font-size:12.5px;color:#71655b;font-weight:620;line-height:1.6;transition:background .2s,border-color .2s}
+    .rn-back:hover{background:#fffdfa;border-color:#d5bfad;color:var(--rust)}
+    .rn-back svg{flex:none}
+    .rn-location{padding:1px 12px 22px}
+    .rn-label{margin:0 0 11px;font-weight:690;font-size:10.5px;letter-spacing:.13em;color:#a09486;text-transform:uppercase;line-height:1.8}
+    .rn-label-en{font-size:9px;letter-spacing:.08em;color:#b2a395;font-weight:540}
+    .rn-path{font-size:11.5px;color:#92857b;margin:0 0 10px;display:flex;gap:7px;align-items:center;line-height:1.6;flex-wrap:wrap}
+    .rn-path-part{max-width:176px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rn-separator{color:#c1b8ac}
+    .rn-current{font-size:15.5px;font-weight:730;letter-spacing:-.016em;line-height:1.55;margin:0;color:#463d36}
+    .rn-title-en{font:italic 11px/1.5 Georgia,serif;color:#9b897c;margin:7px 0 0}
+    .rn-nav-block{padding:19px 0 0;border-top:1px solid #e5dfd5}
+    .rn-nav-block .rn-label{padding-left:12px;margin-bottom:12px}
+    .rn-toc{display:flex;flex-direction:column;gap:3px}
+    .rn-toc a{position:relative;display:flex;align-items:center;gap:10px;min-height:41px;border-radius:9px;padding:9px 13px;color:#756d65;font-size:12.8px;line-height:1.55;transition:background .18s,color .18s}
+    .rn-toc a:hover{background:#ede6dc;color:#5b4b42}
+    .rn-toc a.is-active{background:#f2e7dc;color:#945846;font-weight:730}
+    .rn-toc a.is-active::before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;border-radius:8px;background:#bd7b66}
+    .rn-toc-number{font-size:10.5px;font-weight:750;letter-spacing:.06em;font-variant-numeric:tabular-nums;min-width:22px;color:#a3978d}
+    .rn-toc a.is-active .rn-toc-number{color:#b37a66}
+    .rn-spacer{min-height:28px;flex:1}
+    .rn-related{padding:20px 12px 19px;border-top:1px solid #e5dfd5}
+    .rn-related .rn-label{margin-bottom:9px}
+    .rn-related a{display:flex;align-items:center;justify-content:space-between;gap:6px;color:#527767;font-size:12px;font-weight:640;line-height:1.5;padding:7px 0}
+    .rn-related a:hover{color:#365d4b}
+    .rn-related a span:last-child{color:#93a699;font-size:13px;flex:none}
+    .rn-side-bottom{padding:14px 12px 0;border-top:1px solid #e5dfd5;font-size:10px;color:#a99d90;letter-spacing:.025em}
+    .rn-mobile-bar,.rn-close,.rn-overlay{display:none}
+
+    /* 阅读正文 */
+    .rn-main{min-width:0;width:100%;padding:0 46px 94px}
+    .rn-main-inner{width:100%;max-width:890px;margin:0 auto}
+    .rn-crumbs{min-height:67px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--line);font-size:11.5px;color:#9b8e83;line-height:1.6}
+    .rn-crumbs a{color:#8a7769}
+    .rn-crumbs a:hover{color:var(--rust)}
+    .rn-crumb-current{color:#675b50;font-weight:610}
+    .hero{padding:64px 0 54px;border-bottom:1px solid var(--line)}
+    .eyebrow{font:700 11px/1.5 Georgia,var(--sans);color:var(--rust);letter-spacing:.13em}
+    .hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:30px;align-items:center;margin-top:10px}
+    h1{font:750 clamp(30px,3.2vw,42px)/1.5 var(--serif);color:#453930;margin:7px 0 10px;letter-spacing:-.03em}
+    .subtitle{font:italic 12px/1.65 Georgia,serif;color:#a18a7b;letter-spacing:.025em;margin:0 0 24px}
+    .hero p{margin:0 0 14px;line-height:2.04;font-size:15.5px}
+    .hero p:last-child{margin-bottom:0}
+    .hero strong{color:#79513e}
+    .hero-art{margin:0;align-self:center;min-width:0}
+    .hero-art svg{width:100%;height:auto;display:block}
+    .hero-art figcaption{text-align:center;font:italic 10px/1.6 Georgia,serif;color:#a79585;margin-top:4px}
+    .hero-meta{margin-top:24px;display:flex;gap:7px;flex-wrap:wrap}
+    .hero-meta span{font-size:10.5px;color:#8e7564;padding:4px 10px;border:1px solid #e8d9cb;background:#fcf7ef;border-radius:99px}
+
+    .chapter{padding:61px 0 62px;border-bottom:1px solid var(--line);scroll-margin-top:29px}
+    .section-kicker{font-size:11px;letter-spacing:.11em;font-weight:650;color:#a58e7a;margin-bottom:14px}
+    .section-kicker b{color:#b47857;font:italic 17px Georgia,serif;margin-right:12px}
+    h2{font:700 clamp(23px,2.4vw,29px)/1.65 var(--serif);color:#493d34;letter-spacing:-.018em;margin:0 0 21px}
+    .chapter p{margin:0 0 17px;font-size:15px;line-height:2.05}
+    .chapter p:last-child{margin-bottom:0}
+    strong{color:#79513e;font-weight:710}
+    .chapter-en{font:italic 11px/1.5 Georgia,serif;color:#9e8d7e;letter-spacing:.025em;margin:-12px 0 25px}
+    .question{font:670 16px/1.9 var(--serif);color:#70533f;margin:24px 0!important}
+    .scope-intro{padding:18px 21px;background:#fffdfa;border:1px solid #e5dacd;border-radius:12px;margin:22px 0 24px}
+    .scope-intro p{font-size:14.5px;margin:0}
+    .definition-table{overflow-x:auto;border:1px solid #e5dbcf;border-radius:11px;background:#fffefa;margin:21px 0}
+    table{width:100%;border-collapse:collapse;text-align:left;font-size:13px;line-height:1.75}
+    th,td{padding:13px 15px;border-bottom:1px solid #ede4d9;vertical-align:top}
+    th{font-weight:710;color:#81634f;background:#f7f2ea;font-size:12px}
+    td:first-child{color:#765542;font-weight:680;white-space:nowrap}
+    tr:last-child td{border-bottom:none}
+    .difference{margin:23px 0 8px;padding:18px 21px;border-left:3px solid #b78b72;background:#f9f0e6;border-radius:0 9px 9px 0}
+    .difference .small-label{color:#ae7a5b;font-size:10px;font-weight:800;letter-spacing:.11em;display:block;margin-bottom:6px}
+    .difference p{margin:0;font-size:13.5px;line-height:1.93}
+    .boundary{margin:24px 0 0;padding:18px 20px;border-left:3px solid #789886;background:#f0f4ee;border-radius:0 10px 10px 0}
+    .boundary b{display:block;color:#527260;font-size:12px;letter-spacing:.055em;margin-bottom:5px}
+    .boundary p{font-size:13.5px;line-height:1.91;color:#5f7063;margin:0 0 8px}
+    .boundary p:last-child{margin-bottom:0}
+    .depth-link{margin:24px 0 0;display:flex;align-items:center;gap:14px;justify-content:space-between;border:1px solid #e5d8c9;border-radius:11px;background:#fffdfa;padding:15px 17px;transition:background .16s,border-color .16s,transform .16s}
+    .depth-link:hover{background:#faf2e9;border-color:#cfb6a2;transform:translateY(-1px)}
+    .depth-link .small{display:block;font-size:10px;color:#aa826a;font-weight:730;letter-spacing:.1em;margin-bottom:2px}
+    .depth-link .name{font-size:14px;color:#75513f;font-weight:740;line-height:1.7}
+    .depth-link .hint{font-size:11.5px;color:#97897b;line-height:1.7}
+    .depth-link .arr{font-size:17px;color:#a87155;flex:none;padding-left:12px}
+    .summary-lead{margin-bottom:18px!important}
+    .route-matrix{margin-top:19px}
+    .foot-conclusion{padding:19px 20px 18px;border-left:3px solid #c99576;background:#faf0e5;border-radius:0 10px 10px 0;margin:25px 0 0}
+    .foot-conclusion p{font:600 14.5px/1.95 var(--serif);color:#735744;margin:0}
+    .deep-title{margin:40px 0 13px;font-size:12px;font-weight:730;color:#a07b62;letter-spacing:.08em}
+    .deep-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .deep-list a{border:1px solid #e4dbcf;background:#fffdfa;padding:15px 14px;border-radius:11px;display:flex;flex-direction:column;gap:5px;min-height:127px;transition:background .16s,border-color .16s}
+    .deep-list a:hover{background:#f9f1e8;border-color:#cdb6a3}
+    .deep-list small{font:700 10px Georgia,serif;color:#b17d61}
+    .deep-list b{font-size:13px;color:#75513f;line-height:1.55}
+    .deep-list span{font-size:11px;color:#988a7e;line-height:1.65}
+    .bottom-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:44px 0 0}
+    .bottom-nav a{font-size:12px;color:#946c54;padding:10px 13px;background:#fffdfa;border:1px solid #e5d8cb;border-radius:9px}
+    .bottom-nav a:hover{background:#f8f0e7}
+    .footer-note{margin:35px 0 0;padding:17px 0 0;border-top:1px solid var(--line);font-size:10.5px;color:#a69a8e;line-height:1.8}
+
+    @media(min-width:1600px){.rn-layout{grid-template-columns:304px minmax(0,1fr)}.rn-sidebar{padding-left:30px;padding-right:30px}.rn-main{padding-left:64px;padding-right:64px}}
+    @media(max-width:1120px) and (min-width:861px){.rn-layout{grid-template-columns:246px minmax(0,1fr)}.rn-sidebar{padding-left:14px;padding-right:14px}.rn-main{padding:0 31px 80px}.hero-layout{grid-template-columns:minmax(0,1fr) 198px;gap:20px}}
+    @media(max-width:860px){
+      html{scroll-padding-top:82px}
+      .rn-layout{display:block;min-height:100vh}
+      .rn-mobile-bar{position:sticky;top:0;z-index:25;display:flex;align-items:center;justify-content:space-between;gap:10px;height:58px;padding:0 18px;border-bottom:1px solid #e5dfd5;background:rgba(250,248,243,.97);backdrop-filter:blur(13px)}
+      .rn-mobile-home{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;font-weight:660;color:#72665c}
+      .rn-mobile-home span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .rn-menu-btn{border:1px solid #ded4c9;color:#715e53;background:#fffdfa;border-radius:9px;padding:6px 12px;display:flex;align-items:center;gap:7px;white-space:nowrap;font:600 12px/1.5 var(--sans);cursor:pointer}
+      .rn-sidebar{position:fixed;top:0;left:0;bottom:0;z-index:53;display:flex;width:min(318px,87vw);height:100dvh;min-height:0;transform:translateX(-105%);transition:transform .24s ease;box-shadow:10px 0 45px rgba(41,31,24,.12);padding-top:28px;visibility:hidden}
+      .rn-drawer-open .rn-sidebar{transform:translateX(0);visibility:visible}
+      .rn-overlay{position:fixed;inset:0;z-index:51;background:rgba(44,35,28,.36)}
+      .rn-drawer-open .rn-overlay{display:block}
+      .rn-drawer-open{overflow:hidden}
+      .rn-close{display:flex;align-items:center;justify-content:center;position:absolute;right:18px;top:25px;width:33px;height:33px;border:1px solid #e1d7cc;background:#fffaf3;border-radius:9px;color:#817163;cursor:pointer;font-size:18px;line-height:1}
+      .rn-main{padding:0 22px 72px}
+      .rn-crumbs{min-height:53px;font-size:11px}
+      .chapter{scroll-margin-top:76px}
+    }
+    @media(max-width:620px){
+      .hero{padding:37px 0 40px}.hero-layout{grid-template-columns:1fr;gap:9px}
+      .hero-art{width:210px;justify-self:center;margin:0 0 3px;order:-1}
+      h1{font-size:30px}.hero p{font-size:14.5px}
+      .chapter{padding:50px 0 53px}h2{font-size:23px}
+      .deep-list{grid-template-columns:1fr;gap:8px}.deep-list a{min-height:auto;padding:12px 14px}
+      .deep-list a span{display:none}
+      th,td{padding:11px 10px}table{font-size:12px}.definition-table{margin-left:-3px;margin-right:-3px}
+    }
+    @media(max-width:540px){.rn-main{padding:0 18px 55px}.rn-crumbs{gap:5px}.rn-crumb-parent{max-width:139px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hero-art{width:184px}.chapter p{font-size:14px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rn-sidebar,.depth-link{transition:none}}
+    @media print{.rn-sidebar,.rn-mobile-bar,.rn-overlay,.progress,.bottom-nav,.deep-list{display:none!important}.rn-layout{display:block}.rn-main{padding:0}.rn-main-inner{max-width:none}.hero{padding-top:20px}.chapter,.boundary,.definition-table{break-inside:avoid}}
+  </style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<a class="rn-skip" href="#content">跳到正文</a>
+<div class="rn-mobile-bar">
+  <a class="rn-mobile-home" href="../"><span aria-hidden="true">←</span><span>返回 · 把问题拆开</span></a>
+  <button class="rn-menu-btn" type="button" aria-controls="reading-navigation" aria-expanded="false"><span aria-hidden="true">☰</span> 目录</button>
+</div>
+<div class="rn-overlay" aria-hidden="true"></div>
+<div class="rn-layout">
+  <aside class="rn-sidebar" id="reading-navigation" aria-label="二维目标定位阅读导航">
+    <button class="rn-close" type="button" aria-label="关闭目录">×</button>
+    <div class="rn-side-top">
+      <a class="rn-brand" href="/"><span class="rn-flower" aria-hidden="true">✳</span>沿途手记</a>
+      <p class="rn-tagline">从一个问题出发的探索路线</p>
+    </div>
+    <a class="rn-back" href="../">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      返回 · 把问题拆开
+    </a>
+    <div class="rn-location">
+      <p class="rn-label">当前位置 <span class="rn-label-en">/ CURRENT PAGE</span></p>
+      <p class="rn-path"><span class="rn-path-part">Stage 01</span><span class="rn-separator">/</span><span class="rn-path-part">图像与目标观测</span></p>
+      <p class="rn-current">二维目标定位</p>
+      <p class="rn-title-en">2D Target Localization</p>
+    </div>
+    <section class="rn-nav-block">
+      <p class="rn-label">本篇目录 <span class="rn-label-en">/ CONTENTS</span></p>
+      <nav class="rn-toc" aria-label="本篇章节">
+        <a href="#opening" class="is-active"><span class="rn-toc-number">·</span>坐标有了，瓶子呢？</a>
+        <a href="#definition"><span class="rn-toc-number">00</span>任务与问题边界</a>
+        <a href="#classical"><span class="rn-toc-number">01</span>图像特征与结构提取</a>
+        <a href="#reference"><span class="rn-toc-number">02</span>参考匹配与视觉对应</a>
+        <a href="#learned"><span class="rn-toc-number">03</span>学习式视觉定位</a>
+        <a href="#reflection"><span class="rn-toc-number">↳</span>三条路线，三种依据</a>
+      </nav>
+    </section>
+    <div class="rn-spacer"></div>
+    <div class="rn-related">
+      <p class="rn-label">下层探索 <span class="rn-label-en">/ DEEP DIVE</span></p>
+      <a href="./01-classical-vision/"><span>图像特征与结构提取</span><span>↗</span></a>
+      <a href="./02-reference-matching/"><span>参考匹配与视觉对应</span><span>↗</span></a>
+      <a href="./03-learned-vision/"><span>学习式视觉定位</span><span>↗</span></a>
+    </div>
+    <div class="rn-side-bottom">STAGE 01 · IMAGE &amp; TARGET</div>
+  </aside>
+
+  <main class="rn-main" id="content" tabindex="-1">
+    <div class="rn-main-inner">
+      <nav class="rn-crumbs" aria-label="面包屑导航">
+        <a href="/">沿途手记</a><span class="rn-separator">/</span>
+        <a href="/research/stage-01/">Stage 01</a><span class="rn-separator">/</span>
+        <a class="rn-crumb-parent" href="../">把问题拆开</a><span class="rn-separator">/</span>
+        <span class="rn-crumb-current">二维目标定位</span>
+      </nav>
+
+      <header class="hero" id="opening">
+        <div class="eyebrow">TARGET LOCALIZATION · ONE QUESTION, THREE ROUTES</div>
+        <div class="hero-layout">
+          <div>
+            <h1>二维目标定位<br>从图像中找到目标</h1>
+            <p class="subtitle">2D Target Localization · 问题定义与技术路线</p>
+            <p>前面折腾了好一阵相机，终于弄清楚光是怎么变成图像的，深度又是怎么测出来的。只要像素有可靠的深度，连它在三维空间中的 XYZ 都能算出来。</p>
+            <p>看起来万事俱备了。</p>
+            <p>结果镜头对准桌上的三个瓶子，才发现漏了一件事：<strong>我知道每个像素在哪里，却还不知道哪些像素属于我要找的瓶子。</strong></p>
+            <p>总不能让机器人自己猜吧。</p>
+            <p>这一站先把三维坐标放在一边，回到二维图像，看看怎样从一整张画面中找到目标。</p>
+          </div>
+          <figure class="hero-art" aria-label="桌面上并排的三个不同标签的瓶子，目标尚未确定">
+            <svg viewBox="0 0 250 268" role="img" aria-labelledby="hero-svg-title">
+              <title id="hero-svg-title">三个瓶子，但尚未指出具体目标</title>
+              <defs><linearGradient id="glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fffcf6"/><stop offset=".5" stop-color="#edf0eb"/><stop offset="1" stop-color="#d8e1db"/></linearGradient></defs>
+              <rect x="5" y="4" width="240" height="260" rx="23" fill="#f7f0e7" stroke="#eadfd3"/>
+              <ellipse cx="125" cy="212" rx="100" ry="11" fill="#ddd0c0" opacity=".45"/>
+              <path d="M20 215H231" stroke="#d0bead" stroke-width="2"/>
+              <g opacity=".96">
+                <path d="M41 86V69H61V86Q64 91 67 101V189Q67 202 54 202H47Q34 202 34 189V101Q36 91 41 86Z" fill="url(#glass)" stroke="#acb6ac" stroke-width="1.8"/>
+                <rect x="41" y="59" width="20" height="13" rx="3" fill="#85a5b0"/>
+                <rect x="35" y="123" width="32" height="35" rx="4" fill="#a1bec5"/><path d="M40 136H62M40 142H58" stroke="#6f98a3" stroke-width="2" opacity=".7"/>
+                <path d="M108 76V60H129V76Q133 81 136 91V189Q136 202 123 202H113Q100 202 100 189V91Q102 81 108 76Z" fill="url(#glass)" stroke="#acb6ac" stroke-width="1.8"/>
+                <rect x="108" y="50" width="21" height="13" rx="3" fill="#d3a177"/>
+                <rect x="101" y="113" width="35" height="40" rx="4" fill="#e5b78e"/><path d="M107 126H130M107 133H128" stroke="#b68158" stroke-width="2" opacity=".7"/>
+                <path d="M183 89V72H205V89Q209 94 211 104V189Q211 202 198 202H190Q177 202 177 189V104Q179 94 183 89Z" fill="url(#glass)" stroke="#acb6ac" stroke-width="1.8"/>
+                <rect x="183" y="62" width="22" height="13" rx="3" fill="#97ac94"/>
+                <rect x="178" y="128" width="33" height="36" rx="4" fill="#b5c6a2"/><path d="M184 140H205M184 147H201" stroke="#829b78" stroke-width="2" opacity=".7"/>
+              </g>
+              <g fill="#8f8175" font-family="Georgia,serif" font-size="13" text-anchor="middle"><text x="51" y="234">A</text><text x="118" y="234">B</text><text x="194" y="234">C</text></g>
+              <g transform="translate(181,14)"><rect width="49" height="28" rx="14" fill="#fffdfa" stroke="#e4d5c5"/><text x="24.5" y="19" text-anchor="middle" font-size="15" fill="#ae7256" font-family="Georgia,serif">哪只?</text></g>
+            </svg>
+            <figcaption>三只瓶子，目标条件还没说。</figcaption>
+          </figure>
+        </div>
+        <div class="hero-meta"><span>单帧二维图像</span><span>三条技术路线</span><span>先明确边界，再进入算法</span></div>
+      </header>
+
+      <section class="chapter" id="definition">
+        <div class="section-kicker"><b>00</b>THE TASK · 问题边界</div>
+        <h2>先明确：我们究竟在找什么？</h2>
+        <div class="scope-intro"><p><strong>二维目标定位：</strong>给定单帧图像与目标条件，确定符合条件的目标在图像中的位置或区域。</p></div>
+        <div class="definition-table"><table>
+          <thead><tr><th>需要明确</th><th>定义</th><th>例如</th></tr></thead>
+          <tbody>
+            <tr><td>找什么</td><td>目标条件</td><td>瓶子、红色物体、指定实例</td></tr>
+            <tr><td>找到什么程度</td><td>输出形式</td><td>点、BBox、Mask、轮廓、关键点</td></tr>
+            <tr><td>凭什么找</td><td>可用依据</td><td>当前图像、已有参考、训练获得的视觉知识</td></tr>
+          </tbody>
+        </table></div>
+        <p>还需要允许多个候选、未找到和无法确定，而不是默认每次都有唯一答案。</p>
+        <div class="difference">
+          <span class="small-label">一个必须区分的问题</span>
+          <p><strong>图像里有一条边缘，不代表那里就是物体边界；找到一个完整区域，也不代表它就是目标。</strong>边缘、区域、轮廓、骨架等是可提取的视觉结构；目标定位还需要判断它们与目标条件的关系。</p>
+        </div>
+        <p>明确这个区别，再来看看有哪些路可以走。</p>
+      </section>
+
+      <section class="chapter" id="classical">
+        <div class="section-kicker"><b>01</b>CURRENT IMAGE · 当前图像</div>
+        <h2>图像特征与结构提取</h2>
+        <div class="chapter-en">Classical Vision · 从图像本身寻找线索</div>
+        <p>如果桌面是白色的，瓶子是红色的，最自然的想法就是利用颜色把它找出来。</p>
+        <p>但颜色不是唯一线索。有些目标可以通过边缘与轮廓区分，有些具有明显的几何形状；面对一根弯曲的线缆，曲线和骨架可能比颜色更值得关注。</p>
+        <p class="question">当前图像里，有哪些能够被明确计算的视觉特征与结构？它们能否帮助我们区分目标？</p>
+        <p>像素与纹理、区域、边缘、轮廓、几何曲线、骨架、拓扑及局部特征，描述的是不同层面的视觉信息，并不都直接等于目标边界。</p>
+        <div class="boundary">
+          <b>这条路线的研究边界</b>
+          <p>不依赖目标专属参考或学习得到的目标识别知识，从当前图像提取可计算的视觉结构，再通过显式规则组织、筛选目标。</p>
+          <p>当不同物体缺乏足以区分的可见特征时，仅靠这些规则可能无法确定目标。</p>
+        </div>
+        <a class="depth-link" href="./01-classical-vision/" aria-label="进入下层笔记：图像特征与结构提取">
+          <span><span class="small">下一层笔记 · DEEP DIVE</span><span class="name">图像特征与结构提取</span><span class="hint">从可见证据到目标区域，研究不同视觉结构</span></span><span class="arr" aria-hidden="true">↗</span>
+        </a>
+      </section>
+
+      <section class="chapter" id="reference">
+        <div class="section-kicker"><b>02</b>KNOWN REFERENCE · 已知参考</div>
+        <h2>参考匹配与视觉对应</h2>
+        <div class="chapter-en">Reference Matching · 用已知信息寻找对应</div>
+        <p>如果我要找的盒子之前已经拍过照片，似乎就没必要重新描述它的颜色、纹理和轮廓了。</p>
+        <p>能不能直接拿着参考图，在当前画面中寻找对应的位置？</p>
+        <p>参考也不一定是完整照片，还可能是一块局部图像、已知轮廓、形状结构，或者提前记录的背景。</p>
+        <p class="question">已知参考中的哪些信息，能够与当前图像建立可靠对应？</p>
+        <div class="boundary">
+          <b>这条路线的研究边界</b>
+          <p>利用已有目标或场景的外观、特征、形状等参考信息，通过相似性与对应关系确定目标位置。</p>
+          <p>它可以借助传统视觉提取特征，但关键区别是引入了已有参考。参考与现场差异过大，或多个位置同样相似时，可能无法得到可靠或唯一的对应。</p>
+        </div>
+        <a class="depth-link" href="./02-reference-matching/" aria-label="进入下层笔记：参考匹配与视觉对应">
+          <span><span class="small">下一层笔记 · DEEP DIVE</span><span class="name">参考匹配与视觉对应</span><span class="hint">从已知外观或结构，到当前图像中的匹配位置</span></span><span class="arr" aria-hidden="true">↗</span>
+        </a>
+      </section>
+
+      <section class="chapter" id="learned">
+        <div class="section-kicker"><b>03</b>LEARNED KNOWLEDGE · 训练知识</div>
+        <h2>学习式视觉定位</h2>
+        <div class="chapter-en">Learned Vision · 从样本中学习视觉规律</div>
+        <p>但如果每天面对的瓶子都不一样呢？颜色、尺寸、形状不断变化，总不能每出现一种新外观，就重新写一套规则或准备一张参考照片。</p>
+        <p class="question">能不能让模型提前看过许多样本，从中学会哪些视觉规律能够用于识别目标？</p>
+        <p>传统机器学习通常利用人工设计的视觉特征学习判别规则；深度学习则可以从数据中学习视觉表示和预测关系。两者都能服务于目标定位。</p>
+        <p>至于输出 BBox、Mask 还是关键点，属于定位任务与结果形式的区别，并不是学习路线的划分依据。</p>
+        <div class="boundary">
+          <b>这条路线的研究边界</b>
+          <p>利用训练数据学习可复用的视觉特征与判别、定位关系，在新图像中寻找符合任务定义的目标。</p>
+          <p>这一站仅讨论传统机器学习与常规深度视觉方法，不深入开放词汇 Grounding、VLM 和多模态推理。学习到的规律仍可能受到目标与场景变化的限制。</p>
+        </div>
+        <a class="depth-link" href="./03-learned-vision/" aria-label="进入下层笔记：学习式视觉定位">
+          <span><span class="small">下一层笔记 · DEEP DIVE</span><span class="name">学习式视觉定位</span><span class="hint">从手工特征与统计学习，到常规深度视觉定位</span></span><span class="arr" aria-hidden="true">↗</span>
+        </a>
+      </section>
+
+      <section class="chapter" id="reflection">
+        <div class="section-kicker"><b>↳</b>LOOKING BACK · 回头看看</div>
+        <h2>原来有三条不同的路</h2>
+        <p class="summary-lead">一开始只是想找到桌上的瓶子。走到这里，至少能从三种不同的依据出发。</p>
+        <div class="definition-table route-matrix"><table>
+          <thead><tr><th>技术路线</th><th>核心依据</th><th>主要边界</th></tr></thead>
+          <tbody>
+            <tr><td>图像特征与结构提取</td><td>当前图像 + 显式规则</td><td>是否存在足以区分目标的视觉结构</td></tr>
+            <tr><td>参考匹配与视觉对应</td><td>当前图像 + 已有参考</td><td>是否存在可靠、可区分的对应</td></tr>
+            <tr><td>学习式视觉定位</td><td>当前图像 + 训练获得的视觉知识</td><td>学到的规律能否适用于当前目标</td></tr>
+          </tbody>
+        </table></div>
+        <p>它们不是依次升级的三个阶段，也不互相排斥。传统视觉可以用于参考匹配，学习式方法也可以结合显式规则。</p>
+        <p>不过，无论选择哪一条，<strong>提取到视觉结构、发现候选区域、确定指定目标，始终是不同层次的问题。</strong></p>
+        <p>这一站只研究单帧二维目标定位。目标跟踪、三维位姿、点云配准和抓取规划，留给其他路线。</p>
+        <div class="foot-conclusion"><p>先弄清楚凭什么找，再研究究竟怎么找。</p></div>
+
+        <div class="deep-title">沿着三条路线，继续探索</div>
+        <div class="deep-list" aria-label="下层技术笔记">
+          <a href="./01-classical-vision/"><small>01 · CLASSICAL</small><b>图像特征与结构提取　↗</b><span>像素、区域、轮廓、曲线与骨架</span></a>
+          <a href="./02-reference-matching/"><small>02 · REFERENCE</small><b>参考匹配与视觉对应　↗</b><span>外观、局部特征与结构参考</span></a>
+          <a href="./03-learned-vision/"><small>03 · LEARNED</small><b>学习式视觉定位　↗</b><span>传统机器学习与常规深度视觉</span></a>
+        </div>
+        <div class="bottom-nav">
+          <a href="../">← 返回「把问题拆开」</a>
+          <a href="../camera-measurement/">回看 · 相机与三维测量 ↗</a>
+        </div>
+      </section>
+      <footer class="footer-note">沿途手记 · 二维目标定位 / 2D Target Localization<br>本页定义技术路线与问题边界；下层笔记独立展开。</footer>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+  'use strict';
+  const body = document.body;
+  const menu = document.querySelector('.rn-menu-btn');
+  const close = document.querySelector('.rn-close');
+  const overlay = document.querySelector('.rn-overlay');
+  const navLinks = Array.from(document.querySelectorAll('.rn-toc a[href^="#"]'));
+  const sections = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  const progress = document.getElementById('progress');
+  function setMenu(open){
+    body.classList.toggle('rn-drawer-open',open);
+    if(menu)menu.setAttribute('aria-expanded',String(open));
+  }
+  if(menu)menu.addEventListener('click',()=>setMenu(!body.classList.contains('rn-drawer-open')));
+  if(close)close.addEventListener('click',()=>setMenu(false));
+  if(overlay)overlay.addEventListener('click',()=>setMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+  document.querySelectorAll('.rn-sidebar a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+  function update(){
+    const top = window.scrollY + (window.innerWidth<=860?118:96);
+    let active = sections[0];
+    for(const s of sections){if(s.offsetTop<=top)active=s;else break}
+    navLinks.forEach(a=>{
+      const on = a.getAttribute('href')==='#'+active.id;
+      a.classList.toggle('is-active',on);
+      if(on)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');
+    });
+    if(progress){
+      const d=document.documentElement;
+      const max=d.scrollHeight-d.clientHeight;
+      progress.style.width=(max>0?Math.min(100,Math.max(0,window.scrollY/max*100)):0)+'%';
+    }
+  }
+  let scheduled=false;
+  function requestUpdate(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;update()})}
+  window.addEventListener('scroll',requestUpdate,{passive:true});
+  window.addEventListener('resize',requestUpdate,{passive:true});
+  window.addEventListener('hashchange',requestUpdate);
+  update();
+})();
+</script>
+</body>
+</html>
