@@ -158,6 +158,72 @@ main.rn-main{width:100%;min-width:0;max-width:none;padding:0 42px 84px;backgroun
 @media print{.rn-sidebar,.rn-mobile-bar,.rn-overlay,.rn-crumbs{display:none!important}.rn-layout{display:block}.rn-main-inner{max-width:none}main.rn-main{padding:0}}
 </style>
 <!-- navigation:assets:end -->
+<style id="physical-intuition-styles">
+/* Article supplement: physical intuition for projected structured light and ToF.
+   All selectors are prefixed physical-; shared navigation stays untouched. */
+.physical-intro{margin:34px 0 48px;padding:28px 28px 26px;border:1px solid #e4d7c7;border-radius:15px;background:#fffcf7;box-shadow:0 7px 25px rgba(108,83,62,.03);font-family:var(--copy)}
+.physical-kicker{color:#ae6b50;font-size:11px;font-weight:750;letter-spacing:.12em;margin:0 0 10px}
+.physical-intro .physical-title{font-family:var(--heading);font-size:clamp(21px,2.2vw,26px);line-height:1.5;font-weight:700;color:#46392f;margin:0 0 19px}
+.physical-intro .physical-subtitle{font-family:var(--heading);font-size:18px;line-height:1.55;color:#4b3a31;margin:29px 0 11px;font-weight:700}
+.physical-intro p{margin:0 0 14px;color:#62574e;font-size:14px;line-height:2.05}
+/* Override legacy chapter emphasis styling only inside these two added explainers. */
+.chapter .physical-intro.physical-intro p:not(.physical-source):not(.physical-graph-note){margin:0 0 14px;color:#62574e}
+.chapter .physical-intro.physical-intro p.physical-last{margin-bottom:0}
+.physical-intro p strong{color:#684936}
+.physical-intro .physical-last{margin-bottom:0}
+.physical-scene{margin:19px 0 22px;border:1px solid #eaded0;border-radius:12px;background:#faf7f1;overflow:hidden}
+.physical-scene svg{width:100%;height:auto;display:block}
+.physical-scene figcaption{padding:9px 16px 13px;margin:0;color:#8b7d6e;font-size:11.5px;line-height:1.7;border-top:1px solid #ebe3d9}
+.physical-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:16px 0 20px}
+.physical-step{border:1px solid #e7ded4;border-radius:9px;background:#fbf7f0;padding:12px 12px 10px;min-width:0}
+.physical-step b{display:block;color:#966147;font-size:12px;margin-bottom:3px}
+.physical-step span{display:block;color:#72665b;font-size:12px;line-height:1.7}
+.physical-demo{margin:22px 0 25px;padding:19px;border-radius:12px;border:1px solid #deded2;background:#f5f7f1}
+.physical-demo-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.physical-demo-head strong{font-size:13px;color:#506d5b}
+.physical-demo-head small{font-size:11px;color:#8c8b7f}
+.physical-buttons{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 13px}
+.physical-intro .physical-buttons button{appearance:none;font:600 12px/1.5 var(--copy);border-radius:7px;border:1px solid #cfd9cc;padding:6px 13px;background:#fffefa;color:#697a6b;cursor:pointer}
+.physical-intro .physical-buttons button:hover{border-color:#8fa48f;background:#f0f6ed}
+.physical-intro .physical-buttons button[aria-pressed="true"]{background:#698774;color:white;border-color:#698774}
+.physical-pattern{display:grid;grid-template-columns:repeat(8,1fr);gap:0;border-radius:8px;overflow:hidden;border:2px solid #e4dccf;min-height:91px}
+.physical-cell{display:grid;place-items:end center;padding-bottom:6px;font-size:10px;font-weight:700;color:#ad9987;min-width:0}
+.physical-cell.on{background:#fffcf6;color:#918270}.physical-cell.off{background:#342f2a;color:#d1c4b9}
+.physical-cell.marked{outline:3px solid #cf8c66;outline-offset:-3px}
+.physical-demo-feedback{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;margin:13px 0 0;font-size:12px;color:#756b61}
+.physical-demo-feedback strong{color:#9b6345}
+.physical-code{display:flex;gap:5px;align-items:center;margin:11px 0 0;flex-wrap:wrap}
+.physical-code span{border-radius:6px;background:white;border:1px solid #dcded1;color:#7a826f;padding:5px 10px;font:700 13px/1.2 ui-monospace,Consolas,monospace}
+.physical-code .physical-code-active{border-color:#a8bea8;background:#e9f1e8;color:#476650}
+.physical-demo svg{display:block;width:100%;height:auto;max-height:160px;border:1px solid #e0dfd4;border-radius:8px;background:#fffdfa}
+.physical-notice{border-left:3px solid #88a590;background:#f0f4ed;border-radius:0 8px 8px 0;color:#526d5b;padding:13px 16px;margin:20px 0 12px;font-size:13px;line-height:1.9}
+.physical-contrast{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0 0}
+.physical-contrast>div{padding:16px;border:1px solid #e4ddd1;background:#faf7f0;border-radius:9px;min-width:0}
+.physical-contrast b{display:block;font-size:12px;color:#825a44;margin-bottom:5px}
+.physical-contrast span{font-size:12px;line-height:1.75;color:#786b60;display:block}
+.physical-distance-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 8px;font-size:12px;color:#68766a}
+.physical-distance-row strong{font-size:20px;color:#547460;font-variant-numeric:tabular-nums}
+.physical-intro .physical-slider{display:block;width:100%;accent-color:#70937c;cursor:pointer;margin:0 0 12px}
+.physical-graphs{display:grid;grid-template-columns:1fr;gap:13px}
+.physical-graph{background:white;border:1px solid #e1dfd6;border-radius:10px;padding:11px 12px 10px;overflow:hidden}
+.physical-graph-title{font-size:12px;font-weight:750;color:#795941;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
+.physical-graph-title small{font-weight:500;color:#93877a;font-size:10.5px}
+.physical-graph svg{display:block;width:100%;height:auto;max-height:180px;overflow:visible}
+.physical-graph-note{font-size:11px!important;line-height:1.8!important;color:#877c70!important;margin:7px 0 0!important}
+.physical-legend{display:flex;gap:13px;flex-wrap:wrap;margin:8px 0 0;color:#736d60;font-size:11px}
+.physical-key{display:flex;align-items:center;gap:6px}
+.physical-dot{width:17px;height:3px;border-radius:3px;background:#bd7a53}
+.physical-dot.return{background:#668b83}
+.physical-correlation{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:14px 0 6px}
+.physical-corr-item{text-align:center;font-size:10.5px;color:#716a60}
+.physical-corr-track{height:48px;border-radius:5px;background:#edece5;position:relative;display:flex;align-items:flex-end;overflow:hidden;margin:0 0 5px}
+.physical-corr-fill{background:#8ca99b;width:100%;height:50%;transition:height .15s linear}
+.physical-divider{height:1px;background:#e5ddd3;margin:24px 0}
+.physical-source{font-size:11px!important;line-height:1.75!important;color:#978b7c!important;margin:18px 0 0!important}
+.physical-source a{text-decoration:underline;text-underline-offset:3px;color:#91674d}
+@media(max-width:760px){.physical-intro{padding:20px 17px;margin:24px 0 35px}.physical-steps{grid-template-columns:1fr;gap:7px}.physical-contrast{grid-template-columns:1fr}.physical-demo{padding:15px 11px}.physical-intro .physical-title{font-size:22px}.physical-intro .physical-subtitle{font-size:17px}.physical-intro p{font-size:13.5px}}
+@media print{.physical-intro{break-inside:auto}.physical-demo button,.physical-slider{display:none!important}.physical-scene{break-inside:avoid}}
+</style>
 </head><body>
 <!-- navigation:mobile:start -->
 <a class="rn-skip" href="#content">跳到正文</a>
@@ -366,7 +432,60 @@ main.rn-main{width:100%;min-width:0;max-width:none;padding:0 42px 84px;backgroun
 <circle cx="389" cy="68" r="9" fill="#b97960" stroke="white" stroke-width="3"/>
 <g><rect x="82" y="229" width="80" height="36" rx="8" fill="#e4ece4" stroke="#abc5b6"/><circle cx="122" cy="247" r="10" fill="#789989"/><rect x="593" y="229" width="96" height="36" rx="8" fill="#fae2d2" stroke="#deb49d"/><rect x="615" y="237" width="51" height="18" rx="2" fill="#e4ba9d"/><path d="M625 239V253M634 239V253M643 239V253M652 239V253" stroke="#fff" stroke-width="2"/></g>
 <g fill="#5e5852" font-size="15" font-family="sans-serif"><text x="113" y="282">相机</text><text x="612" y="282">投影器</text><text x="400" y="62">表面点 P</text><text x="172" y="151" fill="#779a8b">观察射线</text><text x="480" y="151" fill="#b77960">投射射线</text><text x="30" y="43" fill="#8e8074" font-size="13">关键：先识别投影器位置</text></g>
-</svg><figcaption><span class="fig-no">图 02</span> 结构光的投射图案不仅提供亮度变化，还要让相机识别投影器中的对应位置。确定两条射线之后，才能三角测量。</figcaption></figure><h3 id="structured-s1">2.1 相机与投影器怎样形成三角测量？</h3>
+</svg><figcaption><span class="fig-no">图 02</span> 结构光的投射图案不仅提供亮度变化，还要让相机识别投影器中的对应位置。确定两条射线之后，才能三角测量。</figcaption></figure>
+<!-- physical-intuition:structured:start -->
+<div class="physical-intro" id="physical-structured" aria-label="结构光投射与观察：物理直觉补充">
+  <div class="physical-kicker">先看见，再计算 · PHYSICAL INTUITION</div>
+  <h3 class="physical-title">先别急着算：结构光究竟往瓶子上打了什么？</h3>
+  <p>我原本只记得「找到投影器像素，再做三角测量」，却始终想象不出那束光。其实典型的<strong>编码结构光设备里有一个投影器和一台相机</strong>：投影器像放映图片一样，向整个场景投射预先设计好的图案；相机站在旁边，把落在物体表面的图案拍回来。</p>
+  <figure class="physical-scene">
+    <svg viewBox="0 0 740 292" role="img" aria-label="左侧投影器将条纹整幅投向瓶子，旁侧相机观察瓶面条纹的原理示意">
+      <defs><linearGradient id="physical-bottle-fill" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#b7c5b5"/><stop offset=".50" stop-color="#edf0e7"/><stop offset="1" stop-color="#95ab9d"/></linearGradient><clipPath id="physical-bottle-clip"><path d="M519 75Q519 64 531 61L531 40Q531 34 538 34H571Q578 34 578 40V61Q591 65 591 75L609 111Q615 122 615 137V251Q615 267 596 270H514Q495 267 495 251V137Q495 121 501 111Z"/></clipPath></defs>
+      <rect width="740" height="292" rx="11" fill="#faf7f1"/>
+      <rect x="35" y="75" width="126" height="93" rx="13" fill="#efe1d1" stroke="#c8ac96" stroke-width="2"/><circle cx="135" cy="121" r="22" fill="#b97757"/><circle cx="135" cy="121" r="10" fill="#e8cdbb"/>
+      <text x="98" y="60" fill="#865942" font-size="17" font-weight="700" text-anchor="middle">投影器</text><text x="98" y="186" fill="#9b806c" font-size="12" text-anchor="middle">播放整幅图案</text>
+      <rect x="286" y="83" width="106" height="82" rx="13" fill="#e2eae1" stroke="#a7c4b1" stroke-width="2"/><circle cx="364" cy="122" r="20" fill="#6b9581"/><circle cx="364" cy="122" r="9" fill="#d6e7db"/>
+      <text x="337" y="66" fill="#57705f" font-size="17" font-weight="700" text-anchor="middle">相机</text><text x="337" y="184" fill="#768d7e" font-size="12" text-anchor="middle">拍下图案</text>
+      <path d="M155 107L502 88L500 238L154 135Z" fill="#efd3a5" opacity=".32" stroke="#d09b6b" stroke-dasharray="6 6" stroke-width="1.4"/>
+      <path d="M363 122L527 140" fill="none" stroke="#779e89" stroke-width="2" stroke-dasharray="6 5"/>
+      <path d="M519 75Q519 64 531 61L531 40Q531 34 538 34H571Q578 34 578 40V61Q591 65 591 75L609 111Q615 122 615 137V251Q615 267 596 270H514Q495 267 495 251V137Q495 121 501 111Z" fill="url(#physical-bottle-fill)" stroke="#859d8c" stroke-width="2"/>
+      <g clip-path="url(#physical-bottle-clip)">
+        <path d="M502 0Q489 80 506 150T502 300" stroke="#a36245" stroke-width="14" fill="none" opacity=".82"/><path d="M527 0Q511 80 533 150T524 300" stroke="#fffaf2" stroke-width="16" fill="none" opacity=".95"/><path d="M550 0Q535 80 557 150T546 300" stroke="#a36245" stroke-width="14" fill="none" opacity=".82"/><path d="M574 0Q561 80 581 150T572 300" stroke="#fffaf2" stroke-width="16" fill="none" opacity=".95"/><path d="M600 0Q585 80 610 150T598 300" stroke="#a36245" stroke-width="14" fill="none" opacity=".82"/>
+      </g>
+      <text x="647" y="150" font-size="14" fill="#765e4a" text-anchor="middle">瓶身</text><text x="647" y="170" font-size="12" fill="#948678" text-anchor="middle">条纹随</text><text x="647" y="186" font-size="12" fill="#948678" text-anchor="middle">表面起伏</text>
+      <text x="231" y="98" fill="#ad845e" font-size="12" text-anchor="middle">投出去</text><text x="442" y="120" fill="#688b77" font-size="12" text-anchor="middle">看回来</text>
+    </svg>
+    <figcaption>原理示意，不是实拍：图案投向一整片场景，瓶子只是其中一个接收光的表面。现实设备常用可见光或红外光；红外条纹通常不能直接用肉眼看见。</figcaption>
+  </figure>
+  <div class="physical-steps"><div class="physical-step"><b>① 发出去</b><span>一幅规则图案同时照亮场景；下一时刻再换一幅图案。</span></div><div class="physical-step"><b>② 落到表面</b><span>瓶子、桌面和背景按各自形状接收与反射图案。</span></div><div class="physical-step"><b>③ 拍回来</b><span>相机观察每个像素随图案切换的明暗，寻找投影位置的身份。</span></div></div>
+  <p>注意：结构光并非只能是竖条纹。它可以是线、网格、编码点阵或散斑；下面演示的是最容易理解的<strong>多帧编码条纹</strong>。它不像普通双目那样依靠自然纹理，也不需要像机械雷达那样必须逐点扫过物体。</p>
+
+  <h3 class="physical-subtitle">Gray Code：三张图片轮流打出去，给位置编号</h3>
+  <p>想象投影器宽度先简化成 8 列。相机始终盯着同一个瓶身小点 P：投第一幅时它亮不亮？换第二幅呢？第三幅呢？三次亮暗组成一个编码，我们便知道 P 对应投影器的哪一列。<strong>编码来自同一个点跨时间的变化</strong>，不是某一张普通照片就能读出全部信息。</p>
+  <div class="physical-demo" id="physical-gray-demo">
+    <div class="physical-demo-head"><strong>动手切换 · Gray Code 投射图案</strong><small>8 列 / 3 帧教学示意，省略反相校验</small></div>
+    <div class="physical-buttons" role="group" aria-label="切换 Gray Code 三帧投影">
+      <button type="button" data-physical-gray="0" aria-pressed="true">第 1 帧</button><button type="button" data-physical-gray="1" aria-pressed="false">第 2 帧</button><button type="button" data-physical-gray="2" aria-pressed="false">第 3 帧</button>
+    </div>
+    <div class="physical-pattern" id="physical-gray-pattern" role="img" aria-label="黑白条纹投影图案，橘色边框标出第6号投影区域"></div>
+    <div class="physical-demo-feedback"><span>橘色框：瓶身点 P 所对应的<strong>投影器第 6 列</strong></span><span>本帧观测：<strong id="physical-gray-state">亮（1）</strong></span></div>
+    <div class="physical-code" aria-label="三个帧的投影编码"><span id="physical-gray-bit0" class="physical-code-active">1</span><span id="physical-gray-bit1">0</span><span id="physical-gray-bit2">1</span><span>→ Gray 编码 101 → 第 6 列</span></div>
+  </div>
+  <p>Gray Code 得到的是粗粒度的位置身份。若希望分辨一条区域内部的细小位置差异，可以换成亮度连续变化的条纹。</p>
+  <h3 class="physical-subtitle">相移：不是换硬件，而是让明暗条纹慢慢挪动</h3>
+  <p>投影器改为播放正弦明暗条纹，连续把整幅条纹横向错开 0°、90°、180°、270°。相机盯着同一个表面点，记录四次强度；由强度变化推断它在条纹周期里的精确位置。</p>
+  <div class="physical-demo" id="physical-phase-demo">
+    <div class="physical-demo-head"><strong>动手切换 · 四步相移</strong><small>同一台投影器，换成连续渐变条纹</small></div>
+    <div class="physical-buttons" role="group" aria-label="切换四个相移位置"><button type="button" data-physical-phase="0" aria-pressed="true">0°</button><button type="button" data-physical-phase="1" aria-pressed="false">90°</button><button type="button" data-physical-phase="2" aria-pressed="false">180°</button><button type="button" data-physical-phase="3" aria-pressed="false">270°</button></div>
+    <svg id="physical-phase-svg" viewBox="0 0 540 95" role="img" aria-label="横向变化的正弦条纹和固定观察点 P"></svg>
+    <div class="physical-demo-feedback"><span>竖线标记一个固定的物体点 P</span><span>本帧相对亮度：<strong id="physical-phase-value">--</strong></span></div>
+  </div>
+  <div class="physical-notice"><strong>终于连上原来的公式了：</strong>解码首先得到的不是深度，而是「相机像素 ↔ 投影器坐标」。相机提供观察射线，已标定的投影器提供一条投射射线（或一个投射光平面），这时才轮到下面的三角测量公式。</div>
+  <p class="physical-last">多帧 Gray Code 与相移很适合解释编码结构光，但不是所有结构光系统都必须多帧；单帧编码和扫描线光也是存在的。接下来继续原笔记的几何与算法推导。</p>
+</div>
+<!-- physical-intuition:structured:end -->
+
+<h3 id="structured-s1">2.1 相机与投影器怎样形成三角测量？</h3>
 <p>可以把投影器近似看成一台反向工作的相机：普通相机接收某个方向的光并记录到像素，投影器从自己的像素位置向空间发射某个方向的光。</p>
 <p>标定后，相机像素 <span class="inline-math"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.566ex;" xmlns="http://www.w3.org/2000/svg" width="6.919ex" height="2.262ex" role="img" focusable="false" viewBox="0 -750 3058 1000"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mo"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(389,0)"><g data-mml-node="mi"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mi" transform="translate(605,-150) scale(0.707)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g></g><g data-mml-node="mo" transform="translate(1350.2,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(1794.8,0)"><g data-mml-node="mi"><path data-c="1D463" d="M173 380Q173 405 154 405Q130 405 104 376T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Q21 294 29 316T53 368T97 419T160 441Q202 441 225 417T249 361Q249 344 246 335Q246 329 231 291T200 202T182 113Q182 86 187 69Q200 26 250 26Q287 26 319 60T369 139T398 222T409 277Q409 300 401 317T383 343T365 361T357 383Q357 405 376 424T417 443Q436 443 451 425T467 367Q467 340 455 284T418 159T347 40T241 -11Q177 -11 139 22Q102 54 102 117Q102 148 110 181T151 298Q173 362 173 380Z"></path></g><g data-mml-node="mi" transform="translate(518,-150) scale(0.707)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g></g><g data-mml-node="mo" transform="translate(2669,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g></g></g></svg></mjx-container></span> 给出相机射线；投影位置 <span class="inline-math"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.65ex;" xmlns="http://www.w3.org/2000/svg" width="7.143ex" height="2.347ex" role="img" focusable="false" viewBox="0 -750 3157 1037.2"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mo"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(389,0)"><g data-mml-node="mi"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mi" transform="translate(605,-150) scale(0.707)"><path data-c="1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path></g></g><g data-mml-node="mo" transform="translate(1399.7,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(1844.3,0)"><g data-mml-node="mi"><path data-c="1D463" d="M173 380Q173 405 154 405Q130 405 104 376T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Q21 294 29 316T53 368T97 419T160 441Q202 441 225 417T249 361Q249 344 246 335Q246 329 231 291T200 202T182 113Q182 86 187 69Q200 26 250 26Q287 26 319 60T369 139T398 222T409 277Q409 300 401 317T383 343T365 361T357 383Q357 405 376 424T417 443Q436 443 451 425T467 367Q467 340 455 284T418 159T347 40T241 -11Q177 -11 139 22Q102 54 102 117Q102 148 110 181T151 298Q173 362 173 380Z"></path></g><g data-mml-node="mi" transform="translate(518,-150) scale(0.707)"><path data-c="1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path></g></g><g data-mml-node="mo" transform="translate(2768,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g></g></g></svg></mjx-container></span> 给出投影器射线。将两条射线写为：</p>
 <div class="equation" role="group" aria-label="数学公式"><mjx-container class="MathJax" jax="SVG" display="true"><svg style="vertical-align: -0.65ex;" xmlns="http://www.w3.org/2000/svg" width="34.648ex" height="2.242ex" role="img" focusable="false" viewBox="0 -704 15314.2 991.2"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="msub"><g data-mml-node="mi"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mi" transform="translate(675,-150) scale(0.707)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g></g><g data-mml-node="mo" transform="translate(1309,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="msub" transform="translate(2364.7,0)"><g data-mml-node="mi"><path data-c="1D442" d="M740 435Q740 320 676 213T511 42T304 -22Q207 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435ZM637 476Q637 565 591 615T476 665Q396 665 322 605Q242 542 200 428T157 216Q157 126 200 73T314 19Q404 19 485 98T608 313Q637 408 637 476Z"></path></g><g data-mml-node="mi" transform="translate(796,-150) scale(0.707)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g></g><g data-mml-node="mo" transform="translate(3739.1,0)"><path data-c="2B" d="M56 237T56 250T70 270H369V420L370 570Q380 583 389 583Q402 583 409 568V270H707Q722 262 722 250T707 230H409V-68Q401 -82 391 -82H389H387Q375 -82 369 -68V230H70Q56 237 56 250Z"></path></g><g data-mml-node="mi" transform="translate(4739.4,0)"><path data-c="1D706" d="M166 673Q166 685 183 694H202Q292 691 316 644Q322 629 373 486T474 207T524 67Q531 47 537 34T546 15T551 6T555 2T556 -2T550 -11H482Q457 3 450 18T399 152L354 277L340 262Q327 246 293 207T236 141Q211 112 174 69Q123 9 111 -1T83 -12Q47 -12 47 20Q47 37 61 52T199 187Q229 216 266 252T321 306L338 322Q338 323 288 462T234 612Q214 657 183 657Q166 657 166 673Z"></path></g><g data-mml-node="msub" transform="translate(5322.4,0)"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D41D" d="M351 686L442 690Q533 694 534 694H540V389Q540 327 540 253T539 163Q539 97 541 83T555 66Q569 62 596 62H609V31Q609 0 608 0Q588 0 510 -3T412 -6Q411 -6 411 16V38L401 31Q337 -6 265 -6Q159 -6 99 58T38 224Q38 265 51 303T92 375T165 429T272 449Q359 449 417 412V507V555Q417 597 415 607T402 620Q388 624 361 624H348V686H351ZM411 350Q362 399 291 399Q278 399 256 392T218 371Q195 351 189 320T182 238V221Q182 179 183 159T191 115T212 74Q241 46 288 46Q358 46 404 100L411 109V350Z"></path></g></g><g data-mml-node="mi" transform="translate(672,-150) scale(0.707)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g></g><g data-mml-node="mo" transform="translate(6350.5,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="mstyle" transform="translate(6628.5,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msub" transform="translate(8795.2,0)"><g data-mml-node="mi"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mi" transform="translate(675,-150) scale(0.707)"><path data-c="1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path></g></g><g data-mml-node="mo" transform="translate(10153.7,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="msub" transform="translate(11209.4,0)"><g data-mml-node="mi"><path data-c="1D442" d="M740 435Q740 320 676 213T511 42T304 -22Q207 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435ZM637 476Q637 565 591 615T476 665Q396 665 322 605Q242 542 200 428T157 216Q157 126 200 73T314 19Q404 19 485 98T608 313Q637 408 637 476Z"></path></g><g data-mml-node="mi" transform="translate(796,-150) scale(0.707)"><path data-c="1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path></g></g><g data-mml-node="mo" transform="translate(12633.3,0)"><path data-c="2B" d="M56 237T56 250T70 270H369V420L370 570Q380 583 389 583Q402 583 409 568V270H707Q722 262 722 250T707 230H409V-68Q401 -82 391 -82H389H387Q375 -82 369 -68V230H70Q56 237 56 250Z"></path></g><g data-mml-node="mi" transform="translate(13633.5,0)"><path data-c="1D707" d="M58 -216Q44 -216 34 -208T23 -186Q23 -176 96 116T173 414Q186 442 219 442Q231 441 239 435T249 423T251 413Q251 401 220 279T187 142Q185 131 185 107V99Q185 26 252 26Q261 26 270 27T287 31T302 38T315 45T327 55T338 65T348 77T356 88T365 100L372 110L408 253Q444 395 448 404Q461 431 491 431Q504 431 512 424T523 412T525 402L449 84Q448 79 448 68Q448 43 455 35T476 26Q485 27 496 35Q517 55 537 131Q543 151 547 152Q549 153 557 153H561Q580 153 580 144Q580 138 575 117T555 63T523 13Q510 0 491 -8Q483 -10 467 -10Q446 -10 429 -4T402 11T385 29T376 44T374 51L368 45Q362 39 350 30T324 12T288 -4T246 -11Q199 -11 153 12L129 -85Q108 -167 104 -180T92 -202Q76 -216 58 -216Z"></path></g><g data-mml-node="msub" transform="translate(14236.5,0)"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D41D" d="M351 686L442 690Q533 694 534 694H540V389Q540 327 540 253T539 163Q539 97 541 83T555 66Q569 62 596 62H609V31Q609 0 608 0Q588 0 510 -3T412 -6Q411 -6 411 16V38L401 31Q337 -6 265 -6Q159 -6 99 58T38 224Q38 265 51 303T92 375T165 429T272 449Q359 449 417 412V507V555Q417 597 415 607T402 620Q388 624 361 624H348V686H351ZM411 350Q362 399 291 399Q278 399 256 392T218 371Q195 351 189 320T182 238V221Q182 179 183 159T191 115T212 74Q241 46 288 46Q358 46 404 100L411 109V350Z"></path></g></g><g data-mml-node="mi" transform="translate(672,-150) scale(0.707)"><path data-c="1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path></g></g></g></g></svg></mjx-container></div>
@@ -427,7 +546,65 @@ main.rn-main{width:100%;min-width:0;max-width:none;padding:0 42px 84px;backgroun
 <g><path d="M70.00 141.00 L76.00 136.29 L82.00 131.64 L88.00 127.10 L94.00 122.71 L100.00 118.54 L106.00 114.62 L112.00 111.01 L118.00 107.74 L124.00 104.85 L130.00 102.37 L136.00 100.34 L142.00 98.78 L148.00 97.69 L154.00 97.11 L160.00 97.03 L166.00 97.45 L172.00 98.37 L178.00 99.79 L184.00 101.67 L190.00 104.01 L196.00 106.76 L202.00 109.92 L208.00 113.43 L214.00 117.25 L220.00 121.35 L226.00 125.67 L232.00 130.17 L238.00 134.79 L244.00 139.48 L250.00 144.20 L256.00 148.87 L262.00 153.45 L268.00 157.90 L274.00 162.14 L280.00 166.15 L286.00 169.87 L292.00 173.25 L298.00 176.27 L304.00 178.88 L310.00 181.06 L316.00 182.77 L322.00 184.01 L328.00 184.76 L334.00 185.00 L340.00 184.74 L346.00 183.98 L352.00 182.72 L358.00 180.99 L364.00 178.79 L370.00 176.17 L376.00 173.14 L382.00 169.74 L388.00 166.01 L394.00 162.00 L400.00 157.74 L406.00 153.29 L412.00 148.71 L418.00 144.03 L424.00 139.32 L430.00 134.63 L436.00 130.01 L442.00 125.51 L448.00 121.20 L454.00 117.11 L460.00 113.30 L466.00 109.80 L472.00 106.66 L478.00 103.92 L484.00 101.60 L490.00 99.73 L496.00 98.33 L502.00 97.43 L508.00 97.02 L514.00 97.12 L520.00 97.72 L526.00 98.82 L532.00 100.41 L538.00 102.45 L544.00 104.94 L550.00 107.85 L556.00 111.13 L562.00 114.76 L568.00 118.68 L574.00 122.87 L580.00 127.26 L586.00 131.81 L592.00 136.46 L598.00 141.17 L604.00 145.87 L610.00 150.52 L616.00 155.06 L622.00 159.44 L628.00 163.60 L634.00 167.51 L640.00 171.11 L646.00 174.37 L652.00 177.25 L658.00 179.71 L664.00 181.72 L670.00 183.27 L676.00 184.33 L682.00 184.90 L688.00 184.96 L694.00 184.52 L700.00 183.58" stroke="#bd8162" stroke-width="3" fill="none" id="emission"/><path d="M70.00 173.76 L76.00 170.44 L82.00 166.77 L88.00 162.81 L94.00 158.60 L100.00 154.18 L106.00 149.62 L112.00 144.95 L118.00 140.25 L124.00 135.55 L130.00 130.91 L136.00 126.39 L142.00 122.03 L148.00 117.89 L154.00 114.02 L160.00 110.46 L166.00 107.25 L172.00 104.42 L178.00 102.02 L184.00 100.06 L190.00 98.57 L196.00 97.57 L202.00 97.06 L208.00 97.06 L214.00 97.57 L220.00 98.57 L226.00 100.06 L232.00 102.01 L238.00 104.42 L244.00 107.24 L250.00 110.46 L256.00 114.02 L262.00 117.89 L268.00 122.02 L274.00 126.38 L280.00 130.90 L286.00 135.54 L292.00 140.24 L298.00 144.95 L304.00 149.61 L310.00 154.18 L316.00 158.59 L322.00 162.80 L328.00 166.76 L334.00 170.43 L340.00 173.76 L346.00 176.71 L352.00 179.26 L358.00 181.36 L364.00 183.00 L370.00 184.16 L376.00 184.83 L382.00 184.99 L388.00 184.65 L394.00 183.81 L400.00 182.47 L406.00 180.67 L412.00 178.40 L418.00 175.71 L424.00 172.62 L430.00 169.16 L436.00 165.39 L442.00 161.33 L448.00 157.04 L454.00 152.57 L460.00 147.96 L466.00 143.28 L472.00 138.56 L478.00 133.88 L484.00 129.28 L490.00 124.81 L496.00 120.53 L502.00 116.48 L508.00 112.71 L514.00 109.27 L520.00 106.19 L526.00 103.51 L532.00 101.27 L538.00 99.47 L544.00 98.16 L550.00 97.33 L556.00 97.01 L562.00 97.18 L568.00 97.87 L574.00 99.04 L580.00 100.70 L586.00 102.82 L592.00 105.38 L598.00 108.35 L604.00 111.69 L610.00 115.37 L616.00 119.34 L622.00 123.56 L628.00 127.98 L634.00 132.55 L640.00 137.21 L646.00 141.92 L652.00 146.62 L658.00 151.25 L664.00 155.77 L670.00 160.12 L676.00 164.25 L682.00 168.11 L688.00 171.66 L694.00 174.86 L700.00 177.67" stroke="#749c8e" stroke-width="3" fill="none" id="return"/></g>
 <path d="M70 234H716" stroke="#aaa29b" stroke-width="1.5"/><path d="M70 229V240M716 229V240" stroke="#aaa29b" stroke-width="1.5"/>
 <g fill="#665c55" font-size="15" font-family="sans-serif"><text x="61" y="30" fill="#ad7057">发射光（参考信号）</text><text x="371" y="30" fill="#668c7f">返回光（时间延迟 / 相位偏移）</text><text x="345" y="263">时间 t</text><text x="60" y="281" font-size="12" fill="#8e8074">时间延迟越大，传播光程越长；iToF 通过相位间接测量延迟</text></g>
-</svg><figcaption><span class="fig-no">图 03</span> ToF 研究的是传播信号。dToF 估计到达时间，iToF 通过周期调制信号的相位偏移间接估计传播时间。</figcaption></figure><h3 id="tof-s1">3.1 dToF：记录光什么时候返回</h3>
+</svg><figcaption><span class="fig-no">图 03</span> ToF 研究的是传播信号。dToF 估计到达时间，iToF 通过周期调制信号的相位偏移间接估计传播时间。</figcaption></figure>
+<!-- physical-intuition:tof:start -->
+<div class="physical-intro" id="physical-tof" aria-label="ToF 发射光与回波的物理直觉补充">
+  <div class="physical-kicker">先看见，再计算 · PHYSICAL INTUITION</div>
+  <h3 class="physical-title">ToF 也会向外打光，但它到底打出了什么？</h3>
+  <p>看到「发光、反射、测距离」，我一开始也会把 ToF 想成结构光，只是换了一个公式。但两者的发光目的不同：<strong>典型 ToF 是把一片场景照亮，再读取反射光的时间信息，而不是在物体表面投出需要解码的条纹编号。</strong></p>
+  <figure class="physical-scene">
+    <svg viewBox="0 0 740 282" role="img" aria-label="ToF设备的红外光发射模块面向瓶子泛光照明，相机接收返回光，不需要识别条纹">
+      <defs><linearGradient id="physical-tof-beam" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#e3b987" stop-opacity=".4"/><stop offset="1" stop-color="#e3b987" stop-opacity=".05"/></linearGradient></defs>
+      <rect width="740" height="282" rx="11" fill="#faf7f1"/><rect x="35" y="61" width="201" height="150" rx="14" fill="#eee3d6" stroke="#c9b4a3" stroke-width="2"/>
+      <rect x="56" y="85" width="69" height="95" rx="9" fill="#dfc9b2"/><circle cx="90" cy="129" r="21" fill="#d6a16a" stroke="#bc8656" stroke-width="3"/><circle cx="90" cy="129" r="6" fill="#fff3d7"/>
+      <rect x="146" y="85" width="69" height="95" rx="9" fill="#c4dace"/><circle cx="179" cy="129" r="22" fill="#6b8b7d" stroke="#4f7969" stroke-width="3"/><circle cx="179" cy="129" r="10" fill="#d9e9dc"/>
+      <text x="90" y="229" font-size="13" text-anchor="middle" fill="#986a45">红外照明</text><text x="179" y="229" font-size="13" text-anchor="middle" fill="#567a67">接收阵列</text>
+      <path d="M110 125L498 62L520 244L105 144Z" fill="url(#physical-tof-beam)" stroke="#dcac7b" stroke-width="1.2" stroke-dasharray="6 7"/>
+      <path d="M506 82Q506 71 517 68L517 47Q517 39 525 39H564Q572 39 572 47V68Q584 73 584 83L597 107Q607 119 607 134V241Q607 256 587 257H501Q482 254 482 241V134Q482 119 492 107Z" fill="#d3dfd3" stroke="#8ea997" stroke-width="2"/>
+      <path d="M498 137L180 129" stroke="#6a9080" stroke-width="3" stroke-dasharray="7 6"/><path d="M206 118L184 129L206 139" fill="none" stroke="#6a9080" stroke-width="3"/>
+      <text x="329" y="92" font-size="14" fill="#b48a5c" text-anchor="middle">发出一片调制光</text><text x="336" y="167" font-size="14" fill="#678c79" text-anchor="middle">反射光返回像素</text>
+      <text x="648" y="136" font-size="14" fill="#6a6157" text-anchor="middle">瓶子</text><text x="648" y="154" font-size="12" fill="#908475" text-anchor="middle">不需要条纹</text><text x="648" y="171" font-size="12" fill="#908475" text-anchor="middle">就能测距</text>
+    </svg>
+    <figcaption>面阵 ToF 的简化示意。发射端可以是红外 LED / 激光及扩散光学元件。真实调制通常极快；示意中的箭头并不表示肉眼能看到光在空中飞行。</figcaption>
+  </figure>
+  <p>对着一个没有纹理的白色瓶子，通常也能获取 ToF 回波，因为它要测的不是「瓶子上有哪根条纹」，而是<strong>这个相机像素对应的表面反射信号经过了多长的光程</strong>。红外照明通常肉眼看不见；深度图的彩色只是之后为方便阅读而显示的伪彩色。</p>
+  <div class="physical-steps"><div class="physical-step"><b>① 发出去</b><span>设备知道自己什么时候发光，或此时亮度调制处于什么阶段。</span></div><div class="physical-step"><b>② 遇到物体</b><span>光传播到瓶子，被表面反射或散射，沿某条路径回到接收镜头。</span></div><div class="physical-step"><b>③ 收回来</b><span>传感器从到达时间，或回波与本地参考的相位延迟，求传播距离。</span></div></div>
+  <h3 class="physical-subtitle">同一束返回光，为什么有 dToF 和 iToF 两种读法？</h3>
+  <p>把瓶子前后移动，下面两张图会同步变化。为了看清信号，横轴把纳秒级时间极度放大；以 1 m 为例，往返只有大约 6.67 ns。这里的距离指收发位置近似重合时的<strong>光程对应径向距离</strong>，并不自动等于相机 Z 轴深度。</p>
+  <div class="physical-demo" id="physical-tof-demo">
+    <div class="physical-demo-head"><strong>动手拖动 · 让瓶子离相机更远</strong><small>示意参数：调制频率 30 MHz</small></div>
+    <div class="physical-distance-row"><label for="physical-distance">瓶子距相机（近似）</label><strong><span id="physical-distance-num">1.0</span> m</strong></div>
+    <input id="physical-distance" class="physical-slider" type="range" min="0.5" max="4" step="0.1" value="1" aria-label="调整 ToF 目标距离"/>
+    <div class="physical-graphs">
+      <div class="physical-graph">
+        <div class="physical-graph-title">dToF · 看短脉冲何时返回<small>时间被大幅放大</small></div>
+        <svg id="physical-pulse-svg" viewBox="0 0 540 149" role="img" aria-label="光脉冲的发出时间和回波到达时间，两者间隔随距离改变"></svg>
+        <p class="physical-graph-note">发射端记录起点，接收端在延迟后发现返回脉冲。实际设备通常需要重复发射、积累计数并估计回波时间分布。</p>
+      </div>
+      <div class="physical-graph">
+        <div class="physical-graph-title">iToF · 看调制亮度晚了多少相位<small>显示亮度调制的包络，不是光学电场</small></div>
+        <svg id="physical-itof-svg" viewBox="0 0 540 157" role="img" aria-label="发射端调制的亮度波形以及有传播延迟的回波波形，回波在时间上向右偏移"></svg>
+        <div class="physical-legend"><span class="physical-key"><i class="physical-dot"></i>发射端参考</span><span class="physical-key"><i class="physical-dot return"></i>接收端回波</span></div>
+        <p class="physical-graph-note">回波的快速明暗节奏没有消失，只是整体迟到了。像素电路与参考调制信号进行相关积分，估计这个时间偏移对应的相位。</p>
+        <div class="physical-correlation" role="group" aria-label="四个相位窗口的示意相关采样">
+          <div class="physical-corr-item"><div class="physical-corr-track"><span id="physical-corr-0" class="physical-corr-fill"></span></div>参考 0°</div>
+          <div class="physical-corr-item"><div class="physical-corr-track"><span id="physical-corr-1" class="physical-corr-fill"></span></div>参考 90°</div>
+          <div class="physical-corr-item"><div class="physical-corr-track"><span id="physical-corr-2" class="physical-corr-fill"></span></div>参考 180°</div>
+          <div class="physical-corr-item"><div class="physical-corr-track"><span id="physical-corr-3" class="physical-corr-fill"></span></div>参考 270°</div>
+        </div>
+        <p class="physical-graph-note">四格示意不同参考相位下的相关积分结果，不一定是相机连拍的四张照片；具体芯片可以分时采样或采用多抽头等实现。</p>
+      </div>
+    </div>
+    <div class="physical-demo-feedback"><span>往返延迟：<strong id="physical-time-value">6.67 ns</strong></span><span>iToF 相位偏移：<strong id="physical-angle-value">72°</strong></span></div>
+  </div>
+  <div class="physical-notice"><strong>别把两种「相位」混为一谈：</strong>刚才结构光相移追踪的是<strong>条纹在投影画面中的空间位置</strong>；这里 iToF 的相位追踪的是<strong>光强调制信号在时间上的传播延迟</strong>。两者都能出现正弦曲线，但横轴代表的东西完全不同。</div>
+  <p>在上面的单频示例中，30 MHz 的调制周期对应的往返无歧义距离约为 5 m；更远的距离可能与某个更近位置得到同样相位。因此 iToF 常需要多频解歧义。多路径反射、强环境光以及低反射或镜面材料也可能破坏观测。</p>
+  <p class="physical-last">现在继续读原笔记的 3.1 和 3.2，dToF 为什么要估计回波时间、iToF 为什么可以用四组相关量计算相位，就都有了可以想象的过程。</p>
+  <p class="physical-source">延伸阅读：<a href="https://www.ti.com/video/series/from-zero-to-hero-time-of-flight-tof.html" target="_blank" rel="noopener noreferrer">TI · ToF 直接与间接测距</a>；<a href="https://www.analog.com/en/resources/analog-dialogue/articles/2021/07/30/16/49/tof-system-design-part-2-optical-design-for-time-of-flight-depth-sensing-cameras.html" target="_blank" rel="noopener noreferrer">ADI · iToF 调制与相关解调</a>。</p>
+</div>
+<!-- physical-intuition:tof:end -->
+
+<h3 id="tof-s1">3.1 dToF：记录光什么时候返回</h3>
 <p>直接飞行时间测量（Direct ToF）通常发射短光脉冲，并估计它往返传播的时间 <span class="inline-math"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="2.701ex" height="1.645ex" role="img" focusable="false" viewBox="0 -716 1194 727"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="394" d="M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z"></path></g><g data-mml-node="mi" transform="translate(833,0)"><path data-c="1D461" d="M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z"></path></g></g></g></svg></mjx-container></span>：</p>
 <div class="equation" role="group" aria-label="数学公式"><mjx-container class="MathJax" jax="SVG" display="true"><svg style="vertical-align: -2.156ex;" xmlns="http://www.w3.org/2000/svg" width="9.922ex" height="5.91ex" role="img" focusable="false" viewBox="0 -1659 4385.6 2612"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="menclose"><g transform="translate(267, 0)"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mstyle"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D45F" d="M21 287Q22 290 23 295T28 317T38 348T53 381T73 411T99 433T132 442Q161 442 183 430T214 408T225 388Q227 382 228 382T236 389Q284 441 347 441H350Q398 441 422 400Q430 381 430 363Q430 333 417 315T391 292T366 288Q346 288 334 299T322 328Q322 376 378 392Q356 405 342 405Q286 405 239 331Q229 315 224 298T190 165Q156 25 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 114 189T154 366Q154 405 128 405Q107 405 92 377T68 316T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(728.8,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mfrac" transform="translate(1784.6,0)"><g data-mml-node="mrow" transform="translate(220,676)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(433,0)"><path data-c="394" d="M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z"></path></g><g data-mml-node="mi" transform="translate(1266,0)"><path data-c="1D461" d="M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z"></path></g></g><g data-mml-node="mn" transform="translate(783.5,-686)"><path data-c="32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path></g><rect width="1827" height="60" x="120" y="220"></rect></g></g></g></g></g><rect x="33.5" y="-919.5" width="4318.6" height="2545" fill="none" stroke-width="67"></rect></g></g></g></svg></mjx-container></div>
 <p>其中 <span class="inline-math"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="0.98ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 433 453"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g></g></g></svg></mjx-container></span> 为光速，除以 2 是因为计时包含去程和返程。</p>
@@ -672,6 +849,105 @@ main.rn-main{width:100%;min-width:0;max-width:none;padding:0 42px 84px;backgroun
  addEventListener('resize',queue,{passive:true});
  backTop?.addEventListener('click',()=>scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));
  queue();
+})();
+</script>
+<script id="physical-intuition-script">
+/* Independent physical-intuition demos only. Do not touch common .rn-* navigation. */
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const escapeHtml = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+  const patterns = [
+    [0,0,0,0,1,1,1,1],
+    [0,0,1,1,1,1,0,0],
+    [0,1,1,0,0,1,1,0]
+  ];
+  const grayHost = $('physical-gray-pattern');
+  const grayBtns = [...document.querySelectorAll('[data-physical-gray]')];
+  function showGray(index){
+    if(!grayHost) return;
+    grayBtns.forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.physicalGray)===index)));
+    grayHost.innerHTML=patterns[index].map((bit,i)=>`<div class="physical-cell ${bit?'on':'off'} ${i===6?'marked':''}" aria-label="投影区域${i}：${bit?'亮':'暗'}">${i}</div>`).join('');
+    $('physical-gray-state').textContent = patterns[index][6] ? '亮（1）' : '暗（0）';
+    for(let i=0;i<3;i++) $('physical-gray-bit'+i)?.classList.toggle('physical-code-active',i===index);
+  }
+  grayBtns.forEach(b=>b.addEventListener('click',()=>showGray(Number(b.dataset.physicalGray))));
+  showGray(0);
+
+  const phaseBtns=[...document.querySelectorAll('[data-physical-phase]')];
+  const phaseSvg=$('physical-phase-svg');
+  const sampleX=183, phasePeriod=150;
+  function showPhase(index){
+    if(!phaseSvg)return;
+    phaseBtns.forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.physicalPhase)===index)));
+    const shift=index*Math.PI/2;
+    const bars=[];
+    for(let x=0;x<540;x+=3){
+      const v=.5+.5*Math.cos(2*Math.PI*x/phasePeriod-shift);
+      const gray=Math.round(49+206*v);
+      bars.push(`<rect x="${x}" y="0" width="3" height="95" fill="rgb(${gray},${gray},${gray})"/>`);
+    }
+    const v=.5+.5*Math.cos(2*Math.PI*sampleX/phasePeriod-shift);
+    phaseSvg.innerHTML=bars.join('')+`<line x1="${sampleX}" y1="0" x2="${sampleX}" y2="95" stroke="#d87e54" stroke-width="3" stroke-dasharray="6 4"/><circle cx="${sampleX}" cy="12" r="6" fill="#d87e54" stroke="#fffdf8" stroke-width="2"/><text x="${sampleX+10}" y="17" font-size="13" fill="#b26d50">P</text>`;
+    $('physical-phase-value').textContent=Math.round(v*100)+'%（示意）';
+  }
+  phaseBtns.forEach(b=>b.addEventListener('click',()=>showPhase(Number(b.dataset.physicalPhase))));
+  showPhase(0);
+
+  // Round-trip distance / c with distance in meters, time in nanoseconds.
+  const c=0.299792458; // m/ns
+  const frequency=.03; // cycles per ns = 30 MHz
+  const phasePeriodNs=1/frequency;
+  const distance=$('physical-distance');
+  const pulseSvg=$('physical-pulse-svg');
+  const itofSvg=$('physical-itof-svg');
+  function num(value){return Number(value).toFixed(2)}
+  function wavePath(delay){
+    const left=44, width=470, baseline=97, amplitude=30;
+    const points=[];
+    for(let i=0;i<=235;i++){
+      const t=i/235*66.667;
+      const x=left+width*i/235;
+      const y=baseline-amplitude*Math.cos(2*Math.PI*frequency*(t-delay));
+      points.push(`${i?'L':'M'}${num(x)},${num(y)}`);
+    }
+    return points.join(' ');
+  }
+  function renderTof(){
+    if(!distance||!pulseSvg||!itofSvg)return;
+    const d=Number(distance.value);
+    const time=2*d/c;
+    const phi=2*Math.PI*frequency*time;
+    $('physical-distance-num').textContent=d.toFixed(1);
+    $('physical-time-value').textContent=time.toFixed(2)+' ns';
+    $('physical-angle-value').textContent=(phi*180/Math.PI).toFixed(0)+'°';
+    const left=51, scale=15, ret=left+scale*time;
+    pulseSvg.innerHTML=`
+    <line x1="40" y1="109" x2="517" y2="109" stroke="#b8ada1" stroke-width="1.4"/>
+    <path d="M509 104l8 5-8 5" fill="none" stroke="#b8ada1" stroke-width="1.4"/>
+    <rect x="${left}" y="38" width="9" height="71" rx="2" fill="#c4865c"/><rect x="${ret}" y="38" width="9" height="71" rx="2" fill="#6c9483"/>
+    <path d="M${left+5} 23H${ret+5}" stroke="#a79380" stroke-width="1.4"/>
+    <path d="M${left+5} 17V30M${ret+5} 17V30" stroke="#a79380" stroke-width="1.4"/>
+    <text x="${(left+ret+10)/2}" y="17" font-size="11" fill="#8c796a" text-anchor="middle">${time.toFixed(2)} ns</text>
+    <text x="${left+4}" y="125" font-size="11" fill="#a5724d" text-anchor="middle">发射</text>
+    <text x="${ret+4}" y="125" font-size="11" fill="#668c79" text-anchor="middle">回波</text>
+    <text x="517" y="137" font-size="11" text-anchor="end" fill="#8e8378">时间 →</text>`;
+    itofSvg.innerHTML=`
+      <path d="M44 22V126H515" fill="none" stroke="#bdb6aa" stroke-width="1.4"/>
+      <line x1="44" y1="97" x2="515" y2="97" stroke="#ddd8d1" stroke-width="1" stroke-dasharray="3 5"/>
+      <path d="${wavePath(0)}" stroke="#c17d52" stroke-width="3.2" fill="none"/>
+      <path d="${wavePath(time)}" stroke="#658f86" stroke-width="3.2" fill="none"/>
+      <text x="44" y="143" font-size="11" fill="#8e8378">0</text>
+      <text x="515" y="143" font-size="11" text-anchor="end" fill="#8e8378">66.7 ns（两个周期）→</text>
+      <text x="53" y="15" font-size="11" fill="#8e8378">调制亮度</text>`;
+    for(let k=0;k<4;k++){
+      const corr=.5+.42*Math.cos(phi-k*Math.PI/2);
+      const item=$('physical-corr-'+k);
+      if(item)item.style.height=Math.max(5,Math.min(95,corr*100)).toFixed(1)+'%';
+    }
+  }
+  distance?.addEventListener('input',renderTof);
+  renderTof();
 })();
 </script>
 </body></html>
