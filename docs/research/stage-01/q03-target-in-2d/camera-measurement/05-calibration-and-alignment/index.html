@@ -26,7 +26,155 @@ body{overflow-x:hidden}.main{overflow-wrap:anywhere}.chapter p{line-height:2.06}
 @media print{.implementation,.vendor-observation{break-inside:avoid}}
 
 .equation mjx-container{display:inline-block;max-width:100%;margin:0!important}.equation mjx-container svg{max-width:100%;height:auto;overflow:visible}.inline-math mjx-container{display:inline-block;vertical-align:middle}
-</style></head><body><div class="reading-progress" aria-hidden="true"><span id="progress"></span></div><header class="topbar"><div class="topbar-inner"><a href="https://fishxddd.github.io/" class="site-brand"><div class="brand-flower" aria-hidden="true">✦</div><div><div class="brand-title">沿途手记</div><div class="brand-caption">从一个问题出发的探索路线</div></div></a><nav class="top-links" aria-label="面包屑"><a href="https://fishxddd.github.io/research/stage-01/">Stage 01</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/camera-measurement/">相机与三维测量</a><span class="slash">/</span><span>05 · 标定与配准</span></nav></div></header><div class="mobile-backdrop" id="menuBackdrop"></div><div class="page-wrap"><aside class="side" id="sidebar" aria-label="本篇索引"><div class="side-kicker">FIELD NOTE · 05</div><p class="side-heading">标定与配准</p><div class="side-label">本篇索引 / CONTENTS</div><nav class="toc" id="toc"><a href="#opening" class="active"><span class="toc-no">↳</span><span>从哪里开始</span></a><a href="#overview" class=""><span class="toc-no">00</span><span>本篇任务地图</span></a><a href="#model" class=""><span class="toc-no">01</span><span>畸变模型与校正</span></a><a href="#calibration" class=""><span class="toc-no">02</span><span>内参标定</span></a><a href="#extrinsics" class=""><span class="toc-no">03</span><span>Color–Depth 外参</span></a><a href="#alignment" class=""><span class="toc-no">04</span><span>RGB-D 对齐</span></a><a href="#verification" class=""><span class="toc-no">05</span><span>最小验收</span></a><a href="#ending" class=""><span class="toc-no">↳</span><span>回头看</span></a></nav><div class="side-foot"><div class="side-label">沿途路径</div><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/camera-measurement/04-depth-post-processing/">← 上一站 · 深度后处理</a><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/camera-measurement/">← 返回相机与三维测量</a><div class="sidebar-note">核心几何、数学原理、最小实现，再看厂商实践。</div></div></aside><main class="main" id="content"><header class="hero" id="opening"><div class="breadcrumb"><a href="https://fishxddd.github.io/">沿途手记</a><span>·</span><a href="https://fishxddd.github.io/research/stage-01/">Stage 01</a><span>·</span><span>Q03 / Camera Measurement</span></div><div class="eyebrow">05 / 05 &nbsp;·&nbsp; CALIBRATION & REGISTRATION</div><h1>公式已经有了，<br/>怎样让它对应真实相机？</h1><div class="english">CAMERA MODELS · CALIBRATION · RGB-D ALIGNMENT</div><div class="hero-intro">
+</style><!-- navigation:assets:start -->
+<style id="shared-reading-navigation-css">/* 沿途手记 · 共用阅读导航 v1.0
+   所有选择器使用 rn- 前缀，不影响笔记正文。 */
+:root {
+  --rn-sidebar-bg: #f6f3ec;
+  --rn-page-bg: #faf8f3;
+  --rn-ink: #463d36;
+  --rn-muted: #857d74;
+  --rn-line: #e5dfd5;
+  --rn-accent: #b87562;
+  --rn-accent-wash: #f2e7dc;
+  --rn-green: #688777;
+}
+.rn-layout{display:grid;grid-template-columns:282px minmax(0,1fr);min-height:100vh;align-items:start}
+.rn-sidebar{position:sticky;top:0;height:100vh;min-height:0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;background:var(--rn-sidebar-bg);border-right:1px solid var(--rn-line);padding:34px 23px 23px;scrollbar-width:thin;scrollbar-color:#d9d0c4 transparent;z-index:30}
+.rn-side-top{padding:0 12px 22px;border-bottom:1px solid var(--rn-line)}
+.rn-brand{display:inline-flex;align-items:center;gap:11px;font-weight:760;font-size:19px;letter-spacing:.05em;color:var(--rn-ink);text-decoration:none;line-height:1.4}
+.rn-brand:hover{text-decoration:none;color:var(--rn-accent)}
+.rn-flower{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:10px;background:#e9d5c8;color:#986a57;font-size:15px;flex:none}
+.rn-tagline{margin:8px 0 0 39px;font-size:11px;color:#988e83;letter-spacing:.025em;line-height:1.5}
+.rn-back{margin:19px 4px 24px;display:flex;gap:7px;align-items:center;padding:10px 12px;border:1px solid #e3d9cc;background:#fffdfa85;border-radius:10px;font-size:13px;color:#71655b;text-decoration:none;font-weight:600;line-height:1.6;transition:background .2s,border-color .2s;}
+.rn-back:hover{background:#fffdfa;border-color:#d5bfad;color:var(--rn-accent);text-decoration:none}
+.rn-back svg{flex:none}
+.rn-location{padding:1px 12px 22px}
+.rn-label{margin:0 0 11px;font-weight:690;font-size:10.5px;letter-spacing:.13em;color:#a09486;text-transform:uppercase;line-height:1.8}
+.rn-path{font-size:11.5px;color:#92857b;margin:0 0 10px;display:flex;gap:7px;align-items:center;line-height:1.6;flex-wrap:wrap}
+.rn-path span.rn-path-part{max-width:176px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rn-path .rn-separator{color:#c1b8ac}
+.rn-current{font-size:15.5px;font-weight:730;letter-spacing:-.016em;line-height:1.55;margin:0;color:var(--rn-ink)}
+.rn-nav-block{padding:19px 0 0;border-top:1px solid var(--rn-line)}
+.rn-nav-block .rn-label{padding-left:12px;margin-bottom:12px}
+.rn-toc{display:flex;flex-direction:column;gap:3px}
+.rn-toc a{position:relative;display:flex;align-items:center;gap:10px;min-height:41px;border-radius:9px;padding:9px 13px;text-decoration:none;color:#756d65;font-size:13px;line-height:1.55;transition:background .18s,color .18s}
+.rn-toc a:hover{background:#ede6dc;color:#5b4b42;text-decoration:none}
+.rn-toc a.is-active{background:var(--rn-accent-wash);color:#945846;font-weight:730}
+.rn-toc a.is-active:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;border-radius:8px;background:#bd7b66}
+.rn-toc-number{font-size:10.5px;font-weight:750;letter-spacing:.06em;font-variant-numeric:tabular-nums;min-width:22px;color:#a3978d}
+.rn-toc a.is-active .rn-toc-number{color:#b37a66}
+.rn-spacer{min-height:25px;flex:1}
+.rn-related{padding:22px 12px 20px;border-top:1px solid var(--rn-line)}
+.rn-related .rn-label{margin-bottom:10px}
+.rn-next{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#527767;text-decoration:none;font-size:13px;font-weight:720;line-height:1.6}
+.rn-next:hover{color:#365d4b;text-decoration:none}
+.rn-related small{font-size:11px;color:#999083;display:block;margin-top:6px}
+.rn-side-bottom{padding:14px 12px 0;border-top:1px solid var(--rn-line);font-size:10px;color:#a99d90;letter-spacing:.025em}
+.rn-main{min-width:0;width:100%;padding:0 42px 90px}
+.rn-main-inner{width:100%;max-width:820px;margin:0 auto}
+.rn-crumbs{min-height:77px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--rn-line);font-size:11.5px;color:#9b8e83;line-height:1.6}
+.rn-crumbs a{color:#8a7769;text-decoration:none}
+.rn-crumbs a:hover{color:var(--rn-accent);text-decoration:none}
+.rn-crumbs .rn-crumb-current{color:#675b50;font-weight:610}
+.rn-crumbs .rn-separator{font-size:13px;color:#c6bcaf}
+.rn-mobile-bar,.rn-close,.rn-overlay{display:none}
+.rn-skip{position:fixed;left:16px;top:-80px;z-index:90;padding:10px 15px;background:white;border:2px solid var(--rn-accent);border-radius:8px;color:var(--rn-ink);font-weight:bold;text-decoration:none}
+.rn-skip:focus{top:14px}
+.rn-scroll-to{scroll-margin-top:26px}
+@media(min-width:1600px){.rn-layout{grid-template-columns:304px minmax(0,1fr)}.rn-sidebar{padding-left:30px;padding-right:30px}.rn-main{padding-left:64px;padding-right:64px}}
+@media(max-width:1080px) and (min-width:861px){.rn-layout{grid-template-columns:246px minmax(0,1fr)}.rn-sidebar{padding-left:14px;padding-right:14px}.rn-main{padding:0 30px 78px}}
+@media(max-width:860px){
+  .rn-layout{display:block;min-height:100vh}
+  .rn-mobile-bar{position:sticky;top:0;z-index:25;display:flex;align-items:center;justify-content:space-between;gap:10px;height:58px;padding:0 18px;border-bottom:1px solid var(--rn-line);background:rgba(250,248,243,.96);backdrop-filter:blur(13px)}
+  .rn-mobile-home{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;font-weight:660;color:#72665c;text-decoration:none}
+  .rn-mobile-home span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rn-menu-btn{border:1px solid #ded4c9;color:#715e53;background:#fffdfa;border-radius:9px;padding:6px 12px;display:flex;align-items:center;gap:7px;white-space:nowrap;font:600 12px/1.5 inherit;cursor:pointer}
+  .rn-menu-btn:hover{border-color:#bfa495}
+  .rn-sidebar{position:fixed;top:0;left:0;bottom:0;z-index:53;display:flex;width:min(318px,87vw);height:100dvh;min-height:0;transform:translateX(-105%);transition:transform .24s ease;box-shadow:10px 0 45px rgba(41,31,24,.12);padding-top:28px;visibility:hidden}
+  .rn-drawer-open .rn-sidebar{transform:translateX(0);visibility:visible}
+  .rn-overlay{position:fixed;inset:0;z-index:51;background:rgba(44,35,28,.36)}
+  .rn-drawer-open .rn-overlay{display:block}
+  .rn-drawer-open{overflow:hidden}
+  .rn-close{display:flex;align-items:center;justify-content:center;position:absolute;right:18px;top:25px;width:33px;height:33px;border:1px solid #e1d7cc;background:#fffaf3;border-radius:9px;color:#817163;cursor:pointer;font-size:18px;line-height:1}
+  .rn-main{padding:0 22px 70px}
+  .rn-crumbs{min-height:52px;font-size:11px}
+  .rn-scroll-to{scroll-margin-top:77px}
+}
+@media(max-width:540px){.rn-main{padding:0 19px 55px}.rn-crumbs{gap:5px}.rn-crumbs .rn-crumb-parent{max-width:148px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media(prefers-reduced-motion:reduce){.rn-sidebar{transition:none}}
+
+/* Reading layout: preserve all original typography, formulas, images, tables, and code. */
+main.rn-main{width:100%;min-width:0;max-width:none;padding:0 42px 84px;background:var(--canvas);border-left:0;border-right:0}
+.rn-main-inner{width:100%;max-width:820px;margin:0 auto}
+.rn-main-inner>.hero{padding-top:54px}
+.rn-main .chapter{scroll-margin-top:28px}
+.rn-pager{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px;border-top:1px solid var(--rn-line);padding-top:24px;margin-top:20px}
+.rn-pager a{font-size:12px;border:1px solid var(--rn-line);border-radius:9px;padding:9px 13px;color:#806e60;text-decoration:none;background:#fffdfa;line-height:1.6}
+.rn-pager a:hover{border-color:#ceb6a3;color:var(--rn-accent)}
+.rn-pager a[rel=prev]{color:#557363}
+@media(min-width:1600px){main.rn-main{padding-left:64px;padding-right:64px}}
+@media(max-width:1080px) and (min-width:861px){main.rn-main{padding:0 30px 78px}}
+@media(max-width:860px){main.rn-main{padding:0 22px 70px}.rn-main-inner>.hero{padding-top:32px}.rn-main .chapter{scroll-margin-top:78px}}
+@media(max-width:540px){main.rn-main{padding:0 19px 55px}.rn-main .chapter .equation{max-width:100%}}
+@media print{.rn-sidebar,.rn-mobile-bar,.rn-overlay,.rn-crumbs{display:none!important}.rn-layout{display:block}.rn-main-inner{max-width:none}main.rn-main{padding:0}}
+</style>
+<!-- navigation:assets:end -->
+</head><body>
+<!-- navigation:mobile:start -->
+<a class="rn-skip" href="#content">跳到正文</a>
+<div class="rn-mobile-bar">
+ <a class="rn-mobile-home" href="/research/stage-01/q03-target-in-2d/camera-measurement/" aria-label="返回相机与三维测量"><span aria-hidden="true">←</span><span>返回 · 相机与三维测量</span></a>
+ <button class="rn-menu-btn" type="button" aria-controls="reading-navigation" aria-expanded="false"><span aria-hidden="true">☰</span> 目录</button>
+</div>
+<div class="rn-overlay" aria-hidden="true"></div>
+<!-- navigation:mobile:end -->
+<div class="reading-progress" aria-hidden="true"><span id="progress"></span></div><div class="rn-layout">
+<aside class="rn-sidebar" id="reading-navigation" aria-label="阅读导航">
+ <button class="rn-close" type="button" aria-label="关闭目录">×</button>
+ <div class="rn-side-top">
+  <a class="rn-brand" href="/"><span class="rn-flower" aria-hidden="true">✳</span>沿途手记</a>
+  <p class="rn-tagline">从一个问题出发的探索路线</p>
+ </div>
+ <a class="rn-back" href="/research/stage-01/q03-target-in-2d/camera-measurement/" aria-label="返回上一级：相机与三维测量">
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  返回 · 相机与三维测量
+ </a>
+ <div class="rn-location">
+  <p class="rn-label">当前位置</p>
+  <p class="rn-path"><span class="rn-path-part">Stage 01</span><span class="rn-separator">/</span><span class="rn-path-part">相机与三维测量</span></p>
+  <p class="rn-current">标定与配准</p>
+ </div>
+ <section class="rn-nav-block" aria-label="本篇目录">
+  <p class="rn-label">本篇目录</p>
+  <nav class="rn-toc" aria-label="页面章节">
+   <a href="#opening" class="is-active" aria-current="location"><span class="rn-toc-number">·</span>从这里开始</a>
+   <a href="#overview"><span class="rn-toc-number">·</span>本篇任务地图</a>
+   <a href="#model"><span class="rn-toc-number">01</span>畸变模型与校正</a>
+   <a href="#calibration"><span class="rn-toc-number">02</span>相机内参标定</a>
+   <a href="#extrinsics"><span class="rn-toc-number">03</span>Color–Depth 外参</a>
+   <a href="#alignment"><span class="rn-toc-number">04</span>RGB-D 几何对齐</a>
+   <a href="#verification"><span class="rn-toc-number">05</span>最小验收</a>
+   <a href="#ending"><span class="rn-toc-number">·</span>回头看</a>
+  </nav>
+ </section>
+ <div class="rn-spacer" aria-hidden="true"></div>
+ <div class="rn-related">
+  <p class="rn-label">专题入口</p>
+  <a class="rn-next" href="/research/stage-01/q03-target-in-2d/camera-measurement/"><span>返回 · 相机与三维测量</span><span aria-hidden="true">↗</span></a>
+  <small>五篇笔记 · 回到总览</small>
+ </div>
+</aside>
+<main class="main rn-main" id="content" tabindex="-1">
+ <div class="rn-main-inner">
+  <nav class="rn-crumbs" aria-label="面包屑导航">
+   <a href="/">沿途手记</a><span class="rn-separator">›</span>
+   <a href="/research/stage-01/">Stage 01</a><span class="rn-separator">›</span>
+   <a class="rn-crumb-parent" href="/research/stage-01/q03-target-in-2d/">看见了，剩下的事就简单了吗？</a><span class="rn-separator">›</span>
+   <a href="/research/stage-01/q03-target-in-2d/camera-measurement/">相机与三维测量</a><span class="rn-separator">›</span>
+   <span class="rn-crumb-current" aria-current="page">标定与配准</span>
+  </nav>
+<header class="hero" id="opening"><div class="eyebrow">标定与配准</div><h1>公式已经有了，<br/>怎样让它对应真实相机？</h1><div class="english">CAMERA MODELS · CALIBRATION · RGB-D ALIGNMENT</div><div class="hero-intro">
 
 <p>前面已经知道投影、反投影怎样计算，也了解了深度从哪里来、怎样处理异常值。现在把 RGB 和 Depth 真正放在同一个场景里，却还需要回答一个基础问题：<strong>我正在使用的像素、深度和相机参数，究竟是否描述了同一个空间关系？</strong></p>
 <p>理想针孔公式只规定了坐标之间怎样变换；真实相机还需要确定镜头偏差、参数数值、两套传感器之间的安装关系，以及最终输出到哪一个图像坐标系。</p>
@@ -307,4 +455,107 @@ python examples/beginner/03_color_and_depth_aligned.py --hw
 <div class="equation" role="group" aria-label="数学公式"><mjx-container class="MathJax" jax="SVG" display="true"><svg style="vertical-align: -0.566ex;" xmlns="http://www.w3.org/2000/svg" width="54.048ex" height="3.535ex" role="img" focusable="false" viewBox="0 -1312.3 23889.3 1562.3"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mo"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(389,0)"><g data-mml-node="mi"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mi" transform="translate(605,-150) scale(0.707)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g><g data-mml-node="mo" transform="translate(1629.5,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(2074.2,0)"><g data-mml-node="mi"><path data-c="1D463" d="M173 380Q173 405 154 405Q130 405 104 376T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Q21 294 29 316T53 368T97 419T160 441Q202 441 225 417T249 361Q249 344 246 335Q246 329 231 291T200 202T182 113Q182 86 187 69Q200 26 250 26Q287 26 319 60T369 139T398 222T409 277Q409 300 401 317T383 343T365 361T357 383Q357 405 376 424T417 443Q436 443 451 425T467 367Q467 340 455 284T418 159T347 40T241 -11Q177 -11 139 22Q102 54 102 117Q102 148 110 181T151 298Q173 362 173 380Z"></path></g><g data-mml-node="mi" transform="translate(518,-150) scale(0.707)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g><g data-mml-node="mo" transform="translate(3227.6,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(3672.3,0)"><g data-mml-node="mi"><path data-c="1D44D" d="M58 8Q58 23 64 35Q64 36 329 334T596 635L586 637Q575 637 512 637H500H476Q442 637 420 635T365 624T311 598T266 548T228 469Q227 466 226 463T224 458T223 453T222 450L221 448Q218 443 202 443Q185 443 182 453L214 561Q228 606 241 651Q249 679 253 681Q256 683 487 683H718Q723 678 723 675Q723 673 717 649Q189 54 188 52L185 49H274Q369 50 377 51Q452 60 500 100T579 247Q587 272 590 277T603 282H607Q628 282 628 271Q547 5 541 2Q538 0 300 0H124Q58 0 58 8Z"></path></g><g data-mml-node="mi" transform="translate(716,-150) scale(0.707)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g><g data-mml-node="mo" transform="translate(5023.8,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mstyle" transform="translate(5412.8,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mover" transform="translate(5968.6,0)"><g data-mml-node="mstyle"><g data-mml-node="mo"><path data-c="2192" d="M56 237T56 250T70 270H835Q719 357 692 493Q692 494 692 496T691 499Q691 511 708 511H711Q720 511 723 510T729 506T732 497T735 481T743 456Q765 389 816 336T935 261Q944 258 944 250Q944 244 939 241T915 231T877 212Q836 186 806 152T761 85T740 35T732 4Q730 -6 727 -8T711 -11Q691 -11 691 0Q691 7 696 25Q728 151 835 230H70Q56 237 56 250Z" transform="translate(1916.8,0)"></path><svg width="2016.8" height="865" x="0" y="-182" viewBox="504.2 -182 2016.8 865"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z" transform="scale(3.888,1)"></path></svg></g></g><g data-mml-node="mpadded" transform="translate(0,870.8) scale(0.707)"><g transform="translate(278,-200)"><g data-mml-node="msub"><g data-mml-node="mi"><path data-c="1D43E" d="M285 628Q285 635 228 637Q205 637 198 638T191 647Q191 649 193 661Q199 681 203 682Q205 683 214 683H219Q260 681 355 681Q389 681 418 681T463 682T483 682Q500 682 500 674Q500 669 497 660Q496 658 496 654T495 648T493 644T490 641T486 639T479 638T470 637T456 637Q416 636 405 634T387 623L306 305Q307 305 490 449T678 597Q692 611 692 620Q692 635 667 637Q651 637 651 648Q651 650 654 662T659 677Q662 682 676 682Q680 682 711 681T791 680Q814 680 839 681T869 682Q889 682 889 672Q889 650 881 642Q878 637 862 637Q787 632 726 586Q710 576 656 534T556 455L509 418L518 396Q527 374 546 329T581 244Q656 67 661 61Q663 59 666 57Q680 47 717 46H738Q744 38 744 37T741 19Q737 6 731 0H720Q680 3 625 3Q503 3 488 0H478Q472 6 472 9T474 27Q478 40 480 43T491 46H494Q544 46 544 71Q544 75 517 141T485 216L427 354L359 301L291 248L268 155Q245 63 245 58Q245 51 253 49T303 46H334Q340 37 340 35Q340 19 333 5Q328 0 317 0Q314 0 280 1T180 2Q118 2 85 2T49 1Q31 1 31 11Q31 13 34 25Q38 41 42 43T65 46Q92 46 125 49Q139 52 144 61Q147 65 216 339T285 628Z"></path></g><g data-mml-node="mi" transform="translate(882,-150) scale(0.707)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g><g data-mml-node="mo" transform="translate(1517.5,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(1795.5,0)"><g data-mml-node="mi"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g><g data-mml-node="mi" transform="translate(861,-150) scale(0.707)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g><g data-mml-node="mspace" transform="translate(3292,0)"></g></g></g></g><g data-mml-node="mstyle" transform="translate(8885.4,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msub" transform="translate(9441.1,0)"><g data-mml-node="mi"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mi" transform="translate(675,-150) scale(0.707)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g><g data-mml-node="mstyle" transform="translate(10751.6,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mover" transform="translate(11307.4,0)"><g data-mml-node="mstyle"><g data-mml-node="mo"><path data-c="2192" d="M56 237T56 250T70 270H835Q719 357 692 493Q692 494 692 496T691 499Q691 511 708 511H711Q720 511 723 510T729 506T732 497T735 481T743 456Q765 389 816 336T935 261Q944 258 944 250Q944 244 939 241T915 231T877 212Q836 186 806 152T761 85T740 35T732 4Q730 -6 727 -8T711 -11Q691 -11 691 0Q691 7 696 25Q728 151 835 230H70Q56 237 56 250Z" transform="translate(2282.9,0)"></path><svg width="2382.9" height="865" x="0" y="-182" viewBox="595.7 -182 2382.9 865"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z" transform="scale(4.594,1)"></path></svg></g></g><g data-mml-node="mpadded" transform="translate(0,870.8) scale(0.707)"><g transform="translate(278,-200)"><g data-mml-node="msub"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="TeXAtom" transform="translate(792,-150) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g><g data-mml-node="mi" transform="translate(760,0)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g></g><g data-mml-node="mo" transform="translate(1964.9,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(2242.9,0)"><g data-mml-node="mi"><path data-c="1D461" d="M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z"></path></g><g data-mml-node="TeXAtom" transform="translate(394,-150) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g><g data-mml-node="mi" transform="translate(760,0)"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g></g></g><g data-mml-node="mspace" transform="translate(3809.8,0)"></g></g></g></g><g data-mml-node="mstyle" transform="translate(14590.3,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msub" transform="translate(15146.1,0)"><g data-mml-node="mi"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mi" transform="translate(675,-150) scale(0.707)"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g></g><g data-mml-node="mstyle" transform="translate(16408.5,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mover" transform="translate(16964.3,0)"><g data-mml-node="mstyle"><g data-mml-node="mo"><path data-c="2192" d="M56 237T56 250T70 270H835Q719 357 692 493Q692 494 692 496T691 499Q691 511 708 511H711Q720 511 723 510T729 506T732 497T735 481T743 456Q765 389 816 336T935 261Q944 258 944 250Q944 244 939 241T915 231T877 212Q836 186 806 152T761 85T740 35T732 4Q730 -6 727 -8T711 -11Q691 -11 691 0Q691 7 696 25Q728 151 835 230H70Q56 237 56 250Z" transform="translate(1848.8,0)"></path><svg width="1948.8" height="865" x="0" y="-182" viewBox="487.2 -182 1948.8 865"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z" transform="scale(3.757,1)"></path></svg></g></g><g data-mml-node="mpadded" transform="translate(0,870.8) scale(0.707)"><g transform="translate(278,-200)"><g data-mml-node="msub"><g data-mml-node="mi"><path data-c="1D43E" d="M285 628Q285 635 228 637Q205 637 198 638T191 647Q191 649 193 661Q199 681 203 682Q205 683 214 683H219Q260 681 355 681Q389 681 418 681T463 682T483 682Q500 682 500 674Q500 669 497 660Q496 658 496 654T495 648T493 644T490 641T486 639T479 638T470 637T456 637Q416 636 405 634T387 623L306 305Q307 305 490 449T678 597Q692 611 692 620Q692 635 667 637Q651 637 651 648Q651 650 654 662T659 677Q662 682 676 682Q680 682 711 681T791 680Q814 680 839 681T869 682Q889 682 889 672Q889 650 881 642Q878 637 862 637Q787 632 726 586Q710 576 656 534T556 455L509 418L518 396Q527 374 546 329T581 244Q656 67 661 61Q663 59 666 57Q680 47 717 46H738Q744 38 744 37T741 19Q737 6 731 0H720Q680 3 625 3Q503 3 488 0H478Q472 6 472 9T474 27Q478 40 480 43T491 46H494Q544 46 544 71Q544 75 517 141T485 216L427 354L359 301L291 248L268 155Q245 63 245 58Q245 51 253 49T303 46H334Q340 37 340 35Q340 19 333 5Q328 0 317 0Q314 0 280 1T180 2Q118 2 85 2T49 1Q31 1 31 11Q31 13 34 25Q38 41 42 43T65 46Q92 46 125 49Q139 52 144 61Q147 65 216 339T285 628Z"></path></g><g data-mml-node="mi" transform="translate(882,-150) scale(0.707)"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g></g><g data-mml-node="mo" transform="translate(1469.4,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(1747.4,0)"><g data-mml-node="mi"><path data-c="1D437" d="M287 628Q287 635 230 637Q207 637 200 638T193 647Q193 655 197 667T204 682Q206 683 403 683Q570 682 590 682T630 676Q702 659 752 597T803 431Q803 275 696 151T444 3L430 1L236 0H125H72Q48 0 41 2T33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM703 469Q703 507 692 537T666 584T629 613T590 629T555 636Q553 636 541 636T512 636T479 637H436Q392 637 386 627Q384 623 313 339T242 52Q242 48 253 48T330 47Q335 47 349 47T373 46Q499 46 581 128Q617 164 640 212T683 339T703 469Z"></path></g><g data-mml-node="mi" transform="translate(861,-150) scale(0.707)"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g></g><g data-mml-node="mspace" transform="translate(3195.8,0)"></g></g></g></g><g data-mml-node="mstyle" transform="translate(19813.1,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mo" transform="translate(20368.9,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(20757.9,0)"><g data-mml-node="mi"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mi" transform="translate(605,-150) scale(0.707)"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g></g><g data-mml-node="mo" transform="translate(21950.3,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(22394.9,0)"><g data-mml-node="mi"><path data-c="1D463" d="M173 380Q173 405 154 405Q130 405 104 376T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Q21 294 29 316T53 368T97 419T160 441Q202 441 225 417T249 361Q249 344 246 335Q246 329 231 291T200 202T182 113Q182 86 187 69Q200 26 250 26Q287 26 319 60T369 139T398 222T409 277Q409 300 401 317T383 343T365 361T357 383Q357 405 376 424T417 443Q436 443 451 425T467 367Q467 340 455 284T418 159T347 40T241 -11Q177 -11 139 22Q102 54 102 117Q102 148 110 181T151 298Q173 362 173 380Z"></path></g><g data-mml-node="mi" transform="translate(518,-150) scale(0.707)"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g></g><g data-mml-node="mo" transform="translate(23500.3,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g></g></g></svg></mjx-container></div>
 <p>真正需要长期记住的，不是某一个 SDK 按钮在哪，而是：<strong>每一步需要什么参数、在什么坐标系计算、使用了哪一类观测，以及结果为什么可能不可靠。</strong></p>
 <p>至此，相机从光学成像到深度测量、深度修正，再到真实 RGB-D 几何对应，就形成了一条闭合的技术路线。接下来可以把这套几何关系交给二维目标定位、点云和三维位姿估计使用。</p>
-</section><div class="source-footer"><strong>官方资料：</strong> <a href="https://docs.opencv.org/4.10.0/dc/dbb/tutorial_py_calibration.html">OpenCV Calibration</a> · <a href="https://dev.realsenseai.com/docs/projection-in-realsense-sdk-2-0/">RealSense Projection</a> · <a href="https://github.com/realsenseai/librealsense/blob/master/wrappers/python/examples/align-depth2color.py">RealSense Align</a> · <a href="https://github.com/orbbec/pyorbbecsdk/blob/v2-main/examples/beginner/04_camera_calibration.py">Orbbec Camera Params</a> · <a href="https://github.com/orbbec/pyorbbecsdk/blob/v2-main/examples/beginner/03_color_and_depth_aligned.py">Orbbec Align</a><div>运行示例前请核对设备、SDK、坐标单位、图像分辨率和畸变状态；公式与代码用于解释几何关系，不代替具体型号的官方适配说明。</div></div><footer class="page-footer"><span>沿途手记 · Stage 01 / Q03 · Calibration & Alignment</span><span>把几何关系用在正确的数据上。</span></footer></main></div><button id="openMenu" class="mobile-toc-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☷ 本篇目录</button><button id="backTop" class="top-button" aria-label="回到顶部" title="回到顶部">↑</button><script>(()=>{const bar=document.getElementById('progress'),links=[...document.querySelectorAll('#toc a')],targets=links.map(x=>document.querySelector(x.getAttribute('href'))),back=document.getElementById('backTop');let pending=false;function update(){const max=document.documentElement.scrollHeight-innerHeight;bar.style.width=(max>0?Math.max(0,Math.min(100,100*scrollY/max)):0)+'%';back.classList.toggle('visible',scrollY>550);let n=0;for(let i=0;i<targets.length;i++)if(targets[i]&&targets[i].getBoundingClientRect().top<=Math.min(195,innerHeight*.3))n=i;links.forEach((a,i)=>{a.classList.toggle('active',i===n);if(i===n)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});pending=false}addEventListener('scroll',()=>{if(!pending){requestAnimationFrame(update);pending=true}},{passive:true});addEventListener('resize',update);update();back.addEventListener('click',()=>scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));const toggle=document.getElementById('openMenu'),backdrop=document.getElementById('menuBackdrop');function close(){document.body.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false')}toggle.addEventListener('click',()=>{let opened=document.body.classList.toggle('menu-open');toggle.setAttribute('aria-expanded',String(opened))});backdrop.addEventListener('click',close);links.forEach(a=>a.addEventListener('click',close));addEventListener('keydown',e=>{if(e.key==='Escape')close()})})();</script></body></html>
+</section><div class="source-footer"><strong>官方资料：</strong> <a href="https://docs.opencv.org/4.10.0/dc/dbb/tutorial_py_calibration.html">OpenCV Calibration</a> · <a href="https://dev.realsenseai.com/docs/projection-in-realsense-sdk-2-0/">RealSense Projection</a> · <a href="https://github.com/realsenseai/librealsense/blob/master/wrappers/python/examples/align-depth2color.py">RealSense Align</a> · <a href="https://github.com/orbbec/pyorbbecsdk/blob/v2-main/examples/beginner/04_camera_calibration.py">Orbbec Camera Params</a> · <a href="https://github.com/orbbec/pyorbbecsdk/blob/v2-main/examples/beginner/03_color_and_depth_aligned.py">Orbbec Align</a><div>运行示例前请核对设备、SDK、坐标单位、图像分辨率和畸变状态；公式与代码用于解释几何关系，不代替具体型号的官方适配说明。</div></div><!-- navigation:pager:start -->
+<nav class="rn-pager" aria-label="文章切换"><a href="/research/stage-01/q03-target-in-2d/camera-measurement/04-depth-post-processing/" rel="prev">← 上一篇 · 深度后处理</a><a href="/research/stage-01/q03-target-in-2d/camera-measurement/">返回专题</a><span></span></nav>
+<!-- navigation:pager:end --><footer class="page-footer"><span>沿途手记 · 标定与配准</span><span>把几何关系用在正确的数据上。</span></footer></div><!-- /rn-main-inner --></main></div><button id="backTop" class="top-button" aria-label="回到顶部" title="回到顶部">↑</button><script id="shared-reading-navigation-script">/* 沿途手记 · 共用阅读导航 v1.0
+   负责移动端菜单 + 本页目录滚动定位；与正文业务无关。 */
+(() => {
+  'use strict';
+  const sidebar = document.querySelector('.rn-sidebar');
+  const menuButton = document.querySelector('.rn-menu-btn');
+  const closeButton = document.querySelector('.rn-close');
+  const overlay = document.querySelector('.rn-overlay');
+  const links = [...document.querySelectorAll('.rn-toc a[href^="#"]')];
+  if (!sidebar) return;
+  let restoreFocus = null;
+
+  const closeMenu = (restore = true) => {
+    document.body.classList.remove('rn-drawer-open');
+    menuButton?.setAttribute('aria-expanded', 'false');
+    sidebar.removeAttribute('aria-modal');
+    if (restore && restoreFocus) restoreFocus.focus();
+  };
+  const openMenu = () => {
+    restoreFocus = document.activeElement;
+    document.body.classList.add('rn-drawer-open');
+    menuButton?.setAttribute('aria-expanded', 'true');
+    closeButton?.focus();
+  };
+  menuButton?.addEventListener('click', () => {
+    if (document.body.classList.contains('rn-drawer-open')) closeMenu();
+    else openMenu();
+  });
+  closeButton?.addEventListener('click', () => closeMenu());
+  overlay?.addEventListener('click', () => closeMenu());
+  document.addEventListener('keydown', (event) => {
+    if (!document.body.classList.contains('rn-drawer-open')) return;
+    if (event.key === 'Escape') closeMenu();
+    if (event.key === 'Tab') {
+      const focusable = [...sidebar.querySelectorAll('a[href],button:not([disabled])')]
+        .filter(el => el.getClientRects().length);
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {event.preventDefault();last.focus();}
+      else if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first.focus();}
+    }
+  });
+  links.forEach(a => a.addEventListener('click', () => {
+    if (document.body.classList.contains('rn-drawer-open')) closeMenu(false);
+  }));
+  window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => {
+    if (e.matches && document.body.classList.contains('rn-drawer-open')) closeMenu(false);
+  });
+
+  const targets = links.map(a => ({
+    link: a,
+    target: document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)))
+  })).filter(v => v.target);
+  if (!targets.length) return;
+  let lastActive = null, queued = false;
+  function updateActive() {
+    queued = false;
+    // 由上到下：窗口上方约四分之一处所在的章节，就是当前阅读位置。
+    const probe = Math.min(180, window.innerHeight * .27);
+    let active = targets[0];
+    for (const item of targets) {
+      if (item.target.getBoundingClientRect().top <= probe) active = item;
+      else break;
+    }
+    if (lastActive === active) return;
+    targets.forEach(({link}) => {
+      const selected = link === active.link;
+      link.classList.toggle('is-active', selected);
+      if (selected) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+    lastActive = active;
+  }
+  function queueUpdate() {
+    if (!queued) {queued = true;window.requestAnimationFrame(updateActive);}
+  }
+  window.addEventListener('scroll', queueUpdate, {passive:true});
+  window.addEventListener('resize', queueUpdate, {passive:true});
+  window.addEventListener('hashchange', queueUpdate);
+  updateActive();
+})();
+
+
+(() => {
+ const progress=document.getElementById('progress');
+ const backTop=document.getElementById('backTop');
+ let pending=false;
+ function onFrame(){
+  pending=false;
+  const doc=document.documentElement;
+  const max=Math.max(0,doc.scrollHeight-innerHeight);
+  if(progress)progress.style.width=(max?Math.max(0,Math.min(100,100*scrollY/max)):100)+'%';
+  if(backTop)backTop.classList.toggle('visible',scrollY>500);
+ }
+ function queue(){if(!pending){pending=true;requestAnimationFrame(onFrame);}}
+ addEventListener('scroll',queue,{passive:true});
+ addEventListener('resize',queue,{passive:true});
+ backTop?.addEventListener('click',()=>scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));
+ queue();
+})();
+</script>
+</body></html>

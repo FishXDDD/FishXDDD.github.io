@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="light" name="color-scheme"/>
-<meta content="沿途手记 Stage 01 · Q03：相机与三维测量，从相机成像、成像几何到深度测量、后处理及标定与配准。" name="description"/>
+<meta content="沿途手记 相机与三维测量：相机与三维测量，从相机成像、成像几何到深度测量、后处理及标定与配准。" name="description"/>
 <title>相机真的知道东西在哪里吗？｜沿途手记</title>
 <style>
 :root{
@@ -133,37 +133,150 @@ h1{font-size:clamp(34px,4vw,46px);font-weight:750;line-height:1.38;letter-spacin
 .mechanism-figure figcaption{font-size:11px;line-height:1.7;color:var(--secondary);margin:9px 2px 0}
 @media(max-width:690px){.mechanism-figure-header{display:block}.mechanism-figure-hint{display:block;margin-top:2px;font-size:11px}.mechanism-placeholder-mark{font-size:24px}.mechanism-placeholder strong{font-size:13px}.mechanism-placeholder small{font-size:9px;margin-top:4px;max-width:265px}.mechanism-figure figcaption{font-size:10px}}
 </style>
+<style id="shared-reading-navigation-css">
+/* 沿途手记 · 共用阅读导航 v1.0
+   所有选择器使用 rn- 前缀，不影响笔记正文。 */
+:root {
+  --rn-sidebar-bg: #f6f3ec;
+  --rn-page-bg: #faf8f3;
+  --rn-ink: #463d36;
+  --rn-muted: #857d74;
+  --rn-line: #e5dfd5;
+  --rn-accent: #b87562;
+  --rn-accent-wash: #f2e7dc;
+  --rn-green: #688777;
+}
+.rn-layout{display:grid;grid-template-columns:282px minmax(0,1fr);min-height:100vh;align-items:start}
+.rn-sidebar{position:sticky;top:0;height:100vh;min-height:0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;background:var(--rn-sidebar-bg);border-right:1px solid var(--rn-line);padding:34px 23px 23px;scrollbar-width:thin;scrollbar-color:#d9d0c4 transparent;z-index:30}
+.rn-side-top{padding:0 12px 22px;border-bottom:1px solid var(--rn-line)}
+.rn-brand{display:inline-flex;align-items:center;gap:11px;font-weight:760;font-size:19px;letter-spacing:.05em;color:var(--rn-ink);text-decoration:none;line-height:1.4}
+.rn-brand:hover{text-decoration:none;color:var(--rn-accent)}
+.rn-flower{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:10px;background:#e9d5c8;color:#986a57;font-size:15px;flex:none}
+.rn-tagline{margin:8px 0 0 39px;font-size:11px;color:#988e83;letter-spacing:.025em;line-height:1.5}
+.rn-back{margin:19px 4px 24px;display:flex;gap:7px;align-items:center;padding:10px 12px;border:1px solid #e3d9cc;background:#fffdfa85;border-radius:10px;font-size:13px;color:#71655b;text-decoration:none;font-weight:600;line-height:1.6;transition:background .2s,border-color .2s;}
+.rn-back:hover{background:#fffdfa;border-color:#d5bfad;color:var(--rn-accent);text-decoration:none}
+.rn-back svg{flex:none}
+.rn-location{padding:1px 12px 22px}
+.rn-label{margin:0 0 11px;font-weight:690;font-size:10.5px;letter-spacing:.13em;color:#a09486;text-transform:uppercase;line-height:1.8}
+.rn-path{font-size:11.5px;color:#92857b;margin:0 0 10px;display:flex;gap:7px;align-items:center;line-height:1.6;flex-wrap:wrap}
+.rn-path span.rn-path-part{max-width:176px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rn-path .rn-separator{color:#c1b8ac}
+.rn-current{font-size:15.5px;font-weight:730;letter-spacing:-.016em;line-height:1.55;margin:0;color:var(--rn-ink)}
+.rn-nav-block{padding:19px 0 0;border-top:1px solid var(--rn-line)}
+.rn-nav-block .rn-label{padding-left:12px;margin-bottom:12px}
+.rn-toc{display:flex;flex-direction:column;gap:3px}
+.rn-toc a{position:relative;display:flex;align-items:center;gap:10px;min-height:41px;border-radius:9px;padding:9px 13px;text-decoration:none;color:#756d65;font-size:13px;line-height:1.55;transition:background .18s,color .18s}
+.rn-toc a:hover{background:#ede6dc;color:#5b4b42;text-decoration:none}
+.rn-toc a.is-active{background:var(--rn-accent-wash);color:#945846;font-weight:730}
+.rn-toc a.is-active:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;border-radius:8px;background:#bd7b66}
+.rn-toc-number{font-size:10.5px;font-weight:750;letter-spacing:.06em;font-variant-numeric:tabular-nums;min-width:22px;color:#a3978d}
+.rn-toc a.is-active .rn-toc-number{color:#b37a66}
+.rn-spacer{min-height:25px;flex:1}
+.rn-related{padding:22px 12px 20px;border-top:1px solid var(--rn-line)}
+.rn-related .rn-label{margin-bottom:10px}
+.rn-next{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#527767;text-decoration:none;font-size:13px;font-weight:720;line-height:1.6}
+.rn-next:hover{color:#365d4b;text-decoration:none}
+.rn-related small{font-size:11px;color:#999083;display:block;margin-top:6px}
+.rn-side-bottom{padding:14px 12px 0;border-top:1px solid var(--rn-line);font-size:10px;color:#a99d90;letter-spacing:.025em}
+.rn-main{min-width:0;width:100%;padding:0 42px 90px}
+.rn-main-inner{width:100%;max-width:820px;margin:0 auto}
+.rn-crumbs{min-height:77px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--rn-line);font-size:11.5px;color:#9b8e83;line-height:1.6}
+.rn-crumbs a{color:#8a7769;text-decoration:none}
+.rn-crumbs a:hover{color:var(--rn-accent);text-decoration:none}
+.rn-crumbs .rn-crumb-current{color:#675b50;font-weight:610}
+.rn-crumbs .rn-separator{font-size:13px;color:#c6bcaf}
+.rn-mobile-bar,.rn-close,.rn-overlay{display:none}
+.rn-skip{position:fixed;left:16px;top:-80px;z-index:90;padding:10px 15px;background:white;border:2px solid var(--rn-accent);border-radius:8px;color:var(--rn-ink);font-weight:bold;text-decoration:none}
+.rn-skip:focus{top:14px}
+.rn-scroll-to{scroll-margin-top:26px}
+@media(min-width:1600px){.rn-layout{grid-template-columns:304px minmax(0,1fr)}.rn-sidebar{padding-left:30px;padding-right:30px}.rn-main{padding-left:64px;padding-right:64px}}
+@media(max-width:1080px) and (min-width:861px){.rn-layout{grid-template-columns:246px minmax(0,1fr)}.rn-sidebar{padding-left:14px;padding-right:14px}.rn-main{padding:0 30px 78px}}
+@media(max-width:860px){
+  .rn-layout{display:block;min-height:100vh}
+  .rn-mobile-bar{position:sticky;top:0;z-index:25;display:flex;align-items:center;justify-content:space-between;gap:10px;height:58px;padding:0 18px;border-bottom:1px solid var(--rn-line);background:rgba(250,248,243,.96);backdrop-filter:blur(13px)}
+  .rn-mobile-home{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;font-weight:660;color:#72665c;text-decoration:none}
+  .rn-mobile-home span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rn-menu-btn{border:1px solid #ded4c9;color:#715e53;background:#fffdfa;border-radius:9px;padding:6px 12px;display:flex;align-items:center;gap:7px;white-space:nowrap;font:600 12px/1.5 inherit;cursor:pointer}
+  .rn-menu-btn:hover{border-color:#bfa495}
+  .rn-sidebar{position:fixed;top:0;left:0;bottom:0;z-index:53;display:flex;width:min(318px,87vw);height:100dvh;min-height:0;transform:translateX(-105%);transition:transform .24s ease;box-shadow:10px 0 45px rgba(41,31,24,.12);padding-top:28px;visibility:hidden}
+  .rn-drawer-open .rn-sidebar{transform:translateX(0);visibility:visible}
+  .rn-overlay{position:fixed;inset:0;z-index:51;background:rgba(44,35,28,.36)}
+  .rn-drawer-open .rn-overlay{display:block}
+  .rn-drawer-open{overflow:hidden}
+  .rn-close{display:flex;align-items:center;justify-content:center;position:absolute;right:18px;top:25px;width:33px;height:33px;border:1px solid #e1d7cc;background:#fffaf3;border-radius:9px;color:#817163;cursor:pointer;font-size:18px;line-height:1}
+  .rn-main{padding:0 22px 70px}
+  .rn-crumbs{min-height:52px;font-size:11px}
+  .rn-scroll-to{scroll-margin-top:77px}
+}
+@media(max-width:540px){.rn-main{padding:0 19px 55px}.rn-crumbs{gap:5px}.rn-crumbs .rn-crumb-parent{max-width:148px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media(prefers-reduced-motion:reduce){.rn-sidebar{transition:none}}
+
+
+/* Shared navigator layout compatibility: do not affect original article styles. */
+main.rn-main { max-width: none; width: 100%; padding: 0 42px 90px; }
+.rn-main-inner { max-width: 820px; }
+.rn-main-inner > header.hero { margin-top: 53px; }
+.rn-toc a { font-family: inherit; }
+@media(min-width:1600px){main.rn-main { padding-left:64px; padding-right:64px; }}
+@media(max-width:1080px) and (min-width:861px){main.rn-main { padding:0 30px 78px; }}
+@media(max-width:860px){main.rn-main { padding:0 22px 70px; } .rn-main-inner > header.hero { margin-top: 37px; }}
+@media(max-width:540px){main.rn-main { padding:0 19px 55px; }}
+
+</style>
 </head>
 <body id="top">
-<nav aria-label="快速跳转章节" class="mobile-index">
-<a href="#map">总览</a>
-<a data-section="formation" href="#formation">01 相机成像</a>
-<a data-section="geometry" href="#geometry">02 成像几何</a>
-<a data-section="depth" href="#depth">03 深度测量</a>
-<a data-section="processing" href="#processing">04 深度后处理</a>
-<a data-section="calibration" href="#calibration">05 标定与配准</a>
-<a href="#looking-back">回头看</a>
-</nav>
-<div class="shell">
-<aside aria-label="本页目录" class="rail">
-<a aria-label="沿途手记首页" class="brand" href="/"><span aria-hidden="true" class="brand-sign">✳</span><span>沿途手记<small>NOTES ALONG THE WAY</small></span></a>
-<div class="rail-title">Q03 / 相机与三维测量</div>
-<nav aria-label="章节快速跳转" class="side-links">
-<a data-section="map" href="#map"><span class="nav-num">↳</span><span>问题总览</span></a>
-<a data-section="formation" href="#formation"><span class="nav-num">01</span><span>相机成像</span></a>
-<a data-section="geometry" href="#geometry"><span class="nav-num">02</span><span>成像几何</span></a>
-<a data-section="depth" href="#depth"><span class="nav-num">03</span><span>深度测量</span></a>
-<a data-section="processing" href="#processing"><span class="nav-num">04</span><span>深度后处理</span></a>
-<a data-section="calibration" href="#calibration"><span class="nav-num">05</span><span>标定与配准</span></a>
-<div aria-hidden="true" class="rail-divider"></div>
-<a class="secondary-link" data-section="looking-back" href="#looking-back"><span class="nav-num">↳</span><span>回头看</span></a>
-</nav>
-<div class="rail-footer">一份给未来自己的探索笔记。<br/>每个章节都在下面，直接点目录就到。</div>
-</aside>
-<main>
-<nav aria-label="当前位置" class="breadcrumbs"><a href="/">沿途手记</a><span>/</span><a href="/research/stage-01/">Stage 01</a><span>/</span><a href="/research/stage-01/q03-target-in-2d/">Q03</a><span>/</span>相机与三维测量</nav>
-<header class="hero">
-<div class="eyebrow">Q03 · CAMERA &amp; 3D MEASUREMENT</div>
+<a class="rn-skip" href="#content">跳到正文</a>
+<div class="rn-mobile-bar">
+  <a class="rn-mobile-home" href="/research/stage-01/q03-target-in-2d/"><span aria-hidden="true">←</span><span>返回 · 把问题拆开</span></a>
+  <button class="rn-menu-btn" type="button" aria-controls="reading-navigation" aria-expanded="false"><span aria-hidden="true">☰</span> 目录</button>
+</div>
+<div class="rn-overlay" aria-hidden="true"></div>
+<div class="rn-layout">
+  <aside class="rn-sidebar" id="reading-navigation" aria-label="阅读导航">
+    <button class="rn-close" type="button" aria-label="关闭目录">×</button>
+    <div class="rn-side-top">
+      <a class="rn-brand" href="/"><span class="rn-flower" aria-hidden="true">✳</span>沿途手记</a>
+      <p class="rn-tagline">从一个问题出发的探索路线</p>
+    </div>
+    <a class="rn-back" href="/research/stage-01/q03-target-in-2d/" aria-label="返回上一级：看见了，剩下的事就简单了吗？">
+      <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      返回 · 把问题拆开
+    </a>
+    <div class="rn-location">
+      <p class="rn-label">当前位置</p>
+      <p class="rn-path"><span class="rn-path-part">Stage 01</span><span class="rn-separator">/</span><span class="rn-path-part">把问题拆开</span></p>
+      <p class="rn-current">相机与三维测量</p>
+    </div>
+    <section class="rn-nav-block" aria-label="本页目录">
+      <p class="rn-label">本页目录</p>
+      <nav class="rn-toc" aria-label="页面章节">
+        <a href="#start" class="is-active" aria-current="location"><span class="rn-toc-number">·</span>从这里开始</a>
+        <a href="#map"><span class="rn-toc-number">·</span>问题总览</a>
+        <a href="#formation"><span class="rn-toc-number">01</span>相机成像</a>
+        <a href="#geometry"><span class="rn-toc-number">02</span>成像几何</a>
+        <a href="#depth"><span class="rn-toc-number">03</span>深度测量</a>
+        <a href="#processing"><span class="rn-toc-number">04</span>深度后处理</a>
+        <a href="#calibration"><span class="rn-toc-number">05</span>标定与配准</a>
+        <a href="#looking-back"><span class="rn-toc-number">·</span>回头看看</a>
+      </nav>
+    </section>
+    <div class="rn-spacer" aria-hidden="true"></div>
+    <div class="rn-related">
+      <p class="rn-label">接着阅读</p>
+      <a class="rn-next" href="01-image-formation/"><span>光进了镜头，怎么就成了一张图？</span><span aria-hidden="true">↗</span></a>
+      <small>从第一篇专题笔记开始</small>
+    </div>
+  </aside>
+  <main class="rn-main" id="content" tabindex="-1">
+    <div class="rn-main-inner">
+      <nav class="rn-crumbs" aria-label="面包屑导航">
+        <a href="/">沿途手记</a><span class="rn-separator">›</span>
+        <a href="/research/stage-01/">Stage 01</a><span class="rn-separator">›</span>
+        <a class="rn-crumb-parent" href="/research/stage-01/q03-target-in-2d/">看见了，剩下的事就简单了吗？</a><span class="rn-separator">›</span>
+        <span class="rn-crumb-current" aria-current="page">相机与三维测量</span>
+      </nav>
+<header class="hero" id="start">
+<div class="eyebrow">相机与三维测量</div>
 <h1>相机真的知道<br/>东西在哪里吗？</h1>
 <p>拿起 RGB-D 相机，对着桌上的瓶子拍一张。RGB 有了，Depth 也有了，似乎套个公式就能得到一堆 XYZ。</p>
 <p>可是，相机为什么能把光变成图像？照片明明是平的，一个像素又凭什么变成三维坐标？深度从哪里来？为什么瓶子在彩色图里清清楚楚，深度却可能缺了一块？</p>
@@ -285,36 +398,12 @@ h1{font-size:clamp(34px,4vw,46px);font-weight:750;line-height:1.38;letter-spacin
 <div class="end-note"><p><strong>边界留在这里。</strong>本页只认识相机怎样形成三维观测。目标究竟是谁、相机坐标怎样交给机器人，分别留给 Q03 的另外两条路线。</p></div>
 <div class="shortcut"><a href="#map">↑ 返回总览</a><a href="#top">↑ 回到顶部</a></div>
 </section>
-<footer class="footer"><span>沿途手记 · Stage 01 / Q03　｜　这一页先把问题认清，细节留在各自的探索笔记里。</span><a href="#map">↑ 问题总览</a></footer>
-</main>
+<!-- navigation:pager:start -->
+
+<!-- navigation:pager:end --><footer class="footer"><span>沿途手记 · 相机与三维测量｜　这一页先把问题认清，细节留在各自的探索笔记里。</span><a href="#map">↑ 问题总览</a></footer>
+    </div>
+  </main>
 </div>
-<script>
-// 仅标记当前阅读的章节。全文始终在页面中，不作折叠、过滤或切换。
-(function(){
-  const items = ['map','formation','geometry','depth','processing','calibration','looking-back'];
-  const targets = items.map(id=>document.getElementById(id)).filter(Boolean);
-  const navLinks = document.querySelectorAll('[data-section]');
-  if (!('IntersectionObserver' in window)) return;
-  let active = 'map';
-  const setActive = (id) => {
-    if(active===id) return;
-    active=id;
-    navLinks.forEach(a=>{
-      const on = a.dataset.section===id;
-      a.classList.toggle('is-active',on);
-      if(on) a.setAttribute('aria-current','location');
-      else a.removeAttribute('aria-current');
-    });
-  };
-  // 按视口中刚越过顶部的章节更新索引，不改变滚动位置。
-  const observer = new IntersectionObserver(() => {
-    const y = window.scrollY+Math.min(190,window.innerHeight*.25);
-    const found = targets.filter(el => el.getBoundingClientRect().top+window.scrollY<=y).at(-1);
-    if(found) setActive(found.id);
-  },{threshold:0,rootMargin:'-14% 0px -75% 0px'});
-  targets.forEach(t=>observer.observe(t));
-})();
-</script>
 <script>// 插图文件存在时展示图片；不存在时保持清晰的 16:9 占位。
 (function(){
   const image = document.querySelector('.mechanism-image');
@@ -324,5 +413,90 @@ h1{font-size:clamp(34px,4vw,46px);font-weight:750;line-height:1.38;letter-spacin
   };
   image.addEventListener('load', showImage);
   if(image.complete) showImage();
-})();</script></body>
+})();</script>
+<script id="shared-reading-navigation-script">
+/* 沿途手记 · 共用阅读导航 v1.0
+   负责移动端菜单 + 本页目录滚动定位；与正文业务无关。 */
+(() => {
+  'use strict';
+  const sidebar = document.querySelector('.rn-sidebar');
+  const menuButton = document.querySelector('.rn-menu-btn');
+  const closeButton = document.querySelector('.rn-close');
+  const overlay = document.querySelector('.rn-overlay');
+  const links = [...document.querySelectorAll('.rn-toc a[href^="#"]')];
+  if (!sidebar) return;
+  let restoreFocus = null;
+
+  const closeMenu = (restore = true) => {
+    document.body.classList.remove('rn-drawer-open');
+    menuButton?.setAttribute('aria-expanded', 'false');
+    sidebar.removeAttribute('aria-modal');
+    if (restore && restoreFocus) restoreFocus.focus();
+  };
+  const openMenu = () => {
+    restoreFocus = document.activeElement;
+    document.body.classList.add('rn-drawer-open');
+    menuButton?.setAttribute('aria-expanded', 'true');
+    closeButton?.focus();
+  };
+  menuButton?.addEventListener('click', () => {
+    if (document.body.classList.contains('rn-drawer-open')) closeMenu();
+    else openMenu();
+  });
+  closeButton?.addEventListener('click', () => closeMenu());
+  overlay?.addEventListener('click', () => closeMenu());
+  document.addEventListener('keydown', (event) => {
+    if (!document.body.classList.contains('rn-drawer-open')) return;
+    if (event.key === 'Escape') closeMenu();
+    if (event.key === 'Tab') {
+      const focusable = [...sidebar.querySelectorAll('a[href],button:not([disabled])')]
+        .filter(el => el.getClientRects().length);
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {event.preventDefault();last.focus();}
+      else if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first.focus();}
+    }
+  });
+  links.forEach(a => a.addEventListener('click', () => {
+    if (document.body.classList.contains('rn-drawer-open')) closeMenu(false);
+  }));
+  window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => {
+    if (e.matches && document.body.classList.contains('rn-drawer-open')) closeMenu(false);
+  });
+
+  const targets = links.map(a => ({
+    link: a,
+    target: document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)))
+  })).filter(v => v.target);
+  if (!targets.length) return;
+  let lastActive = null, queued = false;
+  function updateActive() {
+    queued = false;
+    // 由上到下：窗口上方约四分之一处所在的章节，就是当前阅读位置。
+    const probe = Math.min(180, window.innerHeight * .27);
+    let active = targets[0];
+    for (const item of targets) {
+      if (item.target.getBoundingClientRect().top <= probe) active = item;
+      else break;
+    }
+    if (lastActive === active) return;
+    targets.forEach(({link}) => {
+      const selected = link === active.link;
+      link.classList.toggle('is-active', selected);
+      if (selected) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+    lastActive = active;
+  }
+  function queueUpdate() {
+    if (!queued) {queued = true;window.requestAnimationFrame(updateActive);}
+  }
+  window.addEventListener('scroll', queueUpdate, {passive:true});
+  window.addEventListener('resize', queueUpdate, {passive:true});
+  window.addEventListener('hashchange', queueUpdate);
+  updateActive();
+})();
+
+</script>
+</body>
 </html>
