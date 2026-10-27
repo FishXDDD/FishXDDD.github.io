@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="description" content="沿途手记：从颜色表示、阈值判别、分布建模，到 GLCM、LBP 与 Gabor 的像素与纹理技术研究。包含公式、交互实验、OpenCV / scikit-image 实现及技术边界。" />
+<title>像素与纹理｜沿途手记</title>
+<style>
+:root{--paper:#fbfaf7;--canvas:#f6f2ed;--white:#fff;--ink:#342f2c;--ink2:#605750;--muted:#8c8077;--line:#e8e0d8;--accent:#a75e49;--accentdeep:#844633;--accentwash:#f7ede7;--green:#547268;--mint:#eaf2ee;--blue:#456d82;--shadow:0 12px 40px rgba(48,34,26,.035);--side:258px;--reading:856px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:35px}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.86;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:hover{color:var(--accentdeep)}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid #dcae95;outline-offset:3px}::selection{background:#f0cbbb}.site{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:#f5f0e9;border-right:1px solid var(--line);padding:29px 20px 20px 25px;display:flex;flex-direction:column;gap:22px;scrollbar-width:thin}.brand{display:inline-block;font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:700;letter-spacing:.04em}.brand-sub{font-size:10px;letter-spacing:.14em;color:var(--muted);margin-top:-1px}.side-group{color:#94867a;font-size:10px;font-weight:800;letter-spacing:.15em;margin:0 0 9px 10px}.side-links{display:flex;flex-direction:column;gap:2px}.side-links a{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;font-size:12px;color:#746960;line-height:1.48}.side-links .num{font-size:10px;color:#a9998a;min-width:16px}.side-links a:hover{background:#efe6dd;color:var(--accentdeep)}.side-links a.active{background:#eadbd0;color:#773e30;font-weight:700}.side-links a.active .num{color:var(--accent)}.sidebar-bottom{margin-top:auto;border-top:1px solid #e3d8cd;padding:15px 10px 0;color:#93857b;font-size:11px}.page-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.page-links a{text-decoration:underline;text-decoration-color:#cfc0b3;text-underline-offset:4px}.sub-links{display:grid;gap:2px}.sub-links a{padding:3px 10px;border-left:2px solid transparent;color:#93857b;font-size:11px;line-height:1.5}.sub-links a.current{border-left-color:var(--accent);color:var(--accentdeep);font-weight:650}.layout-main{min-width:0;padding:36px 44px 92px}.article{width:min(100%,var(--reading));margin:0 auto}.crumb{display:flex;gap:9px;flex-wrap:wrap;align-items:center;font-size:11px;color:#988b81}.crumb .slash{color:#c5b9ae}.article-hero{margin:42px 0 36px;border-bottom:1px solid var(--line);padding-bottom:32px}.eyebrow,.chapter-label,.smallcap{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.15em}.article-hero h1{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:clamp(37px,5vw,56px);line-height:1.22;letter-spacing:.035em;margin:12px 0 8px}.subtitle{font-size:20px;font-weight:560;color:var(--ink2);margin:8px 0 19px}.lede{font-size:15px;line-height:2;color:#65584f;max-width:720px}.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:21px}.tag{display:inline-block;border:1px solid #e6ddd5;color:#7c6e64;border-radius:50px;font-size:10.5px;padding:4px 11px;background:#fffdfa}.reading-map{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.reading-map .mapitem{border:1px solid var(--line);border-radius:12px;background:white;padding:13px 14px;min-height:92px}.reading-map .mapidx{font-size:10px;color:var(--accent);font-weight:800;letter-spacing:.08em}.reading-map strong{display:block;margin-top:3px;font-size:13px}.reading-map span{display:block;font-size:11px;color:var(--muted);line-height:1.6}.chapter{padding:40px 0 30px;border-top:1px solid var(--line)}.chapter:first-of-type{border-top:0}.chapter h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:clamp(23px,3.2vw,30px);line-height:1.45;letter-spacing:.012em;margin:9px 0 23px}.chapter h3{font-size:17px;line-height:1.55;margin:34px 0 11px}.chapter h4{font-size:14px;margin:22px 0 6px}.chapter p{margin:10px 0 15px}.chapter strong{color:#3c302b}.chapter ul,.chapter ol{padding-left:23px}.chapter li{padding-left:3px;margin:6px 0}.thin{font-weight:400}.muted{color:var(--muted)}.small{font-size:12px;line-height:1.8}.intro-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:20px 0}.intro-grid .intro-card{border:1px solid var(--line);background:white;border-radius:12px;padding:17px}.intro-card .roman{color:var(--accent);font-size:11px;font-weight:800}.intro-card strong{display:block;margin-top:6px;font-size:14px}.intro-card p{font-size:12px;margin:8px 0 0;color:var(--ink2)}.note,.answer,.warning{padding:15px 18px;border-radius:10px;margin:21px 0;background:#fff;border:1px solid #e9e0d7;font-size:13px;line-height:1.87}.note{border-left:3px solid #9f9286}.warning{border-left:3px solid #c18b57;background:#fff9f1}.answer{border-left:3px solid #6b8a7f;background:#f7faf8}.note strong,.warning strong,.answer strong{color:inherit}.math{background:#f8f5f1;border:1px solid #e9e0d7;color:#51473f;border-radius:11px;padding:14px 17px;font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;font-size:12.5px;line-height:2;overflow-x:auto;margin:15px 0 19px;white-space:normal}.math .line{display:block}.fig{border:1px solid var(--line);border-radius:14px;background:white;overflow:hidden;margin:21px 0;box-shadow:var(--shadow)}.figtitle{padding:15px 18px 0;color:#5d4d42;font-weight:700;font-size:13px}.figbody{padding:16px 18px}.figcap{padding:0 18px 16px;color:#94867c;font-size:11.5px;line-height:1.75}.viz{border:1px solid #e6d9ce;border-radius:13px;background:#fffdfb;padding:17px;margin:18px 0 22px}.viztitle{font-size:13px;font-weight:800;color:#754b39;margin:0 0 13px}.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:13px 0}.controls label{font-size:12px;color:var(--ink2)}input[type=range]{accent-color:var(--accent);vertical-align:middle;width:145px;max-width:100%}.select{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 9px;min-width:95px;font-size:12px}.btn{border:1px solid #dcc8ba;background:#fff7f2;color:#874735;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:700}.btn:hover{background:#f7e6da}.result{border-radius:8px;background:#f8f2ec;padding:8px 11px;font-size:11.5px;color:#66564b}.viz-grid{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;background:#f4f0eb;padding:7px;border-radius:9px;max-width:510px}.pixel{aspect-ratio:1;border-radius:2px}.visual-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}.visual-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.visual-label{font-size:11px;color:#7e7068;font-weight:700;margin-bottom:8px}.swatch{height:102px;border-radius:11px;border:1px solid #ded4c9;box-shadow:inset 0 0 0 7px #ffffff44}.readout{display:grid;gap:4px;font-size:12px;color:#5e514b}.readout code{font-size:12px;color:#784837}.table-scroll{max-width:100%;overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:10px;background:#fff}.table-scroll table{width:100%;border-collapse:collapse;text-align:left;font-size:12.5px;line-height:1.8;min-width:550px}.table-scroll th{background:#f6f2ed;color:#63564c;font-size:11px;font-weight:750;white-space:nowrap}.table-scroll td,.table-scroll th{padding:10px 14px;border-bottom:1px solid #eee6df;vertical-align:top}.table-scroll tr:last-child td{border-bottom:0}.table-scroll td:first-child{font-weight:650;color:#4b403a;white-space:nowrap}.code-head{display:flex;align-items:center;justify-content:space-between;background:#eee8e1;border:1px solid #e5ddd5;border-radius:9px 9px 0 0;margin-top:20px;padding:8px 12px;font-size:11px;font-weight:700;color:#6c5e52}.copybtn{background:#fff;border:1px solid #e3d8cd;color:#756459;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer}.code{background:#302e2b;color:#e8e3d9;font-family:"DejaVu Sans Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;line-height:1.85;overflow:auto;white-space:pre;tab-size:4;padding:18px 21px;border-radius:0 0 9px 9px;margin:0 0 19px;max-height:680px}.equation-note{font-size:11px;color:var(--muted);margin-top:-6px}.lab-box{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lab-val{background:#faf6f2;border:1px solid #eee5db;border-radius:9px;padding:10px 12px}.lab-val b{display:block;font-size:11px;color:var(--muted)}.lab-val strong{font-size:17px;color:var(--accentdeep);font-variant-numeric:tabular-nums}.hist{width:100%;display:block;border-radius:9px;background:#fcfaf7;border:1px solid #eee4da}.worked{counter-reset:worked;list-style:none;padding:0!important}.worked li{position:relative;display:block;padding:5px 0 6px 30px!important;margin:7px 0!important}.worked li::before{counter-increment:worked;content:counter(worked,decimal-leading-zero);position:absolute;left:0;top:6px;font-size:11px;font-weight:700;color:var(--accent)}.texture-mat{border-collapse:separate;border-spacing:3px}.texture-mat td{width:35px;height:35px;border-radius:4px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums;color:#43382e}.matrices{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}.cell-mat{border-collapse:separate;border-spacing:2px;font-size:12px}.cell-mat td,.cell-mat th{min-width:32px;height:32px;text-align:center;border-radius:4px;background:#f3eee8;padding:3px 6px}.cell-mat th{color:#856d5c;font-size:10px;background:#f9f5ef}.cell-mat td.hi{background:#e5bea8;color:#703f30}.lbp-board{display:grid;grid-template-columns:repeat(3,56px);gap:4px}.lbp-cell{border-radius:7px;height:51px;background:#e7dacf;display:grid;place-items:center;font-family:ui-monospace,monospace;font-size:15px;position:relative}.lbp-cell.center{background:#a75e49;color:#fff}.lbp-cell span{position:absolute;right:4px;bottom:1px;font-size:9px;color:#4e796b;font-weight:800}.texture-canvases{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.texture-canvases canvas{display:block;width:100%;aspect-ratio:1;background:#fff;border-radius:5px;image-rendering:pixelated;border:1px solid #e5dbcf}.texture-canvases .visual-label{text-align:center;line-height:1.55;min-height:40px}.next{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:32px 0}.next a{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:12px;color:#7e6c60}.next b{display:block;color:#4c3b31;font-size:13px}.next a:last-child{text-align:right}.footer{border-top:1px solid var(--line);padding-top:23px;font-size:11px;color:#9c8d82;line-height:1.9}.mobile-bar{display:none}.menu-btn{border:1px solid #ddcec0;background:#fff;border-radius:7px;padding:6px 9px;color:var(--accentdeep)}.progress{position:fixed;top:0;left:0;width:0;height:3px;background:#bc7761;z-index:40;pointer-events:none}.plot-bar{height:10px;background:#f0ebe5;border-radius:6px;overflow:hidden}.plot-bar>span{height:100%;display:block;background:#bc8066}.inline-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:18px 0}.inline-steps>div{border:1px solid #ece1d8;background:#fff;border-radius:10px;padding:12px;font-size:11.5px;color:#74665b}.inline-steps strong{display:block;color:#503e35;font-size:13px;margin-bottom:5px}.flow-note{font-size:11px;color:#88796d;margin-top:7px}canvas{max-width:100%}.gray-texture{background:repeating-linear-gradient(90deg,#b5b4b0 0 4px,#edeae3 4px 8px);border-radius:8px;height:88px;border:1px solid #d8d0c8}.details-note summary{cursor:pointer;color:#84513d;font-weight:700;font-size:12px}.details-note{border:1px dashed #e4d5c7;border-radius:9px;padding:10px 13px;background:#fffdfa;margin:16px 0}.details-note[open] summary{margin-bottom:8px}
+@media(max-width:1150px){.layout-main{padding:30px 30px 75px}.sidebar{padding-left:17px;padding-right:14px}.site{--side:228px}}
+@media(max-width:820px){.site{display:block}.sidebar{position:fixed;top:51px;left:0;width:min(320px,85vw);height:calc(100vh - 51px);z-index:30;box-shadow:12px 12px 35px #0002;transform:translateX(-110%);transition:transform .22s ease}.sidebar.open{transform:translateX(0)}.layout-main{padding:0 18px 55px}.mobile-bar{position:sticky;top:0;z-index:29;display:flex;align-items:center;justify-content:space-between;height:51px;margin:0 -18px;padding:0 16px;background:#f9f5efec;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);font-size:12px}.mobile-bar b{font-size:13px}.mobile-bar span{color:var(--muted);font-size:11px}.article-hero{margin-top:28px}.crumb{margin-top:17px}.overlay{display:none;position:fixed;inset:51px 0 0;background:#2019126b;z-index:28}.overlay.visible{display:block}}
+@media(max-width:540px){.reading-map,.intro-grid,.visual-two,.visual-three,.lab-box,.inline-steps{grid-template-columns:1fr}.reading-map{gap:7px}.reading-map .mapitem{min-height:0}.texture-canvases{grid-template-columns:repeat(2,1fr)}.article-hero h1{font-size:38px}.chapter h2{font-size:24px}.controls{gap:9px}.controls input[type=range]{width:120px}.matrices{gap:9px}.lbp-board{grid-template-columns:repeat(3,43px)}.lbp-cell{height:39px}.next{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+</style>
+
+<style id="stage01-simple-reading-sidebar">
+/* 与 Stage 01 保持一致的简洁阅读侧栏。正文及互动实验沿用原样。 */
+.site{--side:250px}
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100vh;min-height:0;display:flex;flex-direction:column;gap:0;
+  padding:30px 18px 34px;background:#f6f3ec;border-right:1px solid #e5dfd5;
+  overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d9cec2 transparent;
+}
+.reading-side-top{padding:0 11px 20px;border-bottom:1px solid var(--line)}
+.reading-brand{display:flex;align-items:center;gap:10px;font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:750;font-size:18px;letter-spacing:.045em;line-height:1.5;color:#51463d}
+.reading-brand:hover{color:#925c43}
+.reading-flower{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#ecddce;color:#a56d53;font:16px/1 system-ui,sans-serif}
+.reading-tagline{margin:7px 0 0 40px;color:#a2968a;font-size:10.5px;line-height:1.6;letter-spacing:0}
+.reading-back{display:flex;align-items:center;gap:8px;margin:17px 0 20px;padding:9px 11px;border-radius:9px;color:#806f61;font-size:12px;line-height:1.6}
+.reading-back:hover{color:#895f49;background:#ede6dc}
+.reading-back>span:first-child{flex:none;font-size:17px;line-height:1}
+.reading-location{padding:0 11px 21px}
+.reading-label{margin:0 0 10px;color:#a19283;font-size:10px;line-height:1.7;font-weight:700;letter-spacing:.1em}
+.reading-current{margin:0;color:#51463d;font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:17px;line-height:1.7;font-weight:700}
+.reading-toc-wrap{padding:21px 0 0;border-top:1px solid var(--line)}
+.reading-toc-wrap>.reading-label{padding-left:11px;margin-bottom:10px}
+.reading-toc{display:flex;flex-direction:column;gap:2px}
+.reading-toc a{position:relative;display:flex;align-items:center;gap:9px;min-height:39px;padding:8px 10px;border-radius:8px;color:#7e7166;font-size:12.5px;line-height:1.55;transition:background .18s,color .18s}
+.reading-toc a:hover{background:#eee7dd;color:#745a4c}
+.reading-num{flex:0 0 23px;text-align:center;color:#ac9e92;font:600 11px/1.55 Georgia,serif}
+.reading-toc a.is-active{background:#f1e4da;color:#935941;font-weight:700}
+.reading-toc a.is-active:before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:5px;background:#ba8062}
+.reading-toc a.is-active .reading-num{color:#a86c50}
+.reading-close{display:none}
+@media(max-width:1150px) and (min-width:821px){.site{--side:234px}.sidebar{padding-left:15px;padding-right:15px}}
+@media(max-width:820px){
+  html{scroll-padding-top:72px}
+  .site{display:block}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:31;width:min(318px,88vw);height:100dvh;min-height:0;
+    padding:29px 20px 28px;transform:translateX(-106%);visibility:hidden;transition:transform .22s ease,visibility .22s ease;
+    box-shadow:10px 0 45px rgba(41,31,24,.12)}
+  .sidebar.open{transform:translateX(0);visibility:visible}
+  .reading-close{display:grid;place-items:center;position:absolute;top:26px;right:16px;z-index:2;width:34px;height:34px;
+    background:#fffaf3;border:1px solid #e1d7cc;border-radius:9px;color:#817163;font-size:21px;line-height:1}
+  .reading-side-top{padding-right:28px}
+  .overlay{inset:0;z-index:30;background:rgba(44,35,28,.36)}
+  .chapter{scroll-margin-top:72px}
+  body.reading-menu-open{overflow:hidden}
+}
+@media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
+@media print{.sidebar,.mobile-bar,.overlay{display:none!important}.site{display:block}.layout-main{padding:0}}
+</style>
+</head>
+<body>
+<div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div>
+<div class="site">
+<aside class="sidebar" id="sidebar" aria-label="像素与纹理 · 阅读导航">
+  <button class="reading-close" id="sidebar-close" type="button" aria-label="关闭目录">×</button>
+  <div class="reading-side-top">
+    <a class="reading-brand" href="https://fishxddd.github.io/"><span class="reading-flower" aria-hidden="true">✳</span><span>沿途手记</span></a>
+    <p class="reading-tagline">从一个问题出发的探索路线</p>
+  </div>
+  <a class="reading-back" href="../"><span aria-hidden="true">←</span><span>返回 · 图像特征与结构提取</span></a>
+  <div class="reading-location">
+    <p class="reading-label">正在阅读 · 01 / 06</p>
+    <p class="reading-current">像素与纹理</p>
+  </div>
+  <div class="reading-toc-wrap">
+    <p class="reading-label">本页目录</p>
+    <nav class="reading-toc" id="chapter-nav" aria-label="本页章节跳转">
+      <a class="is-active" href="#scope" aria-current="location"><span class="reading-num">00</span><span>研究边界</span></a>
+      <a href="#color"><span class="reading-num">01</span><span>颜色表示</span></a>
+      <a href="#threshold"><span class="reading-num">02</span><span>像素判别</span></a>
+      <a href="#distribution"><span class="reading-num">03</span><span>分布建模</span></a>
+      <a href="#texture"><span class="reading-num">04</span><span>纹理描述</span></a>
+      <a href="#feature-map"><span class="reading-num">05</span><span>特征图</span></a>
+      <a href="#selection"><span class="reading-num">06</span><span>方法选择</span></a>
+    </nav>
+  </div>
+</aside>
+<main class="layout-main" id="content">
+<div class="mobile-bar"><button id="mobile-menu" class="menu-btn" type="button" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>01 / 06</span></div>
+<article class="article">
+<div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="../">图像特征与结构提取</a><span class="slash">/</span><span>像素与纹理</span></div>
+<header class="article-hero"><div class="eyebrow">DEEP DIVE · 01 / 06</div><h1>像素与纹理</h1><p class="subtitle">一张图像的颜色、统计分布与空间排列，究竟能告诉我们什么？</p><p class="lede">上层笔记已经决定：先不依赖训练模型，只研究图像中能够直接计算的线索。这一站不急着寻找瓶子的 BBox，而是把手里的工具摊开——像素为什么有不同的颜色表示？阈值究竟在分什么？一整群像素可以怎样建模？如果颜色已经不够，纹理又提供了哪一种新信息？</p><div class="meta"><span class="tag">单张 RGB · 传统视觉</span><span class="tag">从数学机制到可运行工具</span><span class="tag">无需训练 · 可离线阅读</span></div></header>
+
+<section class="chapter" id="scope"><div class="chapter-label">00 · SCOPE</div><h2>先把研究对象固定下来</h2>
+<p>这一篇处理的仍是<strong>像素级和局部邻域级的图像信息</strong>。它们可以用来判别相似颜色、描述纹理、形成候选响应，却不会凭空获得“这是瓶子”的身份语义。</p>
+<div class="reading-map"><div class="mapitem"><div class="mapidx">01 / 单个像素</div><strong>颜色数值</strong><span>RGB · HSV · Lab<br>颜色范围与距离</span></div><div class="mapitem"><div class="mapidx">02 / 像素集合</div><strong>统计分布</strong><span>Threshold · Histogram<br>K-means · GMM</span></div><div class="mapitem"><div class="mapidx">03 / 像素邻域</div><strong>纹理排列</strong><span>Local Statistics · GLCM<br>LBP · Gabor</span></div></div>
+<p><strong>输入：</strong>单张 RGB 图像，必要时允许给定已知颜色样本或 ROI。<strong>输出：</strong>颜色候选 Mask、像素簇或概率、颜色与纹理特征向量、空间响应图。</p>
+<div class="note"><strong>明确留给下一篇：</strong>连通域、形态学、区域生长、前后景区域一致性及实例级 Mask；轮廓、边缘、直线圆等几何结构也不在这里展开。最后能不能得到 BBox，不是当前工具是否成立的判据。</div>
+<div class="fig"><div class="figtitle">一张图像里，单像素证据与局部排列证据有什么区别？</div><div class="figbody"><svg viewBox="0 0 760 225" width="100%" role="img" aria-label="红瓶子、同色物体及木纹背景组成的示意场景，比较单像素颜色与纹理结构"><rect width="760" height="225" rx="13" fill="#f7f2eb"/><rect x="8" y="153" width="744" height="65" rx="8" fill="#e6d8c7"/><path d="M8 172 Q125 157 240 177 T490 174 T750 171" stroke="#b5a08b" stroke-width="2" fill="none"/><path d="M8 193 Q180 184 314 202 T750 196" stroke="#c7b199" stroke-width="2" fill="none"/><path d="M142 66H179V87Q198 96 201 124V158Q168 170 121 158V124Q123 101 142 87Z" fill="#c47159" stroke="#95523e" stroke-width="3"/><rect x="141" y="44" width="39" height="24" rx="5" fill="#b46149"/><rect x="140" y="37" width="41" height="10" rx="3" fill="#8d4437"/><rect x="133" y="125" width="58" height="19" rx="4" fill="#ebc3b6"/><rect x="392" y="124" width="108" height="36" rx="5" fill="#c47159"/><path d="M391 131H500M391 145H500" stroke="#ad5c4b" stroke-width="2"/><text x="161" y="197" font-size="13" fill="#69574c" text-anchor="middle">红瓶子</text><text x="447" y="196" font-size="13" fill="#69574c" text-anchor="middle">同色物品</text><circle cx="164" cy="109" r="5" fill="#fbecc9" stroke="#854938" stroke-width="2"/><circle cx="462" cy="139" r="5" fill="#fbecc9" stroke="#854938" stroke-width="2"/><path d="M164 109L260 65M462 139L580 75" stroke="#ab8a76" stroke-dasharray="5 4" fill="none"/><rect x="254" y="22" width="159" height="49" rx="8" fill="#fff" stroke="#e3d5c8"/><text x="333" y="43" font-size="12" font-weight="bold" fill="#865342" text-anchor="middle">颜色可能相似</text><text x="333" y="59" font-size="11" fill="#8a796d" text-anchor="middle">像素本身没有身份</text><rect x="575" y="20" width="161" height="52" rx="8" fill="#fff" stroke="#e3d5c8"/><text x="655" y="40" font-size="12" font-weight="bold" fill="#75523e" text-anchor="middle">纹理利用邻域关系</text><text x="655" y="58" font-size="10.5" fill="#8a796d" text-anchor="middle">可描述表面排列的差异</text></svg></div><div class="figcap">贯穿案例只用于检验信息能做什么；不把“选出一个瓶子”偷换成当前研究目标。</div></div>
+</section>
+
+<section class="chapter" id="color"><div class="chapter-label">01 · COLOR REPRESENTATION</div><h2>颜色看起来一样，数值表示为什么会不同？</h2>
+<p>最直接的像素是 <code>(R,G,B)</code>。但如果想找“红色”，直接比较 R 的大小就会失败：亮灰色可能有很大的 R，暗红色可能有较低的 R。问题不在于再加一个阈值，而是先问：<strong>我们希望颜色中的什么属性被分开？</strong></p>
+<h3>01.1 · RGB、HSV 与 Lab 分别重组了什么？</h3>
+<div class="table-scroll"><table><tr><th>表示</th><th>可直接读出的信息</th><th>特别注意</th></tr><tr><td>RGB / BGR</td><td>红、绿、蓝通道强度；利于直接计算与显示</td><td>通道值同时受光照、材质与相机处理影响；OpenCV 常以 BGR 读图</td></tr><tr><td>HSV</td><td>Hue 色调、Saturation 饱和度、Value 明度</td><td>低饱和度处 Hue 不稳定；Hue 是周期变量，红色跨首尾</td></tr><tr><td>CIE Lab</td><td>L* 明度，a* 绿—红方向，b* 蓝—黄方向</td><td>计算基于色彩空间变换与参考白点；OpenCV 8-bit 输出存在编码偏置</td></tr></table></div>
+<p>HSV 将“是什么色调”与“有多鲜艳、多亮”部分分离，便于写颜色范围；Lab 让颜色差异的计算更有意义，但<strong>换空间并不能让光照变化自动消失</strong>，也不保证对所有相机处理后的图像具有严格感知均匀性。</p>
+<div class="math"><span class="line">HSV: H = 色调角，S = (max(R,G,B) − min(R,G,B)) / max(R,G,B)（max ≠ 0 时）</span><span class="line">Lab 简单距离: ΔE<sub>76</sub> = √[(ΔL*)² + (Δa*)² + (Δb*)²]</span><span class="line">ΔE<sub>76</sub> 是基础欧氏形式；更精细的感知色差可使用 CIEDE2000。</span></div>
+<div class="viz" id="color-viz"><div class="viztitle">小实验 · 给 RGB 调色，看看三个空间的数字如何变化</div>
+ <div class="visual-two"><div><div id="color-swatch" class="swatch"></div><div class="controls"><label>R <input type="range" min="0" max="255" value="190" id="ch-r"></label><strong id="val-r" class="small">190</strong></div><div class="controls"><label>G <input type="range" min="0" max="255" value="80" id="ch-g"></label><strong id="val-g" class="small">80</strong></div><div class="controls"><label>B <input type="range" min="0" max="255" value="55" id="ch-b"></label><strong id="val-b" class="small">55</strong></div></div><div class="readout"><div class="result">RGB　<code id="read-rgb">(190, 80, 55)</code></div><div class="result">HSV　<code id="read-hsv"></code></div><div class="result">Lab　<code id="read-lab"></code></div><p class="small muted">上方颜色与数值实时由浏览器计算。Lab 使用标准 sRGB → XYZ(D65) → CIELAB 的浮点近似过程，与 OpenCV 8-bit 编码值不同。</p></div></div>
+</div>
+<h3>01.2 · “颜色接近”需要先定义距离</h3>
+<p>在 RGB 中计算欧氏距离很方便，却不能保证距离和人眼感知一致。在 HSV 中，Hue 的数值相差很大也可能实际很接近——例如 359° 和 1° 仅相差 2°。因此，单纯将三个 HSV 通道当作普通三维坐标做欧氏距离并不妥当。</p>
+<div class="math"><span class="line">圆周色调距离：d<sub>H</sub>(h₁,h₂) = min(|h₁−h₂|, 360°−|h₁−h₂|)</span><span class="line">例如 d<sub>H</sub>(359°,1°) = min(358°,2°) = 2°。</span></div>
+<div class="code-head"><span>OpenCV · 读取与颜色转换</span><button class="copybtn" data-copy="code-color">复制</button></div><pre class="code"><code id="code-color">import cv2
+import numpy as np
+
+bgr = cv2.imread("scene.jpg")
+assert bgr is not None, "图片读取失败"
+hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+lab8 = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB)
+
+# 注意：OpenCV 的 uint8 HSV 通常 H∈[0,179]，S/V∈[0,255]
+# 要获取常见的 Lab 实数尺度，可先变成 [0,1] float32
+lab_float = cv2.cvtColor(bgr.astype(np.float32) / 255,
+                         cv2.COLOR_BGR2LAB)
+print(hsv[100, 100], lab8[100, 100], lab_float[100, 100])</code></pre>
+<div class="warning"><strong>别把 API 的编码范围当成数学定义：</strong>OpenCV 常规 8-bit HSV 把 0–360° 色调压到约 0–179；8-bit Lab 对 a*/b* 存在偏移编码。后续设置阈值与计算距离时，要明确数据类型和通道范围。</div>
+</section>
+
+<section class="chapter" id="threshold"><div class="chapter-label">02 · PIXEL CLASSIFICATION & THRESHOLDING</div><h2>有了颜色数值，怎样明确地判断一个像素？</h2>
+<p>最容易验证的办法是建立显式规则。对某个像素特征 <code>v(p)</code>，阈值法只是比较大小；对 HSV 则可以给多个通道设置范围。这里计算的是“是否满足颜色条件”，不是“是否属于指定物体”。</p>
+<div class="math"><span class="line">单阈值：M(p) = 1[v(p) &gt; t]</span><span class="line">联合范围：M(p) = 1[H∈红色区间 且 S≥s₀ 且 V≥v₀]</span></div>
+<h3>02.1 · 颜色规则为什么需要联合条件？</h3>
+<div class="viz"><div class="viztitle">小实验 · 同一画面里调色调容差与最低饱和度</div>
+<div class="controls"><label>红色色调容差 <input id="hue-range" type="range" min="4" max="55" step="1" value="21"></label><b id="hue-value" class="small">21°</b><label>最低饱和度 <input id="sat-min" type="range" min="0" max="100" step="5" value="35"></label><b id="sat-value" class="small">35%</b></div>
+<div class="visual-two"><div><div class="visual-label">模拟 RGB 像素（16 × 10）</div><div class="viz-grid" id="rgb-pixels" aria-label="模拟图像的彩色像素网格"></div></div><div><div class="visual-label">颜色规则给出的二值 Mask</div><div class="viz-grid" id="mask-pixels" aria-label="使用阈值后的像素掩码网格"></div></div></div><div class="result" style="margin-top:13px" id="mask-summary">—</div><p class="small muted">画面包含一块红色瓶身、右侧另一块红色物品与低饱和度背景。无论阈值怎么调，两块满足相同规则的红色物体都可能同时保留。</p></div>
+<div class="code-head"><span>OpenCV · 红色色调跨越 Hue 的两端</span><button class="copybtn" data-copy="code-mask">复制</button></div><pre class="code"><code id="code-mask">hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+# 示例阈值，需根据实际颜色分布调整
+m1 = cv2.inRange(hsv, (0, 90, 60), (10, 255, 255))
+m2 = cv2.inRange(hsv, (170, 90, 60), (179, 255, 255))
+red_mask = cv2.bitwise_or(m1, m2)   # uint8: 0 或 255</code></pre>
+<h3>02.2 · 阈值不想手动选：Otsu 从哪里得到 t？</h3>
+<p>先把问题收缩成<strong>单通道直方图有两个相对可分的分布</strong>。如果试一个阈值 t，像素会被分成 C₀ 和 C₁ 两组；我们可以计算两组所占比例 ω 和各自均值 μ。Otsu 遍历有效候选阈值，寻找两组统计上最分离的划分。</p>
+<div class="math"><span class="line">ω₀(t) = ∑<sub>i≤t</sub> p(i)，ω₁(t) = 1 − ω₀(t)</span><span class="line">μ₀(t) = ∑<sub>i≤t</sub> i·p(i) / ω₀(t)，μ₁(t) = ∑<sub>i&gt;t</sub> i·p(i) / ω₁(t)</span><span class="line">J(t) = σ²<sub>between</sub>(t) = ω₀(t) · ω₁(t) · [μ₀(t) − μ₁(t)]²</span><span class="line">t* = argmax<sub>t</sub> J(t)，空组阈值不参与比较</span></div>
+<p>手算一次：像素 <code>[20,20,20,20,20,20,80,80,80,80]</code>，只要 t 在 20–79，得到 ω₀=0.6、ω₁=0.4、μ₀=20、μ₁=80，因此 <code>J=0.6×0.4×60²=864</code>。**最优阈值可能有多解**，它并不是某条真实物体边界上的灰度。</p>
+<div class="viz"><div class="viztitle">小实验 · 两群像素慢慢靠近，Otsu 的分界还稳定吗？</div><div class="controls"><label>两群间距 <input type="range" id="otsu-gap" min="0" max="125" value="75" step="5"></label><b id="otsu-gap-value" class="small">75</b></div><canvas id="otsu-canvas" class="hist" width="720" height="190" role="img" aria-label="样本像素直方图与 Otsu 分界"></canvas><div class="result" id="otsu-readout" style="margin-top:12px">—</div><p class="small muted">两群各 12 个样本、各自有固定微小扰动。这里画的是用于演示的离散样本分布，不是对真实场景直方图的测量。</p></div>
+<h3>02.3 · 全局分界失效时：局部阈值与 Triangle</h3>
+<p>Otsu 假设全图某个单通道上存在有用的全局分组。目标占比很小、类间分布严重重叠，或局部亮度变化很大时，这个假设容易失效。</p>
+<div class="table-scroll"><table><tr><th>方法</th><th>具体在计算什么</th><th>主要限制</th></tr><tr><td>固定阈值</td><td>每个像素比较同一个 t</td><td>场景亮度漂移后需重新设定</td></tr><tr><td>Otsu</td><td>寻找最大类间方差的全局 t</td><td>单通道全局分布应具有可分性</td></tr><tr><td>Triangle</td><td>从直方图峰到尾部构造线，选偏离该线最远的阈值</td><td>对直方图形状敏感，适合偏斜/单主峰+尾部等分布</td></tr><tr><td>Adaptive Mean</td><td>每个像素的阈值 ≈ 邻域均值 − C</td><td>尺度取决于窗口，噪声和小结构易受影响</td></tr><tr><td>Adaptive Gaussian</td><td>每个像素的阈值 ≈ 邻域高斯加权均值 − C</td><td>仍依赖合适的窗口与局部亮度假设</td></tr></table></div>
+<div class="code-head"><span>OpenCV · 三类阈值操作</span><button class="copybtn" data-copy="code-otsu">复制</button></div><pre class="code"><code id="code-otsu">gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+
+# Otsu / Triangle: 由数据选择单个全局阈值
+otsu_t, otsu_mask = cv2.threshold(
+    gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+triangle_t, triangle_mask = cv2.threshold(
+    gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_TRIANGLE)
+
+# 每个邻域的局部分界（blockSize 必须是大于 1 的奇数）
+local_mask = cv2.adaptiveThreshold(
+    gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    cv2.THRESH_BINARY, blockSize=21, C=4)</code></pre>
+<div class="answer"><strong>到这里能得到什么？</strong>一个像素判别 Mask，以及清楚可检查的阈值规则。但“阈值自动选出来”不等于“目标自动被识别”：自动化的是数值分界，不是类别语义。</div>
+</section>
+
+<section class="chapter" id="distribution"><div class="chapter-label">03 · COLOR DISTRIBUTION & STATISTICAL MODELS</div><h2>一种颜色不能用一个范围说清时，如何表示整群像素？</h2>
+<p>颜色可能有深浅变化、反光与阴影。此时“单个值是否超过阈值”不再足够，还可以转而研究<strong>像素集合在特征空间中的分布</strong>。这里必须分清三条路线：统计已有分布、将样本分组、用概率模型拟合分布。</p>
+<h3>03.1 · Histogram 与 Backprojection：已知参考分布怎么找相似像素？</h3>
+<p>直方图把特征空间划成 bins，统计每个区间出现的频率。它丢失像素原来的位置，却保留了颜色分布；二维 H–S 联合直方图还能部分表示色调与饱和度的联合变化。</p>
+<div class="math"><span class="line">H(k) = #{p ∈ ROI : feature(p) 落入第 k 个 bin}</span><span class="line">归一化直方图：P(k) = H(k) / ∑<sub>j</sub> H(j)</span><span class="line">反向投影：B(p) = P(bin(feature(p)))，得到每像素匹配分数图</span></div>
+<p>如果事先选过一个红瓶子 ROI，可以统计其 H–S 分布，再将这张分布映射回整幅图像，得到每个像素与参考颜色分布的匹配响应。但这<strong>依赖参考样本</strong>；反向投影并不区分拥有相似颜色的另一件物体。</p>
+<div class="code-head"><span>OpenCV · 使用参考 ROI 做颜色直方图反向投影</span><button class="copybtn" data-copy="code-back">复制</button></div><pre class="code"><code id="code-back">hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+roi = hsv[60:160, 90:200]  # 示例：已经人为或由上游给定的 ROI
+hist = cv2.calcHist([roi], [0, 1], None, [30, 32],
+                    [0, 180, 0, 256])
+cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
+response = cv2.calcBackProject([hsv], [0, 1], hist,
+                               [0, 180, 0, 256], scale=1)
+# response 是匹配强度图；不是校准后的后验概率，也不是最终 Mask</code></pre>
+<h3>03.2 · K-means：不知道类别名称，能否自动划分颜色群？</h3>
+<p>K-means 把 N 个像素的特征向量分给 K 个中心，要求每个样本到所属中心的平方距离总和尽可能小。对于彩色图像，可以选 RGB 或 Lab 三维特征；如果增加 (x,y)，分组也会受到空间位置影响——那已不再是纯颜色聚类。</p>
+<div class="math"><span class="line">min<sub>{μ₁…μK,c₁…cN}</sub> ∑<sub>i=1…N</sub> ||xᵢ − μ<sub>cᵢ</sub>||²</span><span class="line">E-step-like 分配：cᵢ ← argmin<sub>k</sub> ||xᵢ − μₖ||²</span><span class="line">更新中心：μₖ ← (1/Nₖ) ∑<sub>i:cᵢ=k</sub> xᵢ</span></div>
+<div class="viz"><div class="viztitle">小实验 · 手动进行 K-means 的一次“分配 → 更新”</div><p class="small" style="margin-top:0">六个一维像素特征：<code>[18,24,26,75,78,82]</code>；初始中心为 15 与 95。</p><div class="controls"><button class="btn" id="kmeans-step" type="button">执行一次迭代</button><button class="btn" id="kmeans-reset" type="button">重置</button><span class="result" id="kmeans-iter">迭代 0</span></div><div id="kmeans-display"></div><p class="small muted">真实 K-means 依赖初始中心、K 值与所选距离。这里只展示最基本的更新过程；所谓“第 1 簇”并不等于目标类。</p></div>
+<h3>03.3 · GMM：如果两类颜色分布重叠，为什么需要概率？</h3>
+<p>K-means 给每个像素一个硬归属。GMM（高斯混合模型）改用若干高斯分量表示分布，允许一个像素同时对多个分量有不同责任度，利用 EM 迭代估计参数。</p>
+<div class="math"><span class="line">p(x) = ∑<sub>k=1…K</sub> πₖ · N(x | μₖ, Σₖ)，其中 ∑πₖ = 1</span><span class="line">责任度 γᵢₖ = πₖ N(xᵢ|μₖ,Σₖ) / ∑ⱼ πⱼ N(xᵢ|μⱼ,Σⱼ)</span><span class="line">M-step: Nₖ=∑ᵢγᵢₖ；πₖ=Nₖ/N；μₖ=(∑ᵢγᵢₖ xᵢ)/Nₖ；Σₖ=加权协方差</span></div>
+<div class="viz"><div class="viztitle">小实验 · 相同的观测值，对两个高斯分量有多大归属？</div><div class="controls"><label>像素特征 x <input id="gmm-x" type="range" min="25" max="120" step="1" value="69"></label><b id="gmm-x-label" class="small">69</b></div><div class="small">模型 A：π=0.55，μ=48，σ=15；模型 B：π=0.45，μ=87，σ=18（固定的一维演示参数）</div><div class="lab-box" style="margin-top:12px"><div class="lab-val"><b>属于分量 A 的责任度</b><strong id="gmm-a">—</strong><div class="plot-bar"><span id="gmm-bar-a"></span></div></div><div class="lab-val"><b>属于分量 B 的责任度</b><strong id="gmm-b">—</strong><div class="plot-bar"><span id="gmm-bar-b"></span></div></div><div class="lab-val"><b>硬分配的结果</b><strong id="gmm-hard">—</strong><span class="small muted">仅是分量索引</span></div></div></div>
+<div class="table-scroll"><table><tr><th>方法</th><th>输入依赖</th><th>输出的真正含义</th><th>典型代价</th></tr><tr><td>Histogram</td><td>选定特征与 bin 范围</td><td>颜色频次 / 分布</td><td>bin 粗细影响细节</td></tr><tr><td>Backprojection</td><td>参考颜色直方图</td><td>每像素颜色匹配响应</td><td>参考域偏差、颜色碰撞</td></tr><tr><td>K-means</td><td>K、初始化、距离度量</td><td>硬聚类标签和中心</td><td>分组形状假设、初始化敏感</td></tr><tr><td>GMM</td><td>K、协方差形式、初始化</td><td>混合密度与分量责任度</td><td>EM 局部最优、协方差估计成本</td></tr></table></div>
+<div class="code-head"><span>scikit-learn · 用同一种 Lab 特征比较 K-means / GMM</span><button class="copybtn" data-copy="code-model">复制</button></div><pre class="code"><code id="code-model">from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
+
+# lab_float 来源于第 01 节；shape: (H, W, 3)
+X = lab_float.reshape(-1, 3)
+km = KMeans(n_clusters=3, random_state=42, n_init=10)
+labels_km = km.fit_predict(X).reshape(lab_float.shape[:2])
+
+gmm = GaussianMixture(n_components=3, covariance_type="full",
+                      random_state=42, reg_covar=1e-5)
+gmm.fit(X)
+responsibilities = gmm.predict_proba(X)  # N×3；每行求和为 1
+labels_gmm = responsibilities.argmax(axis=1).reshape(lab_float.shape[:2])
+# 标签 0/1/2 都没有预先给定的语义名称</code></pre>
+<div class="warning"><strong>“软分配”需要准确解释：</strong>GMM 输出的是模型中各混合分量对该观测的责任度，并不是“属于红瓶子”的真实概率。若没有可靠的语义映射与校准，就不能用一个 0.92 声称瓶子置信度为 92%。</div>
+</section>
+
+<section class="chapter" id="texture"><div class="chapter-label">04 · LOCAL TEXTURE DESCRIPTION</div><h2>颜色相似时，为什么邻域排列能提供新信息？</h2>
+<p>考虑木纹桌面与同色涂层：它们单个像素的灰度可能一样，但邻近像素如何变化可能截然不同。于是研究对象从 <code>I(x,y)</code> 变成围绕它的一小片邻域 <code>W(x,y)</code>。这并不自动让我们理解材料种类，只是得到另外一种可比较的特征。</p>
+<h3>04.1 · 第一种线索：局部均值、方差与熵</h3>
+<div class="math"><span class="line">局部均值：μ<sub>W</sub> = (1/|W|) ∑<sub>p∈W</sub> I(p)</span><span class="line">局部方差：σ²<sub>W</sub> = (1/|W|) ∑<sub>p∈W</sub> [I(p)−μ<sub>W</sub>]²</span><span class="line">局部直方图熵：E<sub>W</sub> = − ∑<sub>g</sub> P<sub>W</sub>(g) log₂ P<sub>W</sub>(g)</span></div>
+<p>均值说的是亮度基线，方差衡量灰度波动，熵衡量量化灰度分布的多样性。但两块局部区域可以具有相同直方图与方差，却呈现完全不同的排列。所以，还需要把<strong>空间关系</strong>放进描述符。</p>
+<h3>04.2 · GLCM：不仅统计出现了什么灰度，还统计谁挨着谁</h3>
+<p>灰度共生矩阵（Gray-Level Co-occurrence Matrix）统计：沿指定偏移量 (Δx,Δy) 观察，一对相邻像素分别取灰度 i、j 的次数。它不追踪目标轮廓，而是在问某种局部灰度关系出现得多不多。</p>
+<div class="math"><span class="line">C<sub>Δ</sub>(i,j) = #{(x,y): I(x,y)=i 且 I(x+Δx,y+Δy)=j}</span><span class="line">P<sub>Δ</sub>(i,j)=C<sub>Δ</sub>(i,j)/∑<sub>a,b</sub>C<sub>Δ</sub>(a,b)</span><span class="line">Contrast = ∑<sub>i,j</sub>(i−j)²P(i,j)；Homogeneity = ∑<sub>i,j</sub>P(i,j)/(1+(i−j)²)</span><span class="line">ASM = ∑<sub>i,j</sub>P(i,j)²；Energy = √ASM</span></div>
+<div class="viz"><div class="viztitle">小实验 · 同一块 4×4 灰度图，改方向后共生矩阵如何变化？</div><div class="controls"><label>像素偏移 <select id="glcm-direction" class="select"><option value="right">向右（Δx=1）</option><option value="down">向下（Δy=1）</option></select></label><label><input id="glcm-symmetric" type="checkbox" checked> 计数双向对称化</label></div><div class="matrices"><div><div class="visual-label">4 级量化灰度输入</div><table class="texture-mat" id="glcm-input"></table></div><div><div class="visual-label">归一化 P(i,j)</div><table class="cell-mat" id="glcm-matrix"></table></div></div><div class="result" id="glcm-stats" style="margin-top:12px">—</div><p class="small muted">这里展示的灰度等级只有 0–3，方便数清每一对像素；真实图像可先量化到 8/16/32 等等级，再按指定距离和方向统计。对称化会双向计数。</p></div>
+<div class="code-head"><span>scikit-image · 构造 GLCM 并提取 Haralick 类统计</span><button class="copybtn" data-copy="code-glcm">复制</button></div><pre class="code"><code id="code-glcm">from skimage.feature import graycomatrix, graycoprops
+
+# 灰度量化为 8 级，缩小 256×256 共生矩阵的维度
+quantized = (gray // 32).astype(np.uint8)
+P = graycomatrix(quantized, distances=[1, 3],
+                 angles=[0, np.pi/2], levels=8,
+                 symmetric=True, normed=True)
+# 结果 shape: (8, 8, 2个距离, 2个方向)
+contrast = graycoprops(P, "contrast")
+homogeneity = graycoprops(P, "homogeneity")
+energy = graycoprops(P, "energy")
+print(contrast, homogeneity, energy)</code></pre>
+<p>注意：GLCM 通常把一个 ROI 或窗口转换成<strong>一组统计特征</strong>，不是天然返回逐像素 Mask。方向和距离属于描述符定义的一部分，旋转或纹理尺度改变就可能改变输出。</p>
+<h3>04.3 · LBP：把相邻像素的相对大小编码下来</h3>
+<p>LBP（Local Binary Pattern）取中心像素与周围 P 个采样点比较：邻点大于等于中心记 1，否则记 0。沿固定顺序组成二进制模式，得到一个局部编码。</p>
+<div class="math"><span class="line">LBP<sub>P,R</sub>(x,y) = ∑<sub>p=0…P−1</sub> 1[gₚ ≥ g<sub>center</sub>] · 2ᵖ</span><span class="line">P = 采样点数；R = 邻域半径；采样点不落在整数坐标时通常使用插值。</span></div>
+<div class="viz"><div class="viztitle">小实验 · 亲自计算一个 3×3 LBP 模式</div><div class="visual-two"><div><div class="controls" style="margin-top:0"><label>中心灰度 <input type="range" id="lbp-center" min="20" max="100" value="50"></label><b id="lbp-center-val" class="small">50</b></div><div class="lbp-board" id="lbp-grid"></div><p class="small muted">绿字 0/1 表示该邻点与中心的比较结果，按固定顺时针顺序得到 b₀…b₇：左上 → 上 → 右上 → 右 → 右下 → 下 → 左下 → 左。屏幕按常规二进制书写次序显示 b₇…b₀（高位在左）。</p></div><div><div class="lab-box" style="grid-template-columns:1fr 1fr"><div class="lab-val"><b>8 位模式</b><strong id="lbp-bits" style="font-size:15px">—</strong></div><div class="lab-val"><b>十进制编码</b><strong id="lbp-dec">—</strong></div></div><div class="result" style="margin-top:10px" id="lbp-transitions">—</div><p class="small muted">标准 LBP 编码的数值与遍历顺序有关，比较同一实现结果时须固定约定。</p></div></div></div>
+<p>若把每个位置的 LBP 编码放回图像，就得到 LBP 编码图；再统计一个窗口里每种编码的频次，就得到纹理直方图。“Uniform LBP”关注环形比特串中 0↔1 跳变次数较少的模式，通常有助于降低直方图维度，但不代表“纹理更准确”。</p>
+<div class="code-head"><span>scikit-image · LBP 编码图和局部直方图</span><button class="copybtn" data-copy="code-lbp">复制</button></div><pre class="code"><code id="code-lbp">from skimage.feature import local_binary_pattern
+
+P, R = 8, 1
+lbp = local_binary_pattern(gray, P=P, R=R, method="uniform")
+# uniform 模式的标签通常落在 0 ... P+1
+roi_lbp = lbp[80:180, 100:220]
+hist, edges = np.histogram(roi_lbp, bins=np.arange(P + 3),
+                          range=(0, P + 2), density=True)
+print("LBP histogram:", hist)</code></pre>
+<h3>04.4 · Gabor：为什么要主动寻找某个方向与频率？</h3>
+<p>如果纹理呈条纹或周期性排列，单纯比较灰度大小不够直接。Gabor 滤波器把一个方向性正弦波包在高斯窗口里；卷积之后，<strong>频率与方向匹配的局部结构</strong>通常会给出更强响应。</p>
+<div class="math"><span class="line">g(x,y) = exp{−(x′² + γ²y′²)/(2σ²)} · cos(2πx′/λ + ψ)</span><span class="line">x′ = x cosθ + y sinθ，y′ = −x sinθ + y cosθ</span><span class="line">σ：高斯包络尺度；λ：波长；θ：法向/频率变化方向；γ：空间纵横比；ψ：相位。</span></div>
+<div class="viz"><div class="viztitle">小实验 · 调整 Gabor 的方向，比较竖条纹与横条纹响应</div><div class="controls"><label>方向 θ <select id="gabor-theta" class="select"><option value="0">0°</option><option value="45">45°</option><option value="90">90°</option><option value="135">135°</option></select></label><label>波长 λ <input type="range" id="gabor-lambda" min="4" max="14" value="8" step="2"></label><b id="gabor-lambda-val" class="small">8 px</b></div>
+<div class="texture-canvases"><div><div class="visual-label">输入 A：竖条纹</div><canvas id="gabor-in-vertical" width="56" height="56"></canvas></div><div><div class="visual-label">输入 B：横条纹</div><canvas id="gabor-in-horizontal" width="56" height="56"></canvas></div><div><div class="visual-label">A：|滤波响应|</div><canvas id="gabor-out-vertical" width="56" height="56"></canvas></div><div><div class="visual-label">B：|滤波响应|</div><canvas id="gabor-out-horizontal" width="56" height="56"></canvas></div></div><div class="result" id="gabor-readout" style="margin-top:12px">—</div><p class="small muted">可视化采用简化离散实值 Gabor 核，固定 σ=3.2、γ=0.55、ψ=0，并对单个核做去均值处理；显示的响应图各自归一化，只用于看形状。下方的数值使用未单独归一化的响应比较强弱。θ=0° 意味着沿 x 方向变化，通常匹配竖条纹，而不是“线条沿 0° 方向”。</p></div>
+<div class="code-head"><span>OpenCV · Gabor 滤波器组</span><button class="copybtn" data-copy="code-gabor">复制</button></div><pre class="code"><code id="code-gabor">gray_f = gray.astype(np.float32) / 255.0
+responses = []
+for theta in (0, np.pi/4, np.pi/2, 3*np.pi/4):
+    kernel = cv2.getGaborKernel((21, 21), sigma=4.0,
+                               theta=theta, lambd=8.0,
+                               gamma=0.5, psi=0,
+                               ktype=cv2.CV_32F)
+    kernel -= kernel.mean()  # 可选：减少常量亮度分量响应
+    resp = cv2.filter2D(gray_f, cv2.CV_32F, kernel)
+    responses.append(np.abs(resp))
+# 如需相位相对稳定的能量，可设计正交相位滤波器组
+texture_energy = np.max(np.stack(responses, axis=0), axis=0)</code></pre>
+<div class="table-scroll"><table><tr><th>纹理工具</th><th>关键机制</th><th>输出</th><th>容易失效的条件</th></tr><tr><td>局部方差 / 熵</td><td>灰度分布的波动与多样性</td><td>单值或响应图</td><td>不能区分同直方图的不同排列</td></tr><tr><td>GLCM</td><td>指定方向与距离的灰度对统计</td><td>共生矩阵及统计量</td><td>方向/尺度/量化级数敏感</td></tr><tr><td>LBP</td><td>邻点相对中心的大小模式</td><td>编码图及区域直方图</td><td>噪声、极平坦邻域、尺度变化</td></tr><tr><td>Gabor</td><td>局部方向性频率滤波</td><td>一组方向/波长响应</td><td>核参数和纹理频率不匹配</td></tr></table></div>
+</section>
+
+<section class="chapter" id="feature-map"><div class="chapter-label">05 · LOCAL DESCRIPTORS TO MAPS</div><h2>一个窗口的数字，怎样变成整张图上的可用特征？</h2>
+<p>这里容易发生一次“输出类型偷换”：单个 LBP 编码、某个 ROI 的 GLCM 特征、整幅 Gabor 响应图，虽然都叫纹理特征，实际却不是同一种数据结构。</p>
+<div class="table-scroll"><table><tr><th>结果层次</th><th>形状示例</th><th>怎样计算</th><th>可以直接做什么</th></tr><tr><td>像素响应 / 编码图</td><td>H × W</td><td>逐像素计算 LBP 或滤波响应</td><td>可视化、局部比较、阈值化</td></tr><tr><td>局部多通道特征图</td><td>H × W × C</td><td>多尺度 / 多方向滤波器组</td><td>后续像素分类与聚类的特征输入</td></tr><tr><td>窗口特征向量</td><td>D</td><td>统计窗口 LBP 直方图或 GLCM 属性</td><td>比较窗口、分类或相似性检索</td></tr><tr><td>分块特征序列</td><td>N<sub>patch</sub> × D</td><td>按固定网格或滑窗提取</td><td>寻找纹理变化与区域候选</td></tr></table></div>
+<div class="inline-steps"><div><strong>局部位置</strong>先选半径 r、窗口尺寸 w，明确在图像哪个邻域上计算。</div><div><strong>纹理计算</strong>根据方法输出单个响应、模式编码或 D 维统计向量。</div><div><strong>组织回图像</strong>将窗口响应放在中心位置，或保留每块的独立向量与坐标。</div></div>
+<p>不同尺度不能只靠放大结果图解决。3×3 的 LBP、11×11 的 LBP 统计窗口和 31×31 的 Gabor 核，观察的是不同尺寸的结构；窗口过小会被噪声干扰，过大又会把本来不同的表面混在一起。</p>
+<div class="math"><span class="line">例如：F(p) = [H(p), S(p), V(p), Var<sub>W</sub>(p), E<sub>Gabor,0°</sub>(p), E<sub>Gabor,90°</sub>(p)]</span><span class="line">F(p) 是可以交给后续分类/聚类算法的特征向量；它本身还不是类别判断。</span></div>
+<div class="warning">如果使用颜色与纹理联合聚类，务必考虑<strong>特征尺度</strong>：HSV 的 H、S、V 编码尺度与 Gabor 响应可能完全不同。不能把各种特征未经标准化就简单拼接，再认为欧氏距离具有合理意义。</div>
+<details class="details-note"><summary>进一步理解 · 为什么 GLCM 通常不是“每像素一个四维向量”？</summary><p class="small">GLCM 先根据若干像素对的关系累积统计。一块 1×1 的窗口根本没有邻对；当窗口变大时，共生矩阵才逐渐具有统计意义。因此如果要生成逐位置 GLCM 特征图，实际需要对每个滑动窗口重复计算，代价远高于一次图像卷积。是否值得这么做，要看任务所需的空间分辨率与计算预算。</p></details>
+</section>
+
+<section class="chapter" id="selection"><div class="chapter-label">06 · COMPARISON & DECISION</div><h2>方法这么多，究竟先用哪个？</h2>
+<p>算法选型不能只凭“新不新”或“高级不高级”。先判断你拥有的证据：是一种稳定的颜色范围？一份参考颜色分布？需要探索未知分组？还是局部排列才有辨别能力？</p>
+<div class="table-scroll"><table><tr><th>观察到的差异</th><th>优先验证的工具</th><th>验证失败时该检查什么</th></tr><tr><td>已知颜色，目标与背景色差明显</td><td>HSV/Lab + `inRange` 或色差</td><td>色域重叠、低饱和度、光照漂移</td></tr><tr><td>单通道分布形成两群</td><td>Otsu</td><td>类间重叠、目标像素占比、通道选择</td></tr><tr><td>背景亮度缓慢变化</td><td>Adaptive Threshold</td><td>局部窗口是否比目标结构更合理</td></tr><tr><td>拥有典型颜色 ROI</td><td>Histogram Backprojection</td><td>参考代表性、bin 大小、颜色相似干扰</td></tr><tr><td>未知类别，只想探索颜色分组</td><td>K-means</td><td>K 的选择、初始化、颜色空间</td></tr><tr><td>一类颜色本身有多个分布峰</td><td>GMM</td><td>高斯假设、协方差、分量数与局部最优</td></tr><tr><td>颜色相似，局部排列不同</td><td>LBP / GLCM</td><td>纹理尺度、采样与噪声、方向变化</td></tr><tr><td>纹理方向/周期很明显</td><td>Gabor Filter Bank</td><td>波长、方向、核尺寸与相位</td></tr></table></div>
+<h3>同一张真实图，至少做完这四件事</h3>
+<ol class="worked"><li><strong>检查输入。</strong>保留原图；记录颜色空间、bit depth、输入尺寸及所选 ROI。</li><li><strong>固定一个变化因素。</strong>例如只改变 Hue 阈值、GMM 分量数、GLCM 距离或 Gabor 波长。</li><li><strong>保存可比较的中间结果。</strong>保存阈值 Mask、像素聚类图、响应图、局部特征数值与参数。</li><li><strong>确认输出没有越界。</strong>颜色匹配响应只是匹配程度；聚类编号只是分组；纹理描述符只是特征。哪一个真正代表目标，需要另外的定义或监督证据。</li></ol>
+<div class="answer"><strong>这一站真正得到的工具箱：</strong>颜色的可比较表示、基于阈值的显式像素规则、直方图/聚类/概率模型三类像素分布方法，以及局部统计、GLCM、LBP、Gabor 等纹理表示。它们让我们能够更清楚地描述图像，但还没有替我们组织成稳定的目标区域。</div>
+<h3>可以直接运行的最小实验环境</h3>
+<p>下列 Python 代码片段与上面的实验互相对应。建议在自己的图片上运行，并保留图片与参数；浏览器里的彩色小格、直方图及条纹属于<strong>机制演示</strong>，不能代替真实图像上的鲁棒性验证。</p>
+<div class="code-head"><span>环境安装（Python）</span><button class="copybtn" data-copy="code-install">复制</button></div><pre class="code"><code id="code-install">python -m pip install opencv-python numpy scikit-image scikit-learn matplotlib</code></pre>
+<div class="note"><strong>使用提示：</strong>代码片段按章节递进：先运行第 01 节得到 <code>bgr / hsv / lab_float</code>，再运行需要这些变量的部分；<code>gray</code> 在第 02 节定义。GLCM / LBP / Gabor 研究的是像素和纹理，下一篇《区域与分割》再研究如何得到空间连续、可供后续定位使用的区域。</div>
+</section>
+<nav class="next" aria-label="上一页和下一页"><a href="../"><span>← 上一篇</span><b>问题主页</b></a><a href="../02-regions-segmentation/"><span>下一篇 →</span><b>区域与分割</b></a></nav>
+<footer class="footer">沿途手记 · Stage 01 · 像素与纹理<br>本页可离线打开；交互演示由原生 JavaScript 实现，图示数据为教学构造数据，算法实现片段采用 OpenCV、scikit-image 与 scikit-learn。</footer>
+</article></main></div>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+const fmt = (v,n=2) => Number(v).toFixed(n);
+const listen = (id, event, fn) => $(id)?.addEventListener(event,fn);
+
+// Layout/navigation
+function updateProgress(){let s=document.documentElement; $('reading-progress').style.width=clamp(100*s.scrollTop/(s.scrollHeight-s.clientHeight),0,100)+'%';}
+window.addEventListener('scroll',updateProgress,{passive:true}); updateProgress();
+function closeMenu(){
+  $('sidebar').classList.remove('open');
+  $('overlay').classList.remove('visible');
+  document.body.classList.remove('reading-menu-open');
+  $('mobile-menu').setAttribute('aria-expanded','false');
+}
+listen('mobile-menu','click',()=>{
+  const open=$('sidebar').classList.toggle('open');
+  $('overlay').classList.toggle('visible',open);
+  document.body.classList.toggle('reading-menu-open',open);
+  $('mobile-menu').setAttribute('aria-expanded',String(open));
+  if(open) $('sidebar-close').focus();
+});
+listen('sidebar-close','click',()=>{closeMenu();$('mobile-menu').focus();});
+listen('overlay','click',closeMenu);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && $('sidebar').classList.contains('open')){closeMenu();$('mobile-menu').focus();}
+});
+document.querySelectorAll('.sidebar a').forEach(a=>a.addEventListener('click',closeMenu));
+window.matchMedia('(min-width: 821px)').addEventListener('change',e=>{if(e.matches)closeMenu();});
+const chapterLinks=[...document.querySelectorAll('#chapter-nav a[href^="#"]')];
+const chapterTargets=chapterLinks.map(link=>({link,el:document.getElementById(link.hash.slice(1))})).filter(x=>x.el);
+let chapterQueued=false;
+function updateChapterNav(){
+  chapterQueued=false;
+  if(!chapterTargets.length)return;
+  const probe=Math.min(180,window.innerHeight*.27);
+  let current=chapterTargets[0];
+  for(const item of chapterTargets){if(item.el.getBoundingClientRect().top<=probe)current=item;else break;}
+  if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4)current=chapterTargets[chapterTargets.length-1];
+  chapterTargets.forEach(({link})=>{
+    const active=link===current.link;
+    link.classList.toggle('is-active',active);
+    if(active)link.setAttribute('aria-current','location');
+    else link.removeAttribute('aria-current');
+  });
+}
+function queueChapterNav(){if(!chapterQueued){chapterQueued=true;requestAnimationFrame(updateChapterNav);}}
+window.addEventListener('scroll',queueChapterNav,{passive:true});
+window.addEventListener('resize',queueChapterNav,{passive:true});
+window.addEventListener('hashchange',queueChapterNav);
+updateChapterNav();
+document.querySelectorAll('.copybtn').forEach(btn=>btn.addEventListener('click',()=>{let t=$(btn.dataset.copy).textContent; if(navigator.clipboard && window.isSecureContext){navigator.clipboard.writeText(t).then(()=>{btn.textContent='已复制';setTimeout(()=>btn.textContent='复制',1500);}).catch(()=>fallbackCopy(t,btn));}else fallbackCopy(t,btn); }));
+function fallbackCopy(t,btn){let a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');btn.textContent='已复制';setTimeout(()=>btn.textContent='复制',1500);}catch(_){btn.textContent='请手动选中';}a.remove();}
+
+// RGB -> HSV (H degrees 0..360, S 0..1); float CIELAB sRGB-D65.
+function hsvOf(r,g,b){let rr=r/255,gg=g/255,bb=b/255;let hi=Math.max(rr,gg,bb),lo=Math.min(rr,gg,bb),d=hi-lo,h=0;
+ if(d){switch(hi){case rr:h=((gg-bb)/d)%6;break;case gg:h=(bb-rr)/d+2;break;default:h=(rr-gg)/d+4;}h=(h*60+360)%360;}
+ return {h,s:hi===0?0:d/hi,v:hi};}
+function labOf(r,g,b){let srgb=[r,g,b].map(v=>{v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);});let [rr,gg,bb]=srgb;
+ let x=(.4124564*rr+.3575761*gg+.1804375*bb)/.95047,y=(.2126729*rr+.7151522*gg+.0721750*bb),z=(.0193339*rr+.1191920*gg+.9503041*bb)/1.08883;
+ let f=t=>t>216/24389?Math.cbrt(t):(24389/27*t+16)/116;let fx=f(x),fy=f(y),fz=f(z);return [116*fy-16,500*(fx-fy),200*(fy-fz)];}
+function updateColor(){let r=+$('ch-r').value,g=+$('ch-g').value,b=+$('ch-b').value;let hsv=hsvOf(r,g,b),lab=labOf(r,g,b);$('color-swatch').style.background=`rgb(${r},${g},${b})`;['r','g','b'].forEach((c,i)=>$('val-'+c).textContent=[r,g,b][i]);$('read-rgb').textContent=`(${r}, ${g}, ${b})`;$('read-hsv').textContent=`(${fmt(hsv.h,1)}°, ${fmt(hsv.s*100,1)}%, ${fmt(hsv.v*100,1)}%)`;$('read-lab').textContent=`(${fmt(lab[0],1)}, ${fmt(lab[1],1)}, ${fmt(lab[2],1)})`;}
+['ch-r','ch-g','ch-b'].forEach(id=>listen(id,'input',updateColor));updateColor();
+
+// Synthetic 16x10 image. Two red objects purposely share the color rule.
+let pixels=[];for(let y=0;y<10;y++)for(let x=0;x<16;x++){
+ let r=226+(x*3+y)%9,g=219+(x*2+y)%8,b=207+(x+y*3)%8,tag='bg';
+ if((x>=3&&x<=5&&y>=1&&y<=2)||(x>=2&&x<=6&&y>=3&&y<=8)){r=182+(x*5+y*2)%27;g=56+(y*3+x)%25;b=45+(x*2+y)%13;tag='bottle';}
+ if(x>=11&&x<=14&&y>=6&&y<=8){r=195+(x*3+y)%16;g=64+(x+y)%22;b=52+(x*2+y)%16;tag='other';}
+ if(x>=8&&x<=9&&y>=2&&y<=4){r=165;g=130;b=112;tag='brown';}
+ pixels.push({r,g,b,tag});}
+function createCells(container){container.replaceChildren(...pixels.map((p)=>{let e=document.createElement('div');e.className='pixel';return e;}));}
+createCells($('rgb-pixels'));createCells($('mask-pixels'));
+function updateMask(){let tol=+$('hue-range').value,minSat=+$('sat-min').value;$('hue-value').textContent=tol+'°';$('sat-value').textContent=minSat+'%';let kept=0,t1=0,t2=0;const a=$('rgb-pixels').children,b=$('mask-pixels').children;
+ pixels.forEach((p,i)=>{a[i].style.background=`rgb(${p.r},${p.g},${p.b})`;let v=hsvOf(p.r,p.g,p.b);let dh=Math.min(v.h,360-v.h);let hit=dh<=tol&&v.s*100>=minSat&&v.v>=.18;b[i].style.background=hit?'#b96a51':'#dfded9';if(hit){kept++;if(p.tag==='bottle')t1++;if(p.tag==='other')t2++;}});
+ $('mask-summary').textContent=`前景像素 ${kept} / ${pixels.length}；其中模拟瓶身 ${t1}，另一件红色物品 ${t2}。颜色无法赋予两者不同的物体身份。`;}
+['hue-range','sat-min'].forEach(id=>listen(id,'input',updateMask));updateMask();
+
+// Otsu: explicit histogram and maximizing between-class variance.
+let offsets0=[-12,-10,-8,-6,-4,-2,0,1,3,5,7,10],offsets1=[-9,-7,-4,-2,0,1,2,4,5,7,9,11];
+function otsuThreshold(arr){let hist=Array(256).fill(0);arr.forEach(x=>hist[x]++);let all=arr.reduce((a,b)=>a+b,0);let n=arr.length,cumCount=0,cumSum=0,max=-1,best=0;
+ for(let t=0;t<256;t++){cumCount+=hist[t];cumSum+=t*hist[t];if(cumCount===0||cumCount===n)continue;let w=cumCount/n,mu0=cumSum/cumCount,mu1=(all-cumSum)/(n-cumCount);let v=w*(1-w)*(mu0-mu1)**2;if(v>max+1e-10){max=v;best=t;}}
+ return {hist,best,max};}
+function updateOtsu(){let gap=+$('otsu-gap').value; $('otsu-gap-value').textContent=gap;let vals=[...offsets0.map(o=>clamp(75+o,0,255)),...offsets1.map(o=>clamp(75+gap+o,0,255))].map(Math.round);let a=otsuThreshold(vals),cv=$('otsu-canvas'),ctx=cv.getContext('2d'),w=cv.width,h=cv.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#fcfaf7';ctx.fillRect(0,0,w,h);let px=x=>38+x/255*(w-57),py=y=>(h-28)-y/Math.max(3,...a.hist)*(h-57);
+ ctx.strokeStyle='#e7dcd2';ctx.lineWidth=1;for(let t=0;t<=255;t+=51){ctx.beginPath();ctx.moveTo(px(t),14);ctx.lineTo(px(t),h-28);ctx.stroke();ctx.fillStyle='#927d6b';ctx.font='11px sans-serif';ctx.fillText(t,px(t)-7,h-10);}a.hist.forEach((c,t)=>{if(!c)return;ctx.fillStyle=t<=a.best?'#7a9b90':'#bc8066';ctx.fillRect(px(t)-2,py(c),4,h-28-py(c));});ctx.strokeStyle='#8a4736';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px(a.best),10);ctx.lineTo(px(a.best),h-28);ctx.stroke();ctx.fillStyle='#8a4736';ctx.fillText('t*='+a.best,Math.min(w-72,px(a.best)+6),21);
+ $('otsu-readout').textContent=`最优阈值 t* = ${a.best}；类间方差 J(t*) = ${fmt(a.max,2)}；两群间距越小时，判别越依赖样本分布本身。`;}
+listen('otsu-gap','input',updateOtsu);updateOtsu();
+
+// Kmeans stepper.
+const kmSamples=[18,24,26,75,78,82];let kmCenters=[15,95],kmIteration=0;
+function renderKm(){let groups=kmSamples.map(v=>Math.abs(v-kmCenters[0])<=Math.abs(v-kmCenters[1])?0:1);
+ $('kmeans-iter').textContent='迭代 '+kmIteration;
+ let bars=kmSamples.map((v,i)=>`<div style="display:grid;grid-template-columns:34px 1fr 56px;align-items:center;gap:8px;margin:5px 0;font-size:11.5px"><b>${v}</b><div style="background:#f1ebe5;border-radius:6px;height:11px"><div style="width:${v}%;height:100%;background:${groups[i]?'#719488':'#bc8066'};border-radius:6px"></div></div><span>簇 ${groups[i]+1}</span></div>`).join('');
+ $('kmeans-display').innerHTML=`<div class="visual-two"><div>${bars}</div><div class="result">中心 μ₁=${fmt(kmCenters[0],2)}，μ₂=${fmt(kmCenters[1],2)}<br>下一次迭代将先按当前中心分配样本，再重新计算两组均值。</div></div>`;}
+listen('kmeans-step','click',()=>{let group=[[],[]];kmSamples.forEach(x=>group[Math.abs(x-kmCenters[0])<=Math.abs(x-kmCenters[1])?0:1].push(x));kmCenters=group.map((g,i)=>g.length?g.reduce((s,x)=>s+x,0)/g.length:kmCenters[i]);kmIteration++;renderKm();});listen('kmeans-reset','click',()=>{kmCenters=[15,95];kmIteration=0;renderKm();});renderKm();
+
+// GMM responsibilities for two given 1D Gaussian components.
+function updateGmm(){let x=+$('gmm-x').value;$('gmm-x-label').textContent=x;let normal=(x,m,s)=>Math.exp(-.5*((x-m)/s)**2)/(s*Math.sqrt(2*Math.PI));let aa=.55*normal(x,48,15),bb=.45*normal(x,87,18),r=aa/(aa+bb);$('gmm-a').textContent=fmt(r*100,1)+'%';$('gmm-b').textContent=fmt((1-r)*100,1)+'%';$('gmm-bar-a').style.width=r*100+'%';$('gmm-bar-b').style.width=(1-r)*100+'%';$('gmm-hard').textContent=r>=.5?'分量 A':'分量 B';}
+listen('gmm-x','input',updateGmm);updateGmm();
+
+// GLCM input patch, actual matrix computation.
+const patch=[[0,0,1,1],[0,1,1,2],[0,1,2,2],[1,2,3,3]];
+function initGlcm(){let t=$('glcm-input');t.innerHTML=patch.map(row=>'<tr>'+row.map(v=>`<td style="background:rgb(${244-v*24},${240-v*27},${235-v*29});">${v}</td>`).join('')+'</tr>').join('');}
+function updateGlcm(){let dir=$('glcm-direction').value,delta=dir==='right'?[0,1]:[1,0],sym=$('glcm-symmetric').checked;let cnt=Array.from({length:4},()=>Array(4).fill(0));for(let y=0;y<4;y++)for(let x=0;x<4;x++){let yy=y+delta[0],xx=x+delta[1];if(yy<4&&xx<4){let i=patch[y][x],j=patch[yy][xx];cnt[i][j]++;if(sym)cnt[j][i]++;}}let total=cnt.flat().reduce((a,b)=>a+b,0),p=cnt.map(r=>r.map(v=>v/total));let contrast=0,homog=0,asm=0;for(let i=0;i<4;i++)for(let j=0;j<4;j++){let v=p[i][j];contrast+=(i-j)**2*v;homog+=v/(1+(i-j)**2);asm+=v*v;}
+ let table='<tr><th>i\\j</th>'+Array.from({length:4},(_,j)=>`<th>${j}</th>`).join('')+'</tr>'+p.map((r,i)=>`<tr><th>${i}</th>`+r.map(v=>`<td class="${v>.1?'hi':''}">${fmt(v,2)}</td>`).join('')+'</tr>').join('');$('glcm-matrix').innerHTML=table; $('glcm-stats').textContent=`有效像素对计数 ${total}；Contrast = ${fmt(contrast,3)}，Homogeneity = ${fmt(homog,3)}，Energy = ${fmt(Math.sqrt(asm),3)}。`;}
+initGlcm();listen('glcm-direction','change',updateGlcm);listen('glcm-symmetric','change',updateGlcm);updateGlcm();
+
+// LBP ordered clockwise from NW; bit number 0 is NW.
+const neighborhood=[40,60,40,60,50,60,40,60,40];const clockwise=[0,1,2,5,8,7,6,3];
+function updateLbp(){let center=+$('lbp-center').value;$('lbp-center-val').textContent=center;let values=[...neighborhood];values[4]=center;let bits=clockwise.map(i=>values[i]>=center?1:0);let dec=bits.reduce((sum,b,i)=>sum+b*(2**i),0);let trans=bits.reduce((n,b,i)=>n+(b!==bits[(i+1)%8]?1:0),0);$('lbp-grid').innerHTML=values.map((v,i)=>`<div class="lbp-cell ${i===4?'center':''}">${v}${i!==4?`<span>${v>=center?1:0}</span>`:''}</div>`).join('');$('lbp-bits').textContent=bits.slice().reverse().join('');$('lbp-dec').textContent=dec;$('lbp-transitions').textContent=`环形跳变次数 ${trans}；${trans<=2?'符合常见 uniform 条件（≤2 次跳变）':'不是 uniform 模式（>2 次跳变）'}。`;}
+listen('lbp-center','input',updateLbp);updateLbp();
+
+// Gabor: numerical kernel and convolution without external dependencies.
+const gw=56,gh=56;function stripe(mode){let a=[];for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){let phase=mode==='vertical'?x:y;a.push(.5+.42*Math.cos(2*Math.PI*phase/8));}return a;}
+const gaborA=stripe('vertical'),gaborB=stripe('horizontal');
+function putGray(id,values,normalize=false){let a=values;if(normalize){let m=Math.max(...values,1e-9);a=values.map(v=>Math.min(1,v/m));}let ctx=$(id).getContext('2d'),out=ctx.createImageData(gw,gh);a.forEach((v,i)=>{let z=Math.round(clamp(v,0,1)*255);out.data.set([z,z,z,255],i*4);});ctx.putImageData(out,0,0);}
+function gaborKernel(theta,lambda){let half=8,sigma=3.2,gamma=.55,ker=[];for(let y=-half;y<=half;y++)for(let x=-half;x<=half;x++){let xx=x*Math.cos(theta)+y*Math.sin(theta),yy=-x*Math.sin(theta)+y*Math.cos(theta);ker.push(Math.exp(-(xx*xx+gamma*gamma*yy*yy)/(2*sigma*sigma))*Math.cos(2*Math.PI*xx/lambda));}let mean=ker.reduce((a,b)=>a+b,0)/ker.length;return ker.map(x=>x-mean);}
+function filterAbs(input,ker){let out=new Array(gw*gh).fill(0),sum=0,n=0;for(let y=8;y<gh-8;y++)for(let x=8;x<gw-8;x++){let val=0,t=0;for(let j=-8;j<=8;j++)for(let i=-8;i<=8;i++)val+=input[(y+j)*gw+(x+i)]*ker[t++];out[y*gw+x]=Math.abs(val);sum+=Math.abs(val);n++;}return {out,energy:sum/n};}
+function updateGabor(){let degrees=+$('gabor-theta').value,lambda=+$('gabor-lambda').value;$('gabor-lambda-val').textContent=lambda+' px';let kernel=gaborKernel(degrees*Math.PI/180,lambda),a=filterAbs(gaborA,kernel),b=filterAbs(gaborB,kernel);putGray('gabor-in-vertical',gaborA);putGray('gabor-in-horizontal',gaborB);putGray('gabor-out-vertical',a.out,true);putGray('gabor-out-horizontal',b.out,true);$('gabor-readout').textContent=`平均绝对卷积响应：竖条纹 ${fmt(a.energy,3)}；横条纹 ${fmt(b.energy,3)}。这比较的是同一滤波核与同一输入尺度下的响应强度。`;}
+['gabor-theta','gabor-lambda'].forEach(id=>listen(id,id.includes('theta')?'change':'input',updateGabor));updateGabor();
+})();
+</script>
+</body></html>
