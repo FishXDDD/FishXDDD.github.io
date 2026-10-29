@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="沿途手记 · 区域与分割。从连通域、形态学、区域生长，到分水岭、Graph Cut / GrabCut、SLIC，研究如何从像素证据组织空间区域及其局限。">
+<title>区域与分割｜沿途手记</title>
+<style>
+:root{--paper:#fbfaf7;--sidebg:#f5f0e9;--white:#fff;--ink:#342f2c;--ink2:#625750;--muted:#908177;--line:#e8e0d8;--accent:#a75e49;--accentdeep:#844633;--accentwash:#f8efe9;--green:#547268;--mint:#edf4f0;--blue:#456d82;--reading:860px;--side:clamp(225px,19.5vw,290px)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:35px}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.87;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:hover{color:var(--accentdeep)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #dbad96;outline-offset:3px}::selection{background:#efd0bd}.site{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}
+.sidebar{position:sticky;top:0;height:100dvh;overflow-y:auto;background:var(--sidebg);border-right:1px solid var(--line);padding:28px clamp(16px,2vw,27px) 22px;display:flex;flex-direction:column;gap:21px;scrollbar-width:thin}.brand{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:700;letter-spacing:.045em}.brand-sub{font-size:10px;letter-spacing:.11em;color:var(--muted);margin-top:-2px}.side-group{font-size:10px;font-weight:800;letter-spacing:.13em;color:#94867a;margin:0 0 7px 9px}.side-links{display:grid;gap:1px}.side-links a{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:8px;color:#776a61;font-size:12px;line-height:1.55;transition:background .15s}.side-links a .num{color:#ac9a8e;min-width:19px;font-size:10.5px}.side-links a:hover{background:#efe6dd}.side-links a.active{background:#eadbd0;color:#773e30;font-weight:750}.side-links a.active .num{color:var(--accent)}.current-article{padding:0 10px 9px;font-size:13px;font-weight:700;color:var(--accentdeep)}.sub-links{display:grid;gap:2px}.sub-links a{border-left:2px solid transparent;padding:4px 10px;color:#8c7b6e;font-size:11.3px;line-height:1.58}.sub-links a.current{border-left-color:var(--accent);color:var(--accentdeep);font-weight:750}.side-bottom{margin-top:auto;padding:13px 10px 0;border-top:1px solid #e3d8cd;color:#96877c;font-size:11px}.page-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px}.page-links a{text-decoration:underline;text-decoration-color:#c6b4a6;text-underline-offset:4px}
+.layout-main{min-width:0;padding:36px clamp(23px,4.3vw,68px) 95px}.article{width:min(100%,var(--reading));margin:auto}.crumb{display:flex;align-items:center;flex-wrap:wrap;gap:9px;font-size:11px;color:#988b81}.slash{color:#c5b9ae}.hero{padding:40px 0 32px;border-bottom:1px solid var(--line)}.eyebrow,.chapter-label,.smallcap{font-size:11px;letter-spacing:.15em;font-weight:800;color:var(--accent)}h1,h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif}h1{font-size:clamp(40px,5vw,57px);line-height:1.22;letter-spacing:.035em;margin:11px 0 8px}h2{font-size:clamp(23px,3.1vw,30px);line-height:1.5;letter-spacing:.014em;margin:9px 0 20px}h3{font-size:17px;line-height:1.52;margin:29px 0 10px}h4{font-size:14px;margin:21px 0 6px}.subtitle{font-size:20px;font-weight:550;color:var(--ink2);margin:7px 0 17px}.lede{max-width:755px;color:#64564d;margin:12px 0 15px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}.tag{font-size:10.5px;border:1px solid #e6ddd5;padding:3px 11px;border-radius:40px;color:#806f63;background:#fffdfa}.chapter{padding:40px 0 29px;border-bottom:1px solid var(--line)}.chapter p{margin:11px 0 15px}.chapter strong{color:#42342f}.chapter li{margin:6px 0;padding-left:2px}.chapter ul,.chapter ol{padding-left:22px}.small{font-size:12px}.muted{color:var(--muted)}.mono,code,pre{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace}code{font-size:.87em;background:#f4ede6;padding:2px 5px;border-radius:4px}.lead-note{border-left:3px solid var(--accent);padding:2px 0 3px 17px;margin:18px 0 23px;color:#694a3b;font-weight:650;background:transparent}.scope-grid,.three,.two{display:grid;gap:11px;margin:20px 0}.scope-grid,.three{grid-template-columns:repeat(3,minmax(0,1fr))}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 15px}.tile .id{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.075em}.tile strong{display:block;font-size:13px;margin:5px 0 3px}.tile p{font-size:11.5px;line-height:1.72;margin:0;color:#726259}.note,.answer,.warn{border:1px solid #e9e0d7;background:#fff;padding:14px 17px;border-radius:10px;margin:19px 0;font-size:13px}.note{border-left:3px solid #a39789}.answer{border-left:3px solid #698c7e;background:#f7faf8}.warn{border-left:3px solid #c08b5f;background:#fffaf3}.math{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;background:#f8f5f1;border:1px solid #e9e0d7;border-radius:10px;padding:15px 17px;overflow:auto;color:#51473f;font-size:12px;line-height:2.1;margin:16px 0}.math>div{white-space:nowrap}.figure{border:1px solid var(--line);background:#fff;border-radius:13px;overflow:hidden;margin:20px 0}.figure-title{font-size:13px;font-weight:750;padding:14px 17px 0;color:#604b41}.figure-body{padding:12px 16px}.figure-body svg{display:block;max-width:100%;height:auto}.figcap{font-size:11.5px;color:#928175;line-height:1.74;padding:0 17px 14px}.viz{border:1px solid #e7d9cc;background:#fffdfa;border-radius:13px;margin:19px 0;padding:17px}.viz-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.viz-name{font-size:13px;font-weight:800;color:#7b4a35}.viz-help{font-size:11px;color:#968477}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 15px;margin:12px 0}.controls label{font-size:12px;color:#6d5d52}.controls input[type=range]{accent-color:var(--accent);width:170px;vertical-align:middle}.btn{border:1px solid #dec8b8;background:#fff7f1;color:#874735;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:720}.btn:hover,.btn.sel{background:#eed9ca}.result{background:#f8f2ed;border-radius:8px;padding:10px 12px;color:#66574b;font-size:11.5px;margin-top:10px}.bitmap{display:grid;gap:3px;padding:12px;border:1px solid #ede0d4;border-radius:10px;background:#f5f0eb;width:max-content;max-width:100%}.pixel{width:25px;height:25px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}.pixel.off{background:#e5ded5;color:transparent}.pixel.a{background:#b77357}.pixel.b{background:#739686}.pixel.c{background:#718a9b}.pixel.d{background:#b3a274}.pixel.reject{background:#d0cbc4;color:#514942}.pixel.seed{outline:2px solid #44382f;outline-offset:1px}.pixel.valued{font-size:9px;color:#604d44}.bitmap-wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}.bitmap-block{flex:0 1 auto}.bitmap-label{font-size:11px;font-weight:700;color:#756256;margin-bottom:7px}.mini-text{font-size:12px;color:#716258;line-height:1.75}.table-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:17px 0;background:#fff}.table-scroll table{border-collapse:collapse;width:100%;min-width:615px;text-align:left;font-size:12.3px;line-height:1.8}.table-scroll th{background:#f6f2ed;color:#645449;font-size:11px;white-space:nowrap}.table-scroll th,.table-scroll td{padding:10px 13px;border-bottom:1px solid #eee7df;vertical-align:top}.table-scroll tr:last-child td{border-bottom:0}.table-scroll td:first-child{font-weight:690;color:#4b3c34}.table-scroll code{font-size:11px}.code-title{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f0e9e1;border:1px solid #e9ded3;border-radius:9px 9px 0 0;margin-top:18px;color:#6c5a4c;font-size:11px;font-weight:720}.copy{font-size:10px;color:#77584b;background:#fff;border:1px solid #ded1c5;border-radius:5px;padding:3px 9px}.code-block{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;font-size:11.5px;line-height:1.8;tab-size:4;white-space:pre;overflow:auto;background:#302e2b;color:#eee7dc;padding:17px 19px;margin:0 0 18px;border-radius:0 0 9px 9px;max-height:570px}.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0}.flowpill{font-size:12px;border:1px solid #e8dace;background:white;border-radius:8px;padding:7px 11px;font-weight:650}.flowarrow{font-size:15px;color:#a99182}.compact-list{padding-left:21px!important}.index-row{display:flex;gap:13px;align-items:baseline;margin:17px 0 12px}.index-row .index{font-weight:850;letter-spacing:.07em;font-size:11px;color:var(--accent);flex-shrink:0}.index-row strong{font-size:13px}.example-key{display:inline-flex;align-items:center;gap:6px;margin:0 12px 6px 0;font-size:10.8px;color:#8c7d70}.dot{width:9px;height:9px;border-radius:3px;background:#b77357}.footer{padding-top:24px;color:#988a7c;font-size:11px}.next{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:27px 0}.next a{display:block;padding:15px 17px;border:1px solid var(--line);background:white;border-radius:10px;font-size:12px;color:#87786d}.next a strong{display:block;color:#493a33;font-size:13px;margin-top:3px}.next a:last-child{text-align:right}.progress{position:fixed;top:0;left:0;width:0;height:3px;background:#bc7861;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}.anchor{scroll-margin-top:35px}
+@media(max-width:1080px){:root{--side:clamp(210px,23vw,250px)}.layout-main{padding:29px 29px 75px}.sidebar{padding-left:16px;padding-right:13px}}@media(max-width:820px){.site{display:block}.sidebar{position:fixed;top:51px;left:0;width:min(315px,84vw);height:calc(100dvh - 51px);z-index:50;transform:translateX(-111%);transition:transform .22s ease;box-shadow:14px 12px 36px #211b1620}.sidebar.open{transform:translateX(0)}.overlay{position:fixed;inset:51px 0 0;background:#261e1766;z-index:45}.overlay.visible{display:block}.layout-main{padding:0 19px 55px}.mobile-bar{display:flex;position:sticky;top:0;z-index:42;align-items:center;justify-content:space-between;height:51px;background:#faf6f1f0;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin:0 -19px;padding:0 16px;font-size:12px}.mobile-bar .btn{padding:4px 10px}.crumb{padding-top:22px}.hero{padding-top:30px}}@media(max-width:600px){.scope-grid,.two,.three{grid-template-columns:1fr}.scope-grid{gap:8px}.tile{padding:12px 14px}.hero h1{font-size:41px}.chapter{padding-top:32px}.subtitle{font-size:18px}.controls input[type=range]{width:135px}.next{grid-template-columns:1fr}.bitmap-wrap{gap:12px}.pixel{width:20px;height:20px}.figure-body{padding:8px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}@media print{.sidebar,.mobile-bar,.overlay,.progress,.next,.copy{display:none!important}.site{display:block}.layout-main{padding:0}.article{width:100%}.chapter{break-inside:avoid}.viz,.figure{break-inside:avoid}body{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div>
+<div class="site">
+<aside class="sidebar" id="sidebar" aria-label="本篇章节导航">
+ <div class="site-identity"><div class="brand">沿途手记</div><div class="brand-sub">STAGE 01 · CLASSICAL VISION</div></div>
+ <div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="index.html"><span class="num">←</span>图像特征与结构提取</a></nav></div>
+ <div class="chapter-sidebar"><div class="side-group">本篇章节</div><div class="current-article">02 · 区域与分割</div><nav class="sub-links" id="chapter-nav" aria-label="区域与分割章节">
+   <a href="#scope">00 · 研究边界</a>
+   <a href="#connected">01 · 连通域</a>
+   <a href="#morph">02 · 数学形态学</a>
+   <a href="#growing">03 · 区域生长</a>
+   <a href="#watershed">04 · 分水岭</a>
+   <a href="#graphcut">05 · Graph Cut / GrabCut</a>
+   <a href="#slic">06 · SLIC 超像素</a>
+   <a href="#selection">07 · 方法选择与结论</a>
+ </nav></div>
+</aside>
+<main class="layout-main" id="content">
+ <div class="mobile-bar"><button type="button" class="btn" id="mobile-menu" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>02 / 06</span></div>
+ <article class="article">
+ <div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="index.html">图像特征与结构提取</a><span class="slash">/</span><span>区域与分割</span></div>
+ <header class="hero"><div class="eyebrow">DEEP DIVE · 02 / 06</div><h1>区域与分割</h1><p class="subtitle">像素已经分好类，为什么还没有找到一个物体？</p>
+ <p class="lede">在上一站，我们已经能比较颜色、描述纹理，甚至为每个像素得到一份前景概率。可真正看向图像时，问题还在：两只红杯子会被算成同一种颜色；杯身上的反光可能让一只杯子断成几块；两件物体碰在一起，又可能只剩下一整块前景。</p>
+ <p class="lede">这次不急着识别“这是什么”。先研究一个更具体的问题：<strong>利用像素之间的空间关系，究竟怎样建立、修正和拆分候选区域？</strong></p>
+ <div class="meta"><span class="tag">单张 RGB · 传统视觉</span><span class="tag">拓扑 / 相似性 / 几何 / 优化</span><span class="tag">机制 + 计算 + 可验证实验</span><span class="tag">离线可阅读</span></div>
+ </header>
+
+ <section class="chapter anchor" id="scope"><div class="chapter-label">00 · SCOPE</div><h2>先划清边界：像素类别，不等于物体实例</h2>
+ <p>上一篇主要处理<strong>像素本身和局部邻域的外观证据</strong>。现在我们需要处理像素之间的<strong>空间组织关系</strong>。二者不能直接划等号。</p>
+ <div class="figure"><div class="figure-title">同样两个物体，从颜色响应到区域组织</div><div class="figure-body">
+ <svg viewBox="0 0 760 208" role="img" aria-label="左右比较两块同色前景在分类与区域标签下的区别">
+ <defs><pattern id="dotbg" width="15" height="15" patternUnits="userSpaceOnUse"><rect width="15" height="15" fill="#f1eee8"/><circle cx="7.5" cy="7.5" r=".8" fill="#d4cbc2"/></pattern></defs>
+ <rect x="1" y="1" width="358" height="180" rx="12" fill="url(#dotbg)" stroke="#e8ded5"/><rect x="401" y="1" width="358" height="180" rx="12" fill="url(#dotbg)" stroke="#e8ded5"/>
+ <circle cx="115" cy="85" r="48" fill="#bd8063"/><circle cx="242" cy="85" r="48" fill="#bd8063"/><circle cx="514" cy="85" r="48" fill="#bd8063"/><circle cx="641" cy="85" r="48" fill="#779f94"/>
+ <text x="115" y="93" font-size="22" text-anchor="middle" fill="#fff" font-weight="700">1</text><text x="242" y="93" font-size="22" text-anchor="middle" fill="#fff" font-weight="700">1</text><text x="514" y="93" font-size="22" text-anchor="middle" fill="#fff" font-weight="700">A</text><text x="641" y="93" font-size="22" text-anchor="middle" fill="#fff" font-weight="700">B</text>
+ <text x="180" y="163" text-anchor="middle" font-size="13" fill="#6c5d52">颜色相同 → 同一类别</text><text x="580" y="163" text-anchor="middle" font-size="13" fill="#6c5d52">空间分离 → 两个连通区域</text>
+ <path d="M369 84H393M387 77L395 84L387 91" stroke="#b79b87" stroke-width="2" fill="none"/>
+ </svg></div><div class="figcap">示意图只说明标签的含义。区域 A / B 可以是两个候选实例，但连通域标签本身并不是语义识别结果。</div></div>
+ <div class="scope-grid"><div class="tile"><div class="id">INPUT / 01</div><strong>已有的视觉证据</strong><p>RGB、颜色/纹理特征、二值 Mask、前景概率，或者可靠种子。</p></div><div class="tile"><div class="id">PROCESS / 02</div><strong>区域组织规则</strong><p>邻接关系、局部相似性、形状地形、标签一致性与区域聚合。</p></div><div class="tile"><div class="id">OUTPUT / 03</div><strong>候选区域与标签</strong><p>Connected Components、修正 Mask、分割标签图、超像素等。</p></div></div>
+ <div class="note"><strong>这篇明确不解决：</strong>一个区域是否就是一个真实物体；某个区域是不是我们想抓的瓶子；它在三维空间中哪里；也不研究边缘检测和轮廓拟合。对于“物体身份”，本篇最多提供<strong>候选区域</strong>，不能暗中赋予语义。</div>
+ <p>问题接下来分成六条路径。它们并不是必须按顺序运行的固定流水线，而是在<strong>不同证据条件下</strong>采用的不同方法。</p>
+ </section>
+
+ <section class="chapter anchor" id="connected"><div class="chapter-label">01 · CONNECTED COMPONENTS</div><h2>外观相同但相隔很远，为什么还能分成两块？</h2>
+ <p>颜色阈值会把所有“像红色”的像素设为 1，哪怕它们分散在整张图上。现在增加一个最基础的规则：<strong>要属于同一块区域，两个前景像素之间必须存在一条由前景邻居组成的路径。</strong></p>
+ <h3>1.1 · 先定义“邻居”：4 邻接还是 8 邻接？</h3>
+ <div class="math"><div>N₄(p) = {(x−1,y), (x+1,y), (x,y−1), (x,y+1)}</div><div>N₈(p) = N₄(p) ∪ {(x±1,y±1)}</div><div>p ~ q ⇔ 存在一条只经过前景像素的邻接路径 p → … → q</div></div>
+ <div class="viz"><div class="viz-head"><span class="viz-name">可操作的 3×3 例子 · 斜着接触算不算一块？</span><span class="viz-help">修改邻接规则</span></div><div class="controls"><button class="btn sel" type="button" id="neighbor4">4 邻接</button><button class="btn" type="button" id="neighbor8">8 邻接</button></div><div class="bitmap-wrap"><div class="bitmap-block"><div class="bitmap-label">前景 Mask</div><div class="bitmap" id="connect-input" style="grid-template-columns:repeat(3,25px)"></div></div><div class="bitmap-block"><div class="bitmap-label">输出标签</div><div class="bitmap" id="connect-output" style="grid-template-columns:repeat(3,25px)"></div></div></div><div class="result" id="connect-result" aria-live="polite"></div></div>
+ <p>采用 BFS / DFS 的方式很直观：找到一个未标记的前景点，持续访问它所有可到达的前景邻居，并赋同一个 ID。处理完后再寻找下一块前景。</p>
+ <h3>1.2 · 大图怎么计算：两遍扫描与并查集</h3>
+ <ol class="compact-list"><li><strong>第一遍：</strong>顺序扫描每个前景像素，查看已经访问过的邻居；为它分配标签，并记录不同标签实际上连通的等价关系。</li><li><strong>等价合并：</strong>使用 Union-Find（并查集）合并属于同一连通分量的暂存标签。</li><li><strong>第二遍：</strong>将每个暂存标签替换为其最终代表标签，再统计面积、BBox 和质心。</li></ol>
+ <div class="code-title"><span>Python · 连通域和统计量</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">import cv2
+import numpy as np
+
+# mask: H×W, 0 表示背景；非零表示前景
+mask = np.asarray(mask, dtype=np.uint8)
+count, labels, stats, centroids = cv2.connectedComponentsWithStats(
+    mask, connectivity=8
+)
+# 标签 0 始终是背景
+for label_id in range(1, count):
+    x, y, w, h, area = stats[label_id]
+    cx, cy = centroids[label_id]
+    print(label_id, (x, y, w, h), area, (cx, cy))</pre>
+ <p><strong>计算代价：</strong>对于 H×W 图像，典型实现接近线性于像素数。<strong>结果：</strong>标签图、连通块统计量。它没有检查颜色之外的结构，也不知道前景是不是一个物体。</p>
+ <div class="warn"><strong>关键失效：</strong>接触的两个杯子可能变成一个连通块；一根被遮挡或反光切断的绳子可能变成多块。<strong>连通性不是实例个数。</strong></div>
+ </section>
+
+ <section class="chapter anchor" id="morph"><div class="chapter-label">02 · MATHEMATICAL MORPHOLOGY</div><h2>已经有 Mask，但碎了、漏了、粘了，怎么修？</h2>
+ <p>如果一张 Mask 只有零星的点、微小的孔或狭窄的间隙，我们是否可以直接利用它的局部形状处理？数学形态学就是在<strong>明确的结构元素</strong>下，修改前景的空间分布。</p>
+ <div class="two"><div class="tile"><div class="id">EROSION · 腐蚀</div><strong>局部全部满足才保留</strong><p>对全 1 方形结构元素：窗口里只要有背景，当前输出就是背景。前景缩小，细连接容易断。</p></div><div class="tile"><div class="id">DILATION · 膨胀</div><strong>局部有前景就扩张</strong><p>窗口里只要有前景，当前输出就设为前景。小间隙可能被补上，邻近目标也可能粘连。</p></div></div>
+ <div class="math"><div>腐蚀：A ⊖ B = {x | Bₓ ⊆ A}</div><div>膨胀：A ⊕ B = {x | (B̌)ₓ ∩ A ≠ ∅}</div><div>开运算：A ○ B = (A ⊖ B) ⊕ B</div><div>闭运算：A • B = (A ⊕ B) ⊖ B</div></div>
+ <p>这里的 B 表示结构元素。使用中心对称的方形或圆形结构元素时，直觉上可以理解为局部最小值/最大值。<strong>开运算</strong>常用于去除小凸起与孤立前景，<strong>闭运算</strong>常用于填补狭窄空隙和小孔，但效果取决于结构元素的形状及尺度。</p>
+ <div class="viz"><div class="viz-head"><span class="viz-name">交互实验 · 同一张 Mask，操作一换，结构就变</span><span class="viz-help">真实二值运算，背景采用零填充</span></div><div class="controls"><button class="btn sel" data-morph="original" type="button">原图</button><button class="btn" data-morph="erode" type="button">腐蚀</button><button class="btn" data-morph="dilate" type="button">膨胀</button><button class="btn" data-morph="open" type="button">开运算</button><button class="btn" data-morph="close" type="button">闭运算</button></div><div class="controls"><label for="kernel-size">方形结构元素</label><input id="kernel-size" type="range" min="3" max="5" step="2" value="3"><b id="kernel-readout" class="small">3×3</b></div><div class="bitmap-wrap"><div class="bitmap-block"><div class="bitmap-label">输入 · 含小孔、孤点、细线</div><div class="bitmap" id="morph-input"></div></div><div class="bitmap-block"><div class="bitmap-label">输出</div><div class="bitmap" id="morph-output"></div></div></div><div class="result" id="morph-result" aria-live="polite"></div></div>
+ <p>请特别看最右侧那根细线：它究竟是噪声，还是一根真实电线？<strong>形态学本身没有判断依据</strong>。使用 3×3 腐蚀时，宽度只有 1 像素的线会消失；开运算的后续膨胀也无法凭空恢复。</p>
+ <div class="code-title"><span>Python · 二值形态学</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">import cv2
+
+# mask 为 0/255 的 uint8 二值图
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+opened = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)</pre>
+ <div class="warn"><strong>局限：</strong>所谓“修复”有明确几何代价：小孔可能被当成伪影，小目标可能被删除，两个距离很近的物体可能被合并。因此，应先知道需要保护的最小结构尺度。</div>
+ </section>
+
+ <section class="chapter anchor" id="growing"><div class="chapter-label">03 · REGION GROWING</div><h2>没有完整的 Mask，只知道一个内部像素，能长出区域吗？</h2>
+ <p>连通域要求我们先有二值前景。现在换一种思路：如果只知道一个可靠的内部像素，可以从这里出发，逐个检查邻居，逐步把相似像素纳入目标区域。这就是区域生长的基本想法。</p>
+ <h3>3.1 · 接纳一个像素，需要同时满足两条规则</h3>
+ <div class="math"><div>① 邻接约束：q ∈ N(R)（q 必须接触当前区域）</div><div>② 相似约束：| I(q) − I(seed) | ≤ τ（固定种子参考）</div><div>也可以将参考替换为当前区域均值 μ_R：|I(q) − μ_R| ≤ τ</div></div>
+ <div class="viz"><div class="viz-head"><span class="viz-name">交互实验 · 从种子扩张，阈值越大越好吗？</span><span class="viz-help">4 邻接 / 固定种子灰度 82</span></div><div class="controls"><label for="grow-threshold">允许的灰度差 τ</label><input type="range" id="grow-threshold" min="0" max="42" step="1" value="8"><b id="grow-threshold-readout" class="small">8</b></div><div class="bitmap-wrap"><div class="bitmap-block"><div class="bitmap-label">灰度观测（格中为灰度值）</div><div class="bitmap" id="grow-input"></div></div><div class="bitmap-block"><div class="bitmap-label">可达且满足判据的区域</div><div class="bitmap" id="grow-output"></div></div></div><div class="result" id="grow-result" aria-live="polite"></div></div>
+ <p>这个实验用固定种子灰度作比较，因此终止条件是“再也没有符合条件的可达邻居”。换成<strong>动态区域均值</strong>，每次接受像素都会改变 μ<sub>R</sub>；增长次序与接受策略在某些实现中会影响结果，颜色缓慢变化的背景也可能引发<strong>区域泄漏</strong>。</p>
+ <div class="code-title"><span>Python · 固定种子均值的最小区域生长</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">from collections import deque
+import numpy as np
+
+def region_grow(gray, seed_yx, threshold):
+    gray = np.asarray(gray)
+    h, w = gray.shape
+    sy, sx = seed_yx
+    ref = float(gray[sy, sx])
+    visited = np.zeros((h, w), dtype=bool)
+    region = np.zeros((h, w), dtype=bool)
+    queue = deque([(sy, sx)])
+    visited[sy, sx] = True
+
+    while queue:
+        y, x = queue.popleft()
+        if abs(float(gray[y, x]) - ref) > threshold:
+            continue
+        region[y, x] = True
+        for ny, nx in ((y-1, x), (y+1, x), (y, x-1), (y, x+1)):
+            if 0 <= ny < h and 0 <= nx < w and not visited[ny, nx]:
+                visited[ny, nx] = True
+                queue.append((ny, nx))
+    return region</pre>
+ <div class="note"><strong>何时成立：</strong>内部能找到可信种子，目标在选用特征上相对一致，与背景存在足够差异。<strong>何时不成立：</strong>目标内部颜色突变、反光，或者目标与背景之间出现相似性通道。</div>
+ </section>
+
+ <section class="chapter anchor" id="watershed"><div class="chapter-label">04 · MARKER-CONTROLLED WATERSHED</div><h2>两个物体连在一起，可不可以从内部形状把它们拆开？</h2>
+ <p>再回到两只接触的杯子。连通域只能看到一整块前景，靠膨胀或闭运算还可能把它们粘得更紧。假设物体近似圆形：每个杯子的内部较厚，接触处较窄。<strong>可不可以利用“内部厚度”的变化定位分界？</strong></p>
+ <h3>4.1 · 把前景变成一张“离背景有多远”的距离图</h3>
+ <div class="math"><div>D(p) = min { ||p − q||₂ : q ∈ 背景 }</div><div>前景中心 D 大，靠近边界 D 小；将 D 取负形成地形：T = −D</div></div>
+ <div class="figure"><div class="figure-title">两个接触的圆 · 同一个 Mask，不同的表示</div><div class="figure-body">
+ <svg viewBox="0 0 780 232" role="img" aria-label="从重叠圆形前景到距离峰和分水岭标记的三阶段原理图">
+ <defs><linearGradient id="heat" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#dac5af"/><stop offset=".27" stop-color="#ad765c"/><stop offset=".5" stop-color="#d9bca2"/><stop offset=".73" stop-color="#70978c"/><stop offset="1" stop-color="#d9c9b8"/></linearGradient></defs>
+ <g transform="translate(0 0)"><rect x="0" y="0" width="243" height="184" rx="11" fill="#f7f2ec"/><circle cx="94" cy="87" r="56" fill="#c79b7d"/><circle cx="149" cy="87" r="56" fill="#c79b7d"/><text x="121" y="211" text-anchor="middle" font-size="12.5" fill="#705f53">① 连通的二值前景</text></g>
+ <g transform="translate(265 0)"><rect width="243" height="184" rx="11" fill="#f7f2ec"/><circle cx="94" cy="87" r="56" fill="url(#heat)"/><circle cx="149" cy="87" r="56" fill="url(#heat)"/><circle cx="94" cy="87" r="14" fill="#995e4b" opacity=".75"/><circle cx="149" cy="87" r="14" fill="#507c72" opacity=".75"/><path d="M94 18V157M149 18V157" stroke="#eee8dd" opacity=".55" stroke-dasharray="3 6"/><text x="121" y="211" text-anchor="middle" font-size="12.5" fill="#705f53">② 距离峰提示内部中心</text></g>
+ <g transform="translate(530 0)"><rect width="243" height="184" rx="11" fill="#f7f2ec"/><circle cx="94" cy="87" r="56" fill="#c48469"/><circle cx="149" cy="87" r="56" fill="#75a096"/><path d="M121 31V143" stroke="#fffaf2" stroke-width="3" stroke-dasharray="5 5"/><circle cx="94" cy="87" r="7" fill="#734330" stroke="#fff" stroke-width="2"/><circle cx="149" cy="87" r="7" fill="#41695f" stroke="#fff" stroke-width="2"/><text x="121" y="211" text-anchor="middle" font-size="12.5" fill="#705f53">③ 两个标记竞争扩张</text></g>
+ </svg></div><div class="figcap">概念示意，不是精确数值计算结果。实际分界由二维距离图、标记位置、边界条件和分水岭算法共同决定。</div></div>
+ <h3>4.2 · 为什么必须额外指定标记？</h3>
+ <ol class="compact-list"><li>在二值 Mask 内计算欧氏距离变换 <code>D</code>。</li><li>寻找足够可靠的内部峰值，或由外部信息直接给出两个前景种子。</li><li>在 <code>-D</code> 的地形上让不同标签竞争扩张，并把相遇位置作为分隔界限。</li></ol>
+ <p>如果直接从所有微小局部极值开始分水岭，噪声可能制造出大量无意义的分区。<strong>Marker-controlled Watershed 的关键往往是标记如何产生</strong>，而不只是执行一次分水岭。</p>
+ <div class="code-title"><span>Python · 由 Mask 构造距离地形并分水岭</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">import numpy as np
+from scipy import ndimage as ndi
+from skimage.feature import peak_local_max
+from skimage.segmentation import watershed
+
+# mask: bool, 两个接触物体构成的一片前景
+distance = ndi.distance_transform_edt(mask)
+coords = peak_local_max(distance, min_distance=12,
+                        labels=mask, exclude_border=False)
+markers = np.zeros(mask.shape, dtype=np.int32)
+for i, (y, x) in enumerate(coords, start=1):
+    markers[y, x] = i
+labels = watershed(-distance, markers, mask=mask)
+
+# 仅为最小演示：真实任务需审查种子数量和质量</pre>
+ <div class="warn"><strong>根本边界：</strong>“有两个距离峰”不等于“有两个物体”。一个细腰目标也可能有两个峰；两个外形很扁的物体甚至可能没有清晰双峰。算法并不知道实例数量。</div>
+ </section>
+
+ <section class="chapter anchor" id="graphcut"><div class="chapter-label">05 · GRAPH CUT / GRABCUT</div><h2>单个像素判断互相矛盾，能否让整片区域一起决定？</h2>
+ <p>局部阈值会把“颜色略像背景”的像素判为背景，即使它被一整圈稳定前景包围。接下来需要一种机制，<strong>同时权衡像素自己的证据和相邻标签的空间一致性</strong>。</p>
+ <h3>5.1 · 先把分割写成一个总代价</h3>
+ <div class="math"><div>E(L) = Σₚ Dₚ(Lₚ) + λ Σ₍ₚ,ᵩ₎ wₚᵩ · [Lₚ ≠ Lᵩ]</div><div>Dₚ：像素 p 归于前景/背景的代价（数据项）</div><div>wₚᵩ：相邻像素跨标签的惩罚权重（平滑项）</div><div>λ：愿意付出多少代价来获得相邻标签一致性</div></div>
+ <p>如果相邻像素颜色接近，通常更希望它们标签一致；如果差异很明显，可以减小跨标签惩罚，使分界更容易落在视觉变化处。此处先把权重设为 1，看一个小到可以手算的例子。</p>
+ <div class="viz"><div class="viz-head"><span class="viz-name">交互实验 · 三个像素一起选标签</span><span class="viz-help">穷举全部 2³ 种组合，无近似</span></div><p class="small" style="margin:0">三个像素的前景代价是 <code>[0, 3, 0]</code>；背景代价是 <code>[2, 0, 2]</code>。相邻的标签若不同，付出一次 λ。</p><div class="controls"><label for="lambda">相邻标签不一致的代价 λ</label><input type="range" id="lambda" min="0" max="4" value="2" step="0.25"><b id="lambda-readout" class="small">2.00</b></div><div class="bitmap-wrap" style="margin-top:16px"><div class="bitmap-block"><div class="bitmap-label">最小能量对应的标签</div><div id="gc-labels" style="display:flex;gap:5px"></div></div><div class="bitmap-block"><div class="bitmap-label">几组代表方案的代价</div><div id="gc-comparisons" class="mini-text"></div></div></div><div class="result" id="gc-result" aria-live="polite"></div></div>
+ <p>当 λ 较小时，允许中间像素单独做背景，得到<strong>前—背—前</strong>。当 λ 变大时，即使中间像素单独看更像背景，整体方案也可能选择<strong>前—前—前</strong>，以避免标签跳变。</p>
+ <h3>5.2 · 从 Graph Cut 到 GrabCut，具体增加了什么？</h3>
+ <p>图割是在指定能量形式下求标签。对于满足条件的<strong>二元可图表示子模能量</strong>，可构造 s–t 最小割求全局最优。GrabCut 则进一步建立前景和背景的<strong>颜色分布模型</strong>，典型实现使用两个 GMM：根据现有标签拟合分布，再用更新的数据项重新优化标签，交替迭代。</p>
+ <div class="flowline"><span class="flowpill">矩形 / 初始 Mask</span><span class="flowarrow">→</span><span class="flowpill">前景与背景 GMM</span><span class="flowarrow">→</span><span class="flowpill">图割更新标签</span><span class="flowarrow">↺</span></div>
+ <p>这里可以与上一篇的 GMM 接起来：<strong>GMM 只描述颜色出现的概率，空间标签一致性来自图上的邻接代价。</strong>两者合起来才是 GrabCut 这类方法的核心思路。</p>
+ <div class="code-title"><span>Python · OpenCV GrabCut</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">import cv2
+import numpy as np
+
+# image 为 uint8 BGR，rect=(x, y, w, h) 且位于图像内
+seg = np.zeros(image.shape[:2], dtype=np.uint8)
+bg_model = np.zeros((1, 65), dtype=np.float64)
+fg_model = np.zeros((1, 65), dtype=np.float64)
+cv2.grabCut(image, seg, rect, bg_model, fg_model,
+            iterCount=5, mode=cv2.GC_INIT_WITH_RECT)
+
+# 0/2: 背景或可能背景，1/3: 前景或可能前景
+mask = np.isin(seg, [cv2.GC_FGD, cv2.GC_PR_FGD]).astype(np.uint8)</pre>
+ <div class="warn"><strong>局限：</strong>代价函数优化得很好，不代表物体识别正确。初始化错误、目标与背景颜色高度相似、被复杂遮挡时，算法仍可能选择一个能量较低却语义错误的区域。</div>
+ </section>
+
+ <section class="chapter anchor" id="slic"><div class="chapter-label">06 · SLIC SUPERPIXELS</div><h2>逐像素研究太零散，能不能先把图像整理成小块？</h2>
+ <p>此前的方法大多直接处理像素的前景/背景归属。如果图像很大、局部纹理复杂，逐像素建立空间关系会显得繁琐。另一条路是先形成<strong>外观和空间都相对一致的小区域</strong>，用这些区域作为后续处理单元。</p>
+ <h3>6.1 · SLIC 为什么不只是 K-means？</h3>
+ <p>SLIC 会将像素表示为颜色和坐标的联合特征。常用形式是 <code>[L*, a*, b*, x, y]</code>，但既不能只按颜色聚类，也不能只按空间距离聚类。它在局部搜索范围内进行类似 K-means 的迭代，以颜色差异和空间紧凑性共同决定归属。</p>
+ <div class="math"><div>d_c = || Lab(p) − Lab(c) ||₂</div><div>d_s = || (xₚ, yₚ) − (x_c, y_c) ||₂</div><div>D = √[ d_c² + (m/S)² · d_s² ]</div><div>S ≈ √(N/K)：期望超像素间距；m：空间紧凑性系数</div></div>
+ <div class="figure"><div class="figure-title">SLIC 的结果更像“遵循局部图像结构的小块”，而不是物体 Mask</div><div class="figure-body"><svg viewBox="0 0 760 218" role="img" aria-label="左侧彩色区域与右侧叠加超像素网格的对比">
+ <defs><clipPath id="slic-a"><rect x="8" y="8" width="352" height="170" rx="10"/></clipPath><clipPath id="slic-b"><rect x="400" y="8" width="352" height="170" rx="10"/></clipPath></defs>
+ <g clip-path="url(#slic-a)"><rect x="8" y="8" width="352" height="170" fill="#dcd2c3"/><path d="M40 178L112 34L270 28L338 178Z" fill="#bd8167"/><path d="M8 128Q180 98 360 128V178H8Z" fill="#b7aa8f"/><path d="M25 47L339 61" stroke="#efebe2" stroke-width="5" opacity=".45"/></g>
+ <g clip-path="url(#slic-b)" transform="translate(392 0)"><rect x="8" y="8" width="352" height="170" fill="#dcd2c3"/><path d="M40 178L112 34L270 28L338 178Z" fill="#bd8167"/><path d="M8 128Q180 98 360 128V178H8Z" fill="#b7aa8f"/><path d="M25 47L339 61" stroke="#efebe2" stroke-width="5" opacity=".45"/>
+ <g stroke="#fff8f0" fill="none" stroke-width="1.6" opacity=".95"><path d="M61 8L60 40L71 74L54 104L64 132L55 178M114 8L111 35L99 65L119 91L112 123L127 178M172 8L177 36L169 68L181 94L175 125L165 178M226 8L231 39L221 72L237 108L227 139L235 178M287 8L280 37L298 77L277 111L290 143L279 178M335 8L333 44L343 78L337 115L340 178"/><path d="M8 47Q70 41 111 46T230 51T360 46M8 90Q85 80 130 94T244 88T360 95M8 132Q85 125 130 131T248 136T360 130"/></g></g>
+ <text x="184" y="204" font-size="12.5" text-anchor="middle" fill="#76665a">① 原始图像的外观区域（示意）</text><text x="575" y="204" font-size="12.5" text-anchor="middle" fill="#76665a">② 更细的超像素分区（示意）</text>
+ </svg></div><div class="figcap">超像素边界是示意线而非真实 SLIC 运算输出。图的重点在于：一个真实物体通常由多个超像素组成；超像素不直接提供实例语义。</div></div>
+ <p>常见处理过程是：先按期望区域数初始化网格中心；在每个中心附近约 <code>2S × 2S</code> 的邻域中计算联合距离；更新中心并迭代；最后根据需要修正不连通的标签。相比全图 K-means，局部搜索降低计算量，也倾向于保留空间紧凑性。</p>
+ <div class="code-title"><span>Python · SLIC 超像素</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">from skimage.segmentation import slic
+from skimage.util import img_as_float
+
+# rgb: H×W×3, RGB 通道顺序
+image = img_as_float(rgb)
+segments = slic(image, n_segments=250,
+                compactness=10, sigma=1,
+                start_label=1, channel_axis=-1)
+# segments: 整数区域标签图；不是物体实例标签</pre>
+ <div class="note"><strong>SLIC 的意义：</strong>把图像从大量像素变成较少的、具空间结构的小区域，方便统计或构造区域邻接图。<strong>它不能单独回答：</strong>哪几个超像素应该合并为一个物体；这仍需要额外的相似性、图模型或其他先验。</div>
+ </section>
+
+ <section class="chapter anchor" id="selection"><div class="chapter-label">07 · SUMMARY & NEXT QUESTION</div><h2>这六条路线，其实分别在相信什么证据？</h2>
+ <p>到这里，技术名字已经不少。整理时最该留下的不是一张“算法越来越先进”的路线图，而是：<strong>每种方法利用了什么证据，又在哪种情况下没有充分依据？</strong></p>
+ <div class="table-scroll"><table><thead><tr><th>方法</th><th>依赖的关键证据</th><th>典型输出</th><th>最容易失效的条件</th></tr></thead><tbody>
+ <tr><td>连通域 CCL</td><td>二值前景与 4/8 邻接</td><td>连通区域标签</td><td>接触、遮挡断裂、细连接</td></tr>
+ <tr><td>数学形态学</td><td>结构元素形状与尺度</td><td>修正后的 Mask</td><td>目标细节与噪声尺度重叠</td></tr>
+ <tr><td>区域生长</td><td>可靠种子、邻域相似性</td><td>由种子扩张的区域</td><td>反光、颜色突变、背景相似</td></tr>
+ <tr><td>分水岭</td><td>距离/梯度地形、可靠标记</td><td>竞争分隔后的区域</td><td>错误种子、凹形单目标、无清晰峰</td></tr>
+ <tr><td>Graph Cut / GrabCut</td><td>前景/背景分布与平滑性</td><td>二类标签 / 前景 Mask</td><td>初始化错误、分布重叠严重</td></tr>
+ <tr><td>SLIC</td><td>颜色近似 + 空间紧凑性</td><td>超像素标签图</td><td>边界弱、参数尺度不合适；不提供实例</td></tr>
+ </tbody></table></div>
+ <h3>几个真正值得做的小实验</h3>
+ <div class="three"><div class="tile"><div class="id">EXPERIMENT 01</div><strong>两个接触的圆</strong><p>固定一张 Mask，对照 4/8 连通域与距离分水岭；改变种子数量，观察过分割。</p></div><div class="tile"><div class="id">EXPERIMENT 02</div><strong>一根非常细的线</strong><p>改变结构元素的形状与尺寸，记录多少像素宽的线会在开运算后消失。</p></div><div class="tile"><div class="id">EXPERIMENT 03</div><strong>反光的红色物体</strong><p>比较颜色阈值、区域生长与 GrabCut；检查它们分别在哪处断裂或泄漏。</p></div></div>
+ <div class="answer"><strong>这一篇最终得到什么？</strong><p>我们已经能够利用邻接、相似性、内部形状以及空间一致性，将原始像素证据整理成一个或多个候选区域；也认识到“区域是否连续”“区域边界是否合理”和“它是不是一个真实物体”是三件不同的事。</p><p>如果后续需要物体的边缘形态、轮廓、直线、圆等几何结构，需要继续研究<strong>边缘与轮廓</strong>。至于“到底哪个区域是要抓的目标”，仍然需要更强的先验或语义信息。</p></div>
+ </section>
+ <nav class="next" aria-label="阅读相邻篇章"><a href="01-pixels-texture-research.html">← 上一篇<strong>像素与纹理</strong></a><a href="03-edges-contours.html">下一篇 →<strong>边缘与轮廓</strong></a></nav>
+ <footer class="footer">沿途手记 · Stage 01 / 02 · 区域与分割<br>本页包含直接在浏览器中计算的教学小实验，图片中另行标注的原理示意不代表算法实际输出。所有交互无需网络。</footer>
+ </article>
+</main>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const sections = [...document.querySelectorAll('.chapter')];
+const chapterLinks = [...document.querySelectorAll('#chapter-nav a')];
+const sidebar = $('sidebar'), overlay = $('overlay'), menu = $('mobile-menu');
+function toggleMenu(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('visible',open);menu.setAttribute('aria-expanded',String(open));}
+menu.addEventListener('click',()=>toggleMenu(!sidebar.classList.contains('open')));
+overlay.addEventListener('click',()=>toggleMenu(false));
+sidebar.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{if(innerWidth<=820)toggleMenu(false)}));
+function refreshScroll(){const max=document.documentElement.scrollHeight-innerHeight;const ratio=max>0?scrollY/max:0;$('reading-progress').style.width=Math.min(100,Math.max(0,ratio*100))+'%';let current=sections[0]?.id;for(const s of sections){if(s.getBoundingClientRect().top<=innerHeight*.28)current=s.id;}chapterLinks.forEach(a=>a.classList.toggle('current',a.getAttribute('href')==='#'+current));}
+addEventListener('scroll',refreshScroll,{passive:true});addEventListener('resize',refreshScroll,{passive:true});refreshScroll();
+function drawGrid(id,rows,{number=false,paint=null,seed=null,cell=25}={}){const root=$(id);root.textContent='';const cols=rows[0].length;root.style.gridTemplateColumns=`repeat(${cols}, ${cell}px)`;rows.forEach((row,y)=>row.forEach((v,x)=>{const el=document.createElement('div');const val=paint?paint(v,x,y):v;el.className='pixel '+(typeof val==='string'?val:(!val?'off':'a'));if(number && v!==null && v!==undefined)el.textContent=String(v);if(seed && x===seed[0] && y===seed[1])el.classList.add('seed');root.append(el)}));}
+// 01 · Connected-component labels for the 3 diagonal pixels.
+let connectivity=4;const diagonal=[[1,0,0],[0,1,0],[0,0,1]];
+function connectedComponents(data,mode){const h=data.length,w=data[0].length,labels=Array.from({length:h},()=>Array(w).fill(0));let count=0;const directions=mode===4?[[-1,0],[1,0],[0,-1],[0,1]]:[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(!data[y][x]||labels[y][x])continue;count++;const stack=[[y,x]];labels[y][x]=count;while(stack.length){const [cy,cx]=stack.pop();for(const [dy,dx] of directions){const ny=cy+dy,nx=cx+dx;if(ny<0||ny>=h||nx<0||nx>=w||!data[ny][nx]||labels[ny][nx])continue;labels[ny][nx]=count;stack.push([ny,nx]);}}}return {labels,count};}
+function renderConnection(){drawGrid('connect-input',diagonal,{paint:v=>v?'a':'off'});const {labels,count}=connectedComponents(diagonal,connectivity);drawGrid('connect-output',labels,{number:true,paint:v=>v?['','a','b','c','d'][v]:'off'});$('connect-result').textContent=`${connectivity} 邻接 → ${count} 个连通域。${connectivity===4?'只共享角的像素互不连通。':'沿对角也能构成一条前景路径。'} 这些标签不是物体类别。`;$('neighbor4').classList.toggle('sel',connectivity===4);$('neighbor8').classList.toggle('sel',connectivity===8);}
+$('neighbor4').onclick=()=>{connectivity=4;renderConnection()};$('neighbor8').onclick=()=>{connectivity=8;renderConnection()};renderConnection();
+// 02 · Morphology with explicit zero-padding, centered square structuring element.
+const MW=14,MH=10,morphOriginal=Array.from({length:MH},()=>Array(MW).fill(0));
+for(let y=2;y<=7;y++)for(let x=1;x<=6;x++)morphOriginal[y][x]=1;
+morphOriginal[4][3]=0;morphOriginal[1][8]=1;
+for(let y=4;y<=6;y++)morphOriginal[y][10]=1;
+for(let x=11;x<=12;x++)morphOriginal[6][x]=1;
+let operation='original';
+function binaryMorph(img,k,type){const h=img.length,w=img[0].length,r=(k-1)/2,out=Array.from({length:h},()=>Array(w).fill(0));for(let y=0;y<h;y++)for(let x=0;x<w;x++){let val=type==='erode'?1:0;for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const yy=y+dy,xx=x+dx,cur=yy>=0&&yy<h&&xx>=0&&xx<w?img[yy][xx]:0;if(type==='erode')val &= cur;else val |=cur;}out[y][x]=val;}return out;}
+function morphResult(img,k,op){if(op==='original')return img;if(op==='open')return binaryMorph(binaryMorph(img,k,'erode'),k,'dilate');if(op==='close')return binaryMorph(binaryMorph(img,k,'dilate'),k,'erode');return binaryMorph(img,k,op);}
+function renderMorph(){const k=+$('kernel-size').value;$('kernel-readout').textContent=`${k}×${k}`;const out=morphResult(morphOriginal,k,operation);drawGrid('morph-input',morphOriginal,{cell:20});drawGrid('morph-output',out,{cell:20});const before=morphOriginal.flat().reduce((a,b)=>a+b,0),after=out.flat().reduce((a,b)=>a+b,0);const explain={original:'未修改原始结构。',erode:'所有窗口位置都为前景，中心才被保留。',dilate:'窗口内有任一前景，中心便扩张为前景。',open:'先腐蚀再膨胀，小孤点与细结构可能丢失。',close:'先膨胀再腐蚀，狭窄孔隙可能被填补。'};$('morph-result').textContent=`${explain[operation]} 前景像素数：${before} → ${after}。这里未判断某个细结构是不是目标的一部分。`;document.querySelectorAll('[data-morph]').forEach(btn=>btn.classList.toggle('sel',btn.dataset.morph===operation));}
+document.querySelectorAll('[data-morph]').forEach(btn=>btn.addEventListener('click',()=>{operation=btn.dataset.morph;renderMorph()}));$('kernel-size').oninput=renderMorph;renderMorph();
+// 03 · Seeded region growing with fixed seed reference.
+const growVals=Array.from({length:7},(_,y)=>Array.from({length:13},(_,x)=>{
+  if(y>=1&&y<=5&&x>=1&&x<=7)return 78+(x*3+y*2)%11;
+  if(y===3&&x>=8&&x<=11)return [91,95,101,108][x-8];
+  return 35+(x*3+y*7)%22;
+}));const seed=[3,3];growVals[seed[1]][seed[0]]=82;
+function renderGrow(){const threshold=+$('grow-threshold').value;const H=growVals.length,W=growVals[0].length,visited=Array.from({length:H},()=>Array(W).fill(false)),accepted=Array.from({length:H},()=>Array(W).fill(false)),q=[[seed[1],seed[0]]];visited[seed[1]][seed[0]]=true;let head=0,count=0;while(head<q.length){const [y,x]=q[head++];if(Math.abs(growVals[y][x]-82)>threshold)continue;accepted[y][x]=true;count++;for(const [dy,dx] of [[1,0],[-1,0],[0,1],[0,-1]]){const yy=y+dy,xx=x+dx;if(yy<0||yy>=H||xx<0||xx>=W||visited[yy][xx])continue;visited[yy][xx]=true;q.push([yy,xx]);}}drawGrid('grow-input',growVals,{number:true,cell:29,seed,paint:()=> 'reject'});drawGrid('grow-output',growVals,{number:true,cell:29,seed,paint:(v,x,y)=>accepted[y][x]?'a':'off'});$('grow-threshold-readout').textContent=String(threshold);$('grow-result').textContent=`τ=${threshold}，接纳 ${count} 个像素。增加阈值只是在允许更大的灰度差，并不意味着一定更接近真实边界。`;}
+$('grow-threshold').oninput=renderGrow;renderGrow();
+// 05 · exact exhaustive three-pixel binary labeling experiment.
+function renderGraphCut(){const lam=+$('lambda').value;$('lambda-readout').textContent=lam.toFixed(2);const unaryF=[0,3,0],unaryB=[2,0,2];const solutions=[];for(let code=0;code<8;code++){const labels=[(code>>2)&1,(code>>1)&1,code&1];const unary=labels.reduce((s,v,i)=>s+(v?unaryF[i]:unaryB[i]),0),edges=(labels[0]!==labels[1]?1:0)+(labels[1]!==labels[2]?1:0);solutions.push({labels,total:unary+edges*lam,unary,edges});}solutions.sort((a,b)=>a.total-b.total||b.labels.reduce((s,x)=>s+x,0)-a.labels.reduce((s,x)=>s+x,0));const win=solutions[0];$('gc-labels').textContent='';win.labels.forEach((v,i)=>{const el=document.createElement('div');el.className='pixel '+(v?'a':'b');el.style.width='47px';el.style.height='43px';el.textContent=v?'前':'背';$('gc-labels').append(el)});const configs=[{name:'前 前 前',arr:[1,1,1]},{name:'前 背 前',arr:[1,0,1]},{name:'背 背 背',arr:[0,0,0]}];$('gc-comparisons').innerHTML=configs.map(o=>{const k=solutions.find(s=>s.labels.join('')===o.arr.join(''));return `<div>${o.name}：<b>${k.total.toFixed(2)}</b>（数据 ${k.unary}，边界 ${k.edges}×${lam}）</div>`}).join('');$('gc-result').textContent=`8 个方案中最小代价 = ${win.total.toFixed(2)}（数据项 ${win.unary}，空间项 ${(win.edges*lam).toFixed(2)}）。${solutions[1].total===win.total?'当前存在并列最优解。':'调整 λ 可以看到最优解的变化。'}`;}
+$('lambda').oninput=renderGraphCut;renderGraphCut();
+// Code copy uses navigator API when available; fallback selection otherwise.
+document.querySelectorAll('.copy').forEach(btn=>btn.addEventListener('click',async()=>{const pre=btn.parentElement.nextElementSibling;const source=pre.textContent;const old=btn.textContent;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(source)}else{const sel=getSelection();const range=document.createRange();range.selectNodeContents(pre);sel.removeAllRanges();sel.addRange(range);document.execCommand('copy');sel.removeAllRanges();}btn.textContent='已复制';}catch(e){btn.textContent='请选择代码复制';}setTimeout(()=>btn.textContent=old,1700)}));
+</script>
+</body>
+</html>

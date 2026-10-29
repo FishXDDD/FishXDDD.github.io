@@ -71,7 +71,7 @@
     <a class="reading-brand" href="https://fishxddd.github.io/"><span class="reading-flower" aria-hidden="true">✳</span><span>沿途手记</span></a>
     <p class="reading-tagline">从一个问题出发的探索路线</p>
   </div>
-  <a class="reading-back" href="../"><span aria-hidden="true">←</span><span>返回 · 图像特征与结构提取</span></a>
+  <a class="reading-back" href="index.html"><span aria-hidden="true">←</span><span>返回 · 图像特征与结构提取</span></a>
   <div class="reading-location">
     <p class="reading-label">正在阅读 · 01 / 06</p>
     <p class="reading-current">像素与纹理</p>
@@ -92,7 +92,7 @@
 <main class="layout-main" id="content">
 <div class="mobile-bar"><button id="mobile-menu" class="menu-btn" type="button" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>01 / 06</span></div>
 <article class="article">
-<div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="../">图像特征与结构提取</a><span class="slash">/</span><span>像素与纹理</span></div>
+<div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="index.html">图像特征与结构提取</a><span class="slash">/</span><span>像素与纹理</span></div>
 <header class="article-hero"><div class="eyebrow">DEEP DIVE · 01 / 06</div><h1>像素与纹理</h1><p class="subtitle">一张图像的颜色、统计分布与空间排列，究竟能告诉我们什么？</p><p class="lede">上层笔记已经决定：先不依赖训练模型，只研究图像中能够直接计算的线索。这一站不急着寻找瓶子的 BBox，而是把手里的工具摊开——像素为什么有不同的颜色表示？阈值究竟在分什么？一整群像素可以怎样建模？如果颜色已经不够，纹理又提供了哪一种新信息？</p><div class="meta"><span class="tag">单张 RGB · 传统视觉</span><span class="tag">从数学机制到可运行工具</span><span class="tag">无需训练 · 可离线阅读</span></div></header>
 
 <section class="chapter" id="scope"><div class="chapter-label">00 · SCOPE</div><h2>先把研究对象固定下来</h2>
@@ -283,7 +283,7 @@ texture_energy = np.max(np.stack(responses, axis=0), axis=0)</code></pre>
 <div class="code-head"><span>环境安装（Python）</span><button class="copybtn" data-copy="code-install">复制</button></div><pre class="code"><code id="code-install">python -m pip install opencv-python numpy scikit-image scikit-learn matplotlib</code></pre>
 <div class="note"><strong>使用提示：</strong>代码片段按章节递进：先运行第 01 节得到 <code>bgr / hsv / lab_float</code>，再运行需要这些变量的部分；<code>gray</code> 在第 02 节定义。GLCM / LBP / Gabor 研究的是像素和纹理，下一篇《区域与分割》再研究如何得到空间连续、可供后续定位使用的区域。</div>
 </section>
-<nav class="next" aria-label="上一页和下一页"><a href="../"><span>← 上一篇</span><b>问题主页</b></a><a href="../02-regions-segmentation/"><span>下一篇 →</span><b>区域与分割</b></a></nav>
+<nav class="next" aria-label="上一页和下一页"><a href="index.html"><span>← 上一篇</span><b>问题主页</b></a><a href="02-regions-segmentation.html"><span>下一篇 →</span><b>区域与分割</b></a></nav>
 <footer class="footer">沿途手记 · Stage 01 · 像素与纹理<br>本页可离线打开；交互演示由原生 JavaScript 实现，图示数据为教学构造数据，算法实现片段采用 OpenCV、scikit-image 与 scikit-learn。</footer>
 </article></main></div>
 <script>
