@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="沿途手记 · 边缘与轮廓：从局部灰度变化到可定位、可追踪、可计算的二维边界。包含梯度、Canny、边缘连接、轮廓追踪、曲线表达和精度验证。">
+  <meta name="theme-color" content="#f7f8f5">
+  <title>边缘与轮廓 · 图像特征与结构提取 | 沿途手记</title>
+  <style>
+    :root{
+      --page:#f7f8f5;--paper:#fff;--ink:#253335;--ink-2:#485b5d;--quiet:#718183;
+      --line:#e1e8e4;--line-strong:#cbd7d1;--accent:#227e78;--accent-dark:#17635e;
+      --tint:#edf6f2;--blue:#527baf;--blue-tint:#f0f5fa;--amber:#bd853f;--amber-tint:#fbf5e9;
+      --red:#a85d5a;--red-tint:#fdf2f0;--shadow:0 18px 65px rgba(39,63,60,.045);
+      --sidebar:clamp(218px,18vw,276px);--layout-gap:clamp(24px,3.5vw,62px);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:28px}
+    body{margin:0;background:var(--page);color:var(--ink);font-family:Inter,"PingFang SC","Microsoft YaHei", "Noto Sans CJK SC",system-ui,-apple-system,sans-serif;font-size:clamp(14px,.18vw + 13px,16px);line-height:1.9;-webkit-font-smoothing:antialiased}
+    a{color:var(--accent-dark);text-decoration:none}a:hover{color:var(--accent);text-decoration:underline;text-underline-offset:4px}
+    button,input{font:inherit}button{cursor:pointer}
+    ::selection{background:#bce4dc;color:#193936}
+    .progress{position:fixed;top:0;left:0;height:3px;background:#54a69b;width:0;z-index:100;transition:width .1s linear}
+    .site-layout{max-width:1620px;margin:auto;padding:clamp(22px,3vw,52px) clamp(22px,3vw,56px) 90px;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);gap:var(--layout-gap);align-items:start}
+    .side{position:sticky;top:24px;max-height:calc(100dvh - 48px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d2dcd6 transparent;padding:3px 17px 24px 0;border-right:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:16px;font-weight:760;letter-spacing:.035em;line-height:1.3;margin:2px 0 6px}
+    .brand-mark{height:32px;width:32px;border-radius:11px;background:#245e5b;color:#fff;display:grid;place-items:center;font-family:Georgia,serif;font-size:17px}
+    .brand-note{font-size:10px;letter-spacing:.13em;color:var(--quiet);font-weight:650;margin:0 0 28px 42px}
+    .backlinks{display:grid;gap:8px;margin:0 0 25px}
+    .backlinks a{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.7);line-height:1.4}
+    .backlinks a:hover{border-color:#acd2c7;text-decoration:none;color:var(--accent-dark)}
+    .side-caption{font-size:10px;font-weight:730;letter-spacing:.14em;color:var(--quiet);margin:23px 0 9px 10px;text-transform:uppercase}
+    .where{margin:0 0 22px;padding:11px 12px;background:#eaf3ef;border:1px solid #dae9e2;border-radius:12px}
+    .where strong{display:block;font-size:13px;line-height:1.5;color:#275d55}.where small{font-size:11px;color:var(--quiet);line-height:1.8}
+    .toc{display:grid;gap:3px}.toc a{display:grid;grid-template-columns:25px 1fr;gap:8px;padding:8px 9px;border-radius:9px;color:#5b6b6b;font-size:12px;line-height:1.5;transition:background .15s,color .15s}
+    .toc .n{color:#9caaa7;font-size:11px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+    .toc a:hover{background:#eef2ef;text-decoration:none}.toc a.active{background:#e7f2ed;color:#1e675e;font-weight:700}.toc a.active .n{color:#2d8b80}
+    .side-footer{border-top:1px solid var(--line);margin-top:24px;padding:16px 8px 0;font-size:11px;line-height:1.75;color:#9aa6a2}
+    .main{min-width:0;max-width:1110px}
+    .breadcrumbs{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--quiet);margin:3px 0 24px}
+    .breadcrumbs a{color:var(--quiet)}.breadcrumbs .sep{color:#bdc7c3}
+    .hero{background:var(--paper);border:1px solid var(--line);border-radius:19px;padding:clamp(26px,3.8vw,55px);box-shadow:var(--shadow);overflow:hidden}
+    .hero-kicker,.eyebrow{font-size:11px;font-weight:760;letter-spacing:.15em;color:var(--accent);line-height:1.5}
+    .hero h1{font-size:clamp(34px,4vw,59px);line-height:1.24;letter-spacing:-.045em;margin:11px 0 9px;font-weight:780}
+    .hero .english{font-size:clamp(14px,1.4vw,19px);color:#768785;font-weight:430;letter-spacing:.01em;margin:0 0 25px}
+    .hero-lead{font-size:clamp(16px,1.55vw,20px);line-height:1.9;max-width:760px;color:#3d5552;margin:0 0 15px;font-weight:520}
+    .hero-intro{max-width:770px;font-size:14px;color:var(--ink-2);margin:0 0 18px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:21px 0 0}.chip{font-size:11px;font-weight:590;padding:4px 10px;border-radius:100px;background:#f0f5f1;border:1px solid #e2eee8;color:#50766d}
+    .hero-visual{margin-top:27px;background:#f0f5f2;border:1px solid #e4eee8;border-radius:14px;padding:13px 17px 10px;overflow:hidden}
+    .hero-visual svg{display:block;width:100%;height:auto;max-height:290px}.diagram-cap{font-size:11px;color:#798984;line-height:1.7;margin:8px 0 0}
+    .chapter{padding-top:56px;margin-top:4px;scroll-margin-top:12px}.chapter + .chapter{border-top:1px solid var(--line);margin-top:49px}
+    .ch-index{display:flex;align-items:center;gap:9px;letter-spacing:.12em;font-size:11px;font-weight:770;color:#388078;margin-bottom:8px}
+    .ch-index .slash{height:15px;width:1px;background:#c8d9d2;transform:rotate(24deg)}
+    h2{font-size:clamp(24px,2.3vw,32px);line-height:1.45;letter-spacing:-.035em;margin:7px 0 20px;font-weight:750}
+    h3{font-size:clamp(17px,1.5vw,21px);letter-spacing:-.015em;line-height:1.5;margin:34px 0 10px}
+    h4{font-size:15px;margin:23px 0 8px;line-height:1.6}
+    p{margin:11px 0 14px;color:var(--ink-2)}strong{color:var(--ink)}
+    .lead{font-size:16px;color:#334c49;line-height:2;max-width:850px}
+    .insight{border-left:3px solid #75ada2;background:#eff6f2;padding:13px 18px;margin:19px 0 24px;border-radius:0 10px 10px 0;color:#28554f;font-size:14px}
+    .insight strong{color:#23635a}.insight.amber{border-color:#dbb078;background:var(--amber-tint);color:#765b32}.insight.amber strong{color:#78532c}
+    .thin-note{font-size:12px;color:#7e8e89}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:clamp(17px,2vw,27px);margin:19px 0;box-shadow:0 7px 30px rgba(42,62,59,.025)}
+    .card-title{font-weight:750;color:#294b48;font-size:15px;line-height:1.6;margin:0 0 11px}
+    .mini-label{display:block;font-size:10px;letter-spacing:.12em;color:#8b9c97;font-weight:750;margin-bottom:7px}
+    .cards-3,.cards-2{display:grid;gap:13px;margin:21px 0}.cards-3{grid-template-columns:repeat(3,minmax(0,1fr))}.cards-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .mini-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:19px;min-width:0}.mini-card h4{margin:2px 0 6px;font-size:14px}.mini-card p{font-size:12px;margin:2px 0;line-height:1.8}.mini-card .tag{color:var(--accent);font-size:10px;font-weight:800;letter-spacing:.12em}
+    .formula{overflow-x:auto;margin:20px 0;padding:19px 20px;background:#263b3b;color:#f1f9f5;border-radius:12px;font-family:Georgia,"Noto Serif",serif;font-size:clamp(15px,1.35vw,19px);line-height:1.85;white-space:nowrap;text-align:center}
+    .formula small{display:block;font-size:11px;letter-spacing:.015em;white-space:normal;color:#a9c4bb;font-family:Inter,"PingFang SC",sans-serif;margin-top:7px;line-height:1.7}
+    .formula.light{background:#f1f5f2;color:#335953;border:1px solid #e0e9e3}.formula.light small{color:#738981}
+    .figure{background:#fff;border:1px solid var(--line);border-radius:14px;padding:clamp(12px,1.8vw,24px);margin:21px 0;overflow:hidden}
+    .figure svg{display:block;width:100%;height:auto}.figure figcaption{font-size:11px;color:#84918d;margin-top:10px;line-height:1.8}
+    .flowchart{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:21px 0}
+    .flow-node{flex:1 1 125px;min-width:0;border-radius:10px;padding:12px 10px;background:#f0f5f1;border:1px solid #dcebe3;text-align:center}
+    .flow-node b{display:block;font-size:13px}.flow-node span{font-size:10px;color:#779088}.flow-arrow{color:#81a59b;flex:none;font-size:17px}
+    .table-wrap{margin:20px 0;overflow:auto;border:1px solid var(--line);border-radius:13px;background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:570px;font-size:12px;line-height:1.8}th,td{text-align:left;padding:12px 15px;vertical-align:top;border-bottom:1px solid #e8efea}tr:last-child td{border-bottom:0}
+    th{font-size:11px;letter-spacing:.04em;color:#55746e;background:#f1f7f3;font-weight:750}td:first-child{color:#2f4f4b;font-weight:650}td{color:#536660}
+    code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.9em;background:#edf3ef;border-radius:4px;padding:2px 5px;color:#266459}
+    .row-tip{display:grid;grid-template-columns:80px minmax(0,1fr);gap:14px;padding:13px 0;border-bottom:1px dashed #dbe6df;font-size:13px}.row-tip:last-child{border-bottom:0}
+    .row-tip .title{font-weight:750;color:#2e6a60}.row-tip .desc{color:#566962}
+    .divider{height:1px;background:var(--line);margin:24px 0}
+    .demo{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin:23px 0}.demo-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:9px;margin-bottom:15px}.demo-head h4{margin:0 0 3px}.demo-head small{color:#83938c;font-size:11px}.live-tag{background:#e8f4ed;border-radius:20px;font-size:10px;letter-spacing:.07em;padding:4px 9px;color:#36786c;font-weight:700}
+    .demo-controls{display:flex;gap:18px;flex-wrap:wrap;padding-top:15px;align-items:center}.control{min-width:150px;flex:1 1 170px}.control label{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#56716a;margin-bottom:7px}.control output{color:#247b71;font-variant-numeric:tabular-nums}input[type=range]{width:100%;accent-color:#2a8a7b;cursor:pointer}
+    canvas{width:100%;height:235px;display:block;border-radius:9px;background:#f8faf8}
+    .demo-foot{font-size:11px;color:#82918b;margin:12px 0 0;line-height:1.8}
+    details{background:#fff;border:1px solid var(--line);border-radius:12px;margin:16px 0;overflow:hidden}summary{cursor:pointer;font-weight:740;color:#35665c;padding:12px 17px;list-style-position:inside;font-size:13px}details[open] summary{border-bottom:1px solid var(--line)}.details-body{padding:17px}
+    pre{background:#253b3a;color:#e6f4f1;overflow:auto;font-size:12px;line-height:1.75;border-radius:10px;padding:20px;margin:0;white-space:pre}
+    pre code{font-size:inherit;background:none;color:inherit;padding:0;border-radius:0}
+    .copy-bar{display:flex;justify-content:flex-end;margin:0 0 9px}.copy-btn{border:1px solid #d8e6e1;background:#f6f9f6;color:#4e7067;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:650}.copy-btn:hover{background:#e8f3ed}
+    .experiment-grid{display:grid;grid-template-columns:100px minmax(0,1fr);gap:0 18px;margin:12px 0}.experiment-grid .ex-index{font-size:11px;font-weight:800;color:#228477;letter-spacing:.04em;padding:15px 0;border-bottom:1px solid var(--line)}.experiment-grid .ex-body{border-bottom:1px solid var(--line);padding:12px 0;font-size:13px}.experiment-grid .ex-body p{margin:3px 0;font-size:12px}
+    .next{margin:65px 0 12px;padding:24px;border-radius:15px;border:1px solid #dce7e1;background:linear-gradient(115deg,#eaf4ef,#f8faf7)}.next .kicker{font-size:11px;color:#47857c;letter-spacing:.12em;font-weight:750}.next h3{margin:5px 0 7px}.next p{margin:0;font-size:13px}
+    .bottom-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:17px}.bottom-links a{display:inline-block;background:#fff;border:1px solid var(--line);padding:7px 12px;border-radius:8px;font-size:12px}
+    .footer{margin-top:45px;padding-top:23px;border-top:1px solid var(--line);color:#98a49e;font-size:11px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .mobile-menu{display:none}.mobile-overlay{display:none}
+    @media(max-width:1040px){.site-layout{gap:25px;padding:25px 26px 70px;grid-template-columns:210px minmax(0,1fr)}.hero{padding:29px}.cards-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:730px){html{scroll-padding-top:66px}.site-layout{display:block;padding:80px 15px 50px}.main{width:100%}.mobile-menu{position:fixed;display:flex;align-items:center;gap:7px;top:13px;left:13px;z-index:112;background:#fff;border:1px solid #d9e6df;color:#29675d;padding:7px 12px;border-radius:8px;font-size:12px;box-shadow:0 6px 20px #233c3920}.side{position:fixed;top:0;bottom:0;left:0;z-index:111;width:min(82vw,305px);max-height:none;height:100dvh;background:#f7f9f6;padding:28px 23px 35px;border-right:1px solid var(--line);transform:translateX(-105%);transition:transform .23s ease;box-shadow:10px 0 40px #122d2a15}.side.is-open{transform:translateX(0)}.mobile-overlay{position:fixed;inset:0;background:rgba(27,47,43,.3);z-index:110;display:none}.mobile-overlay.is-open{display:block}.hero{padding:24px 19px}.hero h1{font-size:35px}.hero-lead{font-size:16px}.hero-intro{font-size:13px}.chapter{padding-top:45px}.chapter+.chapter{margin-top:39px}.cards-3,.cards-2{grid-template-columns:1fr}.flowchart{gap:5px}.flow-node{flex-basis:90px;padding:9px 7px}.flow-node b{font-size:11px}.flow-arrow{font-size:13px}.row-tip{grid-template-columns:65px 1fr;gap:9px}.experiment-grid{grid-template-columns:72px 1fr;gap:10px}.breadcrumbs{font-size:10px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<button class="mobile-menu" id="menuButton" aria-controls="siteSidebar" aria-expanded="false" aria-label="打开本页目录">☰ &nbsp;本页目录</button>
+<div class="mobile-overlay" id="menuOverlay"></div>
+<div class="site-layout">
+  <aside class="side" id="siteSidebar" aria-label="学习路径与本页目录">
+    <a class="brand" href="/" aria-label="返回沿途手记首页"><span class="brand-mark">沿</span><span>沿途手记</span></a>
+    <div class="brand-note">RESEARCH NOTES · STAGE 01</div>
+    <nav class="backlinks" aria-label="返回路径">
+      <a href="/research/stage-01/">↖ &nbsp;返回 Stage 01</a>
+      <a href="../">↖ &nbsp;返回「传统视觉路线」</a>
+    </nav>
+    <div class="side-caption">CURRENT LOCATION / 当前位置</div>
+    <div class="where"><small>二维目标定位 / 传统视觉</small><strong>03 · 边缘与轮廓</strong><small>Edges &amp; Contours</small></div>
+    <div class="side-caption">ON THIS PAGE / 本页目录</div>
+    <nav class="toc" aria-label="本页章节">
+      <a href="#s00" class="active"><span class="n">00</span><span>问题与研究边界</span></a>
+      <a href="#s01"><span class="n">01</span><span>图像变化如何产生边缘？</span></a>
+      <a href="#s02"><span class="n">02</span><span>边缘位置怎样确定？</span></a>
+      <a href="#s03"><span class="n">03</span><span>断裂的边缘怎样连接？</span></a>
+      <a href="#s04"><span class="n">04</span><span>怎样追踪为有序轮廓？</span></a>
+      <a href="#s05"><span class="n">05</span><span>轮廓怎样表达与优化？</span></a>
+      <a href="#s06"><span class="n">06</span><span>边界位置究竟有多准？</span></a>
+      <a href="#s07"><span class="n">07</span><span>实验与方法总结</span></a>
+    </nav>
+    <div class="side-footer">最后一层技术笔记<br>只研究边缘证据与轮廓曲线；直线、圆和几何模型留在下一章。</div>
+  </aside>
+  <main class="main" id="main">
+    <nav class="breadcrumbs" aria-label="页面层级">
+      <a href="/">沿途手记</a><span class="sep">/</span><a href="/research/stage-01/">Stage 01</a><span class="sep">/</span><a href="../../">图像特征与结构提取</a><span class="sep">/</span><a href="../">传统视觉</a><span class="sep">/</span><span>边缘与轮廓</span>
+    </nav>
+    <header class="hero">
+      <div class="hero-kicker">VISUAL EVIDENCE &nbsp;·&nbsp; CLASSICAL VISION &nbsp;·&nbsp; 03 / 06</div>
+      <h1>边缘与轮廓</h1>
+      <p class="english">Edges &amp; Contours — From Image Changes to Traceable Boundaries</p>
+      <p class="hero-lead">颜色分不开的地方，能不能从图像的变化里，找到物体的边界？</p>
+      <p class="hero-intro">上一站尝试从像素组织出区域。这一站换一个角度：不急着判断“里面是什么”，先观察“哪里发生了变化”。可是变化不等于边界，检测到的边缘也不等于完整轮廓。我们得弄清楚：<strong>从局部响应到一条可计算的二维曲线，中间还差什么？</strong></p>
+      <div class="chips"><span class="chip">梯度与尺度</span><span class="chip">Canny / NMS</span><span class="chip">Edge Linking</span><span class="chip">Contour Tracing</span><span class="chip">亚像素定位</span></div>
+      <div class="hero-visual" aria-label="图像到梯度、边缘图，再到轮廓的示意图">
+        <svg viewBox="0 0 900 258" role="img" aria-labelledby="hero-svg-title">
+          <title id="hero-svg-title">从灰度变化，到离散边缘，再到有序轮廓</title>
+          <defs><pattern id="smallgrid" width="13" height="13" patternUnits="userSpaceOnUse"><path d="M13 0H0V13" stroke="#b7c8c1" stroke-width=".4" opacity=".55" fill="none"/></pattern><linearGradient id="photoBG" x1="0" x2="1"><stop stop-color="#d1ded7"/><stop offset="1" stop-color="#eaf0e9"/></linearGradient></defs>
+          <g font-family="Inter,Arial,sans-serif" font-size="13" fill="#5c726b" font-weight="650"><text x="12" y="26">01 / 原始图像</text><text x="310" y="26">02 / 图像变化</text><text x="605" y="26">03 / 边缘与轮廓</text></g>
+          <rect x="10" y="42" width="260" height="174" rx="10" fill="url(#photoBG)" stroke="#d8e6de"/>
+          <path d="M18 81H263M18 147H263M76 48V208M183 48V208" stroke="#c0d2ca" stroke-width=".6"/><ellipse cx="139" cy="176" rx="82" ry="13" fill="#b6c8bc" opacity=".6"/>
+          <path d="M86 76 Q83 59 105 59H158Q183 59 185 85V157Q182 175 165 175H104Q84 170 84 148Z" fill="#8ba8a0" stroke="#7c9b91" stroke-width="1.2"/>
+          <path d="M103 81C123 76 150 76 172 83M108 101H164M111 121H169" stroke="#c2d8ce" opacity=".7" stroke-width="3"/>
+          <path d="M281 132H300M294 125L301 132 294 139" fill="none" stroke="#6b9b91" stroke-width="2"/>
+          <rect x="310" y="42" width="260" height="174" rx="10" fill="#273d3c"/>
+          <rect x="310" y="42" width="260" height="174" rx="10" fill="url(#smallgrid)" opacity=".22"/>
+          <path d="M387 76 Q385 60 408 59H459Q481 60 483 86V157Q482 176 466 175H405Q386 172 385 151Z" fill="none" stroke="#b3cfc0" stroke-width="16" opacity=".13"/>
+          <path d="M387 76 Q385 60 408 59H459Q481 60 483 86V157Q482 176 466 175H405Q386 172 385 151Z" fill="none" stroke="#a7e2d5" stroke-width="7" opacity=".55"/>
+          <path d="M404 83H465M403 103H461M400 123H468" stroke="#d0a87e" stroke-width="5" opacity=".65"/>
+          <path d="M582 132H601M595 125L602 132 595 139" fill="none" stroke="#6b9b91" stroke-width="2"/>
+          <rect x="605" y="42" width="285" height="174" rx="10" fill="#273d3c"/>
+          <path d="M684 76Q682 60 707 59H763Q782 60 785 84V153Q785 177 763 175H701Q684 174 683 151Z" fill="none" stroke="#c5dcd0" stroke-width="1.5" stroke-dasharray="3 5" opacity=".6"/>
+          <path d="M684 76Q682 60 707 59H763Q782 60 785 84V153Q785 177 763 175H701Q684 174 683 151Z" fill="none" stroke="#65c9b4" stroke-width="3.3"/>
+          <g fill="#ffcf91"><circle cx="684" cy="76" r="4"/><circle cx="707" cy="59" r="4"/><circle cx="763" cy="59" r="4"/><circle cx="785" cy="84" r="4"/><circle cx="785" cy="153" r="4"/><circle cx="763" cy="175" r="4"/><circle cx="701" cy="175" r="4"/><circle cx="683" cy="151" r="4"/></g>
+          <g font-family="Inter,Arial,sans-serif" font-size="11" fill="#72847d"><text x="18" y="239">像素与反光同时存在</text><text x="316" y="239">变化响应中混有内部纹理</text><text x="612" y="239">目标边界需要追踪与判断</text></g>
+        </svg>
+        <p class="diagram-cap">概念示意：同一幅图像中的强变化可能来自目标边界，也可能来自目标内部纹理。可追踪轮廓是对边缘证据的进一步组织，而不是梯度检测的直接同义词。</p>
+      </div>
+    </header>
+
+    <!-- 00 -->
+    <section class="chapter" id="s00" aria-labelledby="h00">
+      <div class="ch-index"><span>00</span><span class="slash"></span><span>PROBLEM &amp; SCOPE</span></div>
+      <h2 id="h00">先把问题划清：我们要找的究竟是什么？</h2>
+      <p class="lead">同一条物体边界，既可以表现为明暗交界，也可以是二值区域的外沿；而相机看到的明暗交界，又不一定来自物体边界。先把这几个概念分开，后面的算法才不会混成一团。</p>
+      <div class="cards-3">
+        <div class="mini-card"><span class="tag">EDGE / 边缘</span><h4>哪里发生了局部变化？</h4><p>从图像强度或其他特征的空间变化得到响应。边缘点可能无序、断开、来自纹理或阴影。</p></div>
+        <div class="mini-card"><span class="tag">CONTOUR / 轮廓</span><h4>哪些边界点属于同一条曲线？</h4><p>按邻接关系组织成有序点列。轮廓可以闭合，也可以是开放曲线；有外轮廓与孔洞。</p></div>
+        <div class="mini-card"><span class="tag">GEOMETRY / 几何模型</span><h4>这些点符合什么几何约束？</h4><p>直线、圆、矩形和其他参数化形状属于下一章。轮廓点并不天然等于几何模型。</p></div>
+      </div>
+      <h3>两种输入，不要写成一条必经流水线</h3>
+      <div class="figure" role="figure" aria-label="原始图像的边缘检测路线与二值Mask的轮廓追踪路线">
+        <svg viewBox="0 0 860 190" role="img" aria-label="边缘证据路线与已有Mask路线最终可以得到轮廓点列">
+          <g font-family="Inter,Arial,sans-serif" font-size="14" font-weight="650" text-anchor="middle">
+            <rect x="15" y="24" width="152" height="54" rx="9" fill="#e7efeb" stroke="#cadbd1"/><text x="91" y="47" fill="#3b655b">灰度 / RGB</text><text x="91" y="65" fill="#69887d" font-size="11">尚无前景区域</text>
+            <path d="M175 50H217" stroke="#77a89d" stroke-width="2"/><path d="m208 44 9 6-9 6" fill="none" stroke="#77a89d" stroke-width="2"/>
+            <rect x="226" y="24" width="170" height="54" rx="9" fill="#e7efeb" stroke="#cadbd1"/><text x="311" y="47" fill="#3b655b">检测 / 筛选边缘</text><text x="311" y="65" fill="#69887d" font-size="11">可能存在断裂与伪边缘</text>
+            <path d="M403 50H489V96" stroke="#77a89d" stroke-width="2" fill="none"/><path d="m483 88 6 9 6-9" stroke="#77a89d" stroke-width="2" fill="none"/>
+            <rect x="15" y="115" width="152" height="54" rx="9" fill="#f5eee1" stroke="#e4d4bb"/><text x="91" y="138" fill="#8b683b">已有二值 Mask</text><text x="91" y="156" fill="#aa8960" font-size="11">前景已知</text>
+            <path d="M175 142H405" stroke="#b59c72" stroke-width="2"/><path d="m396 136 9 6-9 6" fill="none" stroke="#b59c72" stroke-width="2"/>
+            <rect x="416" y="115" width="194" height="54" rx="9" fill="#e7efeb" stroke="#cadbd1"/><text x="513" y="138" fill="#3b655b">边界追踪 / 轮廓组织</text><text x="513" y="156" fill="#69887d" font-size="11">得到有序点列与层级</text>
+            <path d="M619 142H677" stroke="#77a89d" stroke-width="2"/><path d="m668 136 9 6-9 6" fill="none" stroke="#77a89d" stroke-width="2"/>
+            <rect x="687" y="115" width="158" height="54" rx="9" fill="#275f58"/><text x="766" y="138" fill="#fff">轮廓表达 / 定位</text><text x="766" y="156" fill="#d3e8df" font-size="11">后续可用于几何估计</text>
+            <path d="M489 97V108" stroke="#77a89d" stroke-width="2" stroke-dasharray="3 4"/>
+          </g>
+        </svg>
+        <figcaption>路径 A 从图像变化寻找候选边缘；路径 B 已经拥有区域，直接追踪其边界。只有在两条路线产生的边界证据足够可靠时，才谈得上后续的轮廓定位。</figcaption>
+      </div>
+      <div class="insight"><strong>研究边界：</strong>本页研究边缘响应、边缘定位、曲线连接、轮廓提取、轮廓表示与定位精度；不研究语义识别、实例分割网络，也不提前展开 Hough、RANSAC、直线 / 圆 / OBB 的几何模型估计。</div>
+    </section>
+
+    <!-- 01 -->
+    <section class="chapter" id="s01" aria-labelledby="h01">
+      <div class="ch-index"><span>01</span><span class="slash"></span><span>IMAGE GRADIENTS</span></div>
+      <h2 id="h01">边缘从哪里来：图像变化能不能算出来？</h2>
+      <p>先不要看二维图片。想象一排像素，灰度先保持在 50，跨过某个位置后变为 200。如果只关心单点灰度，我们并不知道哪里是边界；但如果比较相邻像素，就会发现这里的变化特别大。</p>
+      <div class="formula">I′(x) ≈ [I(x + 1) − I(x − 1)] / 2<small>有限差分：用邻域灰度的变化近似一阶导数。真实图像的边缘通常会受到光学模糊与采样影响，而不是理想的瞬时阶跃。</small></div>
+      <p>二维图像在水平方向和竖直方向分别计算变化，形成梯度向量。梯度幅值表示变化有多强；梯度方向指向灰度增加最快的方向，通常与该处的边缘切线垂直。</p>
+      <div class="formula">∇I = (I<sub>x</sub>, I<sub>y</sub>) &nbsp;&nbsp; G = √(I<sub>x</sub>² + I<sub>y</sub>²) &nbsp;&nbsp; θ = atan2(I<sub>y</sub>, I<sub>x</sub>)<small>I<sub>x</sub>、I<sub>y</sub> 是两个方向的一阶导数近似。后续 NMS 要用到梯度方向，而不只是强度。</small></div>
+      <h3>为什么图像里的小噪声也可能变成“强边缘”？</h3>
+      <p>求导强调局部变化，并不区分变化来自物体边界还是噪声。为了降低噪声响应，可以先平滑图像。但平滑越强，细节越容易丢失，相邻的两条窄边缘也可能合并。</p>
+      <div class="demo" aria-label="一维阶跃灰度信号与梯度的交互演示">
+        <div class="demo-head"><div><h4>可调实验 · 模糊与噪声改变了什么？</h4><small>同一条理想阶跃边界，改变高斯平滑尺度与噪声幅度</small></div><span class="live-tag">INTERACTIVE · 1D 示意</span></div>
+        <canvas id="signalCanvas" width="920" height="300" role="img" aria-label="一维灰度曲线和梯度幅值对比图。可以通过下方滑块改变噪声和模糊。">浏览器需要支持 Canvas，才能查看交互曲线。</canvas>
+        <div class="demo-controls"><div class="control"><label for="blurSlider">高斯尺度 σ <output id="blurVal">2.0</output></label><input id="blurSlider" type="range" min="0" max="8" value="2" step="0.5"></div><div class="control"><label for="noiseSlider">原始噪声幅度 <output id="noiseVal">10</output></label><input id="noiseSlider" type="range" min="0" max="40" value="10" step="2"></div></div>
+        <p class="demo-foot">上图：含噪信号（浅灰）与平滑后的信号（青绿）；下图：平滑信号的一阶梯度绝对值（橙色）。这是帮助理解求导与平滑的 <strong>一维模拟</strong>，不是对真实二维图像运行的 Canny。</p>
+      </div>
+      <h3>几种常见工具，到底在哪里不同？</h3>
+      <div class="table-wrap"><table><thead><tr><th>方法</th><th>计算机制</th><th>真正值得关注的差异</th></tr></thead><tbody>
+        <tr><td>Sobel</td><td>离散的一阶导数近似，并包含另一个方向上的局部平滑</td><td>卷积核尺寸、梯度方向、噪声响应</td></tr>
+        <tr><td>Scharr</td><td>改进的 3×3 一阶导数算子</td><td>小核时改善不同方向的梯度近似一致性</td></tr>
+        <tr><td>Laplacian</td><td>二阶导数 ∂²I/∂x² + ∂²I/∂y²</td><td>响应强调梯度变化，对噪声敏感；符号与零交叉值得关注</td></tr>
+        <tr><td>LoG</td><td>先高斯平滑，再施加拉普拉斯算子</td><td>尺度 σ 会决定保留或抑制哪些空间结构</td></tr>
+      </tbody></table></div>
+      <div class="insight"><strong>这一节的结论：</strong>梯度能告诉我们“哪里变化明显”，不能直接告诉我们“这是不是物体轮廓”。而且梯度响应通常有宽度，仍需解决边缘的定位与筛选。</div>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="s02" aria-labelledby="h02">
+      <div class="ch-index"><span>02</span><span class="slash"></span><span>EDGE LOCALIZATION · CANNY</span></div>
+      <h2 id="h02">梯度算出来了，为什么还不是一条清楚的边？</h2>
+      <p>图像在一个过渡带内可能连续发生变化。梯度图会形成一条较宽的亮带，附近还可能分布着较弱的噪声响应。如果把所有高梯度像素直接当成边缘，得到的就不是理想的细线。</p>
+      <h3>Canny 其实在逐步回答四个问题</h3>
+      <div class="flowchart" aria-label="Canny四阶段处理机制"><div class="flow-node"><b>平滑</b><span>压低高频噪声</span></div><div class="flow-arrow">→</div><div class="flow-node"><b>梯度</b><span>强度与方向</span></div><div class="flow-arrow">→</div><div class="flow-node"><b>NMS</b><span>沿梯度方向取局部峰值</span></div><div class="flow-arrow">→</div><div class="flow-node"><b>双阈值追踪</b><span>强弱边缘的连接关系</span></div></div>
+      <h3>2.1 · NMS：为什么沿梯度方向比较？</h3>
+      <p>要把宽亮带变成细线，就在当前像素附近沿<strong>梯度方向</strong>比较响应强度。如果当前点不是该方向的局部极大值，就抑制它；如果是峰值，就保留下来。斜向边缘需要在梯度方向的采样点上做插值或采用方向量化近似。</p>
+      <figure class="figure">
+        <svg viewBox="0 0 760 225" role="img" aria-label="非极大值抑制沿梯度方向比较局部峰值，保留梯度峰值">
+          <rect x="8" y="8" width="360" height="201" rx="10" fill="#f5f8f5"/><rect x="390" y="8" width="362" height="201" rx="10" fill="#f5f8f5"/>
+          <g font-family="Inter,Arial,sans-serif" font-size="13" fill="#597168" font-weight="650"><text x="24" y="30">沿梯度方向看响应剖面</text><text x="407" y="30">只保留局部最大值附近的位置</text></g>
+          <path d="M31 170H340M31 48V170" fill="none" stroke="#a8b9b1"/><path d="M51 166C92 163 118 160 145 135S185 56 219 60S262 143 330 162" stroke="#d59e66" stroke-width="3" fill="none"/>
+          <line x1="217" y1="47" x2="217" y2="173" stroke="#347e73" stroke-width="1.3" stroke-dasharray="4 4"/><circle cx="217" cy="60" r="5" fill="#218578"/>
+          <g font-family="Inter,Arial,sans-serif" font-size="11" fill="#729085"><text x="182" y="191">梯度方向上的位置</text><text x="63" y="56">G</text><text x="218" y="47">峰值</text></g>
+          <g transform="translate(409 48)">
+            <path d="M0 119H318" stroke="#bccdc4"/><rect x="37" y="76" width="47" height="43" rx="4" fill="#e8b97e" opacity=".32"/><rect x="91" y="46" width="47" height="73" rx="4" fill="#e8b97e" opacity=".37"/><rect x="145" y="10" width="47" height="109" rx="4" fill="#4aa995"/><rect x="199" y="47" width="47" height="72" rx="4" fill="#e8b97e" opacity=".37"/><rect x="253" y="79" width="47" height="40" rx="4" fill="#e8b97e" opacity=".32"/>
+            <g font-family="Inter,Arial,sans-serif" text-anchor="middle" font-size="10" fill="#6d8077"><text x="61" y="137">抑制</text><text x="115" y="137">抑制</text><text x="169" y="137" fill="#23786b" font-weight="700">保留</text><text x="223" y="137">抑制</text><text x="277" y="137">抑制</text></g>
+          </g>
+        </svg>
+        <figcaption>机制示意：左图是沿梯度法线方向采样得到的一维响应剖面；右图只表达局部峰值的保留与两侧响应的抑制，并非实际图像的二维 NMS 完整结果。</figcaption>
+      </figure>
+      <h3>2.2 · 双阈值：为什么弱边缘有时也需要保留？</h3>
+      <p>只使用一个阈值，阈值高会导致弱边界断裂，阈值低又会引入噪声。Canny 先划分三类候选：强边缘、弱边缘、被排除的响应；再检查弱边缘是否能够通过邻接链连接到强边缘。</p>
+      <div class="formula light">G ≥ T<sub>high</sub> → 强边缘；&nbsp; T<sub>low</sub> ≤ G &lt; T<sub>high</sub> → 弱边缘；&nbsp; G &lt; T<sub>low</sub> → 抑制<small>弱边缘的保留仍取决于与强边缘的连通关系。具体邻域追踪遵循实现的像素连接规则。</small></div>
+      <div class="cards-2">
+        <div class="mini-card"><span class="tag">LOW THRESHOLD</span><h4>低阈值太低</h4><p>弱噪声和纹理更容易进入候选集，即使随后做滞后连接，也可能被保留为伪边缘。</p></div>
+        <div class="mini-card"><span class="tag">HIGH THRESHOLD</span><h4>高阈值太高</h4><p>真正的边界可能缺少足够的强边缘种子，导致某些轮廓段整体消失。</p></div>
+      </div>
+      <div class="insight amber"><strong>边界要清楚：</strong>Canny 的滞后追踪是在已有候选边缘像素中找连通性，它不会凭空创造一条跨越大缺口的真实边界。发生明显断裂时，我们需要另行研究边缘连接问题。</div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="s03" aria-labelledby="h03">
+      <div class="ch-index"><span>03</span><span class="slash"></span><span>EDGE LINKING</span></div>
+      <h2 id="h03">边缘断了，靠什么判断它们属于同一条线？</h2>
+      <p>有些边界很弱，Canny 只能检测出前后两段。如果把两段直接接上，也许能恢复完整轮廓；但如果接错了，就会把两个物体或一条阴影误当成同一条边界。</p>
+      <figure class="figure">
+        <svg viewBox="0 0 790 225" role="img" aria-label="边缘缺口的连通推断示意，与方向不一致的候选端点不能随意连在一起">
+          <rect x="8" y="8" width="380" height="194" rx="10" fill="#283d3b"/><rect x="403" y="8" width="379" height="194" rx="10" fill="#283d3b"/>
+          <g font-family="Inter,Arial,sans-serif" font-size="13" fill="#cce2d8"><text x="26" y="33">检测结果：局部断裂</text><text x="422" y="33">连接假设：距离 + 切线方向</text></g>
+          <path d="M49 150C101 143 120 99 176 99" fill="none" stroke="#7ed0bc" stroke-width="3.8" stroke-linecap="round"/><path d="M239 98C285 94 310 71 348 70" fill="none" stroke="#7ed0bc" stroke-width="3.8" stroke-linecap="round"/>
+          <circle cx="176" cy="99" r="5" fill="#ffce9a"/><circle cx="239" cy="98" r="5" fill="#ffce9a"/><path d="M181 99L235 98" stroke="#e2a36b" stroke-dasharray="6 5" stroke-width="2"/>
+          <path d="M447 150C501 142 520 99 574 99" fill="none" stroke="#7ed0bc" stroke-width="3.8" stroke-linecap="round"/><path d="M638 98C684 94 705 71 741 70" fill="none" stroke="#7ed0bc" stroke-width="3.8" stroke-linecap="round"/><path d="M576 99Q608 98 636 98" fill="none" stroke="#ffce9a" stroke-width="2.7" stroke-dasharray="5 4"/>
+          <path d="M564 100H589M579 94L589 100 579 106" fill="none" stroke="#e3aa74" stroke-width="2"/><path d="M644 97H623M631 91L622 97 631 103" fill="none" stroke="#e3aa74" stroke-width="2"/>
+          <path d="M509 168Q552 182 574 152" fill="none" stroke="#bb7771" stroke-width="2.2"/><path d="M585 147Q622 122 649 159" fill="none" stroke="#bb7771" stroke-width="2.2"/><text x="615" y="185" fill="#ddaca6" font-family="Inter,Arial" font-size="11">方向不符的候选</text>
+        </svg>
+        <figcaption>图中虚线表示一种可能的连接假设，不是从图像直接测到的边。端点接近还不够，还需要考虑局部方向、曲率连续性以及其他边缘分支。</figcaption>
+      </figure>
+      <h3>先分清两件事：追踪已存在的边缘，还是补全缺失的边缘？</h3>
+      <div class="row-tip"><div class="title">追踪</div><div class="desc">沿 8 邻域或局部邻接图，把已有边缘像素组织为线段。面对分叉点，要有明确的选择规则。</div></div>
+      <div class="row-tip"><div class="title">连接</div><div class="desc">当两条边缘之间有缺口，需要根据端点距离、梯度方向、切线一致性和可能的曲率推断是否连接。</div></div>
+      <div class="row-tip"><div class="title">风险</div><div class="desc">连接并不是“修复真值”，而是引入平滑、连续或闭合等先验。被遮挡的真实边界尤其可能存在多种解释。</div></div>
+      <div class="formula light">score(i, j) = w<sub>d</sub> · d(i, j) + w<sub>θ</sub> · Δθ(i, j) + w<sub>κ</sub> · Δκ(i, j)<small>示例性的连接代价：距离、方向与曲率可以共同参与判断。它不是某个 OpenCV 函数的标准公式；各项需归一化，权重与候选筛选规则需通过实验设计。</small></div>
+      <p>实际研究时，不必一上来就实现复杂的全局曲线优化。可以先做<strong>边缘连通域追踪 → 端点查找 → 距离门限 → 方向约束</strong>，再验证哪些缺口能补、哪些缺口不能补。</p>
+      <div class="insight"><strong>这一节的结论：</strong>把像素组织成连续边缘，需要邻接关系；跨越缺口还需要额外假设。连接规则越强，越可能补全边界，也越可能制造错误边界。</div>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="s04" aria-labelledby="h04">
+      <div class="ch-index"><span>04</span><span class="slash"></span><span>CONTOUR TRACING</span></div>
+      <h2 id="h04">一堆边界像素，怎样变成一条有序曲线？</h2>
+      <p>现在假设我们已经有了二值 Mask：前景为 255，背景为 0。我们不只想知道哪些像素属于前景，还希望沿着外侧边界走一圈，得到按顺序排列的坐标。</p>
+      <p>这就是轮廓追踪的任务。边界追踪在前景和背景的邻接关系上工作，不需要先通过 Sobel 或 Canny 求梯度。</p>
+      <h3>为什么轮廓还会有“父子关系”？</h3>
+      <figure class="figure">
+        <svg viewBox="0 0 790 255" role="img" aria-label="包含空洞与内部区域的嵌套轮廓层级示意">
+          <rect x="11" y="12" width="405" height="222" rx="11" fill="#f3f7f4"/>
+          <rect x="58" y="41" width="286" height="163" rx="25" fill="#96b4a9" stroke="#317e72" stroke-width="3"/>
+          <ellipse cx="203" cy="119" rx="93" ry="61" fill="#f3f7f4" stroke="#c18d52" stroke-width="3"/>
+          <rect x="177" y="100" width="54" height="43" rx="7" fill="#96b4a9" stroke="#317e72" stroke-width="3"/>
+          <g font-family="Inter,Arial,sans-serif" font-weight="650" font-size="13"><text x="70" y="64" fill="#fff">C0 · 外边界</text><text x="115" y="111" fill="#9a6b38">C1 · 孔洞</text><text x="166" y="163" fill="#2c6d62">C2 · 内部前景岛</text></g>
+          <g stroke="#a7bcb2" stroke-width="1.8" fill="none"><rect x="467" y="37" width="115" height="38" rx="8"/><rect x="527" y="112" width="115" height="38" rx="8"/><rect x="584" y="185" width="115" height="38" rx="8"/><path d="M524 75V94H584V112M584 150V166H641V185"/></g>
+          <g font-family="Inter,Arial,sans-serif" font-size="13" fill="#456c64" text-anchor="middle"><text x="525" y="61">外轮廓 C0</text><text x="584" y="136">孔洞 C1</text><text x="641" y="209">岛屿 C2</text></g>
+        </svg>
+        <figcaption>前景（青色）与背景（浅色）交替嵌套。不同轮廓不仅是一组点，还具有外轮廓、孔洞、包含关系。</figcaption>
+      </figure>
+      <div class="table-wrap"><table><thead><tr><th>OpenCV 参数</th><th>实际返回什么</th><th>什么时候要注意</th></tr></thead><tbody>
+        <tr><td><code>RETR_EXTERNAL</code></td><td>仅最外层边界</td><td>孔洞和子轮廓将不会完整返回</td></tr>
+        <tr><td><code>RETR_LIST</code></td><td>所有检索到的轮廓，但不建立父子层级</td><td>需要轮廓，但不关心包含关系</td></tr>
+        <tr><td><code>RETR_TREE</code></td><td>所有轮廓与完整的嵌套关系</td><td>需要区分外边界、孔洞、内层前景</td></tr>
+        <tr><td><code>CHAIN_APPROX_NONE</code></td><td>保留边界追踪中所有相邻点</td><td>后续需要更完整的点采样</td></tr>
+        <tr><td><code>CHAIN_APPROX_SIMPLE</code></td><td>压缩水平、竖直与对角的连续段</td><td>节省存储，不等于一般意义的曲线拟合</td></tr>
+      </tbody></table></div>
+      <div class="formula light">contours, hierarchy = cv2.findContours(mask, mode, method)<small>典型输入为单通道 8-bit 二值图；输出 contours 是有序点列的集合，hierarchy 中每条轮廓对应 [next, prev, first_child, parent]。不同 OpenCV 主版本的 Python 返回形式可能不同。</small></div>
+      <div class="insight amber"><strong>一个重要误区：</strong>给 <code>findContours</code> 一张 Canny 边缘图，它会沿非零像素区域的边界组织轮廓，但不会知道哪条线才是物体真实外轮廓。细线还可能产生与期望不同的点列、闭合边界或层级关系。不要把它当成“智能连接 Canny 边缘”的函数。</div>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="s05" aria-labelledby="h05">
+      <div class="ch-index"><span>05</span><span class="slash"></span><span>CONTOUR REPRESENTATION</span></div>
+      <h2 id="h05">轮廓有了，怎么让它更容易保存、比较和计算？</h2>
+      <p>沿边界追踪一圈，可能得到几百或几千个像素坐标。并不是每一种任务都需要完整保存它们。接下来有两种完全不同的思路：<strong>简化轮廓的表示</strong>，或者<strong>利用图像证据继续优化轮廓位置</strong>。</p>
+      <div class="cards-2">
+        <div class="mini-card"><span class="tag">REPRESENTATION</span><h4>链码（Chain Code）</h4><p>把相邻轮廓点之间的方向记成 4 邻域或 8 邻域方向编号。重点不是新建边界，而是编码已有的有序路径。</p></div>
+        <div class="mini-card"><span class="tag">SIMPLIFICATION</span><h4>Douglas–Peucker</h4><p>保留足以逼近原始曲线的关键顶点。允许的近似误差越大，一般保留的点越少，也越可能损失小尺度细节。</p></div>
+      </div>
+      <h3>5.1 · 为什么可以删掉某些轮廓点？</h3>
+      <p>想象一条近似直线的边界，上面保存了几十个点。如果只保留首尾两点，几乎也能表达原来的形状。但对弯曲明显的部分，只保留首尾点就会产生较大偏差。Douglas–Peucker 正是根据偏差递归决定是否保留中间点。</p>
+      <figure class="figure">
+        <svg viewBox="0 0 790 205" role="img" aria-label="一条轮廓在高密度采样与Douglas Peucker近似后顶点减少">
+          <rect x="8" y="8" width="378" height="181" rx="10" fill="#f6f9f6"/><rect x="404" y="8" width="378" height="181" rx="10" fill="#f6f9f6"/>
+          <text x="26" y="34" fill="#61786c" font-size="13" font-family="Inter,Arial" font-weight="700">原始轮廓 · 密集采样</text><text x="422" y="34" fill="#61786c" font-size="13" font-family="Inter,Arial" font-weight="700">近似轮廓 · 关键顶点</text>
+          <path id="denseShape" d="M47 143L61 128L74 117L86 105L101 96L116 90L131 82L145 81L159 74L175 78L188 82L202 87L216 101L229 117L242 132L256 138L273 131L289 108L304 90L320 75L341 63" fill="none" stroke="#65a79a" stroke-width="3"/>
+          <path d="M444 143L505 96L549 74L592 87L647 138L692 90L739 63" fill="none" stroke="#2b806f" stroke-width="3.5"/>
+          <g fill="#e0b27a" stroke="#fff" stroke-width="1.5"><circle cx="47" cy="143" r="4"/><circle cx="61" cy="128" r="3"/><circle cx="74" cy="117" r="3"/><circle cx="86" cy="105" r="3"/><circle cx="101" cy="96" r="3"/><circle cx="116" cy="90" r="3"/><circle cx="131" cy="82" r="3"/><circle cx="145" cy="81" r="3"/><circle cx="159" cy="74" r="3"/><circle cx="175" cy="78" r="3"/><circle cx="188" cy="82" r="3"/><circle cx="202" cy="87" r="3"/><circle cx="216" cy="101" r="3"/><circle cx="229" cy="117" r="3"/><circle cx="242" cy="132" r="3"/><circle cx="256" cy="138" r="3"/><circle cx="273" cy="131" r="3"/><circle cx="289" cy="108" r="3"/><circle cx="304" cy="90" r="3"/><circle cx="320" cy="75" r="3"/><circle cx="341" cy="63" r="4"/></g>
+          <g fill="#e0b27a" stroke="#fff" stroke-width="1.5"><circle cx="444" cy="143" r="5"/><circle cx="505" cy="96" r="5"/><circle cx="549" cy="74" r="5"/><circle cx="592" cy="87" r="5"/><circle cx="647" cy="138" r="5"/><circle cx="692" cy="90" r="5"/><circle cx="739" cy="63" r="5"/></g>
+        </svg>
+        <figcaption>机制示意：原始采样点列与稀疏折线近似不同；近似后仍应测量曲线间的最大距离，而不是只看留下了多少个点。</figcaption>
+      </figure>
+      <div class="formula light">ε = 允许的最大近似偏差 &nbsp;·&nbsp; approxPolyDP(contour, ε, closed)<small>ε 与输入点坐标使用同一长度单位；对 OpenCV 图像轮廓而言，通常就是像素。常见做法可把 ε 设为轮廓周长的某个比例，但不是通用最优值。</small></div>
+      <h3>5.2 · 如果想让曲线继续贴近真实图像边界呢？</h3>
+      <p>轮廓简化不会自动变得更准确。另一类方法是 Active Contour（Snakes）：给曲线定义能量，既希望它靠近有图像证据的位置，又希望曲线不要随意拉伸或发生不必要的弯折。</p>
+      <div class="formula">E[v] = ∫ [ α|v′(s)|² + β|v″(s)|² + E<sub>image</sub>(v(s)) ] ds<small>一种典型的轮廓能量形式：一阶、二阶项控制曲线内部正则性；图像能量项吸引曲线到候选边界。具体模型还有外力、约束与不同参数化形式。</small></div>
+      <p>它的局限也很明确：需要初始轮廓，可能陷入局部极小值；对弱边界、凹陷区域和错误的图像能量容易产生偏差。不是把 Canny 结果丢进去就一定会改善。</p>
+      <div class="insight"><strong>这一节的结论：</strong>链码关心“怎么存”；轮廓简化关心“用更少点表达”；Active Contour 关心“依据图像约束继续优化”。直线 / 圆 / 矩形等形状模型参数估计仍然留在下一章。</div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="s06" aria-labelledby="h06">
+      <div class="ch-index"><span>06</span><span class="slash"></span><span>LOCALIZATION PRECISION</span></div>
+      <h2 id="h06">最后一个问题：找到的边界究竟有多准确？</h2>
+      <p>一张图里的边缘看起来很细，不代表测量位置就一定准确。标准的 Canny 边缘图标记在整数像素网格上，真实连续空间中的边界却不必恰好落在像素中心。</p>
+      <h3>亚像素定位来自哪里？</h3>
+      <p>如果在边界法线方向上有一个比较平滑、孤立的梯度峰值，可以利用峰值附近的响应，在相邻整数像素之间估计它的连续位置。例如，用三个采样点拟合局部二次曲线：</p>
+      <div class="formula">δ = ½ · (g<sub>−1</sub> − g<sub>+1</sub>) / (g<sub>−1</sub> − 2g<sub>0</sub> + g<sub>+1</sub>)<small>δ 是相对于中心采样位置的偏移量。要求分母非零且局部响应符合峰值近似；二维边缘还需沿梯度方向采样并把偏移投影回图像坐标。这只是亚像素估计的一种方式。</small></div>
+      <div class="cards-3">
+        <div class="mini-card"><span class="tag">SAMPLING</span><h4>像素离散化</h4><p>边界位于整数像素之间，直接取最大响应所在像素会产生量化偏差。</p></div>
+        <div class="mini-card"><span class="tag">IMAGE FORMATION</span><h4>成像与噪声</h4><p>光学模糊、反光、运动模糊及信噪比都会改变局部灰度剖面与峰值。</p></div>
+        <div class="mini-card"><span class="tag">ALGORITHM</span><h4>检测与表示</h4><p>平滑核、阈值、连接、轮廓近似与亚像素模型都可能进一步改变位置。</p></div>
+      </div>
+      <h3>评估时，究竟应该测什么？</h3>
+      <div class="table-wrap"><table><thead><tr><th>指标</th><th>回答的问题</th><th>必要前提</th></tr></thead><tbody>
+        <tr><td>边界位置偏差</td><td>检测点距离已知真实边界有多远？</td><td>需要可控的合成真值或更高精度参考</td></tr>
+        <tr><td>连续性 / 召回</td><td>真实边界中，有多少段被成功检出？</td><td>定义匹配距离容差、可见边界范围</td></tr>
+        <tr><td>误检比例</td><td>检测到的边缘有多少来自纹理与噪声？</td><td>真实目标边界与其他图像变化要分开标注</td></tr>
+        <tr><td>重复性</td><td>同一静态场景连续采集，轮廓位置跳动多大？</td><td>尽可能固定光照、曝光与相机姿态</td></tr>
+      </tbody></table></div>
+      <div class="insight amber"><strong>务必分开：</strong>亚像素只是输出坐标能细于一个像素，不代表绝对定位误差必然小于一个像素。即使曲线拟合残差很小，也可能因为错误边缘、系统偏差或错误的前景定义，偏离真实目标。</div>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="s07" aria-labelledby="h07">
+      <div class="ch-index"><span>07</span><span class="slash"></span><span>EXPERIMENTS &amp; TAKEAWAYS</span></div>
+      <h2 id="h07">怎样把这一章真正学明白？</h2>
+      <p>不需要为每个算法都找一套数据集。用一张形状已知的合成图，再加一张真实图像，逐次改变一个条件，就能验证很多问题。</p>
+      <div class="experiment-grid">
+        <div class="ex-index">EXP 01</div><div class="ex-body"><strong>为什么要平滑？</strong><p>对固定边缘加入不同强度噪声，比较 Sobel 梯度响应及不同 σ 下的定位、误检与边缘宽度。</p></div>
+        <div class="ex-index">EXP 02</div><div class="ex-body"><strong>Canny 哪一步真正改变了边缘？</strong><p>观察梯度幅值、NMS 候选、阈值连接后的结果；分别改变平滑尺度和上下阈值，记录断裂与伪边缘。</p></div>
+        <div class="ex-index">EXP 03</div><div class="ex-body"><strong>边缘图和 Mask 的轮廓有什么不同？</strong><p>构造含孔洞、内部纹理、断裂线的图像，分别对二值 Mask 和 Canny 输出进行 findContours，比对点列与层级。</p></div>
+        <div class="ex-index">EXP 04</div><div class="ex-body"><strong>轮廓简化与定位的代价是什么？</strong><p>逐步增大 ε，绘制点数和最大偏差的变化；在亚像素平移的合成边缘上比较整数像素和连续峰值估计。</p></div>
+      </div>
+      <h3>一份最小可复现的 OpenCV 实验</h3>
+      <p>下面的代码只演示其中两个输入路径：<strong>同一张灰度图 → Canny → 轮廓</strong>，以及<strong>已知前景 Mask → 轮廓</strong>。故意在目标内部加入纹理线，看看它们是否会进入边缘结果。需要安装 <code>numpy</code>、<code>opencv-python</code> 和 <code>matplotlib</code>。</p>
+      <details>
+        <summary>展开完整代码：生成测试图、对比 Canny 与 Mask 轮廓</summary>
+        <div class="details-body">
+          <div class="copy-bar"><button class="copy-btn" type="button" data-copy="cv-code">复制代码</button></div>
+          <pre><code id="cv-code">import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 固定随机种子，便于重复实验
+rng = np.random.default_rng(42)
+h, w = 300, 480
+
+# 1. 构造前景 Mask：一个实体 + 一个孔洞
+mask = np.zeros((h, w), dtype=np.uint8)
+cv2.rectangle(mask, (95, 65), (370, 235), 255, -1)
+cv2.circle(mask, (233, 151), 48, 0, -1)
+
+# 2. 用 Mask 制作灰度图；额外加入内部纹理与少量噪声
+img = np.full((h, w), 62, dtype=np.float32)
+img[mask > 0] = 180
+cv2.line(img, (120, 92), (345, 92), 110, 3)
+cv2.line(img, (122, 112), (340, 112), 220, 3)
+img += rng.normal(0, 9, (h, w)).astype(np.float32)
+img = np.clip(img, 0, 255).astype(np.uint8)
+
+# 3. 图像变化路径：平滑 -> Canny -> 轮廓追踪
+smooth = cv2.GaussianBlur(img, (5, 5), 1.2)
+edge = cv2.Canny(smooth, 60, 130, L2gradient=True)
+edge_contours, _ = cv2.findContours(
+    edge, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE
+)
+
+# 4. 已知区域路径：直接从 Mask 追踪轮廓
+mask_contours, hierarchy = cv2.findContours(
+    mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
+)
+
+# 5. 比较两组结果（注意：轮廓数量不是检测质量指标）
+view_edge = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+view_mask = view_edge.copy()
+cv2.drawContours(view_edge, edge_contours, -1, (240, 130, 65), 1)
+cv2.drawContours(view_mask, mask_contours, -1, (40, 155, 110), 2)
+
+fig, axes = plt.subplots(2, 2, figsize=(11, 6.5))
+for ax, data, title in zip(
+    axes.flat,
+    [img, edge, view_edge, view_mask],
+    ["Grayscale input", "Canny edges", "Contours on edges", "Contours on mask"],
+):
+    ax.imshow(data, cmap="gray" if data.ndim == 2 else None)
+    ax.set_title(title)
+    ax.axis("off")
+plt.tight_layout()
+plt.savefig("edges_contours_experiment.png", dpi=180)
+plt.show()
+
+print("Edge contours:", len(edge_contours))
+print("Mask contours:", len(mask_contours))
+print("Mask hierarchy:", hierarchy[0].tolist() if hierarchy is not None else None)</code></pre>
+        </div>
+      </details>
+      <h3>最后收束为一张技术判断表</h3>
+      <div class="table-wrap"><table><thead><tr><th>我遇到的实际问题</th><th>优先研究的机制</th><th>不应该直接跳到的结论</th></tr></thead><tbody>
+        <tr><td>边缘全是噪声</td><td>成像噪声、平滑尺度、梯度响应、阈值</td><td>“换一个更强的轮廓算法就行”</td></tr>
+        <tr><td>边缘有几像素宽</td><td>梯度方向与 NMS</td><td>“梯度最大的整片区域都是边界”</td></tr>
+        <tr><td>轮廓断成几段</td><td>弱边缘滞后追踪、连接与补全假设</td><td>“findContours 会自动把断口接上”</td></tr>
+        <tr><td>已经有了 Mask</td><td>边界追踪、孔洞、轮廓层级</td><td>“必须先 Canny 再 findContours”</td></tr>
+        <tr><td>轮廓点太多</td><td>链码、曲线压缩、近似偏差</td><td>“近似后的顶点就是真实角点”</td></tr>
+        <tr><td>测得位置不稳定</td><td>误差来源、重复性、亚像素估计</td><td>“有小数坐标就说明精度高”</td></tr>
+      </tbody></table></div>
+      <div class="insight"><strong>这一站得到的答案：</strong>原始图像只能提供局部变化证据；梯度与 Canny 负责检测和定位候选边缘，边缘连接利用连续性假设，轮廓追踪把边界组织为有序点列，曲线近似与亚像素方法进一步改变它的表示或坐标。每一步都可能减少噪声，也可能损失或制造几何信息。</div>
+    </section>
+
+    <div class="next">
+      <div class="kicker">NEXT QUESTION / 下一站</div>
+      <h3>轮廓点都找到了，怎样确定它是直线、圆，还是四边形？</h3>
+      <p>边缘与轮廓提供二维证据；下一站「几何结构」研究怎样利用约束把这些点转化为可解释的形状与参数，不在这里提前混入 Hough、RANSAC 和 OBB。</p>
+      <div class="bottom-links"><a href="../02-regions-segmentation/">← 上一篇 · 区域与分割</a><a href="../">返回 · 传统视觉路线</a></div>
+    </div>
+    <footer class="footer"><span>沿途手记 · Stage 01 · 传统视觉 / 图像特征与结构提取</span><span>Edges &amp; Contours · Technical Research Notes</span></footer>
+  </main>
+</div>
+<script>
+(function () {
+  'use strict';
+  // 左侧固定目录与移动端开合
+  const sidebar = document.getElementById('siteSidebar');
+  const menu = document.getElementById('menuButton');
+  const overlay = document.getElementById('menuOverlay');
+  function closeMenu() {
+    sidebar.classList.remove('is-open');
+    overlay.classList.remove('is-open');
+    menu.setAttribute('aria-expanded', 'false');
+  }
+  menu.addEventListener('click', () => {
+    const isOpen = sidebar.classList.toggle('is-open');
+    overlay.classList.toggle('is-open', isOpen);
+    menu.setAttribute('aria-expanded', String(isOpen));
+  });
+  overlay.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+  const sections = Array.from(document.querySelectorAll('.chapter'));
+  const links = Array.from(document.querySelectorAll('.toc a'));
+  links.forEach(link => link.addEventListener('click', closeMenu));
+  const progress = document.getElementById('progress');
+  let ticking = false;
+  function updateNavigation() {
+    const scanY = window.scrollY + Math.min(170, window.innerHeight * .28);
+    let current = sections[0].id;
+    for (const section of sections) {
+      if (section.offsetTop <= scanY) current = section.id;
+      else break;
+    }
+    for (const link of links) {
+      const active = link.getAttribute('href') === '#' + current;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    }
+    const maxY = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    progress.style.width = (Math.min(100, Math.max(0, window.scrollY / maxY * 100))) + '%';
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(updateNavigation); }
+  }, {passive: true});
+  window.addEventListener('resize', updateNavigation);
+  updateNavigation();
+
+  // 一维实验：在固定阶跃信号上添加可重复的伪噪声，进行高斯平滑与有限差分
+  const canvas = document.getElementById('signalCanvas');
+  if (canvas && canvas.getContext) {
+    const ctx = canvas.getContext('2d');
+    const blur = document.getElementById('blurSlider');
+    const noise = document.getElementById('noiseSlider');
+    const blurVal = document.getElementById('blurVal');
+    const noiseVal = document.getElementById('noiseVal');
+    const n = 240;
+    const baseNoise = new Float64Array(n);
+    // 确定性 Box-Muller 随机噪声，确保拖动滑块时比较的是同一组扰动
+    let seed = 246813579;
+    const rand = () => { seed = (1664525 * seed + 1013904223) >>> 0; return (seed + 1) / 4294967297; };
+    for (let i = 0; i < n; i++) {
+      const u = rand(), v = rand();
+      baseNoise[i] = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+    function smooth(values, sigma) {
+      if (sigma < .01) return values.slice();
+      const r = Math.max(1, Math.ceil(sigma * 3));
+      const kernel = [];
+      let total = 0;
+      for (let k = -r; k <= r; k++) { const w = Math.exp(-(k * k) / (2 * sigma * sigma)); kernel.push(w); total += w; }
+      return values.map((_, i) => {
+        let v = 0;
+        for (let k = -r; k <= r; k++) v += values[Math.min(n - 1, Math.max(0, i + k))] * kernel[k + r];
+        return v / total;
+      });
+    }
+    function drawPlot() {
+      const sigma = Number(blur.value), noiseAmp = Number(noise.value);
+      blurVal.textContent = sigma.toFixed(1);
+      noiseVal.textContent = String(noiseAmp);
+      const raw = Array.from({length: n}, (_, i) => (i < 120 ? 50 : 200) + baseNoise[i] * noiseAmp);
+      const filtered = smooth(raw, sigma);
+      const grad = filtered.map((_, i) => i === 0 || i === n - 1 ? 0 : Math.abs((filtered[i + 1] - filtered[i - 1]) / 2));
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const rect = canvas.getBoundingClientRect();
+      const W = Math.max(320, Math.round(rect.width)), H = 246;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const left = 40, right = W - 15, span = right - left;
+      const fx = i => left + i / (n - 1) * span;
+      function stroke(series, yMap, color, lineWidth, opacity = 1) {
+        ctx.beginPath();ctx.strokeStyle = color;ctx.lineWidth = lineWidth;ctx.globalAlpha = opacity;
+        series.forEach((v, i) => { if (i === 0) ctx.moveTo(fx(i), yMap(v)); else ctx.lineTo(fx(i), yMap(v)); });
+        ctx.stroke();ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = '#fafcf9';ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = '#e0e9e2';ctx.lineWidth = 1;
+      [34,78,122,160,203].forEach(y => { ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke(); });
+      ctx.fillStyle = '#6b847c';ctx.font = '11px system-ui, sans-serif';
+      ctx.fillText('灰度 I',8,19);ctx.fillText('梯度 |I\'|',8,155);
+      const topY = v => 129 - Math.max(0, Math.min(255,v)) * 0.36;
+      const maxGrad = Math.max(15,...grad);
+      const bottomY = v => 230 - v / maxGrad * 61;
+      ctx.save();ctx.setLineDash([4,5]);ctx.strokeStyle = '#bbcfc3';ctx.beginPath();ctx.moveTo(fx(120),25);ctx.lineTo(fx(120),233);ctx.stroke();ctx.restore();
+      stroke(raw,topY,'#c0c9c3',1, .9);
+      stroke(filtered,topY,'#288578',2.6);
+      stroke(grad,bottomY,'#cb8950',2.1);
+      ctx.fillStyle = '#8d9d96';ctx.fillText('真实阶跃位置',Math.min(right-90,fx(120)+6),20);
+      ctx.fillStyle = '#2b8477';ctx.fillText('平滑灰度',W>580?right-90:left+6,53);
+      ctx.fillStyle = '#b8824e';ctx.fillText('梯度幅值',W>580?right-90:left+6,184);
+    }
+    blur.addEventListener('input', drawPlot);
+    noise.addEventListener('input', drawPlot);
+    window.addEventListener('resize', drawPlot);
+    drawPlot();
+  }
+  document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
+    const node = document.getElementById(button.dataset.copy);
+    if (!node) return;
+    try {
+      await navigator.clipboard.writeText(node.textContent);
+      const old = button.textContent;
+      button.textContent = '已复制';
+      setTimeout(() => { button.textContent = old; }, 1700);
+    } catch (e) {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(node); selection.removeAllRanges(); selection.addRange(range);
+      button.textContent = '已选中代码，请复制';
+    }
+  }));
+})();
+</script>
+</body>
+</html>
