@@ -1,11 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="沿途手记 · 图像特征与结构提取：从可见线索出发，梳理六个传统视觉研究问题。">
-  <title>图像特征与结构提取｜沿途手记</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="沿途手记 · 图像特征与结构提取：从可见线索出发，梳理六个传统视觉研究问题。" name="description"/>
+<title>图像特征与结构提取｜沿途手记</title>
+<style>
     :root {
       --paper: #fbfaf7;
       --side: #f5f4f0;
@@ -120,90 +121,90 @@
   </style>
 </head>
 <body>
-  <div class="overlay" id="overlay" aria-hidden="true"></div>
-  <aside class="sidebar" id="sidebar" aria-label="当前笔记导航">
-    <div>
-      <div class="brand">沿途手记</div>
-      <div class="brand-en">RESEARCH NOTES · STAGE 01</div>
-    </div>
-    <div class="side-path" aria-label="当前位置">
-      <div class="path-level">Stage 01 · 固定抓取策略</div>
-      <div class="path-level">二维目标定位</div>
-      <div class="path-current">图像特征与结构提取</div>
-    </div>
-    <div class="side-title">本页目录 / ON THIS PAGE</div>
-    <nav class="side-nav">
-      <a href="#problem" data-section="problem" class="active"><span class="num">00</span><span>问题与边界</span></a>
-      <a href="#routes" data-section="routes"><span class="num">01</span><span>六个研究方向</span></a>
-    </nav>
-    <div class="side-foot"><div class="rule"></div>当前位置只看本页。<br>具体内容从右侧六条路线进入。</div>
-  </aside>
-  <main class="main" id="top">
-    <div class="mobile-bar">
-      <button type="button" id="mobile-menu" aria-expanded="false" aria-controls="sidebar">☰ 目录</button>
-      <strong>沿途手记</strong><span>Stage 01</span>
-    </div>
-    <article class="article">
-      <div class="crumb"><span>Stage 01</span><span class="slash">/</span><span>二维目标定位</span><span class="slash">/</span><span>图像特征与结构提取</span></div>
-      <header class="hero">
-        <div class="eyebrow">VISUAL EVIDENCE · 从图像里找目标</div>
-        <h1>图像特征与结构提取</h1>
-        <p class="subhead">看得见目标，凭什么把它找出来？</p>
-        <p class="lead">相机已经把场景变成了一张 RGB 图像。可图像里只有像素，并没有告诉我们：哪一部分才是要找的东西。</p>
-      </header>
-      <section class="problem" id="problem">
-        <div class="chapter-index">00 · DEFINE THE PROBLEM</div>
-        <h2>先说清楚，这里要解决什么</h2>
-        <p>桌上有只红色瓶子，试着找出红色区域，好像就能定位它。可旁边再放一本红色书，颜色又不够了。换成白色瓶子，也许轮廓更有用；换成一根弯曲的线缆，连一个矩形框都未必能描述清楚它的位置。</p>
-        <p>所以我们真正要研究的，不是把传统算法挨个介绍一遍，而是：<strong>图像里有哪些可以计算的线索？它们分别能把目标定位到什么程度？</strong></p>
-        <div class="scope"><b>这一页的边界：</b>只研究单张二维图像中的颜色、纹理、空间邻接、边缘、几何形状与局部结构。可以人为设定判别规则，但不使用训练式识别模型，也不依赖目标专属参考图；深度与三维位置不在这里讨论。</div>
-      </section>
-      <section class="routes" id="routes">
-        <div class="chapter-index">01 · SIX QUESTIONS</div>
-        <h2>六个值得分别研究的问题</h2>
-        <p class="routes-intro">同一张图像，可以从不同的证据入手。下面不是六步流水线，而是六种独立的问题：先看手里有什么线索，再决定该算什么。</p>
-        <div class="route-grid">
-          <a class="route" href="./01-pixels-texture/">
-            <div class="route-top"><span class="route-num">01 · PIXELS &amp; TEXTURE</span><span class="route-arrow" aria-hidden="true">↗</span></div>
-            <h3>像素与纹理</h3>
-            <p>目标和背景颜色不同，或者表面纹理不一样，怎样把这种差异变成可计算的判别？</p>
-            <div class="route-out"><span>得到</span>像素判别 · 纹理响应 · 初步 Mask</div>
-          </a>
-          <a class="route" href="./02-regions-segmentation/">
-            <div class="route-top"><span class="route-num">02 · REGIONS &amp; SEGMENTATION</span><span class="route-arrow" aria-hidden="true">↗</span></div>
-            <h3>区域与分割</h3>
-            <p>前景像素已经有了，哪些属于同一块？相邻、粘连或破碎的区域又该怎样处理？</p>
-            <div class="route-out"><span>得到</span>连通区域 · 候选 Mask · 区域标签</div>
-          </a>
-          <a class="route" href="./03-edges-contours/">
-            <div class="route-top"><span class="route-num">03 · EDGES &amp; CONTOURS</span><span class="route-arrow" aria-hidden="true">↗</span></div>
-            <h3>边缘与轮廓</h3>
-            <p>颜色不容易区分时，能不能通过图像变化找到边界，再从零散边缘恢复轮廓？</p>
-            <div class="route-out"><span>得到</span>边缘图 · 轮廓链 · 边界位置</div>
-          </a>
-          <a class="route" href="./04-geometric-structures/">
-            <div class="route-top"><span class="route-num">04 · GEOMETRIC STRUCTURES</span><span class="route-arrow" aria-hidden="true">↗</span></div>
-            <h3>几何结构</h3>
-            <p>目标存在直线、圆或其他规则形状，怎样从图像证据中找到并验证这些几何约束？</p>
-            <div class="route-out"><span>得到</span>直线 · 圆 · 曲线与几何参数</div>
-          </a>
-          <a class="route" href="./05-skeleton-topology/">
-            <div class="route-top"><span class="route-num">05 · SKELETON &amp; TOPOLOGY</span><span class="route-arrow" aria-hidden="true">↗</span></div>
-            <h3>骨架与拓扑</h3>
-            <p>遇到细长、弯曲或带分叉的目标，怎样保留它的走向、端点和连接关系？</p>
-            <div class="route-out"><span>得到</span>中心线 · 端点 · 分支结构</div>
-          </a>
-          <a class="route" href="./06-local-features/">
-            <div class="route-top"><span class="route-num">06 · LOCAL FEATURES</span><span class="route-arrow" aria-hidden="true">↗</span></div>
-            <h3>局部特征</h3>
-            <p>一张图里哪些局部细节足够稳定，能够被提取、描述，并在别的图像中重新找到？</p>
-            <div class="route-out"><span>得到</span>关键点 · 局部描述子 · 匹配线索</div>
-          </a>
-        </div>
-      </section>
-    </article>
-  </main>
-  <script>
+<div aria-hidden="true" class="overlay" id="overlay"></div>
+<aside aria-label="当前笔记导航" class="sidebar" id="sidebar">
+<div>
+<div class="brand">沿途手记</div>
+<div class="brand-en">RESEARCH NOTES · STAGE 01</div>
+</div>
+<div aria-label="当前位置" class="side-path">
+<div class="path-level">Stage 01 · 固定抓取策略</div>
+<div class="path-level">二维目标定位</div>
+<div class="path-current">图像特征与结构提取</div>
+</div>
+<div class="side-title">本页目录 / ON THIS PAGE</div>
+<nav class="side-nav">
+<a class="active" data-section="problem" href="#problem"><span class="num">00</span><span>问题与边界</span></a>
+<a data-section="routes" href="#routes"><span class="num">01</span><span>六个研究方向</span></a>
+</nav>
+<div class="side-foot"><div class="rule"></div>当前位置只看本页。<br/>具体内容从右侧六条路线进入。</div>
+</aside>
+<main class="main" id="top">
+<div class="mobile-bar">
+<button aria-controls="sidebar" aria-expanded="false" id="mobile-menu" type="button">☰ 目录</button>
+<strong>沿途手记</strong><span>Stage 01</span>
+</div>
+<article class="article">
+<div class="crumb"><span>Stage 01</span><span class="slash">/</span><span>二维目标定位</span><span class="slash">/</span><span>图像特征与结构提取</span></div>
+<header class="hero">
+<div class="eyebrow">VISUAL EVIDENCE · 从图像里找目标</div>
+<h1>图像特征与结构提取</h1>
+<p class="subhead">看得见目标，凭什么把它找出来？</p>
+<p class="lead">相机已经把场景变成了一张 RGB 图像。可图像里只有像素，并没有告诉我们：哪一部分才是要找的东西。</p>
+</header>
+<section class="problem" id="problem">
+<div class="chapter-index">00 · DEFINE THE PROBLEM</div>
+<h2>先说清楚，这里要解决什么</h2>
+<p>桌上有只红色瓶子，试着找出红色区域，好像就能定位它。可旁边再放一本红色书，颜色又不够了。换成白色瓶子，也许轮廓更有用；换成一根弯曲的线缆，连一个矩形框都未必能描述清楚它的位置。</p>
+<p>所以我们真正要研究的，不是把传统算法挨个介绍一遍，而是：<strong>图像里有哪些可以计算的线索？它们分别能把目标定位到什么程度？</strong></p>
+<div class="scope"><b>这一页的边界：</b>主要研究二维图像中的颜色、纹理、空间邻接、边缘、几何形状与结构信息。可以人为设定判别规则，不使用训练式识别模型；前五条以单张图像为主，第六条的特征匹配允许使用另一张参考图像。深度与三维位置不在这里讨论。</div>
+</section>
+<section class="routes" id="routes">
+<div class="chapter-index">01 · SIX QUESTIONS</div>
+<h2>六个值得分别研究的问题</h2>
+<p class="routes-intro">这些方向分别利用不同的视觉线索，不是必须依次执行的六步流程。每条路线只定义自己要解决的问题。</p>
+<div class="route-grid">
+<a class="route" href="./01-pixels-texture/">
+<div class="route-top"><span class="route-num">01 · COLOR &amp; TEXTURE</span><span aria-hidden="true" class="route-arrow">↗</span></div>
+<h3>颜色与纹理</h3>
+<p>利用颜色、亮度和纹理等外观差异，初步区分目标与背景。</p>
+<div class="route-out"><span>得到</span>外观分类 · 纹理响应 · 初步 Mask</div>
+</a>
+<a class="route" href="./02-regions-segmentation/">
+<div class="route-top"><span class="route-num">02 · REGIONS &amp; SEGMENTATION</span><span aria-hidden="true" class="route-arrow">↗</span></div>
+<h3>区域与分割</h3>
+<p>将图像划分为不同区域，处理前景的破碎、粘连与孔洞，提取候选区域。</p>
+<div class="route-out"><span>得到</span>连通区域 · 候选 Mask · 区域标签</div>
+</a>
+<a class="route" href="./03-edges-contours/">
+<div class="route-top"><span class="route-num">03 · EDGES &amp; CONTOURS</span><span aria-hidden="true" class="route-arrow">↗</span></div>
+<h3>边缘与轮廓</h3>
+<p>检测图像中的边缘，提取目标边界及其轮廓形状。</p>
+<div class="route-out"><span>得到</span>边缘图 · 轮廓链 · 边界位置</div>
+</a>
+<a class="route" href="./04-geometric-structures/">
+<div class="route-top"><span class="route-num">04 · GEOMETRIC MODELS</span><span aria-hidden="true" class="route-arrow">↗</span></div>
+<h3>几何模型</h3>
+<p>检测并拟合直线、圆、椭圆等规则形状，恢复其几何参数与结构关系。</p>
+<div class="route-out"><span>得到</span>直线 · 圆 · 椭圆参数 · 几何关系</div>
+</a>
+<a class="route" href="./05-skeleton-topology/">
+<div class="route-top"><span class="route-num">05 · SKELETON &amp; TOPOLOGY</span><span aria-hidden="true" class="route-arrow">↗</span></div>
+<h3>骨架与拓扑</h3>
+<p>提取目标的中心线、分支和连接关系，描述形状的内部结构。</p>
+<div class="route-out"><span>得到</span>中心线 · 端点 · 分叉与连接关系</div>
+</a>
+<a class="route" href="./06-local-features/">
+<div class="route-top"><span class="route-num">06 · KEYPOINTS &amp; MATCHING</span><span aria-hidden="true" class="route-arrow">↗</span></div>
+<h3>关键点与匹配</h3>
+<p>提取具有辨识度的图像特征，通过特征匹配建立不同图像之间的位置对应关系。</p>
+<div class="route-out"><span>得到</span>关键点 · 描述子 · 特征对应</div>
+</a>
+</div>
+</section>
+</article>
+</main>
+<script>
     (() => {
       const menu = document.getElementById('mobile-menu');
       const overlay = document.getElementById('overlay');

@@ -1,539 +1,527 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="description" content="沿途手记 · Stage 01 · 几何结构：从边缘证据到可验证的几何模型。">
-  <title>几何结构｜沿途手记</title>
-  <style>
-    :root{
-      --paper:#f8f8f5; --white:#fff; --ink:#243342; --muted:#65747e; --faint:#89939c;
-      --rule:#e4e8e7; --cyan:#287b87; --cyan-weak:#edf5f4; --orange:#b56d3e; --orange-weak:#fbf3ea;
-      --dark:#233b43; --code:#22323b; --shadow:0 14px 44px rgba(31,49,57,.04);
-      --radius:14px; --width:91%;
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth;scroll-padding-top:26px}
-    body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.84;-webkit-font-smoothing:antialiased}
-    a{color:inherit;text-decoration:none}
-    a:hover{color:var(--cyan)}
-    button,input{font:inherit}
-    button{cursor:pointer}
-    .layout{width:var(--width);max-width:1500px;margin:auto;display:grid;grid-template-columns:minmax(0,21%) minmax(0,1fr);gap:5.5%;align-items:start}
-    .sidebar{position:sticky;top:0;height:100dvh;overflow-y:auto;padding:35px 0 32px 0;scrollbar-width:thin;scrollbar-color:#d2dcdd transparent}
-    .brand{display:flex;align-items:center;gap:10px;padding:0 0 29px;border-bottom:1px solid var(--rule)}
-    .brand-symbol{font-family:Georgia,serif;color:var(--cyan);font-weight:bold;font-size:29px;line-height:1}
-    .brand b{font-size:14px;letter-spacing:.14em;font-weight:680}
-    .brand span{display:block;color:var(--faint);font-size:10px;line-height:1.4;letter-spacing:.15em}
-    .back{display:flex;align-items:center;gap:10px;margin-top:24px;color:var(--muted);font-size:12px;line-height:1.7}
-    .back i{font-style:normal;font-size:16px;color:var(--cyan)}
-    .rail-context{padding:25px 0 15px;border-bottom:1px solid var(--rule)}
-    .eyebrow,.small-label{display:block;color:var(--cyan);font-size:10px;font-weight:780;letter-spacing:.18em;text-transform:uppercase;line-height:1.5}
-    .rail-context h2{font-size:20px;line-height:1.55;letter-spacing:.01em;margin:8px 0 4px}
-    .rail-context p{color:var(--faint);font-size:11px;margin:0;letter-spacing:.08em}
-    .rail-heading{margin:24px 0 8px;color:var(--faint);font-weight:700;font-size:10px;letter-spacing:.13em}
-    .toc{display:flex;flex-direction:column;gap:2px}
-    .toc a{padding:8px 8px 8px 11px;display:grid;grid-template-columns:25px minmax(0,1fr);align-items:start;gap:6px;border-left:2px solid transparent;font-size:12px;color:var(--muted);line-height:1.7;border-radius:0 7px 7px 0;transition:background .2s,color .2s,border-color .2s}
-    .toc a em{font-style:normal;font-family:ui-monospace,monospace;color:#a0aaac;font-size:11px}
-    .toc a:hover,.toc a.active{color:var(--cyan);background:var(--cyan-weak);border-left-color:var(--cyan)}
-    .toc a.active em{color:var(--cyan)}
-    .rail-foot{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-size:11px;color:var(--faint);line-height:1.8}
-    .article{min-width:0;padding:35px 0 110px;max-width:980px}
-    .topline{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:1px solid var(--rule);padding-bottom:15px;margin-bottom:64px}
-    .crumb{font-size:11px;color:var(--faint);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-    .crumb .here{color:var(--muted)}
-    .topline .prev{font-size:11px;color:var(--cyan);white-space:nowrap}
-    .hero .eyebrow{font-size:11px;letter-spacing:.16em}
-    h1,h2,h3,h4,p{overflow-wrap:anywhere}
-    h1{font-size:clamp(29px,3.1vw,49px);letter-spacing:-.04em;line-height:1.25;margin:18px 0 21px;font-weight:750}
-    .hero .lead{font-size:17px;line-height:1.9;color:#52636d;margin:0 0 23px;max-width:780px}
-    .hero .lead strong{color:var(--ink)}
-    .tagline{font-size:13px;color:var(--muted);padding:12px 16px;background:var(--white);border-left:3px solid var(--cyan);margin:24px 0 30px}
-    .hero-figure{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-    .hero-figure svg{display:block;width:100%;height:auto;min-height:160px}
-    .fig-caption{padding:12px 17px;border-top:1px solid var(--rule);font-size:11px;color:var(--muted);line-height:1.8}
-    .hero-foot{margin-top:14px;font-size:11px;color:var(--faint)}
-    .chapter{margin-top:100px;scroll-margin-top:26px}
-    .chapter-head{border-top:1px solid var(--rule);padding-top:25px;margin-bottom:29px}
-    .chapter-index{font-size:11px;color:var(--cyan);letter-spacing:.16em;font-weight:750}
-    h2{margin:10px 0 14px;font-size:clamp(23px,2.45vw,32px);letter-spacing:-.035em;line-height:1.45}
-    .chapter-intro{font-size:16px;color:#53656e;max-width:800px;line-height:1.9;margin:0}
-    h3{font-size:19px;letter-spacing:-.02em;margin:39px 0 12px;line-height:1.5}
-    h4{font-size:15px;margin:25px 0 10px}
-    p{margin:10px 0 17px}
-    strong{color:#243c48}
-    .note{background:var(--white);border:1px solid var(--rule);border-radius:11px;padding:18px 21px;margin:24px 0;line-height:1.85}
-    .note b{font-size:13px}
-    .note p:last-child{margin-bottom:0}
-    .note.highlight{border-left:3px solid var(--cyan);background:#fcfefd}
-    .note.warm{border-left:3px solid var(--orange);background:#fdfbf8}
-    .note.dark{background:var(--dark);border-color:var(--dark);color:#eaf2f2}
-    .note.dark b,.note.dark strong{color:white}
-    .note.dark p{color:#d4e0df}
-    .small-note{font-size:12px;color:var(--muted)}
-    .columns-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-    .columns-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
-    .mini{background:var(--white);border:1px solid var(--rule);border-radius:11px;padding:16px 17px;min-width:0}
-    .mini .n{color:var(--orange);font-family:Georgia,serif;font-size:17px}
-    .mini h4{margin:4px 0 7px}
-    .mini p{font-size:13px;color:var(--muted);margin:0;line-height:1.75}
-    .mini svg{width:100%;height:auto;display:block;margin:3px 0 8px}
-    .key{font-weight:700;color:var(--cyan)}
-    .formula{background:#f0f4f3;border:1px solid #e2ebea;border-radius:8px;padding:15px 17px;margin:17px 0;font-family:Georgia,"Times New Roman","STIX Two Math",serif;font-size:17px;text-align:center;overflow:auto;line-height:1.8;white-space:normal}
-    .formula .sub{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;font-size:11px;color:var(--muted);margin-top:4px}
-    .formula .mathrow{white-space:nowrap;display:block}
-    .math-inline{font-family:Georgia,"Times New Roman",serif;font-size:1.08em;white-space:nowrap}
-    .viz{border:1px solid var(--rule);background:var(--white);border-radius:11px;margin:23px 0;overflow:hidden}
-    .viz svg{display:block;width:100%;height:auto}
-    .viz-caption{border-top:1px solid var(--rule);font-size:11px;line-height:1.7;color:var(--muted);padding:10px 15px}
-    .step-list{list-style:none;counter-reset:steps;padding:0;margin:21px 0}
-    .step-list li{counter-increment:steps;position:relative;padding:0 0 15px 41px;margin-bottom:13px;border-bottom:1px solid var(--rule);font-size:14px}
-    .step-list li:before{content:counter(steps,decimal-leading-zero);position:absolute;left:0;top:1px;color:var(--cyan);font-weight:750;font-size:11px;font-family:ui-monospace,monospace}
-    .step-list li:last-child{border-bottom:none}
-    .data-table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.8;margin:20px 0}
-    .data-table th{padding:11px 10px;text-align:left;background:#edf2f1;font-weight:700;color:#43565e;border-bottom:1px solid #dae4e2}
-    .data-table td{padding:11px 10px;vertical-align:top;border-bottom:1px solid var(--rule);color:#53656e}
-    .data-table td:first-child{font-weight:650;color:var(--ink);white-space:nowrap}
-    .table-scroll{overflow:auto;width:100%}
-    .table-scroll .data-table{min-width:610px}
-    details{border:1px solid var(--rule);background:var(--white);border-radius:10px;margin:18px 0;overflow:hidden}
-    details summary{cursor:pointer;padding:13px 16px;font-size:13px;font-weight:650;list-style:none;display:flex;justify-content:space-between;align-items:center}
-    details summary::-webkit-details-marker{display:none}
-    details summary:after{content:'＋';font-size:17px;color:var(--cyan)}
-    details[open] summary:after{content:'−'}
-    details .detail-body{padding:0 17px 17px;border-top:1px solid var(--rule);font-size:13px}
-    pre{margin:15px 0 0;overflow-x:auto;background:var(--code);color:#dcebe9;border-radius:8px;padding:18px;font-size:12px;line-height:1.75;tab-size:4}
-    code{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace}
-    :not(pre)>code{color:#177381;background:#edf4f2;border-radius:4px;padding:2px 5px;font-size:.9em}
-    .compare-line{display:grid;grid-template-columns:28% 1fr;gap:12px;padding:13px 0;border-bottom:1px solid var(--rule);font-size:13px}
-    .compare-line .name{font-weight:700;color:var(--ink)}
-    .compare-line .desc{color:var(--muted)}
-    .example-list{border-left:1px solid var(--rule);margin:19px 0 20px 10px;padding-left:23px}
-    .example-list p{position:relative;margin:0 0 20px;font-size:14px}
-    .example-list p:before{content:'';position:absolute;width:7px;height:7px;border-radius:50%;background:var(--cyan);border:3px solid var(--paper);top:7px;left:-30px}
-    .interactive{background:#fff;border:1px solid var(--rule);border-radius:11px;margin:23px 0;overflow:hidden}
-    .interactive-top{display:flex;justify-content:space-between;align-items:center;padding:15px 18px 0;gap:12px;flex-wrap:wrap}
-    .interactive-top strong{font-size:14px}
-    .interactive-top span{font-size:12px;color:var(--muted)}
-    .interactive svg{width:100%;height:auto;display:block}
-    .control{display:flex;align-items:center;gap:14px;padding:13px 18px 17px;border-top:1px solid var(--rule);flex-wrap:wrap;font-size:12px;color:var(--muted)}
-    .control input{accent-color:var(--cyan);flex:1;min-width:120px}
-    .control output{color:var(--cyan);font-weight:750;font-variant-numeric:tabular-nums;min-width:54px}
-    .endline{padding:22px 0 0;margin:35px 0 0;border-top:1px solid var(--rule);font-size:14px;color:var(--muted)}
-    .endline strong{color:var(--cyan)}
-    .nextbar{border-top:1px solid var(--rule);margin-top:100px;padding-top:26px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;color:var(--muted);font-size:12px}
-    .nextbar a{color:var(--cyan)}
-    .mobile-nav{display:none}
-    svg text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
-    @media(max-width:900px){.layout{width:92%;grid-template-columns:minmax(0,24%) minmax(0,1fr);gap:4%}.article{padding-top:25px}.sidebar{padding-top:25px}.topline{margin-bottom:45px}.columns-3{grid-template-columns:1fr}.columns-2{grid-template-columns:1fr}.chapter{margin-top:75px}}
-    @media(max-width:650px){.layout{display:block;width:91%}.sidebar{display:none}.article{max-width:none;padding:22px 0 70px}.topline{margin-bottom:37px}.topline .prev{display:none}.hero .lead{font-size:15px}h1{font-size:32px}.chapter{margin-top:66px}.mobile-nav{display:block;position:sticky;top:0;z-index:10;background:rgba(248,248,245,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);padding:9px 4.5%;font-size:12px}.mobile-nav details{margin:0;background:transparent;border:0}.mobile-nav details summary{padding:5px 0}.mobile-nav .links{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 0}.mobile-nav .links a{display:block;color:var(--cyan)}.chapter-head{padding-top:18px}.formula{font-size:15px}.note{padding:14px 15px}.data-table{font-size:12px}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-    @media print{body{background:#fff;color:#000}.layout{display:block;max-width:none}.sidebar,.mobile-nav{display:none}.article{max-width:none;padding:0}.chapter{break-before:auto;margin-top:45px}.viz,.mini,.note,.formula,.hero-figure{break-inside:avoid}details .detail-body{display:block}a{color:inherit}}
-  </style>
-</head>
-<body>
-  <div class="mobile-nav">
-    <details>
-      <summary>04 · 几何结构　／　本页目录</summary>
-      <div class="links">
-        <a href="#s00">00 问题与边界</a><a href="#s01">01 几何模型</a>
-        <a href="#s02">02 参数估计</a><a href="#s03">03 结构检测</a>
-        <a href="#s04">04 几何关系</a><a href="#s05">05 几何验证</a><a href="#s06">06 实验与总结</a>
-        <a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/target-localization-route-overview/01-classical-vision/">← 返回上一层</a>
-      </div>
-    </details>
-  </div>
-  <div class="layout">
-    <aside class="sidebar" aria-label="本页导航">
-      <a class="brand" href="https://fishxddd.github.io/" aria-label="返回沿途手记首页">
-        <div class="brand-symbol">∿</div><div><b>沿途手记</b><span>RESEARCH NOTES</span></div>
-      </a>
-      <a class="back" href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/target-localization-route-overview/01-classical-vision/"><i>←</i><span>返回 · 图像特征与结构提取</span></a>
-      <div class="rail-context"><span class="eyebrow">STAGE 01 · CLASSICAL VISION</span><h2>几何结构</h2><p>04 / GEOMETRIC STRUCTURES</p></div>
-      <p class="rail-heading">本页目录 / ON THIS PAGE</p>
-      <nav class="toc" id="toc">
-        <a href="#s00"><em>00</em><span>问题与边界</span></a>
-        <a href="#s01"><em>01</em><span>几何模型</span></a>
-        <a href="#s02"><em>02</em><span>参数估计</span></a>
-        <a href="#s03"><em>03</em><span>结构检测</span></a>
-        <a href="#s04"><em>04</em><span>几何关系</span></a>
-        <a href="#s05"><em>05</em><span>几何验证</span></a>
-        <a href="#s06"><em>06</em><span>实验与总结</span></a>
-      </nav>
-      <div class="rail-foot">当前位置：二维目标定位 / 传统视觉 / 几何结构<br>从规则约束中寻找结构，而不只追踪边缘。</div>
-    </aside>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="沿途手记 · Stage 01 · 图像特征与结构提取 · 几何结构：从最朴素的两点连线出发，研究 TLS、Hough、LSD、RANSAC、圆/椭圆、外接框、真实四角及几何模型验证；含路线图、公式与离线交互实验。"><title>几何结构｜沿途手记</title><style>
+:root{--paper:#fbfaf7;--sidebg:#f5f0e9;--white:#fff;--ink:#342f2c;--ink2:#625750;--muted:#908177;--line:#e8e0d8;--accent:#a75e49;--accentdeep:#844633;--accentwash:#f8efe9;--green:#547268;--mint:#edf4f0;--blue:#456d82;--reading:860px;--side:clamp(225px,19.5vw,290px)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:35px}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.87;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:hover{color:var(--accentdeep)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #dbad96;outline-offset:3px}::selection{background:#efd0bd}.site{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}
+.sidebar{position:sticky;top:0;height:100dvh;overflow-y:auto;background:var(--sidebg);border-right:1px solid var(--line);padding:28px clamp(16px,2vw,27px) 22px;display:flex;flex-direction:column;gap:21px;scrollbar-width:thin}.brand{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:700;letter-spacing:.045em}.brand-sub{font-size:10px;letter-spacing:.11em;color:var(--muted);margin-top:-2px}.side-group{font-size:10px;font-weight:800;letter-spacing:.13em;color:#94867a;margin:0 0 7px 9px}.side-links{display:grid;gap:1px}.side-links a{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:8px;color:#776a61;font-size:12px;line-height:1.55;transition:background .15s}.side-links a .num{color:#ac9a8e;min-width:19px;font-size:10.5px}.side-links a:hover{background:#efe6dd}.side-links a.active{background:#eadbd0;color:#773e30;font-weight:750}.side-links a.active .num{color:var(--accent)}.current-article{padding:0 10px 9px;font-size:13px;font-weight:700;color:var(--accentdeep)}.sub-links{display:grid;gap:2px}.sub-links a{border-left:2px solid transparent;padding:4px 10px;color:#8c7b6e;font-size:11.3px;line-height:1.58}.sub-links a.current{border-left-color:var(--accent);color:var(--accentdeep);font-weight:750}.side-bottom{margin-top:auto;padding:13px 10px 0;border-top:1px solid #e3d8cd;color:#96877c;font-size:11px}.page-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px}.page-links a{text-decoration:underline;text-decoration-color:#c6b4a6;text-underline-offset:4px}
+.layout-main{min-width:0;padding:36px clamp(23px,4.3vw,68px) 95px}.article{width:min(100%,var(--reading));margin:auto}.crumb{display:flex;align-items:center;flex-wrap:wrap;gap:9px;font-size:11px;color:#988b81}.slash{color:#c5b9ae}.hero{padding:40px 0 32px;border-bottom:1px solid var(--line)}.eyebrow,.chapter-label,.smallcap{font-size:11px;letter-spacing:.15em;font-weight:800;color:var(--accent)}h1,h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif}h1{font-size:clamp(40px,5vw,57px);line-height:1.22;letter-spacing:.035em;margin:11px 0 8px}h2{font-size:clamp(23px,3.1vw,30px);line-height:1.5;letter-spacing:.014em;margin:9px 0 20px}h3{font-size:17px;line-height:1.52;margin:29px 0 10px}h4{font-size:14px;margin:21px 0 6px}.subtitle{font-size:20px;font-weight:550;color:var(--ink2);margin:7px 0 17px}.lede{max-width:755px;color:#64564d;margin:12px 0 15px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}.tag{font-size:10.5px;border:1px solid #e6ddd5;padding:3px 11px;border-radius:40px;color:#806f63;background:#fffdfa}.chapter{padding:40px 0 29px;border-bottom:1px solid var(--line)}.chapter p{margin:11px 0 15px}.chapter strong{color:#42342f}.chapter li{margin:6px 0;padding-left:2px}.chapter ul,.chapter ol{padding-left:22px}.small{font-size:12px}.muted{color:var(--muted)}.mono,code,pre{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace}code{font-size:.87em;background:#f4ede6;padding:2px 5px;border-radius:4px}.lead-note{border-left:3px solid var(--accent);padding:2px 0 3px 17px;margin:18px 0 23px;color:#694a3b;font-weight:650;background:transparent}.scope-grid,.three,.two{display:grid;gap:11px;margin:20px 0}.scope-grid,.three{grid-template-columns:repeat(3,minmax(0,1fr))}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 15px}.tile .id{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.075em}.tile strong{display:block;font-size:13px;margin:5px 0 3px}.tile p{font-size:11.5px;line-height:1.72;margin:0;color:#726259}.note,.answer,.warn{border:1px solid #e9e0d7;background:#fff;padding:14px 17px;border-radius:10px;margin:19px 0;font-size:13px}.note{border-left:3px solid #a39789}.answer{border-left:3px solid #698c7e;background:#f7faf8}.warn{border-left:3px solid #c08b5f;background:#fffaf3}.math{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;background:#f8f5f1;border:1px solid #e9e0d7;border-radius:10px;padding:15px 17px;overflow:auto;color:#51473f;font-size:12px;line-height:2.1;margin:16px 0}.math>div{white-space:nowrap}.figure{border:1px solid var(--line);background:#fff;border-radius:13px;overflow:hidden;margin:20px 0}.figure-title{font-size:13px;font-weight:750;padding:14px 17px 0;color:#604b41}.figure-body{padding:12px 16px}.figure-body svg{display:block;max-width:100%;height:auto}.figcap{font-size:11.5px;color:#928175;line-height:1.74;padding:0 17px 14px}.viz{border:1px solid #e7d9cc;background:#fffdfa;border-radius:13px;margin:19px 0;padding:17px}.viz-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.viz-name{font-size:13px;font-weight:800;color:#7b4a35}.viz-help{font-size:11px;color:#968477}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 15px;margin:12px 0}.controls label{font-size:12px;color:#6d5d52}.controls input[type=range]{accent-color:var(--accent);width:170px;vertical-align:middle}.btn{border:1px solid #dec8b8;background:#fff7f1;color:#874735;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:720}.btn:hover,.btn.sel{background:#eed9ca}.result{background:#f8f2ed;border-radius:8px;padding:10px 12px;color:#66574b;font-size:11.5px;margin-top:10px}.bitmap{display:grid;gap:3px;padding:12px;border:1px solid #ede0d4;border-radius:10px;background:#f5f0eb;width:max-content;max-width:100%}.pixel{width:25px;height:25px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}.pixel.off{background:#e5ded5;color:transparent}.pixel.a{background:#b77357}.pixel.b{background:#739686}.pixel.c{background:#718a9b}.pixel.d{background:#b3a274}.pixel.reject{background:#d0cbc4;color:#514942}.pixel.seed{outline:2px solid #44382f;outline-offset:1px}.pixel.valued{font-size:9px;color:#604d44}.bitmap-wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}.bitmap-block{flex:0 1 auto}.bitmap-label{font-size:11px;font-weight:700;color:#756256;margin-bottom:7px}.mini-text{font-size:12px;color:#716258;line-height:1.75}.table-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:17px 0;background:#fff}.table-scroll table{border-collapse:collapse;width:100%;min-width:615px;text-align:left;font-size:12.3px;line-height:1.8}.table-scroll th{background:#f6f2ed;color:#645449;font-size:11px;white-space:nowrap}.table-scroll th,.table-scroll td{padding:10px 13px;border-bottom:1px solid #eee7df;vertical-align:top}.table-scroll tr:last-child td{border-bottom:0}.table-scroll td:first-child{font-weight:690;color:#4b3c34}.table-scroll code{font-size:11px}.code-title{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f0e9e1;border:1px solid #e9ded3;border-radius:9px 9px 0 0;margin-top:18px;color:#6c5a4c;font-size:11px;font-weight:720}.copy{font-size:10px;color:#77584b;background:#fff;border:1px solid #ded1c5;border-radius:5px;padding:3px 9px}.code-block{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;font-size:11.5px;line-height:1.8;tab-size:4;white-space:pre;overflow:auto;background:#302e2b;color:#eee7dc;padding:17px 19px;margin:0 0 18px;border-radius:0 0 9px 9px;max-height:570px}.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0}.flowpill{font-size:12px;border:1px solid #e8dace;background:white;border-radius:8px;padding:7px 11px;font-weight:650}.flowarrow{font-size:15px;color:#a99182}.compact-list{padding-left:21px!important}.index-row{display:flex;gap:13px;align-items:baseline;margin:17px 0 12px}.index-row .index{font-weight:850;letter-spacing:.07em;font-size:11px;color:var(--accent);flex-shrink:0}.index-row strong{font-size:13px}.example-key{display:inline-flex;align-items:center;gap:6px;margin:0 12px 6px 0;font-size:10.8px;color:#8c7d70}.dot{width:9px;height:9px;border-radius:3px;background:#b77357}.footer{padding-top:24px;color:#988a7c;font-size:11px}.next{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:27px 0}.next a{display:block;padding:15px 17px;border:1px solid var(--line);background:white;border-radius:10px;font-size:12px;color:#87786d}.next a strong{display:block;color:#493a33;font-size:13px;margin-top:3px}.next a:last-child{text-align:right}.progress{position:fixed;top:0;left:0;width:0;height:3px;background:#bc7861;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}.anchor{scroll-margin-top:35px}
+@media(max-width:1080px){:root{--side:clamp(210px,23vw,250px)}.layout-main{padding:29px 29px 75px}.sidebar{padding-left:16px;padding-right:13px}}@media(max-width:820px){.site{display:block}.sidebar{position:fixed;top:51px;left:0;width:min(315px,84vw);height:calc(100dvh - 51px);z-index:50;transform:translateX(-111%);transition:transform .22s ease;box-shadow:14px 12px 36px #211b1620}.sidebar.open{transform:translateX(0)}.overlay{position:fixed;inset:51px 0 0;background:#261e1766;z-index:45}.overlay.visible{display:block}.layout-main{padding:0 19px 55px}.mobile-bar{display:flex;position:sticky;top:0;z-index:42;align-items:center;justify-content:space-between;height:51px;background:#faf6f1f0;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin:0 -19px;padding:0 16px;font-size:12px}.mobile-bar .btn{padding:4px 10px}.crumb{padding-top:22px}.hero{padding-top:30px}}@media(max-width:600px){.scope-grid,.two,.three{grid-template-columns:1fr}.scope-grid{gap:8px}.tile{padding:12px 14px}.hero h1{font-size:41px}.chapter{padding-top:32px}.subtitle{font-size:18px}.controls input[type=range]{width:135px}.next{grid-template-columns:1fr}.bitmap-wrap{gap:12px}.pixel{width:20px;height:20px}.figure-body{padding:8px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}@media print{.sidebar,.mobile-bar,.overlay,.progress,.next,.copy{display:none!important}.site{display:block}.layout-main{padding:0}.article{width:100%}.chapter{break-inside:avoid}.viz,.figure{break-inside:avoid}body{font-size:12px}}
 
-    <main class="article">
-      <div class="topline"><div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span>／</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/target-localization-route-overview/01-classical-vision/">图像特征与结构提取</a><span>／</span><span class="here">几何结构</span></div><a class="prev" href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/target-localization-route-overview/01-classical-vision/03-edges-contours/">← 上一节 · 边缘与轮廓</a></div>
-      <header class="hero">
-        <span class="eyebrow">04 / GEOMETRIC STRUCTURES · 从观测到约束</span>
-        <h1>边缘找到了，<br>怎样知道它是什么形状？</h1>
-        <p class="lead">上一节已经能从图像中找出边缘、追踪轮廓。可边缘一旦断开，或混进背景线条，轮廓就不一定完整。<strong>如果目标本来具有规则形状，能不能反过来利用几何规律，找回丢失的结构？</strong></p>
-        <div class="tagline">本页只关心一件事：怎样用几何模型从图像证据中提出、计算并检验一个二维结构假设。</div>
-        <div class="hero-figure">
-          <svg viewBox="0 0 860 250" role="img" aria-label="残缺的边缘点，经过直线模型估计和几何约束组合形成四边形">
-            <defs><pattern id="dotgrid" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".8" fill="#dbe4e3"/></pattern></defs>
-            <rect x="0" y="0" width="860" height="250" fill="url(#dotgrid)"/>
-            <g font-size="12" text-anchor="middle" fill="#53636a"><text x="132" y="35">零散边缘</text><text x="431" y="35">拟合几何模型</text><text x="723" y="35">组合并验证结构</text></g>
-            <g fill="none" stroke="#82959a" stroke-width="4" stroke-linecap="round">
-              <path d="M63 86 L130 75 M155 73 L202 83 M69 96 L74 146 M81 175 L132 188 M154 191 L190 185 M196 101 L191 134 M192 159 L191 174"/>
-            </g>
-            <g fill="#84999c" opacity=".7"><circle cx="50" cy="174" r="3"/><circle cx="117" cy="57" r="3"/><circle cx="193" cy="211" r="3"/><circle cx="226" cy="124" r="3"/><circle cx="89" cy="204" r="3"/></g>
-            <g fill="none" stroke="#c4d5d4" stroke-dasharray="5 6" stroke-width="1"><path d="M331 79 L532 79 M337 70 L337 190 M525 70 L525 190 M332 188 L532 188"/></g>
-            <g fill="none" stroke="#287b87" stroke-width="2.7" stroke-linecap="round"><path d="M339 89 L528 75 M345 184 L520 191 M345 90 L340 186 M523 77 L521 192"/></g>
-            <g fill="#b56d3e"><circle cx="340" cy="90" r="4"/><circle cx="526" cy="77" r="4"/><circle cx="344" cy="186" r="4"/><circle cx="522" cy="191" r="4"/></g>
-            <g fill="#287b87" opacity=".1"><path d="M633 83 L783 71 L790 180 L641 194 Z"/></g>
-            <path d="M633 83 L783 71 L790 180 L641 194 Z" stroke="#287b87" stroke-width="3" fill="none"/>
-            <g fill="#287b87"><circle cx="633" cy="83" r="4.4"/><circle cx="783" cy="71" r="4.4"/><circle cx="790" cy="180" r="4.4"/><circle cx="641" cy="194" r="4.4"/></g>
-            <g stroke="#a3b8b8" stroke-width="1.4" fill="none"><path d="M251 136 H295"/><path d="M289 131 L296 136 L289 141"/><path d="M546 136 H592"/><path d="M586 131 L593 136 L586 141"/></g>
-            <g fill="#7c898b" font-size="10" text-anchor="middle"><text x="132" y="229">像素级观测</text><text x="431" y="229">候选参数</text><text x="723" y="229">受支持的形状假设</text></g>
-          </svg>
-          <div class="fig-caption">一个贯穿全文的例子：矩形物体的部分边缘不可见，但直线与交点的关系仍可能帮助我们恢复四边形。示意不是“已证明它是矩形”，而是“找到了一个需要验证的候选”。</div>
-        </div>
-        <div class="hero-foot">关键词　参数模型 / 最小二乘 / Hough / RANSAC / 结构约束 / 几何验证</div>
-      </header>
+/* Page-specific diagrams and interactive experiments. */
+.current-article{padding:6px 10px 7px;color:#755043;font-size:12.8px;font-weight:780;line-height:1.45;background:#eadbd0;border-radius:8px;margin:0 0 8px}
+.chapter-sidebar{min-height:0}
+.chapter h2{scroll-margin-top:32px}
+.kernel{border:1px solid var(--line);background:#fff;border-radius:11px;padding:12px 15px;text-align:center}
+.kernel>span{display:block;font-weight:750;font-size:12px;color:#826550;margin-bottom:8px}
+.kernel table{border-spacing:4px;margin:auto}
+.kernel td{width:38px;height:34px;background:#f0e5da;border-radius:5px;font-family:Consolas,ui-monospace,monospace;font-size:13px;font-weight:700;color:#6b4f3f}
+.gray-grid{display:grid;grid-template-columns:repeat(7,34px);gap:3px;width:max-content;max-width:100%;padding:7px;background:#eee6de;border-radius:9px}
+.gray-grid.mini-grid{grid-template-columns:repeat(3,34px)}
+.gray-cell{width:34px;height:34px;padding:0;border:0;border-radius:3px;font-size:9.7px;font-weight:720;position:relative}
+.gray-cell:not(:disabled):hover{outline:2px solid #a75e49;outline-offset:-2px}
+.gray-cell.chosen{outline:3px solid #8d5a3f;outline-offset:1px;z-index:2}
+.gray-cell.noisy{box-shadow:inset 0 0 0 2px #a94d43}
+.gray-cell:disabled{cursor:default;opacity:1}
+.lab-readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:16px}
+.lab-readouts>div{border:1px solid #e8ddd2;border-radius:8px;background:#fbf6f1;padding:8px 10px}
+.lab-readouts small{display:block;font-size:10px;color:#9a8477;line-height:1.4}
+.lab-readouts b{font-size:18px;line-height:1.7;font-variant-numeric:tabular-nums;color:#86523e}
+.canvas-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.canvas-panel{padding:11px;background:#fff;border:1px solid #e9dfd6;border-radius:9px;min-width:0}
+.canvas-panel>div{font-weight:740;font-size:12px;margin-bottom:7px;color:#6a5548}
+.canvas-panel canvas{display:block;width:100%;height:auto;aspect-ratio:3 / 2;image-rendering:pixelated;background:#222;border-radius:5px}
+.canvas-panel small{display:block;font-size:10.5px;line-height:1.65;color:#938478;margin-top:8px}
+.control-check{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.control-check input{accent-color:var(--accent)}
+.trace-columns{align-items:start}
+.trace-columns svg{display:block;max-width:100%;height:auto;margin-top:4px}
+.trace-list{display:grid;gap:7px}
+.trace-select{text-align:left;border:1px solid #e6d9ce;background:#fff;border-radius:8px;padding:9px 10px;color:#685649;font-size:11.5px;line-height:1.5}
+.trace-select:hover,.trace-select.sel{background:#f3e5d9;border-color:#be9981;color:#804732;font-weight:740}
+.hier-tree{display:grid;gap:7px}
+.hier-node{font-size:12px;border-radius:7px;border:1px solid #e5d9cc;background:#fff;padding:6px 10px;font-weight:680;color:#735c4d}
+.hier-node.depth-1{margin-left:21px;border-left:3px solid #b67a5e}
+.hier-node.depth-2{margin-left:41px;border-left:3px solid #78978b}
+.select{font:inherit;font-size:12px;border:1px solid #dccbbc;border-radius:8px;padding:6px 9px;color:#6e5144;background:#fff}
+.return-end{margin:27px 0}
+.return-end a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px 16px;color:#73554a;font-size:12px;font-weight:700}
+.return-end a:hover{background:#f9eee7}
+@media(max-width:610px){.canvas-grid,.trace-columns{grid-template-columns:1fr}.lab-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.gray-grid{grid-template-columns:repeat(7,28px)}.gray-grid.mini-grid{grid-template-columns:repeat(3,28px)}.gray-cell{width:28px;height:28px;font-size:8.5px}.viz{padding:12px}.canvas-grid{gap:9px}.controls{align-items:flex-start}.controls label{display:flex;flex-wrap:wrap;gap:5px}.controls input[type=range]{width:150px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
 
-      <section class="chapter" id="s00">
-        <div class="chapter-head"><div class="chapter-index">00 / PROBLEM &amp; SCOPE</div><h2>先把问题说清楚：边界与几何结构有什么不同？</h2><p class="chapter-intro">边缘告诉我们“这里有变化”，轮廓告诉我们“这些边界连起来了”。但我们仍然没有一个可用来计算、比较和预测的规则形状模型。</p></div>
-        <p>想象桌面上有一个矩形盒子。左边缘被手遮挡一段，右边缘和背景纹理混在一起。若只追踪可见边缘，它可能是一串断开的像素；若假设它有四条直边，就能进一步估计直线、求交点，并对缺失部分提出预测。</p>
-        <div class="columns-3">
-          <div class="mini"><span class="small-label">输入 / EVIDENCE</span><h4>观测证据</h4><p>边缘点、轮廓点、图像梯度、区域边界，或者已有候选线段。</p></div>
-          <div class="mini"><span class="small-label">假设 / MODEL</span><h4>几何规律</h4><p>某些点应当共线、共圆；某些边应当相交或构成封闭结构。</p></div>
-          <div class="mini"><span class="small-label">输出 / RESULT</span><h4>参数与证据</h4><p>直线、圆、椭圆、交点、四边形及其残差、支持点和不确定性。</p></div>
-        </div>
-        <div class="note highlight"><b>这一节的研究边界</b><p>不把多项式、Bézier、B 样条等自由曲线表示当作本节主线。它们很适合描述或平滑任意轮廓，但仅仅“拟合得像”，还不能说明目标符合哪一种特定几何规律。本节重点是<strong>有明确结构约束的几何模型</strong>及其检测和验证。也不把二维形状直接等同于物体类别或三维位姿。</p></div>
-        <p class="small-note">注意：几何模型不只可以从边缘点估计，也可以从区域、角点等图像证据估计。下文用边缘作为直观入口，不把它当成唯一输入。</p>
-      </section>
+.demo-canvas{display:block;width:100%;height:auto;background:#f6f0e9;border:1px solid #e9dacf;border-radius:9px;margin:10px 0;touch-action:pan-y}
+.lab-readouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}.lab-readouts>div{background:#fbf6f1;border:1px solid #ede2d8;border-radius:8px;padding:9px 11px}.lab-readouts small{display:block;color:#938175;font-size:10px;line-height:1.5}.lab-readouts b{display:block;font-size:18px;font-variant-numeric:tabular-nums;color:#8a503e;line-height:1.6}.viz .controls label{font-size:12px;color:#736356}.viz input[type=range]{max-width:155px;width:155px;accent-color:var(--accent)}.select{font:inherit;font-size:12px;border:1px solid #dccbbc;border-radius:8px;padding:6px 9px;color:#6e5144;background:#fff}.return-end{margin:27px 0}.return-end a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px 16px;color:#73554a;font-size:12px;font-weight:700}.return-end a:hover{background:#f9eee7}.next-links{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:23px;margin-top:30px;gap:15px}.next-links a{font-size:12px;color:#805b49;text-decoration:underline;text-underline-offset:4px}.next-links a:last-child{text-align:right}
+@media(max-width:610px){.lab-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.viz{padding:12px}.viz .controls{align-items:flex-start}.viz input[type=range]{width:115px}.lab-readouts b{font-size:16px}}
+.chapter-context{font-size:14.3px;line-height:1.95;color:#65564b;margin:12px 0 18px!important}
+.thinking{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 25px}
+.thinking>div{border-top:2px solid #c7aa98;padding:12px 12px 10px;background:#fffdfb;min-width:0}
+.thinking>div:nth-child(2){border-top-color:#b9876b}
+.thinking>div:nth-child(3){border-top-color:#73948a}
+.thinking-key{font-size:11px;font-weight:800;color:#855947;letter-spacing:.035em}
+.thinking>div:nth-child(2) .thinking-key{color:#9d624b}
+.thinking>div:nth-child(3) .thinking-key{color:#4e7667}
+.thinking p{font-size:12px;line-height:1.75;margin:7px 0 0!important;color:#6f6056}
+.chapter-handoff{margin:25px 0 0;padding:15px 19px;background:#f5efe9;border-left:3px solid #af7963;border-radius:0 8px 8px 0}
+.chapter-handoff span{font-size:11px;font-weight:800;color:#935742;letter-spacing:.06em}
+.chapter-handoff p{font-size:13px;margin:4px 0 0!important;color:#55483e}
+.route-start{display:flex;align-items:stretch;justify-content:center;gap:13px;margin:23px 0 18px}
+.route-source{display:flex;flex-direction:column;gap:5px;flex:1;background:white;border:1px solid var(--line);padding:18px 19px;border-radius:10px;justify-content:center}
+.route-source strong{font-size:14px;line-height:1.65}
+.route-source.emphasis{border-color:#debb9e;background:#fdf5ed}
+.route-arrow{align-self:center;color:#b27c5c;font-size:25px}
+.route-problems{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:0 0 20px}
+.problem-pill{font-size:11px;border:1px dashed #d2bbaa;color:#796456;background:#faf6f1;border-radius:40px;padding:5px 10px}
+.route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:19px 0}
+.route-card{display:block;background:#fff;border:1px solid #e6ded5;border-radius:11px;padding:15px 18px 13px;transition:transform .14s,border-color .14s,background .14s}
+.route-card:hover{background:#fff9f2;border-color:#d4b5a0;transform:translateY(-2px)}
+.route-card:first-child{grid-column:span 2;background:#f9f1e9;border-color:#e2cbb9}
+.route-index{display:block;font-size:10.3px;letter-spacing:.04em;color:#a56d53;font-weight:800}
+.route-card strong{display:block;font-size:15px;color:#44362d;margin:4px 0 4px}
+.route-card p{font-size:12px;line-height:1.64;color:#726357;margin:4px 0!important}
+.route-card em{font-size:11px;font-style:normal;color:#4c756a;font-weight:680}
+.route-legend{background:#f6f3ee;border:1px solid #e8dfd5;border-radius:9px;color:#716458;padding:12px 15px;font-size:12px;line-height:1.8}
+@media(max-width:640px){.thinking{grid-template-columns:1fr}.route-grid{grid-template-columns:1fr}.route-card:first-child{grid-column:auto}.route-start{flex-direction:column}.route-arrow{transform:rotate(90deg)}.route-source{padding:12px 14px}}
 
-      <section class="chapter" id="s01">
-        <div class="chapter-head"><div class="chapter-index">01 / GEOMETRIC MODELS</div><h2>如果物体有规则形状，先把“规则”写成什么？</h2><p class="chapter-intro">先不谈检测算法。只有知道模型含有哪些参数、限制了什么，才能判断图像证据足不足以确定它。</p></div>
-        <div class="columns-3">
-          <div class="mini">
-            <span class="small-label">LINE · 2 DOF</span>
-            <svg viewBox="0 0 220 116" aria-label="直线的法线及距离示意"><path d="M18 95 L204 22" stroke="#287b87" stroke-width="2.5"/><path d="M110 110 L79 33" stroke="#b56d3e" stroke-width="1.7" stroke-dasharray="4 4"/><circle cx="110" cy="110" r="3" fill="#b56d3e"/><text x="30" y="26" fill="#516a73" font-size="11">n = (a,b)</text><text x="128" y="104" fill="#516a73" font-size="11">a x + b y + c = 0</text></svg>
-            <h4>直线：方向与位置</h4><p>一般式 ax + by + c = 0；归一化 a² + b² = 1。无限直线本身有两个自由度。</p>
-          </div>
-          <div class="mini">
-            <span class="small-label">CIRCLE · 3 DOF</span>
-            <svg viewBox="0 0 220 116" aria-label="圆心与半径示意"><circle cx="105" cy="58" r="44" fill="none" stroke="#287b87" stroke-width="2.5"/><circle cx="105" cy="58" r="3.5" fill="#b56d3e"/><path d="M105 58 L137 28" stroke="#b56d3e" stroke-width="1.7"/><text x="120" y="54" font-size="12" fill="#b56d3e">r</text><text x="26" y="109" font-size="11" fill="#516a73">中心 (cₓ, cᵧ) · 半径 r</text></svg>
-            <h4>圆：中心与半径</h4><p>三个参数；三个非共线点能够确定一个圆，但点的位置会影响计算是否稳定。</p>
-          </div>
-          <div class="mini">
-            <span class="small-label">ELLIPSE · 5 DOF</span>
-            <svg viewBox="0 0 220 116" aria-label="旋转的椭圆及其主轴示意"><g transform="rotate(-24 109 57)"><ellipse cx="109" cy="57" rx="79" ry="35" fill="none" stroke="#287b87" stroke-width="2.5"/><path d="M30 57 H188 M109 22 V92" stroke="#b56d3e" stroke-width="1.1" stroke-dasharray="4 3"/></g><circle cx="109" cy="57" r="3" fill="#b56d3e"/><text x="15" y="108" font-size="11" fill="#516a73">中心 · 长短半轴 · 旋转角</text></svg>
-            <h4>椭圆：更一般的二次曲线</h4><p>中心两个、半轴两个、旋转一个参数。完整模型比圆更灵活，也更需要足够的观测。</p>
-          </div>
-        </div>
-        <h3>1.1 直线：为什么尽量不用 y = kx + b？</h3>
-        <p>斜截式很容易理解，却无法自然表示竖直线。检测算法更常使用一般式或法线式：</p>
-        <div class="formula"><span class="mathrow">a x + b y + c = 0，&nbsp; a² + b² = 1</span><span class="mathrow">ρ = x cosθ + y sinθ</span><div class="sub">ρ 是原点到直线的有符号距离；θ 表示单位法向量方向</div></div>
-        <p>一条直线可以用法线方向 <span class="math-inline">θ</span> 和距离 <span class="math-inline">ρ</span> 来确定。这个表示也恰好为后面的 Hough 投票提供了参数空间。</p>
-        <h3>1.2 圆：少数参数带来强约束</h3>
-        <div class="formula">(x − cₓ)² + (y − cᵧ)² = r²</div>
-        <p>圆上所有点到圆心的距离都相同。这个规律使我们能够用很少的点提出模型，但<strong>最少能求解，不等于足够可靠</strong>：如果只观察到一小段近似直线的圆弧，很多不同半径的圆都可能与其近似吻合。</p>
-        <h3>1.3 椭圆：为什么还需要更多自由度？</h3>
-        <p>斜着观察平面上的圆形标记时，图像中通常会得到一个椭圆。它需要中心、长短半轴和旋转角共五个参数。一般二次曲线可写作：</p>
-        <div class="formula">A x² + B xy + C y² + D x + E y + F = 0<div class="sub">实非退化椭圆还必须满足合适的系数与实点条件；仅写出二次方程并不够</div></div>
-        <p>这里用直线、圆、椭圆说明<strong>规则形状 = 数学约束 + 有限参数</strong>。任意形状曲线当然也可以参数化，但本页不系统展开曲线设计与插值理论。</p>
-        <div class="note warm"><b>发现了一个新问题</b><p>模型已经有了，可真实图像里的点不会整齐落在这些公式上。到底取哪两个点、哪三个点来计算？如果所有点都有误差，我们该怎样利用它们？</p></div>
-      </section>
+.route-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.route-lane{padding:17px 18px;border-radius:11px;background:#fff;border:1px solid #e7ddd3;min-width:0}
+.route-lane:first-child{border-top:3px solid #b87860}.route-lane:last-child{border-top:3px solid #6d968b}
+.route-lane .smallcap{display:block;margin-bottom:6px}.route-lane strong{font-size:13px;display:block;line-height:1.6}
+.route-lane p{font-size:12px;line-height:1.8;color:#75675c;margin:6px 0!important}
+.route-converge{border-radius:8px;border:1px dashed #b9ac9e;text-align:center;font-size:12px;padding:10px;color:#695a4e;background:#f8f5f0;margin:8px 0 18px}
+.route-card:first-child{grid-column:auto;background:#fff;border-color:#e6ded5}
+.route-card:nth-child(1),.route-card:nth-child(4){border-top:3px solid #b87961}
+.route-card:nth-child(3),.route-card:nth-child(5){border-top:3px solid #699084}
+.route-card:nth-child(7){grid-column:span 2;background:#faf3eb}
+.tiny-evidence{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}
+.tiny-evidence span{font-size:11px;color:#68564b;padding:5px 10px;background:#f6f0e9;border-radius:30px;border:1px solid #e7dacf}
+.refine-panel svg{width:100%;height:auto;display:block;background:#fff;border:1px solid #eaded4;border-radius:9px}
+@media(max-width:640px){.route-pair{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
 
-      <section class="chapter" id="s02">
-        <div class="chapter-head"><div class="chapter-index">02 / PARAMETER ESTIMATION</div><h2>明明是一条直边，为什么检测到的点却不共线？</h2><p class="chapter-intro">假设我们已经有了一组基本属于同一条边的点。先解决最朴素的问题：用多个带误差的观测，计算一条最合理的直线。</p></div>
-        <h3>2.1 从“两点连线”走向“多点估计”</h3>
-        <p>随意选两个点，可以画出一条直线；但如果那两个点刚好受噪声干扰，方向就会偏。让所有点一起参与估计更稳定。这里有两种常见、但误差假设不同的做法。</p>
-        <div class="viz">
-          <svg viewBox="0 0 800 238" role="img" aria-label="普通最小二乘的竖直残差与总体最小二乘的正交残差对比">
-            <rect width="800" height="238" fill="#fff"/><path d="M400 20 V218" stroke="#e2e9e8"/>
-            <g stroke="#eef1f1" stroke-width="1"><path d="M40 190H370 M40 140H370 M40 90H370 M40 40H370 M430 190H760 M430 140H760 M430 90H760 M430 40H760"/></g>
-            <g fill="#72888e"><circle cx="76" cy="180" r="4"/><circle cx="135" cy="150" r="4"/><circle cx="199" cy="135" r="4"/><circle cx="249" cy="97" r="4"/><circle cx="314" cy="84" r="4"/><circle cx="354" cy="45" r="4"/><circle cx="466" cy="180" r="4"/><circle cx="525" cy="150" r="4"/><circle cx="589" cy="135" r="4"/><circle cx="639" cy="97" r="4"/><circle cx="704" cy="84" r="4"/><circle cx="744" cy="45" r="4"/></g>
-            <path d="M55 187 L362 48 M445 187 L752 48" stroke="#287b87" stroke-width="2.4"/>
-            <g stroke="#c37d4d" stroke-width="1.5" stroke-dasharray="4 3"><path d="M135 150V151 M199 135V121 M249 97V99 M314 84V69 M525 150 L523 146 M589 135 L584 128 M639 97 L641 91 M704 84 L697 75"/></g>
-            <g fill="#50616a" font-size="13" text-anchor="middle"><text x="200" y="25">OLS：固定 x，比较 y 的差</text><text x="600" y="25">TLS：点到直线的正交距离</text></g>
-            <g fill="#84969b" font-size="11" text-anchor="middle"><text x="200" y="222">适合 x 误差可忽略的回归</text><text x="600" y="222">适合 x、y 均存在位置误差的点集</text></g>
-          </svg>
-          <div class="viz-caption">这里画的是“误差方向”的区别，图中两条示意直线并非根据这些示意点精确计算的结果。</div>
-        </div>
-        <div class="columns-2">
-          <div class="mini"><span class="small-label">OLS / 普通最小二乘</span><h4>最小化纵向误差</h4><div class="formula" style="font-size:15px">min ∑ᵢ (yᵢ − kxᵢ − b)²</div><p>适合把 x 当作准确自变量、y 含误差的回归任务；不适合直接表示竖直线。</p></div>
-          <div class="mini"><span class="small-label">TLS / 正交距离拟合</span><h4>最小化几何距离</h4><div class="formula" style="font-size:15px">min ∑ᵢ (axᵢ + byᵢ + c)²<br>使 a² + b² = 1</div><p>对二维边缘点更自然。直线方向不依赖于把哪一轴指定为“自变量”。</p></div>
-        </div>
-        <h3>2.2 TLS 到底怎样算？为什么 SVD 能出现？</h3>
-        <ol class="step-list">
-          <li><strong>求中心：</strong>对点集 <span class="math-inline">pᵢ = (xᵢ,yᵢ)</span> 求均值 <span class="math-inline">p̄</span>。</li>
-          <li><strong>去中心化：</strong>构造矩阵 <span class="math-inline">X</span>，每行是 <span class="math-inline">pᵢ − p̄</span>。</li>
-          <li><strong>寻找变化最小的方向：</strong>对 <span class="math-inline">X</span> 做 SVD。最小奇异值对应的右奇异向量，就是拟合直线的单位法向量 <span class="math-inline">n=(a,b)</span>。</li>
-          <li><strong>恢复位置：</strong>令 <span class="math-inline">c=−n·p̄</span>，得到 <span class="math-inline">ax+by+c=0</span>。最大奇异值对应的方向是直线方向。</li>
-        </ol>
-        <div class="formula">X = U Σ Vᵀ，&nbsp; n = V 的最小奇异值对应向量<div class="sub">本质是寻找让所有点的正交投影误差平方和最小的方向</div></div>
-        <details><summary>展开：最小可运行示例 · 用 NumPy 拟合二维直线</summary><div class="detail-body">
-          <pre><code>import numpy as np
+.geom-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}
+.geom-input{background:#fff;border:1px solid #e8dfd6;border-top:3px solid #b37b5f;border-radius:10px;padding:15px 16px}
+.geom-input:nth-child(2){border-top-color:#668d82}.geom-input:nth-child(3){border-top-color:#5f8095}
+.geom-input strong{display:block;font-size:13px;color:#49392e}.geom-input p{font-size:11.5px;line-height:1.8;margin:7px 0 0!important;color:#7b6c60}
+.route-card:nth-child(2),.route-card:nth-child(5){border-top:3px solid #688d82}
+.route-card:nth-child(3),.route-card:nth-child(6){border-top:3px solid #7b8da2}
+.route-card:nth-child(7){grid-column:span 2;background:#fbf5ed}
+.corner-lab svg{display:block;width:100%;height:auto;background:#fff;border:1px solid #e9dfd6;border-radius:10px}
+.corner-reading{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
+.corner-reading div{border:1px solid #e9ddd2;border-radius:9px;padding:10px 13px;background:#fff}
+.corner-reading span{display:block;font-size:11px;color:#816f62}
+.corner-reading strong{font-size:20px;font-family:ui-monospace,monospace;color:#985c45}
+.geom-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:15px 0}
+.geom-steps span{font-size:12px;padding:8px 11px;border:1px solid #e5dace;border-radius:8px;background:#fff}
+.geom-steps i{font-style:normal;color:#a98d78}
+.geom-branch-svg{width:100%;height:auto;display:block}
+@media(max-width:700px){.geom-inputs,.corner-reading{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
+</style></head><body><div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div><div class="site"><aside class="sidebar" id="sidebar" aria-label="本篇章节导航"><div class="site-identity"><div class="brand">沿途手记</div><div class="brand-sub">STAGE 01 · CLASSICAL VISION</div></div><div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="index.html"><span class="num">←</span>图像特征与结构提取</a></nav></div><div class="chapter-sidebar"><div class="side-group">本篇章节</div><div class="current-article">04 · 几何结构</div><nav class="sub-links" id="chapter-nav" aria-label="几何结构章节">
+<a href="#scope">00 · 问题与边界</a>
+<a href="#roadmap">技术路线图</a>
+<a href="#line">01 · 直线：从两点到检测</a>
+<a href="#robust">02 · 异常点与 RANSAC</a>
+<a href="#circle">03 · 圆与椭圆</a>
+<a href="#rectangle">04 · 包围框与四边形</a>
+<a href="#corner">05 · 真实角点估计</a>
+<a href="#validate">06 · 模型怎样验证</a>
+<a href="#selection">07 · 方法选择</a>
+</nav></div></aside><main class="layout-main" id="content"><div class="mobile-bar"><button id="mobile-menu" class="btn" type="button" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>04 / 06</span></div><article class="article"><div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="index.html">图像特征与结构提取</a><span class="slash">/</span><span>几何结构</span></div><header class="hero"><div class="eyebrow">DEEP DIVE · 04 / 06</div><h1>几何结构</h1>
+<p class="subtitle">边界有了，怎么知道它是一条线、一个圆，还是四个真正的角？</p>
+<p class="lede">03 已经能把像素边缘整理成有序的曲线。可在图上选一排点，轻轻一连，就有了一条“看起来挺直”的线；用一个矩形框住轮廓，也很容易。<strong>问题是：这些画出来的几何形状，真的被图像证据支持吗？</strong></p>
+<p class="lede">这次仍然从简单办法出发：先用两点连线，再试所有点共同拟合；发现异常点后引入鲁棒估计；遇到弯曲边界换圆或椭圆；需要四角时再比较外接框、轮廓拐点和相邻边求交。最终建立一份<strong>知道何时选模型、怎样算、怎样证伪</strong>的工具地图。</p>
+<div class="meta"><span class="tag">二维图像几何</span><span class="tag">TLS · Hough · LSD · RANSAC</span><span class="tag">曲线 / 外接框 / 真实角点</span><span class="tag">公式 + 交互实验 + Python</span></div></header><section class="chapter" id="scope">
+<div class="chapter-label">00 · SCOPE & THE QUESTION</div><h2>先把边界划清：观测点不是几何模型，外接框也不是物体四角</h2>
+<p>上一章提供了一串有序轮廓点 <code>p₁, p₂, …, pₙ</code>，或尚未分组的 Edge Map 像素。<strong>点在哪里</strong>和<strong>这些点遵从什么几何规律</strong>是两个不同问题。一个矩形的外接框、四条拟合线，以及物体表面真实的四个投影角点，也完全不是同一组参数。</p>
+<p>因此这一篇采用最小充分的几何模型：<strong>给出明确输入 → 计算候选参数 → 用残差、覆盖范围和几何条件验证。</strong>几何模型不是识别结果，更不会因为参数算出来就自动变成 3D 位姿。</p>
+<div class="figure"><div class="figure-title">同一组轮廓点，可以有不同层次的几何解释</div><div class="figure-body"><svg viewBox="0 0 760 226" role="img" aria-label="从轮廓点，尝试直线、矩形和圆弧几何拟合" width="100%"><rect width="760" height="226" rx="12" fill="#f7f2ec"/>
+<g transform="translate(20 24)"><rect width="225" height="172" rx="9" fill="#fff" stroke="#eadfd4"/><path d="M43 122L66 53L175 40L187 130L43 122Z" fill="#ecd8c8" stroke="#d0b5a1" stroke-width="1.6"/><g fill="#a95c46"><circle cx="43" cy="122" r="3.7"/><circle cx="66" cy="53" r="3.7"/><circle cx="175" cy="40" r="3.7"/><circle cx="187" cy="130" r="3.7"/><circle cx="55" cy="89" r="3"/><circle cx="104" cy="47" r="3"/><circle cx="145" cy="42" r="3"/><circle cx="181" cy="87" r="3"/><circle cx="112" cy="127" r="3"/></g><text x="112" y="161" text-anchor="middle" fill="#806f64" font-size="11.5">轮廓点 · 还没有形状模型</text></g>
+<path d="M255 106h30" fill="none" stroke="#ac8f79" stroke-width="2"/><path d="M280 100l7 6-7 6" fill="none" stroke="#ac8f79" stroke-width="2"/>
+<g transform="translate(293 24)"><rect width="218" height="172" rx="9" fill="#fff" stroke="#eadfd4"/><path d="M43 122L66 53L175 40L187 130L43 122Z" fill="none" stroke="#ccc1b5" stroke-width="1.5" stroke-dasharray="5 4"/><path d="M65 48L178 42 M181 40L186 137 M41 125L186 129" stroke="#a65e49" stroke-width="3"/><text x="109" y="161" text-anchor="middle" fill="#806f64" font-size="11.5">直线段 · 参数与残差</text></g>
+<path d="M520 106h25" fill="none" stroke="#ac8f79" stroke-width="2"/><path d="M540 100l7 6-7 6" fill="none" stroke="#ac8f79" stroke-width="2"/>
+<g transform="translate(551 24)"><rect width="188" height="172" rx="9" fill="#fff" stroke="#eadfd4"/><path d="M42 122L59 49L150 40L163 131Z" fill="#f2f7f2" stroke="#628c7d" stroke-width="2.6"/><circle cx="42" cy="122" r="4" fill="#a65e49"/><circle cx="59" cy="49" r="4" fill="#a65e49"/><circle cx="150" cy="40" r="4" fill="#a65e49"/><circle cx="163" cy="131" r="4" fill="#a65e49"/><text x="94" y="161" text-anchor="middle" fill="#806f64" font-size="11.5">四边形 · 不等于矩形</text></g></svg></div><div class="figcap">边界点是观测；直线、圆和矩形是模型。越强的模型假设，越需要用残差、覆盖范围及结构约束验证。</div></div>
+<div class="scope-grid"><div class="tile"><div class="id">输入 · OBSERVATION</div><strong>轮廓 / 边缘点 / Mask</strong><p>有序轮廓、无序的候选边缘点，或由分割得到的目标区域。</p></div><div class="tile"><div class="id">本篇计算 · FIT & TEST</div><strong>模型参数 + 误差</strong><p>选模型、求参数、剔异常、检验几何约束与退化。</p></div><div class="tile"><div class="id">输出 · GEOMETRY</div><strong>直线、圆、矩形、四边形</strong><p>附带角点、中心、方向和拟合质量；不宣称是真实 3D Pose。</p></div></div>
+<div class="note"><strong>边界：</strong>本篇研究二维几何模型及其估计方法。轮廓追踪和边缘检测已在 03；骨架、分支结构留给 05；局部关键点与描述子留给 06。<strong>二维旋转角 ≠ 三维物体姿态。</strong></div>
+<div class="flowline"><span class="flowpill">点集 / 轮廓</span><span class="flowarrow">→</span><span class="flowpill">选择模型</span><span class="flowarrow">→</span><span class="flowpill">求解参数</span><span class="flowarrow">→</span><span class="flowpill">残差与约束验证</span></div>
+</section>
+
+
+<section class="chapter anchor" id="roadmap"><div class="chapter-label">TECHNICAL ROADMAP · 从观测到几何解释</div>
+<h2>先画技术路线：不是“算法升级表”，而是问题不断分叉</h2>
+<p>起点可以是<strong>轮廓点</strong>、<strong>没有分组的边缘图</strong>，或者<strong>一个已分出的 Mask</strong>。它们需要的计算不同：同一批边缘点里找线段，与已经知道哪些点属于一条边之后拟合直线，不能混为一谈。</p>
+<div class="geom-inputs">
+<div class="geom-input"><span class="smallcap">INPUT A · 有序点</span><strong>Contour / 一段边界</strong><p>已知道点的邻接关系；可分段拟合直线、圆或多边形。</p></div>
+<div class="geom-input"><span class="smallcap">INPUT B · 边缘图</span><strong>Edge Map / 混合线索</strong><p>尚不知道点属于哪条边；优先提出线段或其他几何候选。</p></div>
+<div class="geom-input"><span class="smallcap">INPUT C · 区域</span><strong>Mask / 目标点集</strong><p>需要快速得到包围范围、主轴或四角候选。</p></div>
+</div>
+<div class="figure"><div class="figure-title">几何结构技术地图 · 三种输入、四类任务、统一验证</div><div class="figure-body"><svg class="geom-branch-svg" viewBox="0 0 800 365" role="img" aria-label="有序轮廓、边缘图、Mask分别走向直线拟合、线段检测、曲线拟合和外接形状；最终都要做模型验证">
+<defs><marker id="gArrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#a39383" stroke-width="1.5"/></marker></defs>
+<g font-family="Inter,Noto Sans SC,Microsoft YaHei,sans-serif" text-anchor="middle">
+<g font-size="12" font-weight="700"><rect x="22" y="13" width="230" height="50" rx="9" fill="#f7eadf" stroke="#d9bba9"/><text x="137" y="34" fill="#844e3b">有序轮廓 / 局部点集</text><text x="137" y="51" fill="#8d7567" font-size="10" font-weight="400">已知点的归属或顺序</text><rect x="284" y="13" width="230" height="50" rx="9" fill="#eef5f0" stroke="#b0cabd"/><text x="399" y="34" fill="#4f7665">混合 Edge Map</text><text x="399" y="51" fill="#68887b" font-size="10" font-weight="400">尚不知道哪些点共线</text><rect x="546" y="13" width="230" height="50" rx="9" fill="#ebf0f4" stroke="#b9c8d3"/><text x="661" y="34" fill="#55788d">Mask / 整体点集</text><text x="661" y="51" fill="#7d93a1" font-size="10" font-weight="400">已知区域但不一定知道角点</text></g>
+<g fill="none" stroke="#b4a596" stroke-width="1.7" marker-end="url(#gArrow)"><path d="M137 63V102"/><path d="M399 63V102"/><path d="M661 63V102"/><path d="M137 181V212H400V234"/><path d="M399 181V234"/><path d="M661 181V212H400V234"/></g>
+<g><rect x="18" y="104" width="238" height="77" rx="10" fill="#fff" stroke="#e0cfc1"/><rect x="280" y="104" width="238" height="77" rx="10" fill="#fff" stroke="#c9dfd4"/><rect x="542" y="104" width="238" height="77" rx="10" fill="#fff" stroke="#cbd9e3"/>
+<g font-size="14" font-weight="700" fill="#493d35"><text x="137" y="129">模型拟合</text><text x="399" y="129">几何候选检测</text><text x="661" y="129">包围范围 / 四角</text></g>
+<g font-size="11" fill="#85746a"><text x="137" y="150">TLS、圆 / 椭圆、分段直线</text><text x="137" y="166">混入外点 → RANSAC</text><text x="399" y="150">Hough 投票、LSD 线段</text><text x="399" y="166">再检查支持点与线段长度</text><text x="661" y="150">AABB、minAreaRect、PCA</text><text x="661" y="166">多边形逼近 / 直线求交</text></g></g>
+<rect x="196" y="237" width="408" height="70" rx="11" fill="#f9f4e9" stroke="#d8c6af"/><g fill="#664d3e"><text x="400" y="262" font-size="15" font-weight="800">同一个落点：模型验证</text><text x="400" y="282" font-size="11">残差 · 支持长度/弧度 · 参数稳定性 · 退化</text><text x="400" y="297" font-size="10">模型不成立 → 重新选模型或返回“不可靠”</text></g>
+<g fill="#8e7b6d" font-size="11"><text x="400" y="340">不是必须顺序执行：RANSAC 是鲁棒估计策略，外接框也不自动产生真实角点。</text></g>
+</g></svg></div></div>
+<div class="tiny-evidence"><span>端点噪声 → 全点拟合</span><span>竖直线不稳定 → TLS</span><span>点未分组 → Hough / LSD</span><span>异常点 → RANSAC</span><span>弯曲边 → 圆 / 椭圆</span><span>斜视四角 → 四边形与求交</span></div>
+<div class="route-grid">
+<a class="route-card" href="#line"><span class="route-index">01 · 点近似共线</span><strong>已分组：TLS；未分组：Hough / LSD</strong><p>先弄清“线怎么求”，再区分“线属于谁还不知道”。</p><em>是拟合已知一条边，还是从整幅图找候选？</em></a>
+<a class="route-card" href="#robust"><span class="route-index">02 · 拟合被误检点拉歪</span><strong>RANSAC + 内点精化</strong><p>让极少点先提出假设，再用多数观测验证，拒绝外点。</p><em>大量误点中为什么还能估计主结构？</em></a>
+<a class="route-card" href="#circle"><span class="route-index">03 · 曲率持续存在</span><strong>圆 → 几何优化 → 椭圆</strong><p>直线不再充分；弧段过短时模型可能严重退化。</p><em>为什么拟合出来不代表没看到的地方也正确？</em></a>
+<a class="route-card" href="#rectangle"><span class="route-index">04 · 我只想快速框住它</span><strong>AABB / 最小面积矩形 / PCA</strong><p>三种框优化目标不同，且都不保证角点吻合。</p><em>包围框为什么不等于投影四边形？</em></a>
+<a class="route-card" href="#corner"><span class="route-index">05 · 我需要物体的四角</span><strong>多边形近似 → 分段拟合 → 求交</strong><p>用边界支持点重新定位交点，而非直接拿外接框角。</p><em>夹角很小时为什么角点会飘？</em></a>
+<a class="route-card" href="#validate"><span class="route-index">06 · 结果看上去很漂亮</span><strong>残差 / 覆盖 / 稳定性 / 退化检测</strong><p>把“拟合成功”与“这个解释可信”明确分开。</p><em>怎样用失败条件推翻错误模型？</em></a>
+<a class="route-card" href="#selection"><span class="route-index">07 · 只保留能用的技术判断</span><strong>按输入、假设和误差来源选择</strong><p>从边缘图、轮廓、Mask 出发，各自使用最小充分的方法。</p><em>少试错，但每个输出都能被验证。</em></a>
+</div>
+<div class="route-legend"><b>技术边界：</b>这不是“TLS → Hough → RANSAC → 圆 → 外接框”的流水线。<strong>检测与拟合并列；直线与圆是竞争模型；外接框与真实角点是不同输出。</strong>唯一需要贯穿所有分支的，是结果可信度检查。</div>
+</section>
+
+<section class="chapter" id="line">
+<div class="chapter-label">01 · LINE ESTIMATION</div><h2>只用两点就能连成线，为什么还要拟合和检测？</h2><p class="chapter-context">从 03 拿来的一段轮廓，看起来很直。最省事的做法当然是取首尾点画线，可只要某个端点偏一两个像素，整条线的角度就可能跟着改变。若点的归属还未确定，问题则又不同了。</p><div class="thinking"><div><span class="thinking-key">先试什么</span><p>取两个端点决定一条直线，或者写 y = kx + b。</p></div><div><span class="thinking-key">马上发现</span><p>端点噪声放大了角度误差；竖直线的斜率失去稳定性。更关键的是，全图 Edge Map 根本没有告诉我们哪些点属于同一条直线。</p></div><div><span class="thinking-key">于是引入</span><p>对“已知同一条边”的点用 TLS 正交拟合；对“未知属于哪条边”的混合边缘用 Hough 或局部线段检测，再检查支持范围。</p></div></div>
+<div class="math"><div>最朴素的两点直线：p₁=(x₁,y₁), p₂=(x₂,y₂)</div><div>方向向量 v = (x₂−x₁, y₂−y₁)，法向量 n = (−vᵧ, vₓ) / ‖v‖</div><div>缺点：只有两个观测决定参数；若 ‖v‖ 很小，方向对坐标误差极敏感。</div></div>
+<p>让更多点参与拟合，是为了降低随机定位误差的影响；但前提是<strong>这些点真的属于同一条边</strong>。先从直线的表示和求解开始。</p>
+<h3>1.1 · 直线应该怎样表示？</h3>
+<p>熟悉的 <code>y=kx+b</code> 在接近竖直时会变得不稳定。更适合二维图像的一种表达是单位法向量形式：</p>
+<div class="math"><div>ax + by + c = 0，且 a² + b² = 1</div><div>点 p=(x,y) 到直线的垂直距离 d(p,L) = |ax+by+c|</div><div>等价的 Hough 法向量形式：ρ = x cosθ + y sinθ</div></div>
+<p>这样水平线、竖直线和斜线可以统一处理，而且距离就是像素尺度下的正交残差。</p>
+<h3>1.2 · 为什么不能只做普通的 y 对 x 最小二乘？</h3>
+<div class="two"><div class="tile"><div class="id">OLS · 普通最小二乘</div><strong>最小化竖直偏差</strong><p>最小化 Σ(yᵢ−kxᵢ−b)²。适合 x 近似无噪且线不竖直的回归问题；对于任意方向边缘，误差定义会偏向坐标轴。</p></div><div class="tile"><div class="id">TLS · 正交最小二乘</div><strong>最小化垂直距离</strong><p>最小化 Σ(axᵢ+byᵢ+c)²，约束 a²+b²=1。它对任意朝向的直线保持一致的几何含义。</p></div></div>
+<p>求 TLS 并不神秘。先算点集质心 μ，把每个点减去质心形成矩阵 A；对 A 做 SVD。<strong>最小奇异值对应的右奇异向量就是直线法向量</strong>。最后令直线经过质心。</p>
+<div class="math"><div>μ = (1/N) Σpᵢ；A = [p₁−μ; p₂−μ; …; pₙ−μ]</div><div>A = UΣVᵀ；n = V 的最小奇异值对应方向</div><div>(a,b)=n；c=−n·μ；RMSE = √[(1/N)Σ(n·(pᵢ−μ))²]</div></div>
+<div class="viz" id="line-lab"><div class="viz-head"><span class="viz-name">交互实验 · 同一批点，OLS 与 TLS 的几何含义为什么不同？</span><span class="viz-help">改变边缘的倾斜角</span></div>
+<div class="controls"><label for="line-angle">模拟直线倾角　<strong id="line-angle-value">25°</strong></label><input id="line-angle" type="range" min="0" max="88" step="1" value="25"/><label for="line-noise">正交噪声　<strong id="line-noise-value">5 px</strong></label><input id="line-noise" type="range" min="0" max="12" step="1" value="5"/></div>
+<canvas id="line-canvas" class="demo-canvas" width="680" height="310" aria-label="带噪声的二维点集、OLS 与 TLS 的拟合直线"></canvas>
+<div class="lab-readouts"><div><small>TLS · 正交 RMSE</small><b id="line-tls-rmse">—</b></div><div><small>OLS · 正交 RMSE</small><b id="line-ols-rmse">—</b></div><div><small>OLS 斜率 k</small><b id="line-slope">—</b></div></div>
+<p class="mini-text">橙色：TLS；蓝色：OLS。两条线使用完全相同的点。OLS 把 y 当作被解释变量，TLS 把 x、y 的定位误差对称处理；接近竖直时二者差异会变明显。</p></div>
+<h3>1.3 · 如果只是找“可能的直线”，有没有不依赖连续点序的办法？</h3>
+<p><strong>Hough Transform</strong> 换一个观察角度：一个边缘点 (x,y) 不直接宣称属于哪条直线，而是给所有满足 <code>ρ=xcosθ+ysinθ</code> 的参数组合投票。多个共线点的参数曲线会在同一位置聚集。</p>
+<div class="figure"><div class="figure-title">点空间与参数空间的对应关系</div><div class="figure-body"><svg viewBox="0 0 760 208" role="img" aria-label="左侧多个共线点，右侧的霍夫参数空间投票交汇" width="100%"><rect width="760" height="208" rx="11" fill="#faf6f1"/><g transform="translate(20 20)"><rect width="295" height="164" rx="7" fill="white" stroke="#e8ddd1"/><path d="M40 138L250 30" stroke="#b17c60" stroke-width="2.5"/><g fill="#a85f46"><circle cx="76" cy="120" r="4.3"/><circle cx="117" cy="99" r="4.3"/><circle cx="160" cy="75" r="4.3"/><circle cx="216" cy="48" r="4.3"/></g><text x="14" y="15" font-size="10" fill="#8c796a">x-y 点空间</text><text x="145" y="154" font-size="11" fill="#77675b" text-anchor="middle">同一条直线上的多个点</text></g><path d="M333 106h42" stroke="#c3a995" stroke-width="2"/><path d="M368 100l8 6-8 6" stroke="#c3a995" stroke-width="2" fill="none"/><g transform="translate(392 20)"><rect width="349" height="164" rx="7" fill="white" stroke="#e8ddd1"/><path d="M30 130Q91 5 166 88T322 92 M30 107Q94 -7 166 88T322 115 M30 80Q104 -21 166 88T322 137 M30 55Q114 -30 166 88T322 157" fill="none" stroke="#9eabac" stroke-width="1.7" opacity=".84"/><circle cx="166" cy="88" r="6" fill="#b26b4d"/><path d="M166 21V151 M25 88H321" stroke="#b26b4d" stroke-dasharray="3 5" opacity=".45"/><text x="14" y="15" font-size="10" fill="#8c796a">θ-ρ 参数空间 · 示意</text><text x="180" y="155" font-size="11" fill="#77675b" text-anchor="middle">票数聚集处是候选直线</text></g></svg></div><div class="figcap">机制示意，不是逐点精确绘制的累加器。实际 Hough 将 θ、ρ 离散成投票格，峰值位置和误检受量化精度与投票阈值影响。</div></div>
+<div class="note"><strong>TLS 与 Hough 是在回答不同问题：</strong>若已经知道某一组点属于一条边，直接拟合 TLS；若整张 Edge Map 里还不知道哪几组点共线，Hough 可以提出候选直线。Hough 的投票峰本身还需要确定线段长度与支持点。</div>
+<h3>1.4 · Hough 投票找到的是“无限直线”，线段从哪里来？</h3>
+<p>标准 Hough 通过累加器给出 <code>(ρ, θ)</code> 候选，对应的是<strong>无限延长的几何直线</strong>。但工程上常需要有起点、终点的<strong>有限线段</strong>。可以根据支持边缘点的投影范围确定线段，也可以直接用 Probabilistic Hough（<code>HoughLinesP</code>）输出端点。</p>
+<p>另一条检测路线是 <strong>LSD（Line Segment Detector）</strong>：从图像局部梯度方向的一致性形成候选线支持区域，再验证是否足够像一条线段。它不要求事先得到某个物体的完整轮廓，但仍可能把物体内部纹理线检测出来。</p>
+<div class="two"><div class="tile"><div class="id">已知一段轮廓</div><strong>TLS / cv2.fitLine</strong><p>输出一条与这些点最匹配的直线参数；若要有限线段，再用点在方向轴上的最小/最大投影确定端点。</p></div><div class="tile"><div class="id">整张图里的未知线</div><strong>HoughLinesP / LSD</strong><p>直接提出线段候选；还需要验证端点跨度、边缘支持、与目标区域的关系。</p></div></div>
+<div class="code-title"><span>Python · 从边缘图提出线段候选</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">import cv2
+
+gray = cv2.imread("image.png", cv2.IMREAD_GRAYSCALE)
+if gray is None:
+    raise FileNotFoundError("image.png")
+
+edges = cv2.Canny(gray, 50, 120)
+segments = cv2.HoughLinesP(edges, rho=1, theta=3.14159265 / 180,
+                            threshold=45, minLineLength=35, maxLineGap=8)
+if segments is not None:
+    for x1, y1, x2, y2 in segments[:, 0]:
+        print("Hough candidate:", (x1, y1), (x2, y2))
+
+# LSD 使用灰度图，不要求先输入 Canny 结果
+lsd = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
+lines = lsd.detect(gray)[0]
+if lines is not None:
+    for x1, y1, x2, y2 in lines.reshape(-1, 4):
+        print("LSD candidate:", (x1, y1), (x2, y2))</pre>
+<div class="code-title">Python · 任意朝向直线的 TLS 拟合 <button class="copy" type="button">复制代码</button></div><pre class="code-block">import numpy as np
 
 def fit_line_tls(points):
-    points = np.asarray(points, dtype=np.float64)
-    if points.ndim != 2 or points.shape[1] != 2 or len(points) < 2:
+    pts = np.asarray(points, dtype=np.float64)
+    if pts.ndim != 2 or pts.shape[1] != 2 or len(pts) < 2:
         raise ValueError("至少需要两个二维点")
+    center = pts.mean(axis=0)
+    _, s, vh = np.linalg.svd(pts - center, full_matrices=False)
+    if s[0] < 1e-10:
+        raise ValueError("所有点几乎重合，方向未确定")
+    normal = vh[-1]                    # 法向量
+    a, b = normal
+    c = -float(normal @ center)
+    residual = np.abs(pts @ normal + c)
+    return (a, b, c), float(np.sqrt(np.mean(residual ** 2)))</pre>
+<div class="chapter-handoff"><span>下一道问题</span><p>直线方向虽然估计了，如果轮廓夹杂一堆来自背景或反光的点，直接全点 TLS 仍然会被拉偏。</p></div></section>
 
-    center = points.mean(axis=0)
-    centered = points - center
-    if np.linalg.norm(centered) < 1e-10:
-        raise ValueError("所有点重合，无法确定直线方向")
+<section class="chapter" id="robust">
+<div class="chapter-label">02 · ROBUST ESTIMATION</div><h2>多个点共同拟合，一旦混入别的边，为什么反而更糟？</h2><p class="chapter-context">TLS 用上了全体观测，随机小噪声下通常会比两点确定的线稳定。但这隐含一个很强的前提：每个点都属于同一个模型。现实图像里，背景边线、反光和遮挡会让候选点集不干净。</p><div class="thinking"><div><span class="thinking-key">先试什么</span><p>把所有候选点一股脑交给 TLS，取平均意义下最好的线。</p></div><div><span class="thinking-key">马上发现</span><p>平方残差对远离模型的点十分敏感；几颗错误点就可能改变方向，多一条强背景边甚至能形成竞争解。</p></div><div><span class="thinking-key">于是引入</span><p>RANSAC 用最小样本提出候选，再按几何距离投票；由胜出内点重新做 TLS，并检查支持长度、残差分布和竞争结构。</p></div></div>
+<p>这时可以不再一口气让所有点决定答案，而是先让极少的点提出假设，再由整个点集验证假设。这就得到 RANSAC。</p>
+<div class="flowline"><span class="flowpill">随机抽 2 点</span><span class="flowarrow">→</span><span class="flowpill">得到直线假设</span><span class="flowarrow">→</span><span class="flowpill">计算全体点到线距离</span><span class="flowarrow">→</span><span class="flowpill">统计内点并重新拟合</span></div>
+<div class="math"><div>内点判定：|axᵢ+byᵢ+c| &lt; τ（单位：像素）</div><div>k ≥ log(1−P) / log(1−wˢ)</div><div>直线最小样本数 s=2；P=目标成功概率，w=真实内点比例的估计</div></div>
+<p>迭代次数公式来自“独立随机样本至少有一次全部落在内点”的概率；实际迭代有有限样本、退化样本、阈值和局部优化等影响。<strong>RANSAC 不能证明哪个模型代表真实物体，得票最多只代表当前规则下支持点多。</strong></p>
+<div class="viz"><div class="viz-head"><span class="viz-name">交互实验 · 看异常点怎样影响 TLS，RANSAC 又怎样找回主线</span><span class="viz-help">固定随机种子 · 可重复</span></div>
+<div class="controls"><label for="ransac-outlier">异常点数量　<strong id="ransac-outlier-value">20</strong></label><input id="ransac-outlier" type="range" min="0" max="50" step="1" value="20"/><label for="ransac-threshold">距离阈值　<strong id="ransac-threshold-value">5 px</strong></label><input id="ransac-threshold" type="range" min="1" max="20" step="1" value="5"/><label for="ransac-iters">采样次数　<strong id="ransac-iters-value">120</strong></label><input id="ransac-iters" type="range" min="10" max="350" step="10" value="120"/></div>
+<canvas id="ransac-canvas" class="demo-canvas" width="680" height="320" aria-label="RANSAC 估计带异常点二维直线的结果"></canvas>
+<div class="lab-readouts"><div><small>最大一致集</small><b id="ransac-support">—</b></div><div><small>精化后内点 RMSE</small><b id="ransac-error">—</b></div><div><small>与全点 TLS 的角度差</small><b id="ransac-diff">—</b></div></div><p class="mini-text">浅灰：未通过当前阈值的点；绿色：RANSAC 内点；橙色实线：RANSAC + 内点 TLS；蓝色虚线：所有点直接 TLS。改阈值时，改变的是“什么误差可以接受”的定义。</p></div>
+<h3>2.1 · 哪些时候 RANSAC 也会给出看似合理的错误答案？</h3>
+<div class="three"><div class="tile"><div class="id">场景 A</div><strong>两条真实边并存</strong><p>若两条线各有很多点，只找一条线时，最多内点的线不一定是目标边。</p></div><div class="tile"><div class="id">场景 B</div><strong>阈值选择错误</strong><p>τ 太小：同一边被拆碎；τ 太大：不同结构被一起当作内点。</p></div><div class="tile"><div class="id">场景 C</div><strong>数据本来就不成线</strong><p>短圆弧或弯曲边也可能被局部直线近似；低残差不代表全段真是直线。</p></div></div>
+<p>一个可验证的几何模型，不仅要检查内点数量，还要看<strong>覆盖长度、空间分布、残差分布以及是否存在竞争模型</strong>。否则几个聚在一起的点也可能支撑一条“好直线”。</p>
+<div class="code-title">Python · 两点假设 + 内点 TLS 精化 <button class="copy" type="button">复制代码</button></div><pre class="code-block">import numpy as np
 
-    _, _, vt = np.linalg.svd(centered, full_matrices=False)
-    normal = vt[-1]              # [a, b]，单位法向量
-    c = -normal @ center         # ax + by + c = 0
-    residuals = np.abs(points @ normal + c)
-    return normal[0], normal[1], c, residuals
+def ransac_line(points, threshold_px=3.0, iterations=300, seed=0):
+    pts = np.asarray(points, dtype=np.float64)
+    if len(pts) < 2:
+        raise ValueError("至少需要两个点")
+    rng = np.random.default_rng(seed)
+    best = np.zeros(len(pts), dtype=bool)
+    for _ in range(iterations):
+        i, j = rng.choice(len(pts), 2, replace=False)
+        delta = pts[j] - pts[i]
+        length = np.linalg.norm(delta)
+        if length < 1e-9:  # 退化样本
+            continue
+        normal = np.array([-delta[1], delta[0]]) / length
+        distance = np.abs((pts - pts[i]) @ normal)
+        inliers = distance < threshold_px
+        if inliers.sum() > best.sum():
+            best = inliers
+    if best.sum() < 2:
+        raise ValueError("没有足够的内点")
+    line, _ = fit_line_tls(pts[best])  # 用上一节函数
+    a, b, c = line
+    refined = np.abs(pts @ np.array([a, b]) + c) < threshold_px
+    return line, refined</pre>
+<div class="chapter-handoff"><span>下一道问题</span><p>当点天然排成弯曲弧线时，直线再稳健也只是局部近似：它不一定是应该选用的几何模型。</p></div></section>
 
-points = [[10, 11], [20, 19], [30, 31], [40, 39], [50, 51]]
-a, b, c, errors = fit_line_tls(points)
-print("直线参数:", a, b, c)
-print("正交误差:", errors)</code></pre>
-          <p class="small-note">这段代码仅拟合已知属于同一结构的点，不会自动从一张复杂图像中识别目标线条。</p>
-        </div></details>
-        <h3>2.3 圆与椭圆也可以拟合，但误差定义很重要</h3>
-        <p>圆的一种简便做法是先展开为 <span class="math-inline">x²+y²+Dx+Ey+F=0</span>，对 <span class="math-inline">D,E,F</span> 做线性最小二乘，再恢复圆心和半径。这叫<strong>代数拟合</strong>，计算快，却不一定最小化真实的点到圆距离。</p>
-        <div class="formula">min Σᵢ ( √[(xᵢ−cₓ)²+(yᵢ−cᵧ)²] − r )²<div class="sub">几何圆拟合：最小化每个点到圆周的径向距离，通常需要非线性优化</div></div>
-        <p>椭圆拟合同样需要区分代数误差与几何误差，而且必须避免退化成双曲线、抛物线或其他不合适的二次曲线。直接最小二乘椭圆拟合会引入约束来保证拟合的是椭圆。</p>
-        <div class="note warm"><b>新的局限</b><p>这些方法默认：我们交给它的一组点，已经大体属于同一个模型。可现实中，一张图的边缘点可能同时来自盒子的四条边、桌面接缝和阴影。<strong>现在的困难不再是“怎么拟合”，而是“从哪里发现应该拟合的结构”。</strong></p></div>
-      </section>
+<section class="chapter" id="circle">
+<div class="chapter-label">03 · CIRCLE & ELLIPSE</div><h2>边界明明在持续弯曲，为什么还要强行画直线？</h2><p class="chapter-context">对一段弯曲轮廓，切线方向沿着弧不断变化。继续用更多直线段拟合当然可以逼近，但如果形状本身有规律，可能有更简洁的参数表达。</p><div class="thinking"><div><span class="thinking-key">先试什么</span><p>先看这条弧的每一点离某个中心是不是差不多远。</p></div><div><span class="thinking-key">马上发现</span><p>只露出一小段圆弧时，半径和圆心可能有许多近似解；斜视角里的平面圆投影也一般不是圆。</p></div><div><span class="thinking-key">于是引入</span><p>先做圆的代数初值，再用径向几何残差优化；如果透视轮廓更像椭圆，采用椭圆模型，并用弧段覆盖和参数稳定性防止过度解释。</p></div></div>
+<div class="math"><div>圆：(x−cₓ)² + (y−cᵧ)² = r²</div><div>几何残差：eᵢ = ||pᵢ−c|| − r</div><div>拟合目标：min₍cₓ,cᵧ,r₎ Σ eᵢ²</div></div>
+<p>三个<strong>不共线</strong>的点可以唯一确定一个圆。方法是展开为 <code>x²+y²+Dx+Ey+F=0</code>，求 D、E、F，再恢复中心和半径。但三个点越接近共线，圆心越可能跑到很远的地方；因此“可解”与“稳定”是两回事。</p>
+<div class="viz"><div class="viz-head"><span class="viz-name">交互实验 · 只看到一小段圆弧时，圆心为什么会漂移？</span><span class="viz-help">真实圆与拟合圆同时显示</span></div>
+<div class="controls"><label for="arc-span">可见圆弧角度　<strong id="arc-span-value">90°</strong></label><input id="arc-span" type="range" min="20" max="330" step="5" value="90"/><label for="arc-noise">点位噪声　<strong id="arc-noise-value">2 px</strong></label><input id="arc-noise" type="range" min="0" max="6" step=".5" value="2"/></div>
+<canvas id="circle-canvas" class="demo-canvas" width="680" height="325" aria-label="不同可见圆弧长度的圆拟合示意"></canvas>
+<div class="lab-readouts"><div><small>圆心估计误差</small><b id="circle-center-error">—</b></div><div><small>半径估计误差</small><b id="circle-radius-error">—</b></div><div><small>拟合残差 RMSE</small><b id="circle-rmse">—</b></div></div>
+<p class="mini-text">灰色虚线：真实圆；绿色：代数最小二乘拟合圆；橙色点：可见弧段。这里演示的是算法如何因可观测弧段变短而退化，并非任何固定角度以下都会必然失败。</p></div>
+<h3>3.1 · 圆的求解为什么有两种常见做法？</h3>
+<div class="two"><div class="tile"><div class="id">代数拟合</div><strong>解线性参数 D、E、F</strong><p>快、便于求初值，但最小化的是代数残差；短弧和噪声下可能有偏差，甚至出现不合理半径。</p></div><div class="tile"><div class="id">几何拟合</div><strong>直接优化径向误差</strong><p>以代数结果为初值，再用非线性最小二乘优化 cₓ、cᵧ、r，使误差更符合几何距离。</p></div></div>
+<h3>3.2 · 为什么圆不够，还需要椭圆？</h3>
+<p>从斜视角看一个平面圆，它的图像通常不再是圆而是椭圆（在常见的非退化成像条件下）。二维椭圆一般可以用中心、两个半轴和旋转角描述；也可以用一般二次曲线表示。</p>
+<div class="math"><div>Ax² + Bxy + Cy² + Dx + Ey + F = 0</div><div>椭圆型二次曲线需满足 B² − 4AC &lt; 0，并检查是否为真实非退化椭圆</div></div>
+<p>一般二次曲线有 6 个系数，但整体尺度不影响曲线，因此需要至少 5 个满足条件的点才能约束它；实际估计需要更多分布良好的点。OpenCV 提供 <code>fitEllipse</code>、<code>fitEllipseAMS</code> 和 <code>fitEllipseDirect</code> 等方法，具体结果受采样分布影响。</p>
+<div class="warn"><strong>必须保留的疑问：</strong>短圆弧也能被某个大圆“解释”，少量边界也能被椭圆拟合。<strong>小残差只能说明模型贴近已观测部分，不说明未观察到的背面真的延伸成完整圆或椭圆。</strong></div>
+<div class="code-title">Python · 圆的代数初值，再优化径向残差 <button class="copy" type="button">复制代码</button></div><pre class="code-block">import numpy as np
+from scipy.optimize import least_squares
 
-      <section class="chapter" id="s03">
-        <div class="chapter-head"><div class="chapter-index">03 / MODEL DETECTION</div><h2>点都混在一起，怎么知道哪一条线真的存在？</h2><p class="chapter-intro">我们不能把整张图里的点都交给一个直线拟合器。需要能从大量干扰中提出候选模型的办法。Hough、RANSAC 和线段检测，分别利用不同的线索。</p></div>
-        <h3>3.1 Hough：如果每个点都对可能的直线投票呢？</h3>
-        <p>两点可以确定一条直线，但在混杂的边缘图里随机挑两点并不可靠。换个想法：对每个边缘点，把所有经过它的可能直线都记一票。<strong>同一条直线上的多个点，会在参数空间的同一个位置累积支持。</strong></p>
-        <div class="formula">ρ = x cosθ + y sinθ<div class="sub">固定某个像素 (x,y)，让 θ 改变，它就在 (θ,ρ) 参数空间描出一条曲线</div></div>
-        <div class="viz">
-          <svg viewBox="0 0 800 250" role="img" aria-label="图像中共线的点映射为Hough参数空间中交汇的曲线">
-            <rect width="800" height="250" fill="#fff"/><path d="M400 20 V230" stroke="#e3e9e8"/>
-            <g stroke="#d8e3e2" stroke-width="1"><path d="M36 212H363 M48 25V212 M437 212H767 M437 27V212"/></g>
-            <g fill="#65777a" font-size="11"><text x="48" y="22">图像空间 (x, y)</text><text x="437" y="22">参数空间 (θ, ρ)</text><text x="360" y="224">x</text><text x="35" y="38">y</text><text x="761" y="225">θ</text><text x="438" y="38">ρ</text></g>
-            <path d="M65 193 L328 59" fill="none" stroke="#287b87" stroke-width="2.3"/>
-            <g fill="#b56d3e" stroke="#fff" stroke-width="1.5"><circle cx="93" cy="179" r="5"/><circle cx="170" cy="140" r="5"/><circle cx="273" cy="88" r="5"/></g>
-            <g fill="none" stroke-width="1.7" opacity=".77"><path d="M446 106 C503 21 574 34 617 95 S711 214 759 166" stroke="#b56d3e"/><path d="M446 170 C514 219 573 153 617 95 S708 35 759 70" stroke="#287b87"/><path d="M446 50 C512 95 570 175 617 95 S699 48 759 120" stroke="#777f9b"/></g>
-            <circle cx="617" cy="95" r="8" fill="#b56d3e" opacity=".2"/><circle cx="617" cy="95" r="3.7" fill="#b56d3e"/>
-            <g font-size="11" fill="#60727a"><text x="116" y="230">三点接近同一条直线</text><text x="591" y="246">曲线在一个参数位置相交</text></g>
-          </svg><div class="viz-caption">机制示意：图像空间中的多个共线点，在直线参数空间中支持相同的 (θ,ρ)；实际实现把连续空间离散为累加器格子，再寻找峰值。右图曲线用于示意交点关系。</div>
-        </div>
-        <ol class="step-list"><li>给定边缘图，设定角度步长 Δθ 和距离步长 Δρ，建立离散累加器。</li><li>每个边缘点按多个 θ 计算 ρ，对对应格子投票；可利用梯度方向限制候选 θ 以减少计算。</li><li>找得票显著的峰值，得到直线候选 (θ,ρ)；再与边缘证据关联，求取有限线段。</li></ol>
-        <p><strong>优点：</strong>不要求边缘点连续，断开的同向线条也可能被检测出来。<strong>代价：</strong>角度、距离离散化决定精度与计算量，复杂场景可能产生多个峰值；标准直线 Hough 输出的是无限直线，而非物体边界的两个真实端点。</p>
-        <p class="small-note">圆形 Hough 可以扩展到圆心与半径投票，但参数空间更大，通常要限制半径范围或利用梯度减少候选。它不是比圆拟合“更精确”的同义词，而是解决“在哪里有圆”的发现问题。</p>
-        <h3>3.2 RANSAC：如果先猜一条线，再问有多少点认可？</h3>
-        <p>另一种思路不建立完整投票空间。每次取足够少的点生成模型，然后检验剩余观测与模型的距离。如果支持者很多，就留下候选；重复若干次，选出有较大一致集的模型，并用内点重拟合。</p>
-        <ol class="step-list"><li><strong>提出假设：</strong>拟合直线随机取两个不重合点；拟合圆至少取三个非共线点。</li><li><strong>计算残差：</strong>对所有数据点计算到候选几何模型的距离。</li><li><strong>选择内点：</strong>距离小于阈值 τ 的点算作一致，得到共识集。</li><li><strong>迭代比较：</strong>按内点数量和残差质量筛选模型。</li><li><strong>内点重估计：</strong>用最终内点重新拟合，避免结果只取决于最初抽到的最小点集。</li></ol>
-        <div class="interactive">
-          <div class="interactive-top"><strong>小实验：RANSAC 的“内点阈值”意味着什么？</strong><span>调节 τ，看哪些点被候选直线接纳</span></div>
-          <svg id="ransac-svg" viewBox="0 0 800 250" role="img" aria-label="可交互的RANSAC内点阈值示意">
-            <rect x="0" y="0" width="800" height="250" fill="#fff"/>
-            <g stroke="#eef2f1"><path d="M30 50H770 M30 100H770 M30 150H770 M30 200H770"/></g>
-            <path id="model-line" d="M40 189 L760 66" stroke="#287b87" stroke-width="2.4" fill="none"/>
-            <g id="ransac-points"></g>
-            <text x="44" y="23" font-size="11" fill="#687d82">蓝绿：内点　灰色：未通过阈值</text>
-          </svg>
-          <div class="control"><label for="tau">距离阈值 τ</label><input id="tau" type="range" min="2" max="18" step="1" value="7"><output id="tau-value">7 px</output><span id="inlier-count">—</span></div>
-          <div class="viz-caption">这是对<strong>一条固定候选线</strong>的内点判定演示，并不是完整 RANSAC 迭代。阈值变大，内点通常变多，但也更容易把不属于这条线的点接纳进来。</div>
-        </div>
-        <div class="formula">N ≥ log(1−p) / log(1−wˢ)<div class="sub">p：至少抽到一次全内点最小样本的期望概率；w：内点比例估计；s：最小样本数。此式给出经典独立均匀抽样假设下的迭代估计。</div></div>
-        <p>例如要拟合直线，最小样本数 s=2；若估计内点比例 w=0.5，希望成功概率 p=0.99，则大约需要 <strong>17 次</strong>采样。实际中还要考虑退化样本、局部结构、迭代不足及阈值选择。</p>
-        <div class="note warm"><b>RANSAC 有一个不能忽略的前提</b><p>它只回答“哪些点支持某一种模型”，不自动证明“这些点属于目标”。如果背景中有一条更长的直线，它可能比目标边缘获得更多内点。多个目标或多条边也不能简单地假设运行一次 RANSAC 就结束。</p></div>
-        <h3>3.3 为什么还会有 LSD 这类线段检测？</h3>
-        <p>Hough 常从整张边缘图寻找参数峰值，RANSAC 从采样中提出模型；但有时我们更关心<strong>图像中从哪里到哪里确实存在一段边</strong>，而不想先得到无限延长的直线。</p>
-        <p>LSD（Line Segment Detector）利用局部图像梯度的方向一致性组织候选矩形支持区域，检测出具有端点、方向、长度的线段，并通过统计准则控制虚警。它不是简单地“把 Hough 的直线截短”。</p>
-        <div class="table-scroll"><table class="data-table"><thead><tr><th>方法</th><th>它主要解决什么</th><th>使用时容易误解的地方</th></tr></thead><tbody>
-          <tr><td>LS / TLS</td><td>已知大体属于同一结构的点，求模型参数</td><td>不负责从所有边缘里找出正确点集</td></tr>
-          <tr><td>Hough</td><td>从复杂边缘中按参数支持度发现显著直线、圆</td><td>参数峰值不直接等于有正确端点的目标边</td></tr>
-          <tr><td>RANSAC</td><td>在含离群点的数据中鲁棒提出和估计模型</td><td>阈值和“哪个模型值得找”仍需要定义</td></tr>
-          <tr><td>LSD</td><td>从图像局部梯度的组织中直接发现线段</td><td>局部线段并不自动构成完整物体结构</td></tr>
-        </tbody></table></div>
-        <p class="endline"><strong>这一站得到：</strong>不再需要事先知道全部内点，就能提出多条线、圆或线段的候选。可候选一多，又回到目标本身：哪些线才应该放在一起？</p>
-      </section>
+def fit_circle(points):
+    p = np.asarray(points, dtype=float)
+    if p.shape[0] < 3 or p.shape[1] != 2:
+        raise ValueError("至少需要三个二维点")
+    A = np.c_[2 * p[:, 0], 2 * p[:, 1], np.ones(len(p))]
+    b = np.sum(p * p, axis=1)
+    if np.linalg.matrix_rank(A) < 3:
+        raise ValueError("圆参数退化：点近似共线")
+    cx, cy, k = np.linalg.lstsq(A, b, rcond=None)[0]
+    r0 = np.sqrt(max(0., k + cx**2 + cy**2))
+    def residual(v):
+        return np.linalg.norm(p - v[:2], axis=1) - v[2]
+    result = least_squares(residual, [cx, cy, r0],
+                           bounds=([-np.inf, -np.inf, 0],
+                                   [ np.inf,  np.inf, np.inf]))
+    return result.x, np.sqrt(np.mean(result.fun**2))</pre>
+<div class="chapter-handoff"><span>下一道问题</span><p>有时不需要知道物体是什么曲线，只要快速得到包围范围与大致方向。这又是一种不同的几何需求。</p></div></section>
 
-      <section class="chapter" id="s04">
-        <div class="chapter-head"><div class="chapter-index">04 / GEOMETRIC RELATIONS</div><h2>四条直线出现了，为什么还不能说找到了盒子？</h2><p class="chapter-intro">一个模型描述局部形状；目标结构往往由多个元素及其关系构成。这里开始把“线的集合”变成“受约束的四边形候选”。</p></div>
-        <h3>4.1 先研究关系，而不是立即贴上“矩形”标签</h3>
-        <div class="columns-3">
-          <div class="mini"><span class="small-label">INCIDENCE</span><h4>共线 / 相交</h4><p>两条线是否相交？交点落在哪里？若两条线近乎平行，交点会对小误差很敏感。</p></div>
-          <div class="mini"><span class="small-label">ORIENTATION</span><h4>方向 / 夹角</h4><p>线段方向是否一致？是否有成组的边？平行和垂直的判断必须考虑成像假设。</p></div>
-          <div class="mini"><span class="small-label">ORGANIZATION</span><h4>连接 / 闭合</h4><p>哪些端点能够连接？线段是否组成简单封闭四边形？候选有无相互矛盾？</p></div>
-        </div>
-        <p>两条一般式直线 <span class="math-inline">a₁x+b₁y+c₁=0</span> 与 <span class="math-inline">a₂x+b₂y+c₂=0</span>，可通过 2×2 线性方程组求交。若系数行列式 <span class="math-inline">a₁b₂−a₂b₁</span> 接近零，说明两线接近平行，交点可能极不稳定。</p>
-        <h3>4.2 一个最小可行的矩形边界恢复实验</h3>
-        <ol class="step-list"><li>从边缘或梯度中检测出多条候选线段，保留端点、方向和支持证据。</li><li>根据距离、方向及空间邻近关系，形成可能属于同一边界的组合。</li><li>延长候选线并计算相邻交点，生成若干四边形候选；检查顶点顺序和是否自交。</li><li>用原始边缘重新检查每条候选边的实际支持范围，过滤“只靠无限延长的线碰巧形成”的形状。</li></ol>
-        <div class="viz">
-          <svg viewBox="0 0 800 270" role="img" aria-label="矩形盒子在透视图中的四边形与二维直角关系失效示意">
-            <rect width="800" height="270" fill="#fff"/>
-            <path d="M400 17 V254" stroke="#e3e9e8"/>
-            <g fill="#287b87" opacity=".08"><path d="M70 64 H316 V218 H70 Z"/><path d="M489 84 L719 56 L741 201 L504 225 Z"/></g>
-            <path d="M70 64 H316 V218 H70 Z" fill="none" stroke="#287b87" stroke-width="2.4"/>
-            <path d="M489 84 L719 56 L741 201 L504 225 Z" fill="none" stroke="#287b87" stroke-width="2.4"/>
-            <path d="M70 64 h18 v18 h-18z" fill="none" stroke="#b56d3e" stroke-width="1.3"/>
-            <path d="M489 84 l14 -2 1 14" fill="none" stroke="#b56d3e" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <g fill="#546974" font-size="13" text-anchor="middle"><text x="194" y="36">正视或经适当校正</text><text x="617" y="36">一般透视观察</text><text x="194" y="246" font-size="11">图像中也可接近直角 / 平行</text><text x="617" y="246" font-size="11">同一物体的图像边不必仍为直角 / 平行</text></g>
-          </svg>
-          <div class="viz-caption">注意这个几何陷阱：实际矩形在一般透视投影下形成四边形。直接用图像中的“必须垂直、必须平行”过滤，可能把正确目标删掉。</div>
-        </div>
-        <h3>4.3 哪些几何关系可以直接用？哪些需要条件？</h3>
-        <div class="table-scroll"><table class="data-table"><thead><tr><th>关系</th><th>在一般平面透视变换下</th><th>使用建议</th></tr></thead><tbody>
-          <tr><td>共线与线交点</td><td>保持</td><td>适合直接构造与检验图像中的线结构</td></tr>
-          <tr><td>平行</td><td>通常不保持</td><td>除非有近似正视、弱透视或校正等额外条件</td></tr>
-          <tr><td>直角 / 长度比</td><td>通常不保持</td><td>要结合成像模型、标定或平面矫正推理</td></tr>
-          <tr><td>圆 / 椭圆</td><td>一般圆可投影成二次曲线</td><td>圆形平面标记通常呈椭圆，不能只按像素圆找</td></tr>
-        </tbody></table></div>
-        <div class="note highlight"><b>这一节不是在做完整的单应性与位姿估计</b><p>我们这里只利用图像中可直接观测、或在明确成像条件下成立的几何约束，组合二维结构。若要利用已知矩形的真实尺寸来推断平面单应性、相机相对姿态，那已经进入后续的成像几何与位姿研究。</p></div>
-        <p class="endline"><strong>这一站得到：</strong>一个由多条线和交点组成的二维四边形候选。然而，漂亮的四边形并不等于真实目标——背景线条也能“拼”出四边形。</p>
-      </section>
-
-      <section class="chapter" id="s05">
-        <div class="chapter-head"><div class="chapter-index">05 / GEOMETRIC VALIDATION</div><h2>算法画出了完整的形状，凭什么相信它？</h2><p class="chapter-intro">模型检测容易让人产生错觉：线越直、圆越圆，结果越正确。但一个完美的几何解释，也可能只是解释了错误的像素。</p></div>
-        <h3>5.1 不要只盯着一个平均残差</h3>
-        <div class="columns-2">
-          <div class="mini"><span class="small-label">A / FIT</span><h4>拟合质量</h4><p>平均距离、最大误差、误差分布。回答“点与模型贴得近不近”。</p></div>
-          <div class="mini"><span class="small-label">B / SUPPORT</span><h4>支持证据</h4><p>内点数量、比例、梯度方向一致性。回答“有多少观测支持它”。</p></div>
-          <div class="mini"><span class="small-label">C / COVERAGE</span><h4>空间覆盖</h4><p>点是沿整条边分布，还是只挤在短短的一角？回答“参数是否真的被约束”。</p></div>
-          <div class="mini"><span class="small-label">D / CONSISTENCY</span><h4>结构一致性</h4><p>边与边、交点、封闭关系是否相互支持？回答“组合后的形状是否自洽”。</p></div>
-        </div>
-        <h3>5.2 为什么短圆弧是一个很好的反例？</h3>
-        <div class="viz">
-          <svg viewBox="0 0 800 245" role="img" aria-label="同一段短弧在局部可能与多个不同圆近似匹配">
-            <defs><clipPath id="arcclip"><rect x="15" y="18" width="770" height="202"/></clipPath></defs>
-            <rect width="800" height="245" fill="#fff"/>
-            <g clip-path="url(#arcclip)" fill="none">
-              <circle cx="365" cy="348" r="270" stroke="#287b87" stroke-width="1.8" stroke-dasharray="6 5" opacity=".85"/>
-              <circle cx="365" cy="478" r="400" stroke="#b56d3e" stroke-width="1.8" stroke-dasharray="6 5" opacity=".8"/>
-              <circle cx="365" cy="1078" r="1000" stroke="#8893a0" stroke-width="1.8" stroke-dasharray="6 5" opacity=".7"/>
-            </g>
-            <g fill="#2a7b86"><circle cx="309" cy="84" r="4"/><circle cx="335" cy="79.7" r="4"/><circle cx="364" cy="78" r="4"/><circle cx="392" cy="79.4" r="4"/><circle cx="418" cy="83.2" r="4"/></g>
-            <g font-size="12" fill="#566970"><text x="35" y="35">仅有很短的一段弧</text><text x="35" y="57">圆心和半径可能难以区分</text></g>
-            <g font-size="11"><text x="598" y="55" fill="#287b87">较小半径</text><text x="598" y="77" fill="#b56d3e">较大半径</text><text x="598" y="99" fill="#8893a0">更大半径</text></g>
-            <g stroke-width="2"><path d="M573 51 H589" stroke="#287b87"/><path d="M573 73 H589" stroke="#b56d3e"/><path d="M573 95 H589" stroke="#8893a0"/></g>
-          </svg>
-          <div class="viz-caption">示意：局部观测范围很窄时，多种曲率很接近的圆都可能解释数据。即使残差小，也不意味着圆心和半径被稳定确定；图中各圆只用于体现这一退化现象。</div>
-        </div>
-        <p>同样，一条直线只有两个很近的支持点时，方向对像素误差会非常敏感。一个四边形如果只依赖几条被大幅延长的线相交，交点可能远离实际可见证据。</p>
-        <h3>5.3 最后还要回答“能否排除其他解释”</h3>
-        <div class="example-list">
-          <p><strong>遮挡：</strong>看不到的区域可以由模型预测，但预测区并没有新观测支持，不能和真实测到的边缘等价。</p>
-          <p><strong>重复结构：</strong>多个相似的盒子、栏杆或桌面接缝可能产生多个几何上同样合理的候选。</p>
-          <p><strong>模型错配：</strong>柔性袋、变形瓶子、不规则破损物，不一定满足直线、圆或标准椭圆的强假设。</p>
-          <p><strong>几何正确但目标错误：</strong>背景中的直线、圆形纹理可能比真正物体边缘更“规则”。</p>
-        </div>
-        <div class="note dark"><b>一个需要保留的结论</b><p>几何验证不能承诺“这个一定是目标”。它能给出的是：某个模型受到多少图像证据支持、有哪些约束成立、在哪些地方依赖推断，以及是否仍存在同样合理的其他候选。</p></div>
-      </section>
-
-      <section class="chapter" id="s06">
-        <div class="chapter-head"><div class="chapter-index">06 / EXPERIMENTS &amp; SUMMARY</div><h2>回到最初的问题：哪种方法究竟帮了什么忙？</h2><p class="chapter-intro">不必把所有 OpenCV 函数跑一遍。用几组可控的数据，就能分别检验模型、估计、检测、组合和验证是否真的各司其职。</p></div>
-        <div class="table-scroll"><table class="data-table"><thead><tr><th>最小实验</th><th>控制变量</th><th>要观察的结果</th></tr></thead><tbody>
-          <tr><td>含噪直线</td><td>逐步增加 x/y 噪声；再加入离群点</td><td>OLS 与 TLS 的方向误差；TLS 何时被离群点拉偏</td></tr>
-          <tr><td>复杂边缘</td><td>断裂长度、噪声数量、线条数量</td><td>Hough / RANSAC / LSD 的候选数、错检、漏检与端点差异</td></tr>
-          <tr><td>部分圆弧</td><td>可见圆弧角度、噪声、半径大小</td><td>圆心和半径的稳定性，而不只是拟合残差</td></tr>
-          <tr><td>遮挡四边形</td><td>遮挡比例、透视程度、背景干扰</td><td>只看线段与加入交点、闭合约束后，候选的变化</td></tr>
-        </tbody></table></div>
-        <details><summary>展开：OpenCV 中这些操作分别对应哪一个环节？</summary><div class="detail-body">
-          <pre><code>import cv2
+<section class="chapter" id="rectangle">
+<div class="chapter-label">04 · BOUNDING GEOMETRY</div><h2>只想框住一个物体，为什么三种外接框会给出不同结果？</h2><p class="chapter-context">现在不用先猜是直线还是圆，拿到一整块轮廓，只要围住它。最直觉的是取 x/y 的最小和最大值；但一旦目标旋转或斜视，框里就出现大片空白。</p><div class="thinking"><div><span class="thinking-key">先试什么</span><p>直接用 <code>boundingRect</code> 取 AABB，然后改成一个能旋转的框。</p></div><div><span class="thinking-key">马上发现</span><p>最小面积框与 PCA OBB 的优化目标不同；它们都只保证某种包围/主轴解释，而不是四条真实边和四个实际角点。</p></div><div><span class="thinking-key">于是引入</span><p>比较 AABB、<code>minAreaRect</code> 和 PCA；如果需要投影后的四角，则转向凸四边形约束、分段直线拟合与交点估计。</p></div></div>
+<div class="three"><div class="tile"><div class="id">AABB</div><strong>图像坐标轴对齐</strong><p><code>boundingRect</code> 使用 x/y 的最大最小值；速度快、坐标简单，但物体旋转后空白区域很多。</p></div><div class="tile"><div class="id">Minimum-area rectangle</div><strong>面积最小的旋转外接矩形</strong><p><code>minAreaRect</code> 寻找包住全部点的最小面积旋转矩形；对应的是包围约束，不是物体真实四角。</p></div><div class="tile"><div class="id">PCA OBB</div><strong>点云分布主轴</strong><p>利用协方差主特征向量定方向，再沿主轴取包围范围；优化的是方差方向，不保证外接面积最小。</p></div></div>
+<div class="viz"><div class="viz-head"><span class="viz-name">交互实验 · 同一个四边形，换三种包围框</span><span class="viz-help">图形是模拟的透视四边形</span></div>
+<div class="controls"><label for="perspective">透视/剪切程度　<strong id="perspective-value">35%</strong></label><input id="perspective" type="range" min="0" max="100" value="35" step="5"/><label for="box-mode">观察方法</label><select id="box-mode" class="select"><option value="all">三种框叠加</option><option value="aabb">只看 AABB</option><option value="min">只看最小面积框</option><option value="pca">只看 PCA OBB</option></select></div>
+<canvas id="rectangle-canvas" class="demo-canvas" width="680" height="320" aria-label="四边形和三种包围框的对比"></canvas>
+<div class="lab-readouts"><div><small>AABB 面积</small><b id="box-aabb-area">—</b></div><div><small>MinArea 面积</small><b id="box-min-area">—</b></div><div><small>PCA OBB 面积</small><b id="box-pca-area">—</b></div></div>
+<p class="mini-text">三种面积均指二维外接框像素面积。青绿色是原始四边形；最小面积框和 PCA 框通常不能与真实四角重合。在透视作用下，物体表面的直角也一般不能通过图像中的直角直接恢复。</p></div>
+<h3>4.1 · 既然已经有四角，为什么还需要区分矩形和四边形？</h3>
+<p>如果上游用了 <code>approxPolyDP</code> 得到了 4 个顶点，只能说明<strong>轮廓可以近似为四段线连接的多边形</strong>；它还没有证明相邻边正交，更没有证明这些角点是物体真实的四个物理角。</p>
+<p>对于一张真实拍摄的平面矩形，透视会改变角度与长度比例。它在图像中通常是一个凸四边形，而不是矩形；强行用 <code>minAreaRect</code> 的四个角替代真实角点，会引入系统误差。</p>
+<div class="figure"><div class="figure-title">二维图像中四类容易混淆的几何对象</div><div class="figure-body"><svg viewBox="0 0 760 170" role="img" aria-label="轴对齐矩形、旋转矩形、透视四边形、最小外接矩形四类不同形状示意" width="100%"><rect width="760" height="170" rx="9" fill="#faf6f1"/>
+<g stroke="#a66a51" stroke-width="2.8" fill="#f0ded0"><rect x="35" y="44" width="115" height="64" rx="1"/><rect x="217" y="46" width="115" height="64" transform="rotate(-20 274 78)"/><path d="M416 50L540 36L519 112L404 120Z"/><path d="M607 56L703 28L726 106L630 134Z" stroke="#b8866b" fill="none"/><path d="M621 48L692 50L708 112L614 124Z" stroke="#598579" fill="#dcebe5"/></g>
+<g fill="#78675b" font-size="11.5" text-anchor="middle"><text x="93" y="154">AABB</text><text x="275" y="154">旋转矩形</text><text x="472" y="154">一般凸四边形</text><text x="668" y="154">外接框 ≠ 实际角点</text></g></svg></div><div class="figcap">示意图强调几何定义不同；使用了透视的真实四边形不一定与任何正交矩形模型一致。</div></div>
+<h3>4.2 · 怎么从轮廓验证“四边形”或“近似矩形”假设？</h3>
+<p>先对轮廓执行多边形逼近，并检查 <strong>4 个顶点、顶点顺序、凸性、非零面积</strong>。如果需要进一步称其为图像平面内的近似矩形，才检验相邻边的夹角接近 90°、对边近平行等约束；这些检验必须考虑透视与噪声。</p>
+<div class="math"><div>相邻边 e₁、e₂ 的夹角余弦：cosφ = (e₁·e₂)/(||e₁||||e₂||)</div><div>矩形的图像几何测试：|cosφ| ≈ 0（仅在假设图像中近似正交时）</div><div>凸四边形测试：连续叉积 cross(eᵢ,eᵢ₊₁) 符号应一致（排除共线退化）</div></div>
+<div class="warn">真实透视矩形可以明显<strong>不满足图像上的 90° 约束</strong>。因此不应把“检测到非直角”直接等同于“物理上不是矩形”；更不能把最小外接框角点当成实物的几何角点。</div>
+<div class="code-title">Python · 三种包围框 + 四边形候选 <button class="copy" type="button">复制代码</button></div><pre class="code-block">import cv2
 import numpy as np
 
-# 假设输入 image 是一张 BGR 图像
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-edge = cv2.Canny(gray, 70, 160)
+def contour_geometry(contour):
+    cnt = np.asarray(contour, dtype=np.float32).reshape(-1, 1, 2)
+    x, y, w, h = cv2.boundingRect(cnt)          # AABB
+    min_rect = cv2.minAreaRect(cnt)               # (center, size, angle)
+    min_box = cv2.boxPoints(min_rect)             # 旋转外接框的 4 点
 
-# 从边缘图检测有限线段：发现候选
-segments = cv2.HoughLinesP(
-    edge, rho=1, theta=np.pi / 180,
-    threshold=55, minLineLength=35, maxLineGap=12
-)
+    pts = cnt.reshape(-1, 2)
+    center = pts.mean(axis=0)
+    _, _, vt = np.linalg.svd(pts - center, full_matrices=False)
+    axes = vt[:2]                                 # PCA 两条正交轴
+    local = (pts - center) @ axes.T
+    lo, hi = local.min(axis=0), local.max(axis=0)
+    local_corners = np.array([[lo[0], lo[1]],
+                              [hi[0], lo[1]],
+                              [hi[0], hi[1]],
+                              [lo[0], hi[1]]])
+    pca_box = local_corners @ axes + center
 
-# 从原灰度图直接做局部线段检测：另一条发现路线
-lsd = cv2.createLineSegmentDetector()
-lines, widths, precisions, nfas = lsd.detect(gray)
+    epsilon = 0.02 * cv2.arcLength(cnt, True)
+    poly = cv2.approxPolyDP(cnt, epsilon, True)
+    is_quad = len(poly) == 4 and cv2.isContourConvex(poly)
+    return (x, y, w, h), min_box, pca_box, (poly if is_quad else None)</pre>
+<div class="chapter-handoff"><span>下一道问题</span><p>轮廓虽然已经近似成四个角，但如果直接采用 approxPolyDP 的顶点，角点仍受简化尺度与噪声影响。能否利用每条边的更多点重新定位角点？</p></div></section>
 
-# 已经有同一条边的点时：估计直线参数
-# points.shape == (N, 2), dtype float32
-vx, vy, x0, y0 = cv2.fitLine(
-    points.astype(np.float32),
-    cv2.DIST_L2, 0, 0.01, 0.01
-)
 
-# 已经有椭圆轮廓的候选点时：拟合椭圆
-# OpenCV fitEllipse 至少需要 5 个二维点
-if len(points) >= 5:
-    ellipse = cv2.fitEllipse(points.astype(np.float32))</code></pre>
-          <p class="small-note">参数是实验起点，不是通用最优设置。HoughLinesP 的 threshold 是累加器支持阈值；minLineLength / maxLineGap 是像素尺度参数。fitLine 在 DIST_L2 下对应最小二乘直线拟合；LSD 与 Hough 的输出机制不同。以上示例均不包含后续的结构组合与语义确认。</p>
-        </div></details>
-        <h3>最后把方法放回它们真正的位置</h3>
-        <div class="compare-line"><div class="name">模型定义</div><div class="desc">直线、圆、椭圆：约束是什么，参数有多少，观测够不够。</div></div>
-        <div class="compare-line"><div class="name">参数估计</div><div class="desc">LS / TLS / 圆与椭圆拟合：给定候选点，怎样求出参数。</div></div>
-        <div class="compare-line"><div class="name">模型发现</div><div class="desc">Hough / RANSAC / LSD：在混杂证据中怎样找候选，适用前提有什么不同。</div></div>
-        <div class="compare-line"><div class="name">结构组合</div><div class="desc">线段、交点、关联、闭合与透视约束：怎样从局部结构组成目标候选。</div></div>
-        <div class="compare-line"><div class="name">结果验证</div><div class="desc">残差、支持、覆盖、歧义：为什么这个候选值得相信，哪里仍不确定。</div></div>
-        <div class="note highlight"><b>到这里，最初的问题有了一个边界清晰的答案</b><p>规则物体的二维结构，不一定需要逐像素完整可见。只要可用的证据足够、几何假设合理，就可能估计缺失的部分。但<strong>几何模型是一种约束和解释，不是万能的识别器</strong>。当目标不具备稳定的规则形状时，就需要转向其他视觉证据。</p></div>
-        <p class="small-note">本页的 00–06 是知识研究的逻辑顺序，不是工程中必须逐级执行的固定流水线。实际项目可以直接使用 LSD，也可以由区域轮廓拟合椭圆，或把 Hough 候选交给结构约束验证。</p>
-      </section>
+<section class="chapter anchor" id="corner"><div class="chapter-label">05 · CORNER ESTIMATION</div>
+<h2>我需要的是四个物体角点，为什么拿外接框或四个拐点还不够？</h2>
+<p class="chapter-context"><code>minAreaRect</code> 的四角是<strong>最小包围矩形</strong>的结果；<code>approxPolyDP</code> 的四角是<strong>轮廓折线近似</strong>的结果。如果应用需要抓取平面物体的四个可见边界交点，这两个结果只能是候选，不能当成已验证的物理角。</p>
+<div class="thinking"><div><span class="thinking-key">先试什么</span><p>让轮廓逼近成四边形，直接用四个顶点作为角点。</p></div><div><span class="thinking-key">马上发现</span><p>点的位置受轮廓噪声和 epsilon 影响；一个局部缺口就可能让角点偏到缺口上，且斜视时角度未必是 90°。</p></div><div><span class="thinking-key">于是引入</span><p>先分出四段直边，对每段独立做稳健直线拟合；相邻边求交后再检查凸性、边支持及交点稳定性。</p></div></div>
+<h3>5.1 · 把角点当成两条边的交点，而不是一个跳得很厉害的像素</h3>
+<p>若两条局部拟合线分别为 <code>a₁x+b₁y+c₁=0</code> 和 <code>a₂x+b₂y+c₂=0</code>，交点可以通过一个 2×2 线性系统求出。每条线的参数由多点支持，通常比仅取某个轮廓采样点更可控。</p>
+<div class="geom-steps"><span>有序轮廓</span><i>→</i><span>四条候选边段</span><i>→</i><span>每段 TLS / RANSAC</span><i>→</i><span>相邻线求交</span><i>→</i><span>质量检验</span></div>
+<div class="math"><div>[a₁ b₁; a₂ b₂] · [x; y] = −[c₁; c₂]</div><div>det = a₁b₂ − a₂b₁</div><div>|det| 接近 0 ⇒ 两条边近似平行，交点位置对线参数误差非常敏感。</div></div>
+<div class="figure"><div class="figure-title">相同的投影四边形，框角与边线交点可能明显不同</div><div class="figure-body"><svg viewBox="0 0 760 225" role="img" aria-label="透视四边形真实交点与它的旋转包围框角点不一致"><rect x="1" y="1" width="758" height="200" rx="10" fill="#fbf7f1"/>
+<path d="M151 62L330 40L368 155L105 179Z" fill="#a5c2b7" opacity=".45" stroke="#568778" stroke-width="3"/>
+<g stroke="#a66f54" stroke-width="2" fill="none" stroke-dasharray="7 6"><path d="M94 27L386 27L386 192L94 192Z"/></g>
+<g fill="#568778" stroke="#fff" stroke-width="2"><circle cx="151" cy="62" r="6"/><circle cx="330" cy="40" r="6"/><circle cx="368" cy="155" r="6"/><circle cx="105" cy="179" r="6"/></g>
+<path d="M425 61H706" stroke="#a66f54" stroke-width="2" stroke-dasharray="7 6"/><path d="M425 89H706" stroke="#568778" stroke-width="3"/>
+<g font-size="13" fill="#6d5c50"><text x="435" y="51">虚线：某种包围矩形</text><text x="435" y="80">实线：轮廓边</text><text x="435" y="122">绿色角点：相邻边的交会处</text><text x="435" y="147">橙色框角：优化包围范围得到</text><text x="435" y="180" font-size="11">两者目标不同，不要求重合。</text></g></svg></div><div class="figcap">位置仅为机制示意；包围框没有模拟特定 OpenCV 算法的精确输出。</div></div>
+<h3>5.2 · 两条边接近平行时，角点为什么会飞到很远？</h3>
+<p>就算每条直线的误差只有 1 px，当两条边的夹角很小，交点误差也可能被大幅放大。下面把第一条线固定为 <code>y=0</code>，理想第二条线穿过原点；现在把第二条线<strong>竖直平移 1 px</strong>，观察交点 x 坐标的变化。</p>
+<div class="viz corner-lab"><div class="viz-head"><span class="viz-name">交互实验 · 角点是怎样被夹角放大误差的？</span><span class="viz-help">平面理想模型 · 确定性数值</span></div>
+<div class="controls"><label for="corner-angle">两条边夹角</label><input type="range" id="corner-angle" min="8" max="85" step="1" value="65"/><b id="corner-angle-value">65°</b><label for="corner-offset">第二条边的竖直偏移</label><input type="range" id="corner-offset" min="0" max="3" step="0.25" value="1"/><b id="corner-offset-value">1.00 px</b></div>
+<svg id="corner-plot" viewBox="0 0 750 300" role="img" aria-label="两条相交直线的夹角变化影响计算出的角点位置"><rect x="0" y="0" width="750" height="300" fill="#fff"/><path d="M42 158H710M376 24V274" stroke="#e6dacf" stroke-width="1.5"/><path d="M42 158H710" stroke="#658b7f" stroke-width="3.5"/><path id="corner-ideal" d="" stroke="#bd8a72" stroke-width="2.4" stroke-dasharray="7 6" fill="none"/><path id="corner-noisy" d="" stroke="#a25e45" stroke-width="3.2" fill="none"/><circle cx="376" cy="158" r="6" fill="#658b7f" stroke="#fff" stroke-width="2"/><circle id="corner-noisy-point" cx="376" cy="158" r="7" fill="#a25e45" stroke="#fff" stroke-width="2"/><g font-size="12" fill="#77675d"><text x="391" y="177">真实角点 (0,0)</text><text x="45" y="32" fill="#a25e45">实线：竖直偏移后的第二条边</text><text x="45" y="51" fill="#bd8a72">虚线：无偏移的理想第二条边</text><text x="45" y="284">示意按固定坐标比例绘制；角点偏移可超出视野</text></g></svg>
+<div class="corner-reading"><div><span>夹角 θ</span><strong id="corner-theta">65°</strong></div><div><span>交点 x 偏移</span><strong id="corner-dx">−0.47 px</strong></div><div><span>误差放大系数 |1/tanθ|</span><strong id="corner-factor">0.47</strong></div></div><div class="result" id="corner-result" aria-live="polite"></div></div>
+<p><strong>不是说小夹角就一定无法求交。</strong>关键是可观测几何和估计误差共同决定稳定性；当两线近似平行、线段太短或边缘点集中在局部时，不能只返回四个交点而不给出有效性判断。</p>
+<h3>5.3 · 工程里怎样把四条线变成四角？</h3>
+<div class="code-title"><span>Python · 由四条已拟合的相邻直线求交点</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">import numpy as np
 
-      <footer class="nextbar"><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/target-localization-route-overview/01-classical-vision/">← 返回：图像特征与结构提取</a><span>沿途手记 / RESEARCH NOTES · STAGE 01</span></footer>
-    </main>
-  </div>
-<script>
-(() => {
-  const links = [...document.querySelectorAll('#toc a')];
-  const sections = [...document.querySelectorAll('.chapter')];
-  const setActive = id => links.forEach(a => {
-    const yes = a.getAttribute('href') === '#' + id;
-    a.classList.toggle('active', yes);
-    if (yes) a.setAttribute('aria-current', 'location');
-    else a.removeAttribute('aria-current');
-  });
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(entries => {
-      const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top-b.boundingClientRect.top);
-      if (visible.length) setActive(visible[0].target.id);
-    }, {rootMargin:'-9% 0px -67% 0px', threshold:0});
-    sections.forEach(s => observer.observe(s));
-  }
-  setActive((location.hash || '#s00').slice(1));
-  const tau = document.getElementById('tau');
-  const out = document.getElementById('tau-value');
-  const count = document.getElementById('inlier-count');
-  const group = document.getElementById('ransac-points');
-  if (tau && group) {
-    const svgNs = 'http://www.w3.org/2000/svg';
-    const sample = [];
-    for (let i=0; i<40; i++) {
-      const x = 62 + i*17.0;
-      const baseline = 195 - (x-40)*123/720;
-      const offset = Math.sin(i*1.7)*5.3 + Math.cos(i*0.7)*2.6 + (i%11===0 ? 17 : 0);
-      sample.push([x,baseline+offset]);
+def intersect_lines(line_a, line_b, min_sin_angle=0.10):
+    # line = (a, b, c), 且 (a, b) 为单位法向量
+    a1, b1, c1 = map(float, line_a)
+    a2, b2, c2 = map(float, line_b)
+    A = np.array([[a1, b1], [a2, b2]], dtype=float)
+    det = float(np.linalg.det(A))
+    if abs(det) &lt; min_sin_angle:  # 夹角过小 / 近似平行
+        return None
+    point = np.linalg.solve(A, -np.array([c1, c2]))
+    return point
+
+def quadrilateral_from_lines(lines):
+    """lines: 按轮廓顺序排序的四条已验证的直线。"""
+    if len(lines) != 4:
+        raise ValueError("需要四条直线")
+    corners = [intersect_lines(lines[i], lines[(i+1) % 4])
+               for i in range(4)]
+    if any(p is None for p in corners):
+        return None
+    return np.array(corners)  # 还需检测凸性、支持范围、交点位置
+</pre>
+<div class="note"><strong>容易误读的两件事：</strong>透视下真实矩形的图像四角通常<strong>不是 90°</strong>；即使识别出了四个像素坐标，依然<strong>不是三维姿态</strong>。如果要校正平面，可在明确四角对应关系后计算 Homography，但恢复真实尺度、方向还需要额外几何条件。</div>
+<div class="chapter-handoff"><span>下一道问题</span><p>四条线求交得到四角，或拟合出一个完美圆，都只是候选参数。怎样证明它们不是数据不足、模型选错或局部噪声带来的伪成功？</p></div>
+</section>
+
+<section class="chapter" id="validate">
+<div class="chapter-label">05 · MODEL CHECKING</div><h2>看上去非常贴合，模型就一定可靠吗？</h2><p class="chapter-context">到这里已经能估计直线、圆、椭圆以及四角。甚至一小段弧也可能被拟合成一个残差极低的大圆；一片纹理线也可能满足 Hough 投票条件。漂亮的数值不等于物体的几何真相。</p><div class="thinking"><div><span class="thinking-key">先试什么</span><p>只比较一个拟合 RMSE，数值小就当作模型正确。</p></div><div><span class="thinking-key">马上发现</span><p>短线、短弧可以得到低残差却没有足够覆盖；噪声点相关、遮挡、多个模型竞争，也会让结果不可辨识。</p></div><div><span class="thinking-key">于是引入</span><p>除了残差，还评估几何覆盖、独立边段支持、参数稳定性、退化与竞争假设。达不到要求时允许输出“几何不可靠”。</p></div></div>
+<div class="table-scroll"><table><thead><tr><th>验证项</th><th>具体要看什么</th><th>典型伪成功</th></tr></thead><tbody>
+<tr><td>残差</td><td>点到线距离、径向距离、边到边距离的均值/RMSE、分位数与空间分布</td><td>大多数点很好，少量局部边界明显错位</td></tr>
+<tr><td>覆盖范围</td><td>直线的支持长度；圆弧的可见角度；四边形每条边的支持点</td><td>5 个小范围点拟合一条很长的直线</td></tr>
+<tr><td>参数稳定性</td><td>扰动采样点、少量移除点后，角度、圆心、半径是否大变</td><td>短圆弧拟合出极大的圆心和半径波动</td></tr>
+<tr><td>模型约束</td><td>圆的等半径、矩形的正交、四边形的凸性、平行性等</td><td>四点是四边形，却被当成旋转矩形</td></tr>
+<tr><td>竞争模型</td><td>直线、圆弧、分段线是否都能解释同一段数据</td><td>把缓慢弯曲的边界强行拟合成直线</td></tr>
+</tbody></table></div>
+<div class="note"><strong>最小验收建议：</strong>线段至少报告内点支持数、投影长度和正交残差；圆至少报告可见弧度、圆心/半径扰动稳定性；四角至少报告每条边的支持长度、凸性、交角退化及是否位于合理的轮廓邻域。指标是<strong>质量证据</strong>，不是单一打分就能证明“真物体”。</div><h3>6.1 · 直觉上的“模型越复杂越好”，为什么也不对？</h3>
+<p>让一个高阶多项式穿过每个轮廓点，残差甚至可以接近零，但得到的形状会跟随噪声大幅摆动。相反，简单直线虽然略有误差，却可能更稳定、更容易解释。这里遇到的是<strong>数据拟合与模型复杂度之间的取舍</strong>，不是说所有曲线都要换成一个更复杂的模型。</p>
+<div class="two"><div class="tile"><div class="id">一个可复现的最小实验</div><strong>重复抽样 / 加噪声</strong><p>对同一轮廓随机取 70% 的点反复拟合，记录每次的参数、残差和覆盖率，观察估计是否稳定。</p></div><div class="tile"><div class="id">一个容易忽视的陷阱</div><strong>输入点不独立</strong><p>沿轮廓连续采样的 1000 个像素并非 1000 次独立测量。更密的采样未必带来同比例的可信度提升。</p></div></div>
+<h3>6.2 · 模型参数的几何含义要分清</h3>
+<div class="table-scroll"><table><thead><tr><th>模型结果</th><th>它是什么</th><th>它不自动意味着</th></tr></thead><tbody>
+<tr><td>拟合线方向</td><td>图像平面里的切线或边界方向</td><td>三维表面的真实方向</td></tr>
+<tr><td>圆心与半径</td><td>图像像素坐标下的圆模型参数</td><td>真实物体的物理半径</td></tr>
+<tr><td><code>minAreaRect</code> 角度</td><td>包围框优化的图像旋转角</td><td>目标 6DoF 位姿的 yaw</td></tr>
+<tr><td>凸四边形的四角</td><td>图像轮廓中选择的四个点</td><td>真实物体可见表面的四个物理角</td></tr>
+</tbody></table></div>
+<div class="answer"><strong>一个可靠的二维几何结果</strong>，不应只有 <code>(x, y, w, h, angle)</code>。至少还应该能追溯：原始支持点、选择的模型、拟合残差、内点/覆盖范围，以及假设在哪些情况下可能退化。这样下游做目标定位时才知道哪些数据可以相信。</div>
+<div class="chapter-handoff"><span>下一道问题</span><p>把每个算法的必要输入、返回值和常见失败现象放回一张选择表，就能少做无效试错。</p></div></section>
+
+<section class="chapter" id="selection">
+<div class="chapter-label">06 · TOOLBOX & CONCLUSION</div><h2>现在遇到一段轮廓，究竟应该先试哪一种模型？</h2><p class="chapter-context">方法已经不少，但这些方法不是同一条进化链。真正能指导实际工作的判断，应当是先看已知证据和目标输出，再选一条最短的方法路线。</p><div class="thinking"><div><span class="thinking-key">先试什么</span><p>习惯性把 Hough、RANSAC、最小外接框和四角拟合全都跑一遍。</p></div><div><span class="thinking-key">马上发现</span><p>算法之间可能没有输入输出上的依赖；例如 Hough 适合尚未分组的边缘点，而已知四条边的轮廓不必先做全图投票。</p></div><div><span class="thinking-key">于是引入</span><p>按“线从哪来 / 模型是什么 / 是否混入异常 / 要框还是要真实角点 / 可验证指标是什么”选择方法。</p></div></div>
+<div class="table-scroll"><table><thead><tr><th>目前已知什么</th><th>优先尝试</th><th>为什么</th><th>需要额外核查</th></tr></thead><tbody>
+<tr><td>一组已经归属同一边的点</td><td>TLS / PCA 直线拟合</td><td>利用全部点最小化正交距离</td><td>长边覆盖、残差、局部曲率</td></tr>
+<tr><td>边缘点里混入其他结构</td><td>RANSAC → 内点 TLS</td><td>弱化异常点对参数的牵引</td><td>阈值、竞争线、采样退化</td></tr>
+<tr><td>边缘图中需要直接检测有限线段</td><td>HoughLinesP / LSD</td><td>直接提出候选线段，再检查长度、方向与局部支持</td><td>目标内部纹理、重复边缘、误连接</td></tr>
+<tr><td>尚不知道哪些点共线</td><td>HoughLinesP 等</td><td>在全局边缘图中提出候选线段</td><td>量化阈值、断裂与误检</td></tr>
+<tr><td>轮廓明显弯曲且近圆形</td><td>圆拟合 / 必要时圆 RANSAC</td><td>估计中心和半径</td><td>弧段覆盖、圆心稳定性</td></tr>
+<tr><td>看起来像投影后的圆</td><td>椭圆拟合</td><td>适配一般椭圆边界</td><td>点数量与分布、退化和误差</td></tr>
+<tr><td>只需要快速得到包围区域</td><td>AABB / <code>minAreaRect</code></td><td>简单且稳定的几何包围</td><td>不要误当实际四角</td></tr>
+<tr><td>要四个稳定的投影角点</td><td>四段边拟合 + 相邻直线求交</td><td>利用边段的多个点重定位角点</td><td>小夹角、遮挡、边段过短</td></tr>
+<tr><td>需要四个可见轮廓拐角</td><td>分段拟合 / 多边形逼近 / 求交</td><td>保留非正交透视四边形</td><td>凸性、边支持与角点一致性</td></tr>
+</tbody></table></div>
+<div class="figure"><div class="figure-title">一个可以直接在项目里验证的最小工作流</div><div class="figure-body"><svg viewBox="0 0 760 142" width="100%" role="img" aria-label="边缘轮廓点经过模型选择、拟合、验证，输出带质量的二维几何"><rect width="760" height="142" rx="10" fill="#f9f5ef"/><g font-size="12" font-weight="700" fill="#604d40" text-anchor="middle"><rect x="24" y="38" width="138" height="55" rx="9" fill="#fff" stroke="#e4d6c9"/><text x="93" y="61">轮廓 / Edge</text><text x="93" y="78" font-size="10" font-weight="400">点集与图像坐标</text><rect x="212" y="38" width="138" height="55" rx="9" fill="#fff" stroke="#e4d6c9"/><text x="281" y="61">选择几何模型</text><text x="281" y="78" font-size="10" font-weight="400">线 / 圆 / 四边形</text><rect x="400" y="38" width="138" height="55" rx="9" fill="#fff" stroke="#e4d6c9"/><text x="469" y="61">拟合参数</text><text x="469" y="78" font-size="10" font-weight="400">TLS / RANSAC / LS</text><rect x="588" y="38" width="149" height="55" rx="9" fill="#eaf2ee" stroke="#c8dbd0"/><text x="663" y="61">几何 + 质量</text><text x="663" y="78" font-size="10" font-weight="400">参数、残差、覆盖</text></g><g stroke="#b49e8b" stroke-width="2" fill="none"><path d="M162 65h48 M204 60l6 5-6 5 M350 65h48 M392 60l6 5-6 5 M538 65h48 M580 60l6 5-6 5"/></g><text x="380" y="124" text-anchor="middle" fill="#948277" font-size="11">拟合不满足假设？返回重选模型，而不是强行解释结果。</text></svg></div><div class="figcap">这不是要求每次都串行运行全部算法，而是一种可检查的几何建模思路。</div></div>
+<p>这一站真正得到的不是“能框住物体”，而是<strong>知道一个几何解释从哪里来、靠什么成立、什么时候不应相信。</strong>从二维边界推断三维姿态，仍然需要相机成像几何、深度或其他空间约束。</p>
+<div class="return-end"><a href="index.html">← 返回《图像特征与结构提取》</a></div>
+<p class="small muted">API 对照：<a href="https://docs.opencv.org/4.13.0/d3/dc0/group__imgproc__shape.html" target="_blank" rel="noopener">OpenCV Shape Analysis</a>（approxPolyDP、minAreaRect、fitEllipse 等）；图中的交互实验按其说明给出简化数学示意，不代表调用了 OpenCV。</p></section>
+<nav class="next-links" aria-label="相邻笔记"><a href="03-edges-contours.html">← 03 · 边缘与轮廓</a><a href="05-skeleton-topology.html">05 · 骨架与拓扑 →</a></nav><footer class="footer">沿途手记 · RESEARCH NOTES · STAGE 01<br>把几何模型当作需要验证的假设，而不是轮廓天然给出的答案。</footer></article></main></div><script>'use strict';
+const $=id=>document.getElementById(id);
+const sections=[...document.querySelectorAll('.chapter')];
+const navLinks=[...document.querySelectorAll('#chapter-nav a')];
+const sidebar=$('sidebar'), overlay=$('overlay'), mobile=$('mobile-menu');
+function toggleMenu(v){sidebar.classList.toggle('open',v);overlay.classList.toggle('visible',v);mobile.setAttribute('aria-expanded',String(v));}
+mobile.addEventListener('click',()=>toggleMenu(!sidebar.classList.contains('open')));
+overlay.addEventListener('click',()=>toggleMenu(false));
+sidebar.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{if(innerWidth<=820)toggleMenu(false);}));
+function updateNav(){const h=document.documentElement.scrollHeight-innerHeight;$('reading-progress').style.width=(h>0?Math.min(100,100*scrollY/h):0)+'%';let current=sections[0].id;for(const s of sections){if(s.getBoundingClientRect().top<=innerHeight*.30)current=s.id;}navLinks.forEach(a=>a.classList.toggle('current',a.getAttribute('href')==='#'+current));}
+addEventListener('scroll',updateNav,{passive:true});addEventListener('resize',updateNav,{passive:true});updateNav();
+for(const b of document.querySelectorAll('.copy')){b.addEventListener('click',async()=>{const pre=b.parentElement.nextElementSibling;const str=pre.textContent;try{await navigator.clipboard.writeText(str);b.textContent='已复制';}catch(_){const a=document.createElement('textarea');a.value=str;document.body.appendChild(a);a.select();try{document.execCommand('copy');b.textContent='已复制';}catch(e){b.textContent='请手动复制';}a.remove();}setTimeout(()=>b.textContent='复制代码',1400);});}
+// Numerically reproducible 2D geometry experiments: all computation is performed in-page.
+function ctxFor(id){const cv=$(id);const ctx=cv.getContext('2d');return {cv,ctx,w:cv.width,h:cv.height};}
+function grid(ctx,w,h){ctx.clearRect(0,0,w,h);ctx.fillStyle='#f8f3ed';ctx.fillRect(0,0,w,h);ctx.lineWidth=1;ctx.strokeStyle='#e9dfd4';for(let x=20;x<w;x+=40){ctx.beginPath();ctx.moveTo(x,10);ctx.lineTo(x,h-10);ctx.stroke();}for(let y=15;y<h;y+=40){ctx.beginPath();ctx.moveTo(10,y);ctx.lineTo(w-10,y);ctx.stroke();}}
+function label(ctx,s,x,y,c='#65564a'){ctx.font='12px system-ui,sans-serif';ctx.fillStyle=c;ctx.fillText(s,x,y);}
+function pathPoints(ctx,p,stroke='#557e76',width=2,closed=false){if(!p.length)return;ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]);if(closed)ctx.closePath();ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke();}
+function point(ctx,x,y,color='#b66e54',rad=3){ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+function drawLine(ctx,fit,color='#b56c4d',dash=[]){if(!fit)return;const [cx,cy]=fit.mid;const [dx,dy]=fit.dir;ctx.save();ctx.beginPath();ctx.setLineDash(dash);ctx.moveTo(cx-dx*1600,cy-dy*1600);ctx.lineTo(cx+dx*1600,cy+dy*1600);ctx.lineWidth=2.8;ctx.strokeStyle=color;ctx.stroke();ctx.restore();}
+function getStats(pts){const n=pts.length,mean=[0,0];for(const p of pts){mean[0]+=p[0];mean[1]+=p[1];}mean[0]/=n;mean[1]/=n;let sxx=0,sxy=0,syy=0;for(const p of pts){const x=p[0]-mean[0],y=p[1]-mean[1];sxx+=x*x;sxy+=x*y;syy+=y*y;}return {mean,sxx,sxy,syy};}
+function fitTLS(pts){if(pts.length<2)return null;const st=getStats(pts);if(st.sxx+st.syy<1e-10)return null;const t=.5*Math.atan2(2*st.sxy,st.sxx-st.syy),dx=Math.cos(t),dy=Math.sin(t),nx=-dy,ny=dx;let v=0;for(const p of pts){const d=(p[0]-st.mean[0])*nx+(p[1]-st.mean[1])*ny;v+=d*d;}return {mid:st.mean,dir:[dx,dy],normal:[nx,ny],rmse:Math.sqrt(v/pts.length)};}
+function fitOLS(pts){if(pts.length<2)return null;const st=getStats(pts);if(st.sxx<1e-12)return null;const k=st.sxy/st.sxx,mag=Math.hypot(1,k),dx=1/mag,dy=k/mag,nx=-dy,ny=dx;let v=0;for(const p of pts){const d=(p[0]-st.mean[0])*nx+(p[1]-st.mean[1])*ny;v+=d*d;}return {mid:st.mean,dir:[dx,dy],normal:[nx,ny],rmse:Math.sqrt(v/pts.length),k};}
+function noise(i,salt){return Math.sin(i*91.37+salt*24.63)*.62+Math.cos(i*31.79+salt*3.76)*.38;}
+function lineExperiment(){const angle=Number($('line-angle').value),amount=Number($('line-noise').value);$('line-angle-value').textContent=angle+'°';$('line-noise-value').textContent=amount+' px';const rad=-angle*Math.PI/180,d=[Math.cos(rad),Math.sin(rad)],n=[-d[1],d[0]],pts=[];for(let i=0;i<36;i++){const u=(i-17.5)*12,err=amount*noise(i,7);pts.push([340+u*d[0]+err*n[0],155+u*d[1]+err*n[1]]);}const tls=fitTLS(pts),ols=fitOLS(pts);const {ctx,w,h}=ctxFor('line-canvas');grid(ctx,w,h);ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();drawLine(ctx,tls,'#b2694a');drawLine(ctx,ols,'#47758b',[9,7]);pts.forEach(p=>point(ctx,p[0],p[1],'#6b6a67',3.2));ctx.restore();label(ctx,'● 样本点',16,22);label(ctx,'━━ TLS（正交最小二乘）',125,22,'#a65d43');label(ctx,'┄┄ OLS（竖直误差）',365,22,'#47758b');$('line-tls-rmse').textContent=tls.rmse.toFixed(2)+' px';$('line-ols-rmse').textContent=ols?ols.rmse.toFixed(2)+' px':'不稳定';$('line-slope').textContent=ols?ols.k.toFixed(2):'竖直退化';}
+$('line-angle').addEventListener('input',lineExperiment);$('line-noise').addEventListener('input',lineExperiment);lineExperiment();
+function rand01(i,salt){const x=Math.sin(i*127.1+salt*311.7)*43758.5453123;return x-Math.floor(x);}
+function randGen(seed){let s=seed>>>0;return ()=>{s=(1664525*s+1013904223)>>>0;return s/4294967296;};}
+function ransacDataset(count){const pts=[];const dx=1/Math.hypot(1,-.37),dy=-.37*dx,n=[-dy,dx];for(let i=0;i<60;i++){const t=(i-29.5)*9.1,err=3.5*noise(i,23);pts.push([335+t*dx+err*n[0],180+t*dy+err*n[1]]);}for(let i=0;i<count;i++){pts.push([40+600*rand01(i,11),38+240*rand01(i,16)]);}return pts;}
+function distance(p,fit){return Math.abs((p[0]-fit.mid[0])*fit.normal[0]+(p[1]-fit.mid[1])*fit.normal[1]);}
+function ransacExperiment(){const n=Number($('ransac-outlier').value),threshold=Number($('ransac-threshold').value),iterations=Number($('ransac-iters').value);$('ransac-outlier-value').textContent=n;$('ransac-threshold-value').textContent=threshold+' px';$('ransac-iters-value').textContent=iterations;const pts=ransacDataset(n),global=fitTLS(pts),rng=randGen(85713);let inliers=[],bestRmse=Infinity;for(let k=0;k<iterations;k++){const i=Math.floor(rng()*pts.length),j=Math.floor(rng()*pts.length);if(i===j)continue;const d=[pts[j][0]-pts[i][0],pts[j][1]-pts[i][1]],len=Math.hypot(...d);if(len<1e-6)continue;const nx=-d[1]/len,ny=d[0]/len;const cur=[];let err=0;for(let z=0;z<pts.length;z++){const r=Math.abs((pts[z][0]-pts[i][0])*nx+(pts[z][1]-pts[i][1])*ny);if(r<threshold){cur.push(z);err+=r*r;}}const rmse=cur.length?Math.sqrt(err/cur.length):Infinity;if(cur.length>inliers.length||(cur.length===inliers.length&&rmse<bestRmse)){inliers=cur;bestRmse=rmse;}}
+let best=fitTLS(inliers.map(i=>pts[i]));let keep=[];if(best){for(let k=0;k<2;k++){keep=pts.map((p,i)=>distance(p,best)<threshold?i:-1).filter(i=>i>=0);if(keep.length<2)break;best=fitTLS(keep.map(i=>pts[i]));}}
+const member=new Set(keep);const {ctx,w,h}=ctxFor('ransac-canvas');grid(ctx,w,h);ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();drawLine(ctx,global,'#4a738a',[9,7]);drawLine(ctx,best,'#b56c4d');pts.forEach((p,i)=>point(ctx,p[0],p[1],member.has(i)?'#5a9481':'#aba8a3',3.5));ctx.restore();label(ctx,'● 绿色：内点',18,24,'#467b69');label(ctx,'━━ RANSAC + TLS',189,24,'#a15c43');label(ctx,'┄┄ 全点 TLS',395,24,'#4a738a');$('ransac-support').textContent=keep.length+' / '+pts.length;$('ransac-error').textContent=best?Math.sqrt(keep.reduce((s,i)=>s+distance(pts[i],best)**2,0)/Math.max(1,keep.length)).toFixed(2)+' px':'无解';if(best){const dot=Math.abs(best.dir[0]*global.dir[0]+best.dir[1]*global.dir[1]);$('ransac-diff').textContent=(Math.acos(Math.min(1,dot))*180/Math.PI).toFixed(1)+'°';}else{$('ransac-diff').textContent='—';}}
+['ransac-outlier','ransac-threshold','ransac-iters'].forEach(id=>$(id).addEventListener('input',ransacExperiment));ransacExperiment();
+function solve3(A,b){const a=A.map((row,i)=>[...row,b[i]]);for(let c=0;c<3;c++){let r=c;for(let i=c+1;i<3;i++){if(Math.abs(a[i][c])>Math.abs(a[r][c]))r=i;}if(Math.abs(a[r][c])<1e-8)return null;[a[c],a[r]]=[a[r],a[c]];const div=a[c][c];for(let j=c;j<4;j++)a[c][j]/=div;for(let i=0;i<3;i++){if(i===c)continue;const fac=a[i][c];for(let j=c;j<4;j++)a[i][j]-=fac*a[c][j];}}return a.map(row=>row[3]);}
+function circleFit(points){const m=[0,0];for(const p of points){m[0]+=p[0];m[1]+=p[1];}m[0]/=points.length;m[1]/=points.length;const A=[[0,0,0],[0,0,0],[0,0,0]],b=[0,0,0];for(const p of points){const x=p[0]-m[0],y=p[1]-m[1],row=[2*x,2*y,1],z=x*x+y*y;for(let i=0;i<3;i++){b[i]+=row[i]*z;for(let j=0;j<3;j++)A[i][j]+=row[i]*row[j];}}const sol=solve3(A,b);if(!sol)return null;const cx=m[0]+sol[0],cy=m[1]+sol[1],r=Math.sqrt(Math.max(0,sol[2]+sol[0]**2+sol[1]**2));if(!Number.isFinite(r))return null;const err=Math.sqrt(points.reduce((acc,p)=>acc+(Math.hypot(p[0]-cx,p[1]-cy)-r)**2,0)/points.length);return {cx,cy,r,err};}
+function circleExperiment(){const deg=Number($('arc-span').value),noisePx=Number($('arc-noise').value);$('arc-span-value').textContent=deg+'°';$('arc-noise-value').textContent=noisePx+' px';const center=[338,168],radius=93,pts=[];for(let i=0;i<40;i++){const a=-Math.PI/2+(i/39-.5)*deg*Math.PI/180;const e=noisePx*noise(i,19);pts.push([center[0]+radius*Math.cos(a)+e*Math.cos(a+1.1),center[1]+radius*Math.sin(a)+e*Math.sin(a+1.1)]);}const fit=circleFit(pts),{ctx,w,h}=ctxFor('circle-canvas');grid(ctx,w,h);ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();ctx.setLineDash([7,5]);ctx.beginPath();ctx.arc(...center,radius,0,2*Math.PI);ctx.strokeStyle='#a6a49d';ctx.lineWidth=2.2;ctx.stroke();ctx.setLineDash([]);if(fit&&fit.r<2600){ctx.beginPath();ctx.arc(fit.cx,fit.cy,fit.r,0,2*Math.PI);ctx.strokeStyle='#538375';ctx.lineWidth=2.7;ctx.stroke();}pts.forEach(p=>point(ctx,p[0],p[1],'#ae654b',3));point(ctx,...center,'#555b60',3.8);if(fit)point(ctx,fit.cx,fit.cy,'#548775',4.4);ctx.restore();label(ctx,'● 可见弧段',15,24,'#a65d43');label(ctx,'┄┄ 真实圆',159,24,'#8d8b85');label(ctx,'━━ 拟合圆',300,24,'#508274');if(fit){$('circle-center-error').textContent=Math.hypot(fit.cx-center[0],fit.cy-center[1]).toFixed(1)+' px';$('circle-radius-error').textContent=Math.abs(fit.r-radius).toFixed(1)+' px';$('circle-rmse').textContent=fit.err.toFixed(2)+' px';}else{['circle-center-error','circle-radius-error','circle-rmse'].forEach(id=>$(id).textContent='退化');}}
+['arc-span','arc-noise'].forEach(id=>$(id).addEventListener('input',circleExperiment));circleExperiment();
+function rotatedCorners(pts,angle){const d=[Math.cos(angle),Math.sin(angle)],v=[-d[1],d[0]];let l=Infinity,r=-Infinity,t=Infinity,b=-Infinity;for(const p of pts){const u=p[0]*d[0]+p[1]*d[1],w=p[0]*v[0]+p[1]*v[1];l=Math.min(l,u);r=Math.max(r,u);t=Math.min(t,w);b=Math.max(b,w);}const q=[[l,t],[r,t],[r,b],[l,b]].map(a=>[d[0]*a[0]+v[0]*a[1],d[1]*a[0]+v[1]*a[1]]);return {q,area:(r-l)*(b-t)};}
+function makeQuadrilateral(percent){const q=[[-125,-63],[125,-63],[125,63],[-125,63]].map(p=>p.slice());const t=percent/100;q[0][0]+=-32*t;q[0][1]+=26*t;q[1][0]+=19*t;q[1][1]-=34*t;q[2][0]-=47*t;q[2][1]-=11*t;q[3][0]+=43*t;q[3][1]+=36*t;const a=.27,co=Math.cos(a),si=Math.sin(a);return q.map(([x,y])=>[341+x*co-y*si,157+x*si+y*co]);}
+function pcaBBox(pts){const fit=fitTLS(pts);return rotatedCorners(pts,Math.atan2(fit.dir[1],fit.dir[0]));}
+function rectangleExperiment(){const v=Number($('perspective').value),mode=$('box-mode').value;$('perspective-value').textContent=v+'%';const q=makeQuadrilateral(v),aabb=rotatedCorners(q,0),min=[0,1,2,3].map(i=>{const j=(i+1)%4;return rotatedCorners(q,Math.atan2(q[j][1]-q[i][1],q[j][0]-q[i][0]));}).sort((a,b)=>a.area-b.area)[0];const dense=[];for(let i=0;i<4;i++){const nxt=(i+1)%4;for(let k=0;k<35;k++){const s=k/35;dense.push([(1-s)*q[i][0]+s*q[nxt][0],(1-s)*q[i][1]+s*q[nxt][1]]);}}const pca=pcaBBox(dense),{ctx,w,h}=ctxFor('rectangle-canvas');grid(ctx,w,h);ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();ctx.fillStyle='rgba(81,135,119,.11)';ctx.beginPath();ctx.moveTo(...q[0]);for(let i=1;i<4;i++)ctx.lineTo(...q[i]);ctx.closePath();ctx.fill();pathPoints(ctx,q,'#44796d',2.8,true);if(mode==='aabb'||mode==='all'){ctx.setLineDash([6,4]);pathPoints(ctx,aabb.q,'#a8a199',2,true);ctx.setLineDash([]);}if(mode==='pca'||mode==='all'){ctx.setLineDash([6,4]);pathPoints(ctx,pca.q,'#4d7696',2.2,true);ctx.setLineDash([]);}if(mode==='min'||mode==='all')pathPoints(ctx,min.q,'#b7724d',2.6,true);q.forEach((p,i)=>{point(ctx,...p,'#467b6e',4);label(ctx,String.fromCharCode(65+i),p[0]+8,p[1]-6,'#356454');});ctx.restore();label(ctx,'━━ 原始四边形',15,22,'#44796d');label(ctx,'━━ MinArea',178,22,'#b7724d');label(ctx,'┄┄ PCA',329,22,'#4d7696');label(ctx,'┄┄ AABB',453,22,'#8b8882');$('box-aabb-area').textContent=Math.round(aabb.area)+' px²';$('box-min-area').textContent=Math.round(min.area)+' px²';$('box-pca-area').textContent=Math.round(pca.area)+' px²';}
+$('perspective').addEventListener('input',rectangleExperiment);$('box-mode').addEventListener('change',rectangleExperiment);rectangleExperiment();
+
+// 05 · Corner conditioning: intersect y=0 with y=tan(theta)*x+offset.
+(function () {
+  const angleControl = document.getElementById('corner-angle');
+  const offsetControl = document.getElementById('corner-offset');
+  if (!angleControl || !offsetControl) return;
+  function renderCorner() {
+    const theta = Number(angleControl.value);
+    const off = Number(offsetControl.value);
+    const slope = Math.tan(theta * Math.PI / 180);
+    const intersectionX = -off / slope;
+    const scale = 18;
+    // SVG y direction is reversed; draw lines between x=-9 and x=+9 in model coordinates.
+    const xp = x => 376 + x * scale;
+    const yp = y => 158 - y * scale;
+    function drawLine(id, offset) {
+      const x1=-8.8, x2=8.8;
+      document.getElementById(id).setAttribute('d', `M${xp(x1).toFixed(2)} ${yp(slope*x1+offset).toFixed(2)} L${xp(x2).toFixed(2)} ${yp(slope*x2+offset).toFixed(2)}`);
     }
-    [[92,66],[178,215],[262,43],[331,216],[421,34],[492,198],[605,208],[716,34],[689,183],[545,65],[345,48]].forEach(p => sample.push(p));
-    const nodes = sample.map(([x,y]) => {
-      const circle = document.createElementNS(svgNs, 'circle');
-      circle.setAttribute('cx',x);circle.setAttribute('cy',y);circle.setAttribute('r','4.3');
-      circle.setAttribute('stroke','#fff');circle.setAttribute('stroke-width','1');
-      group.appendChild(circle);
-      return circle;
-    });
-    const update = () => {
-      const limit = Number(tau.value);
-      let n=0;
-      sample.forEach(([x,y],i) => {
-        // 模型对应于 SVG 中的 (40,189) -> (760,66)
-        const a=123, b=720, c=-(123*40+720*189);
-        const distance = Math.abs(a*x+b*y+c)/Math.hypot(a,b);
-        const accepted = distance <= limit;
-        if (accepted) n++;
-        nodes[i].setAttribute('fill', accepted ? '#287b87' : '#a7b3b7');
-        nodes[i].setAttribute('opacity',accepted ? '1' : '.65');
-      });
-      out.textContent = `${limit} px`;
-      count.textContent = `内点 ${n} / ${sample.length}`;
-    };
-    tau.addEventListener('input', update);
-    update();
+    drawLine('corner-ideal', 0);
+    drawLine('corner-noisy', off);
+    const dot=document.getElementById('corner-noisy-point');
+    dot.setAttribute('cx', xp(intersectionX).toFixed(2));
+    dot.setAttribute('cy', '158');
+    document.getElementById('corner-angle-value').textContent = theta + '°';
+    document.getElementById('corner-offset-value').textContent = off.toFixed(2) + ' px';
+    document.getElementById('corner-theta').textContent=theta+'°';
+    document.getElementById('corner-dx').textContent=intersectionX.toFixed(2)+' px';
+    document.getElementById('corner-factor').textContent=(1/Math.abs(slope)).toFixed(2);
+    document.getElementById('corner-result').textContent = `交点 x = −${off.toFixed(2)} / tan(${theta}°) = ${intersectionX.toFixed(2)} px。这里改变的是第二条线的竖直截距；角度越小，固定截距误差通常产生越大的交点漂移。`;
   }
-  document.querySelectorAll('.mobile-nav .links a').forEach(a=>a.addEventListener('click',()=>{
-    const d=document.querySelector('.mobile-nav details');if(d) d.open=false;
-  }));
+  angleControl.addEventListener('input', renderCorner);
+  offsetControl.addEventListener('input', renderCorner);
+  renderCorner();
 })();
-</script>
-</body>
-</html>
+
+</script></body></html>
