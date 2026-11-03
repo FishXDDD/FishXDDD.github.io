@@ -1,0 +1,242 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#faf8f3"><meta name="description" content="沿途手记｜03 几何验证与可靠性判断：重投影误差、RANSAC、内点比例、几何退化与拒绝定位。核心公式与直观机制。"><title>03 · 几何验证与可靠性判断｜沿途手记</title><style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.95 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,select,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:21px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:52px 0 44px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:17px;line-height:1.6;margin:27px 0 10px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 255px;gap:20px;align-items:center}.hero p{font-size:15.5px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:24px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}.chapter{padding:51px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:16px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:18px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula math{font-size:1.08em}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls select{padding:6px 9px;border-radius:7px;border:1px solid #dbcebf;background:#fff;color:#624e41}.demo-controls input{accent-color:var(--accent);vertical-align:middle}.demo-grid{display:grid;grid-template-columns:1fr 2fr;gap:13px;margin-top:14px}.canvas-panel{border:1px solid #e7ded4;border-radius:9px;background:#fff;padding:10px;min-width:0}.canvas-panel b{display:block;font-size:11px;color:#7f6353;margin-bottom:8px}.canvas-panel canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border:1px solid #ebddd1;border-radius:5px}.readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.readout strong{color:#84513b}.hint{font-size:11px;color:#948476;line-height:1.85;margin-top:10px}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 205px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:235px;justify-self:center;order:-1}.hero p{font-size:14px}.two-col,.three-col,.demo-grid{grid-template-columns:1fr}.chapter{padding:41px 0}.main{padding:0 18px 40px}.demo-controls{gap:8px}.formula .equation{font-size:16px}h1{font-size:31px}h2{font-size:23px}.hero{padding-top:27px}.demo{padding:13px}.canvas-panel canvas{max-width:400px;margin:auto}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+@media print{.sidebar,.mobile-bar,.overlay,.progress,.demo-controls,.end-links{display:none!important}.shell{display:block}.main{padding:0}.article{max-width:100%}.chapter{break-inside:avoid}.demo{break-inside:avoid}}
+
+/* Feature-correspondence study page: the diagrams carry mechanism, not decoration. */
+.step-line{margin:16px 0;display:flex;gap:7px;flex-wrap:wrap;align-items:center}.step-line span{font-size:12px;border:1px solid #e5dbcf;border-radius:8px;background:#fffdf9;padding:7px 9px}.step-line i{font-style:normal;color:#b79278}
+.formula .equation.multi{white-space:normal;line-height:1.9}
+.math-sup{font-size:.7em;vertical-align:super}
+.diagram-legend{display:flex;gap:14px;flex-wrap:wrap;color:#847064;font-size:11px;margin:6px 0 13px}.diagram-legend i{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:5px}
+.match-lab{border:1px solid #dbcbbd;background:#fffdfa;border-radius:13px;padding:17px;margin:22px 0}.lab-heading{display:flex;justify-content:space-between;align-items:start;gap:10px}.lab-heading strong{font-size:14px;color:#704c39}.lab-heading small{color:#988678;font-size:11px}.lab-controls{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:14px 0 11px}.lab-controls label{font-size:12px;color:#67564b}.lab-controls select{font-size:12px;border:1px solid #ded1c4;border-radius:7px;padding:5px 8px;background:#fffefa;color:#645247}.lab-controls input[type=range]{accent-color:var(--accent);vertical-align:middle;width:160px}.lab-flex{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:13px;margin:12px 0}.lab-svg{background:#fff;border:1px solid #e9ddd0;border-radius:10px;padding:7px}.lab-svg svg{display:block;width:100%;height:auto}.bar-item{display:grid;grid-template-columns:42px 1fr 42px;gap:7px;align-items:center;margin:10px 0;font-size:11px}.bar-item span:first-child{color:#675a50}.bar-track{height:14px;border-radius:3px;background:#f2ece4;overflow:hidden}.bar-fill{height:100%;background:#c3b0a0;transition:width .2s}.bar-item.best .bar-fill{background:#528570}.bar-item b{font-size:11px;color:#695345;text-align:right;font-variant-numeric:tabular-nums}.ratio-callout{font-size:12px;background:#f6f0e7;padding:12px 14px;border-radius:8px;line-height:1.8}.ratio-callout.good{border-left:3px solid #65907a;background:#f0f5ef}.ratio-callout.bad{border-left:3px solid #b98165;background:#fbf0e7}.note-line{font-size:12px;color:#85756b;margin:11px 0 0}.ref-link{color:#a16e54;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#cbb1a0}.subnote{font-size:12px;color:#8a7c70;border-left:2px solid #d2c3b4;padding:2px 0 2px 13px;margin:14px 0}.compact-compare{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:20px 0}.compact-compare>div{background:#fffefa;border:1px solid var(--line);border-radius:10px;padding:14px 16px}.compact-compare b{display:block;font-size:13px;color:#6b4a3a}.compact-compare p{font-size:12px;margin:5px 0 0}.formula math{font-size:1em}
+@media(max-width:690px){.lab-flex,.compact-compare{grid-template-columns:1fr}.lab-heading{display:block}.lab-controls input[type=range]{width:125px}}
+
+
+/* 03 · Geometric Verification */
+.hero-label{font:700 11px/1.5 var(--sans);color:#a07862;letter-spacing:.09em}
+.figure .svg-note{font-size:12px;color:#887666}
+.mini-steps{counter-reset:ran;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:20px 0}
+.mini-steps>div{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:12px 13px;border-top:3px solid #b9886c}
+.mini-steps>div:nth-child(even){border-top-color:#6e9984}
+.mini-steps small{font:800 10px Georgia,serif;color:#aa7961;letter-spacing:.1em}.mini-steps b{display:block;color:var(--ink);font-size:12.5px;margin:5px 0}
+.mini-steps p{font-size:11.5px;line-height:1.72;margin:0}
+.formula .equation{font-family:Georgia,"Noto Serif SC",serif;white-space:normal}
+.formula math{font-size:1.15em;color:#483c32}
+.figure .figure-inner svg{overflow:visible}
+.viz-lab{border:1px solid #dbcbbd;background:var(--white);border-radius:12px;padding:17px 19px;margin:21px 0}
+.viz-top{display:flex;align-items:start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.viz-top b{display:block;color:#684a3b;font-size:14px}
+.viz-top span{display:block;color:var(--muted);font-size:11px}
+.lab-slider{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:14px 0}
+.lab-slider label{font-size:12px;font-weight:650;color:#6b5142}
+.lab-slider input{accent-color:#a96f52;width:min(275px,48vw)}
+.lab-slider output{min-width:43px;text-align:center;border:1px solid #ddcdbb;border-radius:7px;background:#fbf6f1;color:#955f46;padding:3px 7px;font-size:12px;font-variant-numeric:tabular-nums;font-weight:750}
+.viz-lab svg{display:block;width:100%;height:auto;background:#fcfaf7;border:1px solid #ebdfd3;border-radius:9px}
+.stat-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}
+.stat-bar>div{background:#f9f3ed;border:1px solid #e8ded3;border-radius:8px;padding:10px 12px}
+.stat-bar span{display:block;color:#88796c;font-size:10.5px}
+.stat-bar strong{display:block;color:#8f5740;font-size:20px;font-variant-numeric:tabular-nums;line-height:1.4}
+.status-explain{font-size:12px;padding:10px 13px;border-left:3px solid #7e9d89;background:#f2f7f2;border-radius:0 7px 7px 0;margin:11px 0}
+.status-explain.caution{border-left-color:#c18f63;background:#f9f2e7}
+.demo-legend{display:flex;gap:14px;flex-wrap:wrap;margin:7px 0 0;color:#827164;font-size:11px}
+.demo-legend span{display:inline-flex;gap:6px;align-items:center}.demo-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#508878}
+.demo-legend i.bad{background:#c08066}.demo-legend i.predict{background:transparent;border:1.7px solid #70867c;border-radius:0;transform:rotate(45deg)}
+.choose{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+.choose>div{border:1px solid var(--line);background:var(--white);border-radius:10px;padding:13px 15px}
+.choose b{display:block;color:#674c3d;font-size:13px;margin-bottom:4px}
+.choose p{font-size:12px;margin:0;line-height:1.8}
+.summary-strip{padding:16px 19px;background:#f4eee7;border-left:3px solid var(--accent);border-radius:0 9px 9px 0;margin:25px 0;font-family:var(--serif);font-weight:650;color:#775641}
+.fn-code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#f6eee6;padding:2px 5px;border-radius:4px}
+@media(max-width:720px){.mini-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.stat-bar{grid-template-columns:repeat(3,minmax(0,1fr))}.stat-bar strong{font-size:17px}.choose{grid-template-columns:1fr}.viz-lab{padding:12px}}
+@media(max-width:480px){.mini-steps{grid-template-columns:1fr}.stat-bar>div{padding:8px}.stat-bar span{font-size:9px}.stat-bar strong{font-size:16px}}
+</style></head><body>
+<div class="progress" id="progress"></div><div class="overlay" id="overlay"></div>
+<div class="mobile-bar"><button id="menu" type="button" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记 · 03 / 03</b><span>STAGE 01</span></div>
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="章节导航">
+    <a class="brand" href="/">✳ 沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+    <a class="back" href="../">← 返回「参考匹配与视觉对应」</a>
+    <div class="loc"><div class="eyebrow">当前位置 · CURRENT PAGE</div><strong>03 · 几何验证与可靠性判断</strong><p>参考匹配与视觉对应 / Geometric Verification</p></div>
+    <nav class="side-nav" id="toc"><div class="eyebrow" style="padding:0 11px 9px">本篇目录</div>
+      <a class="active" href="#opening"><span class="num">·</span>为什么还要验证？</a>
+      <a href="#scope"><span class="num">00</span>问题定义与边界</a>
+      <a href="#residual"><span class="num">01</span>什么叫几何一致</a>
+      <a href="#ransac"><span class="num">02</span>RANSAC 怎样筛错配</a>
+      <a href="#threshold"><span class="num">03</span>阈值与内点判断</a>
+      <a href="#trust"><span class="num">04</span>怎样判断结果可信</a>
+      <a href="#decision"><span class="num">05</span>定位、拒绝与回顾</a>
+    </nav>
+    <div class="side-bottom">广度优先 · 核心公式 · 机制理解<br>仅学习匹配几何验证，不复述特征提取</div>
+  </aside>
+  <main class="main" id="content"><article class="article">
+    <nav class="crumbs" aria-label="面包屑"><a href="/">沿途手记</a><span> / </span><a href="../">参考匹配与视觉对应</a><span> / </span><span>几何验证与可靠性判断</span></nav>
+    <header class="hero" id="opening"><div class="kicker">REFERENCE MATCHING · DEEP DIVE 03 / 03</div>
+      <div class="hero-layout"><div>
+        <h1>几何验证与可靠性判断</h1><p class="sub">Geometric Verification · 从匹配点到可信位置</p>
+        <p>前一篇已经能通过描述子找到一批对应点，还能用 Homography 将参考图中的位置映射到当前图像。看起来目标好像已经找到了。</p>
+        <p>但如果盒子上有重复图案，几组错误匹配也可能“看起来很像”。<strong>相似的局部，不代表它们真能被同一个几何变换解释。</strong></p>
+        <p>这一篇只补上最后一件事：怎样从错配中找出一致的对应，以及怎样判断定位结果可不可信。</p>
+      </div>
+      <div class="hero-art"><svg viewBox="0 0 260 214" role="img" aria-label="有少量错误连线的匹配点经几何验证后被筛除">
+        <rect x="8" y="12" width="107" height="156" rx="10" fill="#eee2d3"/><rect x="145" y="12" width="107" height="156" rx="10" fill="#e6efe7"/>
+        <path d="M24 50L98 45 92 133 29 136Z" fill="#d8b48e" stroke="#ac8260" stroke-width="1.8"/>
+        <path d="M164 40L235 56 223 138 155 129Z" fill="#b9d1be" stroke="#7ba491" stroke-width="1.8"/>
+        <g stroke="#6e9987" stroke-width="2"><path d="M33 59L164 46"/><path d="M89 57L222 66"/><path d="M38 124L166 119"/><path d="M90 124L216 128"/></g>
+        <g stroke="#c08065" stroke-width="2" stroke-dasharray="5 4"><path d="M53 83L217 140"/><path d="M75 105L178 38"/></g>
+        <g fill="#7c5644"><circle cx="33" cy="59" r="4"/><circle cx="89" cy="57" r="4"/><circle cx="38" cy="124" r="4"/><circle cx="90" cy="124" r="4"/></g>
+        <g fill="#477966"><circle cx="164" cy="46" r="4"/><circle cx="222" cy="66" r="4"/><circle cx="166" cy="119" r="4"/><circle cx="216" cy="128" r="4"/></g>
+        <text x="60" y="186" text-anchor="middle" font-size="11" fill="#867367">参考图</text><text x="197" y="186" text-anchor="middle" font-size="11" fill="#867367">当前图</text>
+        <text x="130" y="207" text-anchor="middle" font-size="11" fill="#648272">绿色：一致对应</text>
+      </svg></div></div>
+      <div class="tags"><span>输入：候选匹配点对</span><span>核心：RANSAC · 重投影误差</span><span>输出：内点 + 可信度判断</span></div>
+    </header>
+    <section class="chapter" id="scope"><div class="chapter-kicker"><b>00</b> DEFINE THE TASK</div><h2>先明确：验证的不是描述子本身</h2>
+      <p>假设有参考图上的点 <strong>pᵢ</strong> 和当前图上的候选对应点 <strong>pᵢ′</strong>。我们想知道：<strong>它们能不能共同支持一个合理的二维几何变换？</strong></p>
+      <div class="three-col"><div class="plain-panel"><div class="mini-label">INPUT</div><b>候选匹配点对</b><p>坐标 (pᵢ, pᵢ′)，可能混有错误对应。</p></div><div class="plain-panel"><div class="mini-label">CORE</div><b>几何一致性</b><p>通过模型预测位置，衡量实际位置与预测的差距。</p></div><div class="plain-panel"><div class="mini-label">OUTPUT</div><b>可靠模型 / 拒绝</b><p>内点集合、模型参数、误差统计、目标位置或失败状态。</p></div></div>
+      <div class="section-note"><strong>研究边界：</strong>上一篇已经介绍描述子距离、Ratio Test、Cross-check 与 Homography 的映射含义；本篇不重复提取特征或推导 H。重点是<strong>从大量候选匹配中剔除错配，并评估估计结果</strong>。这里只讨论参考图像的二维匹配，不研究三维 Pose。</div>
+      <div class="flow"><span>候选匹配点对</span><i>→</i><span>几何模型与残差</span><i>→</i><span>RANSAC 找一致集合</span><i>→</i><span>可靠性检查</span><i>→</i><span>输出或拒绝</span></div>
+      <p class="hint">上图是常见的验证工作流程。前面的直接模板相似度匹配不一定需要这些点对步骤；不同任务选择不同的验证方式。</p>
+    </section>
+    <section class="chapter" id="residual"><div class="chapter-kicker"><b>01</b> GEOMETRIC CONSISTENCY</div><h2>两点外观很像，怎样判断几何上也对应？</h2>
+      <p>想象我们通过几个匹配点估计出了一个几何变换 H。它可以告诉我们：<strong>参考图上的点 pᵢ，在当前图中本来应该出现在哪里。</strong> 如果真正匹配的点离这个预测位置很远，就不太符合这个模型。</p>
+      <h3>1.1 · 重投影误差：预测位置和实际位置差多少？</h3>
+      <div class="formula"><div class="formula-name">REPROJECTION ERROR · 像素距离</div>
+      <div class="equation">e<sub>i</sub> = ‖ p′<sub>i</sub> − π( H · p̃<sub>i</sub> ) ‖<sub>2</sub></div>
+      <div class="explain">p̃ᵢ 为参考点的齐次坐标；H 是由对应点估计的二维变换；π(·) 将齐次坐标转换回二维点；pᵢ′ 是当前图中<strong>实际匹配到的位置</strong>。eᵢ 就是预测位置与实际位置之间的<strong>像素距离</strong>。</div></div>
+      <div class="figure"><div class="figure-title">机制图｜预测位置与实际匹配点不一致，就是重投影误差</div><div class="figure-inner"><svg viewBox="0 0 760 232" role="img" aria-label="预测位置和实际位置距离为五像素的示意">
+        <rect x="16" y="10" width="728" height="183" rx="9" fill="#f5f1ea"/>
+        <path d="M30 54H729M30 91H729M30 128H729M30 165H729" stroke="#e2d7ca" stroke-width="1"/>
+        <path d="M131 15V190M212 15V190M293 15V190M374 15V190M455 15V190M536 15V190M617 15V190" stroke="#e2d7ca" stroke-width="1"/>
+        <path d="M332 72L332 112M312 92L352 92" stroke="#4e8371" stroke-width="2.5"/>
+        <circle cx="423" cy="136" r="7" fill="#c08162" stroke="white" stroke-width="2"/>
+        <path d="M332 92L423 136" stroke="#ac6b50" stroke-width="2.3" stroke-dasharray="5 4"/>
+        <text x="293" y="61" fill="#426f5f" font-size="14" font-weight="700">模型预测</text>
+        <text x="435" y="137" fill="#9e624b" font-size="14" font-weight="700">实际匹配</text>
+        <text x="363" y="96" fill="#aa6c51" font-size="14">eᵢ</text>
+        <text x="380" y="220" text-anchor="middle" fill="#877569" font-size="12">两个位置不重合，距离越大说明该匹配越不符合当前模型</text>
+      </svg></div></div>
+      <p>举个数值例子：H 预测点应该在 <code>(100, 80)</code>，但实际匹配点在 <code>(103, 84)</code>，那么</p>
+      <div class="formula"><div class="formula-name">MINIMAL EXAMPLE</div><div class="equation">e = √[(103−100)²+(84−80)²] = <strong>5 px</strong></div><div class="explain">如果允许误差阈值 τ = 3 px，这个点是离群候选；若 τ = 6 px，它会被判为内点。<strong>阈值和误差的单位都是像素。</strong></div></div>
+      <div class="section-note green"><strong>一个必须区分的量：</strong>前篇 L2 / Hamming 距离是在比较<strong>描述子长得像不像</strong>；这里的重投影误差是在比较<strong>坐标是否服从同一个几何关系</strong>。它们不是一回事，阈值也不能通用。</div>
+      <h3>1.2 · 同一组对应，应该用什么模型？</h3>
+      <p>几何一致性离不开模型假设。如果目标只是平移，平移模型即可；如果存在旋转和尺度变化，可以使用相似或仿射变换；如果目标近似平面并发生透视变化，常用 Homography（单应矩阵）。</p>
+      <p class="hint">H 不适合用一个统一变换解释所有非平面表面。模型错了，真实匹配也可能被判为“离群点”。</p>
+    </section>
+    <section class="chapter" id="ransac"><div class="chapter-kicker"><b>02</b> RANSAC</div><h2>一批点里有错配，RANSAC 怎么找到可靠的那一批？</h2>
+      <p>如果直接用全部匹配点拟合 H，几个错误匹配就可能把结果拉偏。RANSAC 的办法恰好相反：<strong>先用少量点提出一个模型，再看有多少其他点愿意支持它。</strong></p>
+      <div class="mini-steps">
+        <div><small>STEP 01</small><b>随机抽一小组</b><p>例如估计一般单应矩阵，理想情况下至少需要 4 组非退化对应。</p></div>
+        <div><small>STEP 02</small><b>拟合候选模型</b><p>用抽中的点计算 H，再对全部匹配点预测位置。</p></div>
+        <div><small>STEP 03</small><b>统计一致内点</b><p>重投影误差小于阈值的点，支持这个候选模型。</p></div>
+        <div><small>STEP 04</small><b>重复并选出较优模型</b><p>比较多组候选，取一致性较好的结果，并在内点上重新估计。</p></div>
+      </div>
+      <div class="formula"><div class="formula-name">INLIER COUNT · 最直观的一致性统计</div><div class="equation">N<sub>in</sub> = Σ<sub>i=1…N</sub> 𝟙( e<sub>i</sub> &lt; τ )</div><div class="explain">τ 是允许的重投影误差阈值（像素）；𝟙(·) 表示条件成立时计 1，否则计 0。这里展示的是基础 RANSAC 的“按内点数选择模型”思想；实际鲁棒估计器还可能采用其他评分方式。</div></div>
+      <div class="figure"><div class="figure-title">机制图｜候选 H 不同，支持它的匹配点集合也不同</div><div class="figure-inner"><svg viewBox="0 0 760 239" role="img" aria-label="两种候选模型的几何一致性示意">
+        <rect x="8" y="8" width="350" height="198" rx="10" fill="#f8f0e8"/><rect x="402" y="8" width="350" height="198" rx="10" fill="#eef4f0"/>
+        <text x="24" y="33" fill="#9b684d" font-size="14" font-weight="700">候选 A · 只能解释少量点</text><text x="419" y="33" fill="#4b7969" font-size="14" font-weight="700">候选 B · 大部分点一致</text>
+        <path d="M43 158L310 70" stroke="#c59b80" stroke-width="2.4" stroke-dasharray="6 5"/><path d="M435 160L712 67" stroke="#629784" stroke-width="2.8"/>
+        <g fill="#c08870"><circle cx="56" cy="120" r="5"/><circle cx="109" cy="102" r="5"/><circle cx="168" cy="160" r="5"/><circle cx="209" cy="80" r="5"/><circle cx="270" cy="155" r="5"/><circle cx="311" cy="118" r="5"/><circle cx="471" cy="112" r="5"/><circle cx="594" cy="164" r="5"/><circle cx="679" cy="132" r="5"/></g>
+        <g fill="#4c8a72"><circle cx="78" cy="146" r="5"/><circle cx="287" cy="80" r="5"/><circle cx="447" cy="156" r="5"/><circle cx="495" cy="139" r="5"/><circle cx="549" cy="122" r="5"/><circle cx="603" cy="105" r="5"/><circle cx="658" cy="87" r="5"/><circle cx="701" cy="72" r="5"/></g>
+        <text x="180" y="224" text-anchor="middle" fill="#8f7563" font-size="12">少数点接近这条模型</text><text x="573" y="224" text-anchor="middle" fill="#608676" font-size="12">更多点接近同一个模型</text>
+      </svg></div><div class="figcap">示意图只表达“候选模型由不同数量的点支持”。真实 RANSAC 是通过误差阈值而非肉眼距离进行统计。</div></div>
+      <p>对平面参考匹配，通常是在候选匹配点中随机取 4 组来估计 H。若这 4 组恰好包含错配，候选 H 可能很差；多次重复就是为了增加抽到足够多正确匹配的机会。</p>
+      <div class="section-note"><strong>不要把 RANSAC 想成“计算一个更准的相似度”。</strong>它不负责判断两个局部外观像不像，而是在已有点对的基础上，寻找能被同一几何模型解释的匹配集合。即使找到很多内点，也不能单凭这一点证明它们属于你想找的目标。</div>
+    </section>
+    <section class="chapter" id="threshold"><div class="chapter-kicker"><b>03</b> PIXEL THRESHOLD</div><h2>阈值到底卡的是什么？调大调小会怎样？</h2>
+      <p>和 Canny 的梯度阈值不同，RANSAC 用于几何匹配时常见的阈值是<strong>重投影误差的像素距离</strong>。例如设 τ = 3 px，意思是预测位置和观测点的偏差小于 3 像素，才属于当前模型的内点。</p>
+      <div class="viz-lab" id="reproj-lab"><div class="viz-top"><div><b>交互实验 · 改变内点阈值，观察哪些匹配被接受</b><span>固定一个候选几何模型 H，实时计算投影误差与内点数量</span></div><span>教学示例 · 12 对人工构造的匹配点</span></div>
+        <div class="lab-slider"><label for="px-threshold">重投影误差阈值 τ</label><input id="px-threshold" type="range" min="1" max="24" step="1" value="4"/><output id="px-label" for="px-threshold">4 px</output></div>
+        <svg id="verification-svg" viewBox="0 0 760 316" role="img" aria-label="当前图中模型预测位置与实际匹配点的连线，绿点表示内点，橙点表示离群点">
+          <rect x="14" y="12" width="734" height="283" rx="11" fill="#f8f5ef" stroke="#e5d9ce"/>
+          <path d="M55 54H713M55 104H713M55 154H713M55 204H713M55 254H713" stroke="#e8dfd5" stroke-width="1"/>
+          <path d="M77 36V272M177 36V272M277 36V272M377 36V272M477 36V272M577 36V272M677 36V272" stroke="#e8dfd5" stroke-width="1"/>
+          <path d="M186 83L581 67L607 254L183 254Z" fill="#e4eee7" fill-opacity=".45" stroke="#95b5a4" stroke-width="1.4" stroke-dasharray="6 6"/>
+          <g id="demo-points"></g>
+          <text x="23" y="306" fill="#927d6d" font-size="11">× 预测位置　● 实际匹配位置　两者距离 = 重投影误差</text>
+        </svg>
+        <div class="demo-legend"><span><i></i> 内点（小于阈值）</span><span><i class="bad"></i> 离群点（大于等于阈值）</span><span><i class="predict"></i> 预测位置</span></div>
+        <div class="stat-bar"><div><span>内点数量</span><strong id="stat-inliers">—</strong></div><div><span>内点率</span><strong id="stat-ratio">—</strong></div><div><span>内点误差中位数</span><strong id="stat-median">—</strong></div></div>
+        <div class="status-explain" id="lab-explain" aria-live="polite"></div>
+        <p class="hint">这个交互只演示<strong>固定候选模型 H 下的误差计算与内点划分</strong>，不在滑动时重新运行 RANSAC。实际 RANSAC 会反复采样和比较不同模型；内点率升高也不自动代表模型更准确。</p>
+      </div>
+      <div class="two-col"><div class="plain-panel"><div class="mini-label">阈值较小</div><b>要求更严格</b><p>轻微定位误差也可能被当作离群点，内点数量下降，真实匹配可能被丢掉。</p></div><div class="plain-panel"><div class="mini-label">阈值较大</div><b>容忍误差更多</b><p>内点数量可能增加，但错误匹配也更容易进入一致集合，几何精度可能下降。</p></div></div>
+      <p>实际阈值要结合图像分辨率、关键点定位误差、变换模型以及任务对精度的要求来选。比如 3 px 只是示例，不是所有分辨率和场景通用的推荐值。</p>
+    </section>
+    <section class="chapter" id="trust"><div class="chapter-kicker"><b>04</b> RELIABILITY</div><h2>内点很多，就一定可以相信这个定位吗？</h2>
+      <p>还不能。RANSAC 只是找到一组<strong>相对于某个模型比较一致的点</strong>。要判断这组点是否真的支撑目标定位，至少还得看误差、空间分布与模型假设。</p>
+      <div class="formula"><div class="formula-name">INLIER RATIO · 一致匹配的占比</div><div class="equation">r<sub>in</sub> = N<sub>in</sub> / N<sub>matches</sub></div><div class="explain">例如 20 组匹配点中有 15 组满足误差阈值，内点率是 75%。它描述本组匹配中有多少被当前模型支持，<strong>并不等于“目标正确概率为 75%”。</strong></div></div>
+      <div class="table-wrap"><table><thead><tr><th>需要检查</th><th>它告诉我们什么</th><th>只看这一项会有什么问题</th></tr></thead><tbody>
+        <tr><td>内点数量 / 比例</td><td>有多少对应支持同一模型</td><td>重复图案也可能形成一致的错误对应</td></tr>
+        <tr><td>重投影误差</td><td>预测坐标与实际匹配坐标有多接近</td><td>误差小也可能是模型过拟合少量点</td></tr>
+        <tr><td>空间分布</td><td>内点是否覆盖目标不同区域</td><td>全部挤在一个小角落，外推到四角会不稳定</td></tr>
+        <tr><td>模型适用性</td><td>目标是否满足平面 / 变换假设</td><td>非平面物体不一定能用一个 H 描述</td></tr>
+        <tr><td>候选唯一性</td><td>是否存在多个近似同样合理的目标位置</td><td>不同重复纹理区域可能都能得到高内点率</td></tr>
+      </tbody></table></div>
+      <div class="figure"><div class="figure-title">机制图｜同样是 6 个内点，位置分布不同，几何约束也不同</div><div class="figure-inner"><svg viewBox="0 0 760 238" role="img" aria-label="左图内点集中于一个角落右图分散分布在平面目标四周">
+        <rect x="10" y="8" width="354" height="202" rx="10" fill="#f7f0e8"/><rect x="396" y="8" width="354" height="202" rx="10" fill="#eef4ef"/>
+        <path d="M61 42L290 57L302 171L48 169Z" fill="#fff" stroke="#c9b5a2" stroke-width="2"/><path d="M447 42L676 57L688 171L435 169Z" fill="#fff" stroke="#a9c5b7" stroke-width="2"/>
+        <g fill="#b37c5c"><circle cx="78" cy="71" r="5"/><circle cx="94" cy="77" r="5"/><circle cx="109" cy="68" r="5"/><circle cx="85" cy="90" r="5"/><circle cx="117" cy="88" r="5"/><circle cx="97" cy="105" r="5"/></g>
+        <g fill="#548a73"><circle cx="473" cy="64" r="5"/><circle cx="628" cy="79" r="5"/><circle cx="464" cy="142" r="5"/><circle cx="659" cy="154" r="5"/><circle cx="559" cy="111" r="5"/><circle cx="588" cy="65" r="5"/></g>
+        <text x="187" y="226" text-anchor="middle" font-size="12" fill="#9c765f">局部聚集：远处位置靠外推</text><text x="573" y="226" text-anchor="middle" font-size="12" fill="#5a806d">分布较广：约束更充分</text>
+      </svg></div></div>
+      <div class="section-note green"><strong>广度优先的判断标准：</strong>不需要在这里推导矩阵条件数或置信区间，但必须记住<strong>有内点 ≠ 可靠定位</strong>。评价结果需要结合足够的支持、较小误差、合理空间分布，以及模型与场景是否匹配。</div>
+    </section>
+    <section class="chapter" id="decision"><div class="chapter-kicker"><b>05</b> DECISION &amp; TAKEAWAY</div><h2>什么时候输出目标位置，什么时候应该拒绝？</h2>
+      <p>如果几何关系得到足够支持，并且模型适用于目标，就可以使用估计得到的 H，将参考目标的四角映射到当前画面，形成一个二维四边形，再根据实际任务转换成 BBox、中心点等结果。</p>
+      <p>如果只有少量集中在一处的内点、多个候选都合理、模型预测误差很大，或者目标本身不满足几何假设，<strong>更合理的做法是拒绝本次定位，而不是强行返回一个看似精确的位置。</strong></p>
+      <div class="table-wrap"><table><thead><tr><th>实际问题</th><th>想到什么</th><th>需要理解的核心</th></tr></thead><tbody>
+        <tr><td>描述子匹配很多，但可能混有错配</td><td>RANSAC</td><td>抽样估计模型、统计一致内点</td></tr>
+        <tr><td>一个匹配点是否支持当前 H？</td><td>重投影误差 eᵢ</td><td>预测点与观测点之间的像素距离</td></tr>
+        <tr><td>怎样允许一定定位误差？</td><td>阈值 τ</td><td>内点划分的容忍范围，而非描述子阈值</td></tr>
+        <tr><td>模型支持度怎样量化？</td><td>内点数 / 内点率</td><td>一致集合的规模，不是成功概率</td></tr>
+        <tr><td>为何内点多也可能出错？</td><td>分布、退化、模型假设</td><td>匹配几何对目标是否具有足够约束</td></tr>
+      </tbody></table></div>
+      <div class="final-line">这一篇只需记住：<strong>描述子匹配负责提出“可能对应”，RANSAC 负责找到“几何上比较一致”的匹配，而可靠性检查决定“能不能相信这个定位”。</strong></div>
+      <div class="end-links"><a href="../02-local-correspondence/">← 上一篇 · 局部特征与视觉对应</a><a href="../">返回问题导览 ↑</a></div>
+    </section>
+    <footer class="footer">沿途手记 · 参考匹配与视觉对应 / 03 · 几何验证与可靠性判断<br>广度优先 · 保留关键公式与核心机制 · 本页不讨论三维位姿估计。</footer>
+  </article></main>
+</div>
+<script>
+(function(){'use strict';
+  const sidebar=document.getElementById('sidebar'),menu=document.getElementById('menu'),overlay=document.getElementById('overlay'),progress=document.getElementById('progress');
+  const toggle=open=>{sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);menu.setAttribute('aria-expanded',String(open));};
+  menu.addEventListener('click',()=>toggle(!sidebar.classList.contains('open')));
+  overlay.addEventListener('click',()=>toggle(false));
+  document.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>toggle(false)));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});
+  const links=[...document.querySelectorAll('.side-nav a[href^="#"]')];let ticking=false;
+  function updateNav(){const y=scrollY+(innerWidth<=820?105:95);let active=links[0];for(const a of links){const target=document.getElementById(a.getAttribute('href').slice(1));if(target&&target.offsetTop<=y)active=a}links.forEach(a=>a.classList.toggle('active',a===active));const m=document.documentElement.scrollHeight-innerHeight;progress.style.width=(m?Math.max(0,Math.min(100,scrollY/m*100)):0)+'%';ticking=false}
+  addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(updateNav)}},{passive:true});addEventListener('resize',updateNav);updateNav();
+  // A fixed candidate planar transform; the exercise is threshold classification, not rerunning RANSAC.
+  const sample=[
+    [75,56,1,-1],[143,67,-2,1],[235,78,1.5,2],[311,95,-1,1.3],
+    [86,140,0.7,-2],[165,149,1.7,1.4],[249,153,-1.2,-1.1],[326,180,2.2,-1],
+    [95,221,0.8,1.4],[170,231,20,-23],[258,235,-26,10],[327,245,17,16]
+  ];
+  function transform(x,y){const d=1+0.00025*x+0.00015*y;return [(1.06*x+0.11*y+24)/d,(0.02*x+0.94*y+17)/d]}
+  const ns='http://www.w3.org/2000/svg',g=document.getElementById('demo-points'),slider=document.getElementById('px-threshold');
+  const label=document.getElementById('px-label'), count=document.getElementById('stat-inliers'), ratio=document.getElementById('stat-ratio'), median=document.getElementById('stat-median'), explain=document.getElementById('lab-explain');
+  const visual=sample.map(([x,y,dx,dy])=>{const [px,py]=transform(x,y);return {px,py,ox:px+dx,oy:py+dy,e:Math.hypot(dx,dy)};});
+  function el(name,attrs){let node=document.createElementNS(ns,name);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));return node}
+  function draw(){const t=Number(slider.value),good=visual.filter(a=>a.e<t),rate=good.length/visual.length;
+    label.textContent=t+' px';count.textContent=good.length+' / '+visual.length;ratio.textContent=(rate*100).toFixed(0)+'%';
+    const ds=good.map(v=>v.e).sort((a,b)=>a-b);let med=ds.length?(ds.length%2?ds[(ds.length-1)/2]:(ds[ds.length/2-1]+ds[ds.length/2])/2):null;
+    median.textContent=med==null?'—':med.toFixed(1)+' px';g.replaceChildren();
+    for(const v of visual){let x=v.px*1.27+52,y=v.py*0.84+14,ox=v.ox*1.27+52,oy=v.oy*0.84+14,inside=v.e<t,c=inside?'#508878':'#c08066';
+      g.appendChild(el('line',{x1:x,y1:y,x2:ox,y2:oy,stroke:c,'stroke-width':1.6,'stroke-dasharray':'4 3',opacity:.9}));
+      g.appendChild(el('line',{x1:x-4,y1:y-4,x2:x+4,y2:y+4,stroke:'#738d7f','stroke-width':1.7}));
+      g.appendChild(el('line',{x1:x-4,y1:y+4,x2:x+4,y2:y-4,stroke:'#738d7f','stroke-width':1.7}));
+      g.appendChild(el('circle',{cx:ox,cy:oy,r:5.2,fill:c,stroke:'#fff','stroke-width':1.6}));
+    }
+    explain.className='status-explain'+(t>12?' caution':'');
+    explain.textContent='当前阈值 '+t+' px：12 组候选中，'+good.length+' 组误差小于阈值。'+(t<3?' 阈值较严格，部分原本接近预测位置的点也会被排除。':t>12?' 阈值较宽松，部分明显偏离预测的匹配也可能被接受。':' 当前示例中，偏差较小的点多被保留，较大的错配仍被排除。')
+  }
+  slider.addEventListener('input',draw);draw();
+})();
+</script></body></html>

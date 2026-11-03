@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#faf8f3" name="theme-color"/>
+<meta content="沿途手记｜学习式视觉定位：区分人工特征与统计学习、深度视觉学习，以及目标检测、实例分割、关键点定位和训练泛化的研究问题。" name="description"/>
+<title>学习式视觉定位｜沿途手记</title>
+<style>
+    :root{color-scheme:light;--paper:#faf8f3;--side:#f6f3ec;--surface:#fffefa;--ink:#493d34;--body:#62574d;--muted:#97877a;--line:#e7ddd1;--rust:#ae7256;--rust-dark:#91563f;--wash:#f7eee5;--sage:#658475;--sagewash:#edf3ed;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.9 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:3px}::selection{background:#ead5c5;color:#48362c}
+    .progress{position:fixed;inset:0 auto auto 0;width:0;height:3px;background:#b67b60;z-index:90;pointer-events:none}
+    .layout{display:grid;grid-template-columns:282px minmax(0,1fr);align-items:start;min-height:100vh}
+    .sidebar{position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;overflow-y:auto;background:var(--side);border-right:1px solid #e5dfd5;padding:32px 22px 22px;scrollbar-width:thin;z-index:30}
+    .brand-area{padding:0 12px 21px;border-bottom:1px solid #e5dfd5}.brand{font-family:var(--serif);font-size:21px;font-weight:760;letter-spacing:.045em;color:#443a33}.brand small{display:block;font:11px/1.6 var(--sans);color:#a09386;letter-spacing:.04em;margin-top:3px}.back{display:flex;align-items:center;gap:8px;margin:18px 3px 25px;padding:10px 12px;border:1px solid #e0d4c8;border-radius:9px;font-size:12px;color:#74665b;background:#ffffffa1}.back:hover{background:white;color:var(--rust-dark)}
+    .side-section{padding:0 11px 20px}.side-label{display:block;color:#a09486;font-size:10px;font-weight:800;letter-spacing:.14em;margin-bottom:10px}.path{font-size:11px;color:#91877c;line-height:1.7}.here{font-size:15px;line-height:1.6;color:#463c34;font-weight:760;margin:8px 0 0}.en{font:italic 11px/1.6 Georgia,serif;color:#a39385;margin-top:4px}
+    .side-nav{border-top:1px solid #e5dfd5;padding-top:19px}.side-nav .side-label{margin-left:11px}.side-nav a{display:flex;align-items:center;gap:10px;font-size:12px;color:#776c62;padding:10px 11px;border-radius:9px;line-height:1.55}.side-nav a:hover{background:#ede6de}.side-nav a.active{background:#f0e5dc;color:#915b45;font-weight:750}.side-nav a span{font-size:10px;color:#ab9b8e;min-width:23px}.side-nav a.active span{color:#ae7256}
+    .side-bottom{margin-top:auto;padding:17px 11px 0;border-top:1px solid #e5dfd5}.side-bottom a{display:flex;justify-content:space-between;font-size:11.5px;color:#597e6b;padding:7px 0}.side-bottom p{font-size:10px;color:#aa9d90;margin:15px 0 0}
+    .main{min-width:0;padding:0 46px 80px}.inner{max-width:885px;margin:0 auto}.crumb{min-height:67px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);font-size:11px;color:#96887b}.crumb a:hover{color:var(--rust)}.crumb .current{color:#67594d;font-weight:650}
+    .hero{padding:57px 0 49px;border-bottom:1px solid var(--line)}.eyebrow{font-size:11px;font-weight:800;color:var(--rust);letter-spacing:.15em}.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:29px;align-items:center;margin-top:12px}h1,h2,h3{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(30px,3.35vw,42px);line-height:1.45;letter-spacing:-.028em;margin:3px 0 8px}h2{font-size:clamp(23px,2.6vw,29px);line-height:1.54;margin:3px 0 20px}h3{font-size:17px;line-height:1.6;margin:0}.subtitle{font:italic 12px/1.7 Georgia,serif;color:#a08a79;margin-bottom:24px}.hero p{margin:0 0 13px;font-size:15px;line-height:2.02}.hero p:last-child{margin-bottom:0}strong{color:#79513e}.hero-art{margin:0}.hero-art svg{display:block;width:100%;height:auto}.hero-art figcaption{font-size:10px;text-align:center;color:#a18e7d;margin-top:7px}
+    .chapter{padding:54px 0 55px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.sec-label{font-size:11px;font-weight:740;letter-spacing:.11em;color:#a78069;margin-bottom:11px}.sec-label b{font:italic 17px Georgia,serif;color:#b47857;margin-right:11px}.chapter p{margin:0 0 14px;line-height:2.0}.definition{padding:18px 21px;border:1px solid #e3d7c9;background:var(--surface);border-radius:11px;font-size:14.5px;line-height:1.95;margin:18px 0 20px}.scope-lines{display:grid;gap:9px;margin:18px 0 0}.scope-line{display:grid;grid-template-columns:83px minmax(0,1fr);gap:14px;font-size:13px}.scope-line b{font-weight:760;color:#82614e}.scope-line span{color:#695c52}.boundary{padding:14px 17px;border-left:3px solid #7a9a88;background:#f0f4ee;font-size:13px;border-radius:0 8px 8px 0;margin-top:23px;line-height:1.85}
+    .section-intro{margin-bottom:28px!important}.route-list{display:grid;gap:17px;margin:22px 0 0}.route-link{display:grid;grid-template-columns:76px minmax(0,1fr) 32px;gap:17px;align-items:start;border:1px solid #e5dacd;background:var(--surface);border-radius:12px;padding:22px 21px;transition:border-color .17s,background .17s,transform .17s}.route-link:hover{border-color:#ceb4a2;background:#fffaf4;transform:translateY(-1px)}.route-id{font:italic 29px/1 Georgia,serif;color:#ad7e67;padding-top:4px}.route-content{min-width:0}.route-en{font:italic 11px/1.6 Georgia,serif;color:#9f8c7c;margin:2px 0 6px}.route-link h3{font-size:18px;letter-spacing:-.015em;margin-bottom:13px}.route-question{font-size:14px;font-weight:700;color:#674a3b;line-height:1.8;margin:0 0 6px!important}.route-answer{font-size:13px;line-height:1.85;color:#74665b;margin:0!important}.route-tail{font-size:11.5px;color:var(--sage);font-weight:680;margin-top:11px}.arr{font-size:23px;color:#ab765a;justify-self:end;padding-top:6px}.shared{border-top:3px solid #86a391}.shared .route-id{color:#779385}.shared .arr{color:#789789}
+    .waynote{padding:17px 19px;margin-top:22px;background:#f5efe7;border-radius:10px;font-size:13px;line-height:1.95;color:#736053}.waynote b{color:#865943}.summary{padding:47px 0 15px}.summary p{font-size:14px;line-height:2.0}.summary strong{color:#79513e}.small-table{border-collapse:collapse;width:100%;font-size:12.5px;line-height:1.8;margin:22px 0 24px}.small-table th,.small-table td{border-bottom:1px solid var(--line);padding:11px 10px;text-align:left;vertical-align:top}.small-table th{color:#80624e;font-weight:750;background:#f6f0e8}.small-table td:first-child{color:#785744;font-weight:720;white-space:nowrap}.endnote{border-left:3px solid #c59070;padding:12px 18px;background:#faf0e5;font-size:13px;line-height:1.9;color:#745848}.bottom-nav{display:flex;justify-content:space-between;margin-top:40px;gap:12px;flex-wrap:wrap}.bottom-nav a{font-size:12px;color:#90684f;padding:10px 14px;border:1px solid #e4d7c9;border-radius:8px;background:white}.bottom-nav a:hover{background:#f9eee6}.footer{color:#a59a8f;font-size:10px;margin-top:36px;padding-top:16px;border-top:1px solid var(--line)}
+    .mobile-bar,.overlay,.close{display:none}
+    @media(max-width:1100px) and (min-width:861px){.layout{grid-template-columns:246px minmax(0,1fr)}.sidebar{padding-left:13px;padding-right:13px}.main{padding:0 29px 65px}.hero-grid{grid-template-columns:minmax(0,1fr) 205px;gap:20px}}
+    @media(max-width:860px){html{scroll-padding-top:78px}.layout{display:block}.sidebar{position:fixed;top:0;left:0;width:min(315px,86vw);height:100dvh;z-index:52;transform:translateX(-106%);transition:transform .22s;visibility:hidden;box-shadow:12px 0 40px #30241a22}.sidebar.open{transform:translateX(0);visibility:visible}.overlay.open{display:block;position:fixed;inset:0;background:#24190f77;z-index:51}.mobile-bar{display:flex;position:sticky;top:0;z-index:35;height:57px;align-items:center;justify-content:space-between;padding:0 20px;background:#faf8f3ef;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}.mobile-bar a{font-weight:730;font-size:13px;color:#6e5d51}.mobile-bar button,.close{border:1px solid #e1d5c8;background:#fffdf9;color:#776354;border-radius:8px;padding:6px 10px;font-size:12px}.close{display:block;position:absolute;top:24px;right:17px;padding:3px 10px;font-size:20px}.main{padding:0 22px 60px}.crumb{min-height:53px}.chapter{scroll-margin-top:80px}}
+    @media(max-width:600px){.hero{padding:39px 0 35px}.hero-grid{grid-template-columns:1fr;gap:14px}.hero-art{max-width:228px;justify-self:center;order:-1}.hero h1{font-size:30px}.hero p{font-size:14px}.chapter{padding:43px 0}.route-link{grid-template-columns:41px minmax(0,1fr) 17px;gap:9px;padding:18px 13px}.route-id{font-size:22px}.route-link h3{font-size:16px}.route-question{font-size:13px}.route-answer{font-size:12px}.route-tail{font-size:11px}.scope-line{grid-template-columns:64px minmax(0,1fr);gap:8px}.small-table{font-size:11.7px}.small-table th,.small-table td{padding:10px 7px}.bottom-nav{display:grid}.summary{padding-top:35px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar,.route-link{transition:none}}
+    @media print{.sidebar,.mobile-bar,.overlay,.progress,.bottom-nav{display:none!important}.layout{display:block}.main{padding:0}.inner{max-width:none}}
+  
+    .group-hint{font-size:12px;line-height:1.9;color:#89786a;margin:-8px 0 20px!important}
+    .route-list{gap:13px;margin-top:17px}
+    .route-link{padding:20px 21px;grid-template-columns:66px minmax(0,1fr) 28px}
+    .route-link h3{margin-bottom:7px}
+    .route-link .route-en{margin-bottom:4px}
+    .route-link .route-tail{margin-top:8px}
+    .route-link .route-question{margin:0 0 5px!important}
+    .route-link .route-answer{line-height:1.8}
+    .route-link.method{border-top:3px solid #c6a38f}
+    .route-link.output{border-top:3px solid #8fa8b3}
+    .route-link.output .route-id,.route-link.output .arr{color:#72929f}
+    .route-link.shared{border-top:3px solid #86a391}
+    .mini-key{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px;font-size:11px;color:#97867a}
+    .mini-key span{display:inline-flex;align-items:center;gap:6px}
+    .mini-key i{width:7px;height:7px;border-radius:50%;display:inline-block}
+    .mini-key .a{background:#bd9279}.mini-key .b{background:#81a2af}.mini-key .c{background:#88a592}
+    @media(max-width:600px){.route-link{grid-template-columns:40px minmax(0,1fr) 16px;gap:9px;padding:16px 12px}}
+</style>
+</head>
+<body>
+<div aria-hidden="true" class="progress" id="progress"></div>
+<div class="overlay" id="overlay"></div>
+<div class="mobile-bar"><a href="../">← 二维目标定位</a><button aria-controls="sidebar" aria-expanded="false" id="menu" type="button">☰ 目录</button></div>
+<div class="layout">
+<aside aria-label="阅读导航" class="sidebar" id="sidebar">
+<button aria-label="关闭目录" class="close" id="close" type="button">×</button>
+<div class="brand-area"><a class="brand" href="/">沿途手记</a><small>从一个问题出发的探索路线</small></div>
+<a class="back" href="../">← 返回 · 二维目标定位</a>
+<div class="side-section"><span class="side-label">当前位置 / CURRENT PAGE</span><div class="path">Stage 01 / 二维目标定位</div><div class="here">学习式视觉定位</div><div class="en">Learned Vision</div></div>
+<nav aria-label="本篇目录" class="side-nav">
+<span class="side-label">本篇目录 / CONTENTS</span>
+<a class="active" href="#opening"><span>·</span>为什么需要学习？</a>
+<a href="#definition"><span>00</span>问题与边界</a>
+<a href="#methods"><span>01</span>模型怎样学习</a>
+<a href="#outputs"><span>02</span>模型输出什么</a>
+<a href="#evaluation"><span>03</span>共同的训练问题</a>
+<a href="#summary"><span>↳</span>两种分类维度</a>
+</nav>
+<div class="side-bottom"><span class="side-label">下层笔记 / DEEP DIVE</span>
+<a href="./01-traditional-ml/"><span>01 传统机器学习定位</span><span>↗</span></a>
+<a href="./02-deep-vision/"><span>02 深度视觉基础</span><span>↗</span></a>
+<a href="./03-object-detection/"><span>03 目标检测</span><span>↗</span></a>
+<a href="./04-instance-segmentation/"><span>04 实例分割</span><span>↗</span></a>
+<a href="./05-keypoint-localization/"><span>05 关键点定位</span><span>↗</span></a>
+<a href="./06-training-evaluation/"><span>06 训练、评价与泛化</span><span>↗</span></a>
+<p>STAGE 01 · IMAGE &amp; TARGET</p>
+</div>
+</aside>
+<main class="main" id="content">
+<div class="inner">
+<nav aria-label="面包屑" class="crumb"><a href="/">沿途手记</a> / <a href="/research/stage-01/">Stage 01</a> / <a href="../">二维目标定位</a> / <span class="current">学习式视觉定位</span></nav>
+<header class="hero" id="opening">
+<div class="eyebrow">LEARNED VISION · 从样本中学习视觉规律</div>
+<div class="hero-grid">
+<div>
+<h1>学习式视觉定位</h1>
+<div class="subtitle">Learned Vision · 让模型从样本中学会找目标</div>
+<p>如果要识别不同颜色、材质和形状的瓶子，很难提前写完每一种外观规则，也不一定有每个款式的参考照片。</p>
+<p>另一种办法是<strong>提供样本，让模型学习哪些视觉信息有助于识别和定位目标</strong>。</p>
+<p>这一页先把学习方式、定位任务和共同的训练问题区分清楚，具体算法留给下层笔记。</p>
+</div>
+<figure class="hero-art">
+<svg aria-labelledby="learntitle learndesc" role="img" viewbox="0 0 246 217" xmlns="http://www.w3.org/2000/svg">
+<title id="learntitle">学习式视觉定位：从训练样本到不同定位输出</title>
+<desc id="learndesc">左侧多种不同外观的瓶子作为样本，右侧展示框、掩码和关键点三种不同任务的输出。</desc>
+<rect fill="#f7f0e8" height="207" rx="17" stroke="#e8dacc" width="240" x="3" y="4"></rect>
+<g transform="translate(13,19)"><rect fill="#fffefa" height="128" rx="9" stroke="#e4d8ca" width="87"></rect>
+<g transform="translate(9,10)"><rect fill="#f3f2ed" height="47" rx="4" stroke="#ece7df" width="31"></rect><path d="M12 9h6v7q8 3 8 11v12q0 3-4 3H7q-4 0-4-3V27q0-8 9-11Z" fill="#9bb6b6" stroke="#789797"></path><rect fill="#718b8b" height="6" rx="1" width="10" x="10" y="7"></rect></g>
+<g transform="translate(48,10)"><rect fill="#f3f2ed" height="47" rx="4" stroke="#ece7df" width="31"></rect><path d="M13 8h5v8q10 4 9 13v11q0 2-4 2H7q-4 0-4-2V29q0-9 10-13Z" fill="#d4a37d" stroke="#b78262"></path><rect fill="#b98261" height="7" rx="1" width="9" x="11" y="5"></rect></g>
+<g transform="translate(9,64)"><rect fill="#f3f2ed" height="47" rx="4" stroke="#ece7df" width="31"></rect><path d="M12 4h7l1 8q6 4 6 12v15q0 3-4 3H8q-4 0-4-3V24q0-8 6-12Z" fill="#b8bea1" stroke="#93a080"></path><rect fill="#8a987c" height="5" rx="1" width="7" x="12" y="3"></rect></g>
+<g transform="translate(48,64)"><rect fill="#f3f2ed" height="47" rx="4" stroke="#ece7df" width="31"></rect><path d="M12 6h8v9q7 6 7 14v10q0 3-4 3H7q-4 0-4-3V29q0-8 9-14Z" fill="#aaa9c5" stroke="#8585a8"></path><rect fill="#7a7b9e" height="5" rx="1" width="10" x="11" y="4"></rect></g>
+<text fill="#88796c" font-size="10" text-anchor="middle" x="43.5" y="121">训练样本</text></g>
+<g><path d="M107 82H129" stroke="#b8896f" stroke-dasharray="3.5 3.5" stroke-width="1.7"></path><path d="m124 77 6 5-6 5" fill="none" stroke="#b8896f" stroke-width="1.7"></path></g>
+<g transform="translate(137,21)"><rect fill="#fffefa" height="129" rx="9" stroke="#e4d8ca" width="93"></rect>
+<text fill="#9c8573" font-size="9" x="9" y="16">定位输出</text>
+<g transform="translate(11,25)"><rect fill="#f4f0e9" height="25" rx="3" width="21"></rect><path d="M9 4h6v5q5 3 5 7v8H4v-8q0-4 5-7Z" fill="#d7b393"></path><rect fill="none" height="22" rx="1" stroke="#c08061" stroke-width="1.4" width="18" x="3" y="3"></rect><text fill="#78695b" font-size="10" x="27" y="16">BBox</text></g>
+<g transform="translate(11,59)"><rect fill="#f4f0e9" height="25" rx="3" width="21"></rect><path d="M9 4h6v5q5 3 5 7v8H4v-8q0-4 5-7Z" fill="#84af9d" stroke="#5f927e" stroke-width="1.2"></path><text fill="#78695b" font-size="10" x="27" y="16">Mask</text></g>
+<g transform="translate(11,93)"><rect fill="#f4f0e9" height="25" rx="3" width="21"></rect><path d="M9 4h6v5q5 3 5 7v8H4v-8q0-4 5-7Z" fill="#d8c3a8"></path><path d="M11 10 7 17 16 17" fill="none" stroke="#688baa" stroke-width="1"></path><circle cx="11" cy="10" fill="#688baa" r="2"></circle><circle cx="7" cy="17" fill="#688baa" r="2"></circle><circle cx="16" cy="17" fill="#688baa" r="2"></circle><text fill="#78695b" font-size="10" x="27" y="16">Points</text></g>
+</g>
+<text fill="#91796a" font-size="10" text-anchor="middle" x="122" y="191">学习规律 → 在新图像中定位</text>
+</svg>
+<figcaption>学习方式与输出形式，是两个不同的问题。</figcaption>
+</figure>
+</div>
+</header>
+<section class="chapter" id="definition">
+<div class="sec-label"><b>00</b>DEFINE THE PROBLEM</div>
+<h2>先明确这一条路线研究什么</h2>
+<p>学习式定位不要求为每个目标手写完整的外观规则，而是<strong>从带有监督信息的样本中学习预测关系</strong>，再尝试应用于新图像。</p>
+<div class="definition"><strong>二维学习式定位：</strong>输入一张图像，通过训练得到的模型预测符合目标条件的物体，并给出类别及相应的二维位置或区域。</div>
+<div class="scope-lines">
+<div class="scope-line"><b>学习依据</b><span>样本图像、标签与训练目标；可以使用人工特征，也可以由网络学习特征。</span></div>
+<div class="scope-line"><b>任务区别</b><span>分类只回答“是什么”；定位还需要回答“在哪里”，以 BBox、Mask 或关键点表示。</span></div>
+<div class="scope-line"><b>能力边界</b><span>模型能否处理新的物体外观和场景，取决于数据、训练与泛化能力。</span></div>
+</div>
+<div class="boundary"><strong>本篇边界：</strong>覆盖基于人工特征的传统机器学习与常规深度视觉定位。开放词汇 Grounding、VLM、多模态推理、视频跟踪及三维位姿暂不在这里深入。</div>
+</section>
+<section class="chapter" id="methods">
+<div class="sec-label"><b>01</b>HOW THE MODEL LEARNS</div>
+<h2>模型怎样从样本中学会判断？</h2>
+<p class="group-hint">这一组讨论的是<strong>学习与表示的方式</strong>，而不是最终输出 BBox、Mask 还是关键点。</p>
+<div class="route-list">
+<a aria-label="进入下层笔记：传统机器学习定位" class="route-link method" href="./01-traditional-ml/">
+<span class="route-id">01</span><div class="route-content"><div class="route-en">Handcrafted Features + Machine Learning</div><h3>传统机器学习定位</h3>
+<p class="route-question">特征由人来设计，能不能让模型从样本中学会判断目标？</p>
+<p class="route-answer">研究人工特征怎样进入分类器，以及分类得分怎样结合位置搜索完成目标定位。代表思路：HOG + SVM、Haar + AdaBoost、DPM。</p>
+<div class="route-tail">下层笔记 · 从人工特征到学习判别规则</div></div><span aria-hidden="true" class="arr">↗</span>
+</a>
+<a aria-label="进入下层笔记：深度视觉基础" class="route-link method" href="./02-deep-vision/">
+<span class="route-id">02</span><div class="route-content"><div class="route-en">Representation Learning · Deep Vision</div><h3>深度视觉的特征与预测</h3>
+<p class="route-question">能不能连视觉特征也通过训练学出来，而不是提前逐一设计？</p>
+<p class="route-answer">研究 CNN、特征图、多尺度表示与预测头的基本作用，理解模型怎样把图像转换为可用于定位的预测。</p>
+<div class="route-tail">下层笔记 · 从学习特征到位置预测</div></div><span aria-hidden="true" class="arr">↗</span>
+</a>
+</div>
+</section>
+<section class="chapter" id="outputs">
+<div class="sec-label"><b>02</b>WHAT THE MODEL PREDICTS</div>
+<h2>模型究竟需要定位到什么程度？</h2>
+<p class="group-hint">这三个方向是<strong>不同任务与输出要求</strong>。不是按模型学习原理划分，也不是必须依次执行。</p>
+<div class="route-list">
+<a aria-label="进入下层笔记：目标检测" class="route-link output" href="./03-object-detection/">
+<span class="route-id">03</span><div class="route-content"><div class="route-en">Object Detection · Bounding Box</div><h3>目标检测</h3>
+<p class="route-question">图像里有哪些目标，它们大致位于哪里？</p>
+<p class="route-answer">研究如何得到目标类别与 BBox，重点区分候选区域检测和直接预测，以及预测框、IoU 与 NMS 等问题。</p>
+<div class="route-tail">下层笔记 · 研究目标框的产生与筛选</div></div><span aria-hidden="true" class="arr">↗</span>
+</a>
+<a aria-label="进入下层笔记：实例分割" class="route-link output" href="./04-instance-segmentation/">
+<span class="route-id">04</span><div class="route-content"><div class="route-en">Instance Segmentation · Object Mask</div><h3>实例分割</h3>
+<p class="route-question">只知道外接框还不够，怎样找到每个目标实际占据的像素？</p>
+<p class="route-answer">先区分语义分割与实例分割，再研究不同实例的 Mask 怎样被预测，以及它们与检测框之间可能存在的关系。</p>
+<div class="route-tail">下层笔记 · 研究像素区域与实例区分</div></div><span aria-hidden="true" class="arr">↗</span>
+</a>
+<a aria-label="进入下层笔记：关键点定位" class="route-link output" href="./05-keypoint-localization/">
+<span class="route-id">05</span><div class="route-content"><div class="route-en">Keypoint Localization · Coordinates</div><h3>关键点定位</h3>
+<p class="route-question">如果只关心角点、中心或连接点，怎样直接预测这些位置？</p>
+<p class="route-answer">研究坐标回归与 Heatmap 两种常见思路，理解为什么关键点预测不一定需要输出完整 Mask。</p>
+<div class="route-tail">下层笔记 · 研究特殊位置的直接预测</div></div><span aria-hidden="true" class="arr">↗</span>
+</a>
+</div>
+</section>
+<section class="chapter" id="evaluation">
+<div class="sec-label"><b>03</b>SHARED QUESTIONS</div>
+<h2>训练得出来，是否就能在现场可靠工作？</h2>
+<p>不论选择哪种模型或定位输出，都绕不开数据、目标函数、评价方式和场景变化。这些是<strong>共享的研究问题</strong>。</p>
+<div class="route-list">
+<a aria-label="进入下层笔记：训练、评价与泛化" class="route-link shared" href="./06-training-evaluation/">
+<span class="route-id">06</span><div class="route-content"><div class="route-en">Training · Evaluation · Generalization</div><h3>训练、评价与泛化</h3>
+<p class="route-question">模型为什么在训练数据上表现很好，换一个场景却可能失效？</p>
+<p class="route-answer">研究样本与标注、损失函数、Precision / Recall / mAP 等指标，以及过拟合、数据增强和分布变化。</p>
+<div class="route-tail">下层笔记 · 研究模型能力与适用边界</div></div><span aria-hidden="true" class="arr">↗</span>
+</a>
+</div>
+</section>
+<section class="summary" id="summary">
+<div class="sec-label"><b>↳</b>THE DISTINCTION</div>
+<h2>最后，把两种分类维度分开</h2>
+<table class="small-table"><thead><tr><th>问的是什么</th><th>对应章节</th><th>解决什么</th></tr></thead><tbody>
+<tr><td>怎样学习？</td><td>01 传统机器学习 · 02 深度视觉</td><td>特征如何表示，模型如何从样本学习预测关系。</td></tr>
+<tr><td>输出什么？</td><td>03 检测 · 04 实例分割 · 05 关键点</td><td>根据需求输出 BBox、Mask 或关键位置。</td></tr>
+<tr><td>能否泛化？</td><td>06 训练、评价与泛化</td><td>模型在何种数据与场景条件下可信。</td></tr>
+</tbody></table>
+<div class="endnote">这六篇不是一条必须从 01 运行到 06 的算法流水线。前两篇研究学习方式，中间三篇研究定位任务，最后一篇讨论共同的训练与可靠性问题；核心算法原理在对应下层笔记中展开。</div>
+<div class="bottom-nav"><a href="../">← 返回「二维目标定位」</a><a href="../02-reference-matching/">回看「参考匹配与视觉对应」 ↗</a></div>
+</section>
+<footer class="footer">沿途手记 · 二维目标定位 / 学习式视觉定位。本页只划分研究问题与下层入口；页面链接采用预留的相对目录路径，需创建相应下层页面后才可打开。</footer>
+</div>
+</main>
+</div>
+<script>
+    (()=>{'use strict';const menu=document.getElementById('menu');const close=document.getElementById('close');const overlay=document.getElementById('overlay');const side=document.getElementById('sidebar');const all=[...document.querySelectorAll('.side-nav a[href^="#"]')];const sections=all.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);const progress=document.getElementById('progress');function toggle(on){side.classList.toggle('open',on);overlay.classList.toggle('open',on);menu.setAttribute('aria-expanded',String(on));document.body.style.overflow=on?'hidden':''}menu.addEventListener('click',()=>toggle(!side.classList.contains('open')));close.addEventListener('click',()=>toggle(false));overlay.addEventListener('click',()=>toggle(false));document.addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});side.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggle(false)));let busy=false;function update(){busy=false;const pos=window.scrollY+(window.innerWidth<=860?115:100);let active=sections[0];for(const el of sections){if(el.offsetTop<=pos)active=el}if(active)all.forEach(a=>{let yes=a.getAttribute('href')==='#'+active.id;a.classList.toggle('active',yes);if(yes)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});const d=document.documentElement,max=d.scrollHeight-d.clientHeight;progress.style.width=(max>0?Math.min(100,Math.max(0,window.scrollY/max*100)):0)+'%'}function schedule(){if(busy)return;busy=true;requestAnimationFrame(update)}window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);update()})();
+  </script>
+</body>
+</html>

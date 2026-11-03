@@ -112,7 +112,11 @@
 .geom-steps i{font-style:normal;color:#a98d78}
 .geom-branch-svg{width:100%;height:auto;display:block}
 @media(max-width:700px){.geom-inputs,.corner-reading{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
-</style></head><body><div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div><div class="site"><aside class="sidebar" id="sidebar" aria-label="本篇章节导航"><div class="site-identity"><div class="brand">沿途手记</div><div class="brand-sub">STAGE 01 · CLASSICAL VISION</div></div><div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="index.html"><span class="num">←</span>图像特征与结构提取</a></nav></div><div class="chapter-sidebar"><div class="side-group">本篇章节</div><div class="current-article">04 · 几何结构</div><nav class="sub-links" id="chapter-nav" aria-label="几何结构章节">
+/* 返回入口：提高对比度，避免与普通目录链接混淆 */
+.side-links[aria-label="返回"] a,.return-end a{background:#fffaf5;border:1px solid #cda88f;color:#6f3f2f;font-weight:760;box-shadow:0 3px 10px rgba(92,55,38,.08);transition:background .18s,border-color .18s,box-shadow .18s}
+.side-links[aria-label="返回"] a{padding:10px 12px}.side-links[aria-label="返回"] a .num{color:#9a5d43;font-size:13px}
+.side-links[aria-label="返回"] a:hover,.return-end a:hover{background:#f4e2d5;border-color:#b97a5e;color:#5d3022;box-shadow:0 5px 14px rgba(92,55,38,.13)}
+</style><link rel="stylesheet" href="../classical-vision-navigation.css"></head><body><div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div><div class="site"><aside class="sidebar" id="sidebar" aria-label="本篇章节导航"><div class="site-identity"><div class="brand">沿途手记</div><div class="brand-sub">STAGE 01 · CLASSICAL VISION</div></div><div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="../"><span class="num">←</span>图像特征与结构提取</a></nav></div><div class="chapter-sidebar"><div class="side-group">本篇章节</div><div class="current-article">04 · 几何结构</div><nav class="sub-links" id="chapter-nav" aria-label="几何结构章节">
 <a href="#scope">00 · 问题与边界</a>
 <a href="#roadmap">技术路线图</a>
 <a href="#line">01 · 直线：从两点到检测</a>
@@ -122,7 +126,7 @@
 <a href="#corner">05 · 真实角点估计</a>
 <a href="#validate">06 · 模型怎样验证</a>
 <a href="#selection">07 · 方法选择</a>
-</nav></div></aside><main class="layout-main" id="content"><div class="mobile-bar"><button id="mobile-menu" class="btn" type="button" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>04 / 06</span></div><article class="article"><div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="index.html">图像特征与结构提取</a><span class="slash">/</span><span>几何结构</span></div><header class="hero"><div class="eyebrow">DEEP DIVE · 04 / 06</div><h1>几何结构</h1>
+</nav></div></aside><main class="layout-main" id="content"><div class="mobile-bar"><button id="mobile-menu" class="btn" type="button" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>04 / 06</span></div><article class="article"><div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="../">图像特征与结构提取</a><span class="slash">/</span><span>几何结构</span></div><header class="hero"><div class="eyebrow">DEEP DIVE · 04 / 06</div><h1>几何结构</h1>
 <p class="subtitle">边界有了，怎么知道它是一条线、一个圆，还是四个真正的角？</p>
 <p class="lede">03 已经能把像素边缘整理成有序的曲线。可在图上选一排点，轻轻一连，就有了一条“看起来挺直”的线；用一个矩形框住轮廓，也很容易。<strong>问题是：这些画出来的几何形状，真的被图像证据支持吗？</strong></p>
 <p class="lede">这次仍然从简单办法出发：先用两点连线，再试所有点共同拟合；发现异常点后引入鲁棒估计；遇到弯曲边界换圆或椭圆；需要四角时再比较外接框、轮廓拐点和相邻边求交。最终建立一份<strong>知道何时选模型、怎样算、怎样证伪</strong>的工具地图。</p>
@@ -444,9 +448,9 @@ def quadrilateral_from_lines(lines):
 </tbody></table></div>
 <div class="figure"><div class="figure-title">一个可以直接在项目里验证的最小工作流</div><div class="figure-body"><svg viewBox="0 0 760 142" width="100%" role="img" aria-label="边缘轮廓点经过模型选择、拟合、验证，输出带质量的二维几何"><rect width="760" height="142" rx="10" fill="#f9f5ef"/><g font-size="12" font-weight="700" fill="#604d40" text-anchor="middle"><rect x="24" y="38" width="138" height="55" rx="9" fill="#fff" stroke="#e4d6c9"/><text x="93" y="61">轮廓 / Edge</text><text x="93" y="78" font-size="10" font-weight="400">点集与图像坐标</text><rect x="212" y="38" width="138" height="55" rx="9" fill="#fff" stroke="#e4d6c9"/><text x="281" y="61">选择几何模型</text><text x="281" y="78" font-size="10" font-weight="400">线 / 圆 / 四边形</text><rect x="400" y="38" width="138" height="55" rx="9" fill="#fff" stroke="#e4d6c9"/><text x="469" y="61">拟合参数</text><text x="469" y="78" font-size="10" font-weight="400">TLS / RANSAC / LS</text><rect x="588" y="38" width="149" height="55" rx="9" fill="#eaf2ee" stroke="#c8dbd0"/><text x="663" y="61">几何 + 质量</text><text x="663" y="78" font-size="10" font-weight="400">参数、残差、覆盖</text></g><g stroke="#b49e8b" stroke-width="2" fill="none"><path d="M162 65h48 M204 60l6 5-6 5 M350 65h48 M392 60l6 5-6 5 M538 65h48 M580 60l6 5-6 5"/></g><text x="380" y="124" text-anchor="middle" fill="#948277" font-size="11">拟合不满足假设？返回重选模型，而不是强行解释结果。</text></svg></div><div class="figcap">这不是要求每次都串行运行全部算法，而是一种可检查的几何建模思路。</div></div>
 <p>这一站真正得到的不是“能框住物体”，而是<strong>知道一个几何解释从哪里来、靠什么成立、什么时候不应相信。</strong>从二维边界推断三维姿态，仍然需要相机成像几何、深度或其他空间约束。</p>
-<div class="return-end"><a href="index.html">← 返回《图像特征与结构提取》</a></div>
+<div class="return-end"><a href="../">← 返回《图像特征与结构提取》</a></div>
 <p class="small muted">API 对照：<a href="https://docs.opencv.org/4.13.0/d3/dc0/group__imgproc__shape.html" target="_blank" rel="noopener">OpenCV Shape Analysis</a>（approxPolyDP、minAreaRect、fitEllipse 等）；图中的交互实验按其说明给出简化数学示意，不代表调用了 OpenCV。</p></section>
-<nav class="next-links" aria-label="相邻笔记"><a href="03-edges-contours.html">← 03 · 边缘与轮廓</a><a href="05-skeleton-topology.html">05 · 骨架与拓扑 →</a></nav><footer class="footer">沿途手记 · RESEARCH NOTES · STAGE 01<br>把几何模型当作需要验证的假设，而不是轮廓天然给出的答案。</footer></article></main></div><script>'use strict';
+<nav class="next-links" aria-label="相邻笔记"><a href="../03-edges-contours/">← 03 · 边缘与轮廓</a><a href="../05-skeleton-topology/">05 · 骨架与拓扑 →</a></nav><footer class="footer">沿途手记 · RESEARCH NOTES · STAGE 01<br>把几何模型当作需要验证的假设，而不是轮廓天然给出的答案。</footer></article></main></div><script>'use strict';
 const $=id=>document.getElementById(id);
 const sections=[...document.querySelectorAll('.chapter')];
 const navLinks=[...document.querySelectorAll('#chapter-nav a')];

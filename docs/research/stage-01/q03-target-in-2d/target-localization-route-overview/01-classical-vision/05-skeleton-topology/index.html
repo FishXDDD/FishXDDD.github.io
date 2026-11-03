@@ -37,7 +37,12 @@ main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--re
 .mini-scope{margin:11px 0 19px;color:#79695c;font-size:13px;line-height:1.9}
 .mini-scope strong{color:#79523e}
 @media(max-width:610px){.formula-note{padding:14px 13px}.formula-expr{padding:9px 10px;font-size:17px}.formula-example{gap:6px}.formula-note p{font-size:12.5px!important}}
+/* 返回入口：提高对比度，避免与普通导航按钮混淆 */
+.return,.next a[href="../"]{background:#fffaf5;border-color:#cda88f;color:#6f3f2f;font-weight:760;box-shadow:0 3px 10px rgba(92,55,38,.08);transition:background .18s,border-color .18s,box-shadow .18s}
+.return{padding:11px 13px}
+.return:hover,.next a[href="../"]:hover{background:#f4e2d5;border-color:#b97a5e;color:#5d3022;box-shadow:0 5px 14px rgba(92,55,38,.13)}
 </style>
+<link rel="stylesheet" href="../classical-vision-navigation.css">
 </head>
 <body>
 <div class="progress" id="progress"></div>
@@ -46,7 +51,7 @@ main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--re
 <div class="site">
 <aside aria-label="本文目录" class="sidebar" id="sidebar">
 <div><a class="brand" href="https://fishxddd.github.io/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a></div>
-<a class="return" href="index.html">← 返回 · 图像特征与结构提取</a>
+<a class="return" href="../">← 返回 · 图像特征与结构提取</a>
 <div><div class="side-label">当前位置</div><div class="current">05 · 骨架与拓扑</div></div>
 <div><div class="side-label">本篇目录</div><nav class="nav" id="toc">
 <a class="active" href="#opening"><em>·</em>为什么研究骨架</a>
@@ -61,7 +66,7 @@ main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--re
 <div class="sidebar-foot">广度优先 · 理解核心机制即可<br/>不要求推导、复现与算法实现</div>
 </aside>
 <main id="content"><div class="article">
-<nav aria-label="面包屑" class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span> / </span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span> / </span><a href="index.html">图像特征与结构提取</a><span> / </span><b>骨架与拓扑</b></nav>
+<nav aria-label="面包屑" class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span> / </span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span> / </span><a href="../">图像特征与结构提取</a><span> / </span><b>骨架与拓扑</b></nav>
 <header class="hero" id="opening">
 <div class="eyebrow">CLASSICAL VISION · 05 / 06</div>
 <h1>骨架与拓扑</h1>
@@ -214,7 +219,7 @@ main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--re
 <p>两条线缆在二维图像里交叉，Mask 可能把它们合成一块连通区域，骨架图也会出现一个交点。但它们在真实空间中可能是一根分叉线，也可能是两根上下交错的线。<strong>仅凭二维骨架，无法区分这两种情况。</strong></p>
 <p>所以骨架提供的是<strong>二维形状证据</strong>，不是物理连接的证明。真正需要判断三维关系时，还要借助深度、不同视角或其他信息。</p>
 <div class="callout"><strong>这一篇学到哪里就够了？</strong> 能解释 χ = C − H 的计数意义；看懂 D(p) 如何形成距离图以及中轴与内切圆的关系；知道细化在删除什么、保护什么；理解 deg(p) 怎样帮助找到节点和分叉；会用路径长度 L(e) 理解最简单的剪枝。<strong>记住公式的含义，不要求推导和复现。</strong></div>
-<div class="next"><a href="index.html">← 返回 · 图像特征与结构提取</a><a href="../">返回 · 二维目标定位 ↗</a></div>
+<div class="next"><a href="../">← 返回 · 图像特征与结构提取</a><a href="../../">返回 · 二维目标定位 ↗</a></div>
 <div class="footer">沿途手记 · 骨架与拓扑 ｜ 广度优先：核心公式 + 直观机制 + 小例子 + 失效边界；不以证明或复现为目标。</div>
 </section>
 </div></main>

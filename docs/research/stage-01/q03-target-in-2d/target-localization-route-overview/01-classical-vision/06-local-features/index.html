@@ -40,12 +40,16 @@ main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--re
 .svgtxt{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif}
 .tone{color:#527768}.limit-note{font-size:13px;color:#796c62;border-top:1px solid #ecdfd1;padding-top:15px;margin-top:17px}.method-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:20px 0}.method-pair>div{border:1px solid var(--line);border-radius:10px;background:#fffefa;padding:14px 16px;border-top:3px solid #ac7c60}.method-pair>div:nth-child(2){border-top-color:#608b7d}.method-pair b{display:block;font-size:13px;color:#695040;margin-bottom:7px}.method-pair p{font-size:13px;line-height:1.8;margin:0}.chipword{font-size:11px;color:#987964;letter-spacing:.03em}.formula-simple{font:20px/1.55 'Cambria Math','STIX Two Math',Georgia,serif;color:#473b32;white-space:nowrap;display:block;overflow:auto}.formula-simple sub,.formula-simple sup{font-size:.68em}.formula-inline{font-family:'Cambria Math',Georgia,serif;color:#6e4d3e}.micro-example{margin:10px 0;padding:12px 14px;background:#f7f2ed;border-radius:8px;color:#67584b;font-size:13px;line-height:1.85}.micro-example strong{color:#86533b}.little-link{font-size:12px;color:#946d56;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:670px){.mini-timeline{grid-template-columns:repeat(2,minmax(0,1fr))}.method-pair{grid-template-columns:1fr}.formula-simple{font-size:17px}}
-</style></head><body>
+/* 返回入口：提高对比度，避免与普通导航按钮混淆 */
+.return,.next a[href="../"]{background:#fffaf5;border-color:#cda88f;color:#6f3f2f;font-weight:760;box-shadow:0 3px 10px rgba(92,55,38,.08);transition:background .18s,border-color .18s,box-shadow .18s}
+.return{padding:11px 13px}
+.return:hover,.next a[href="../"]:hover{background:#f4e2d5;border-color:#b97a5e;color:#5d3022;box-shadow:0 5px 14px rgba(92,55,38,.13)}
+</style><link rel="stylesheet" href="../classical-vision-navigation.css"></head><body>
 <div class="progress" id="progress" aria-hidden="true"></div><div class="shade" id="shade"></div>
 <div class="mobile"><strong>沿途手记 · 06</strong><button type="button" id="menu" aria-expanded="false" aria-controls="sidebar">☰ 目录</button></div>
 <div class="site"><aside class="sidebar" id="sidebar" aria-label="本文目录">
   <div><a class="brand" href="https://fishxddd.github.io/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a></div>
-  <a class="return" href="index.html">← 返回 · 图像特征与结构提取</a>
+  <a class="return" href="../">← 返回 · 图像特征与结构提取</a>
   <div><div class="side-label">当前位置</div><div class="current">06 · 局部特征与对应</div></div>
   <div><div class="side-label">本篇目录</div><nav class="nav" id="toc">
   <a href="#opening" class="active"><em>·</em>从局部重新认出目标</a>
@@ -61,7 +65,7 @@ main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--re
   <div class="sidebar-foot">广度优先 · 保留关键数学表达<br>知道机制、用途与局限即可</div>
 </aside>
 <main><article class="article">
-  <nav class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span>/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span>/</span><a href="index.html">图像特征与结构提取</a><span>/</span><b>局部特征与对应</b></nav>
+  <nav class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span>/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span>/</span><a href="../">图像特征与结构提取</a><span>/</span><b>局部特征与对应</b></nav>
 <header class="hero" id="opening">
 <div class="eyebrow">CLASSICAL VISION · 06 / 06</div><h1>局部特征与对应</h1><p class="subtitle">Local Features &amp; Correspondence · 从两张图像里认出同一处</p>
 <p>前面研究了颜色、区域、边缘、几何和骨架。这些信息可以描述目标当前长什么样。不过，还有一种场景：<strong>我手上已经有目标的一张照片，现在想在另一张图像中找到它。</strong></p>
@@ -196,7 +200,7 @@ main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--re
 </tbody></table></div>
 <p>对于<strong>带独特文字或纹理的平面目标</strong>，局部特征匹配是一条可考虑的路线；如果目标几乎无纹理、重复图案严重、发生强烈非刚性形变，或者你要找的是一个尚无参考的“任意瓶子”，这条路线就未必合适。</p>
 <div class="conclusion"><strong>这一页最值得记住的关系：</strong>角点检测解决“在哪里”，描述子解决“长什么样”，最近邻匹配解决“像不像”，几何验证解决“一组对应是否说得通”。这些环节能组合，但不能互相替代。</div>
-<div class="next"><a href="05-skeleton-topology.html">← 上一篇 · 骨架与拓扑</a><a href="index.html">返回 · 图像特征与结构提取 →</a></div>
+<div class="next"><a href="../05-skeleton-topology/">← 上一篇 · 骨架与拓扑</a><a href="../">返回 · 图像特征与结构提取 →</a></div>
 </section>
 <footer class="footer">沿途手记 · 06 局部特征与对应 · 核心数学表达与直观机制<br>一页只求理解主要机制，不以公式数量或实验数量衡量学习深度。</footer>
 </article></main></div><script>

@@ -1,0 +1,191 @@
+/* 01–06 共用目录：克制、清晰的研究笔记导航 */
+.sidebar {
+  background: #f5f7f3;
+  border-right-color: #dfe6df;
+  scrollbar-color: #bdcbc1 transparent;
+}
+
+.sidebar .brand {
+  display: block;
+  color: #304b3f;
+  font-family: Georgia, "Songti SC", "Noto Serif SC", serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: .045em;
+}
+
+.sidebar .brand-sub,
+.sidebar .brand-en,
+.sidebar .brand small {
+  display: block;
+  margin-top: 6px;
+  color: #849489;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 650;
+  line-height: 1.6;
+  letter-spacing: .12em;
+}
+
+.sidebar .side-group,
+.sidebar .side-label,
+.sidebar .side-title {
+  margin: 0 0 9px 9px;
+  color: #819287;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.5;
+  letter-spacing: .12em;
+}
+
+.sidebar .current-article,
+.sidebar .current,
+.sidebar .path-current {
+  margin: 0 0 8px;
+  padding: 9px 11px;
+  border-left: 3px solid #527664;
+  border-radius: 0 8px 8px 0;
+  background: #e7eee8;
+  color: #355d4a;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.sidebar .side-chapters,
+.sidebar .sub-links,
+.sidebar .nav,
+.sidebar .side-nav {
+  display: grid;
+  gap: 3px;
+}
+
+.sidebar .side-chapters a,
+.sidebar .sub-links a,
+.sidebar .nav a,
+.sidebar .side-nav a {
+  display: flex;
+  min-height: 35px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-left: 3px solid transparent;
+  border-radius: 7px;
+  color: #637068;
+  font-size: 12px;
+  font-weight: 520;
+  line-height: 1.55;
+  transition: background .16s, border-color .16s, color .16s;
+}
+
+.sidebar .side-chapters a:hover,
+.sidebar .sub-links a:hover,
+.sidebar .nav a:hover,
+.sidebar .side-nav a:hover {
+  background: #e9efea;
+  color: #365b49;
+}
+
+.sidebar .side-chapters a.current,
+.sidebar .sub-links a.current,
+.sidebar .nav a.active,
+.sidebar .side-nav a.active {
+  border-left-color: #527664;
+  background: #e2ebe4;
+  color: #315a47;
+  font-weight: 750;
+}
+
+.sidebar .side-chapters .n,
+.sidebar .nav em,
+.sidebar .side-nav .num {
+  min-width: 21px;
+  color: #81998a;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sidebar .side-chapters a.current .n,
+.sidebar .nav a.active em,
+.sidebar .side-nav a.active .num {
+  color: #527664;
+}
+
+.sidebar .side-links > a[href="../"],
+.sidebar > .return {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #a9c0b2;
+  border-radius: 9px;
+  background: #f9fcf9;
+  box-shadow: 0 3px 10px rgba(48, 83, 66, .07);
+  color: #355d4a;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.55;
+  transition: background .16s, border-color .16s, box-shadow .16s;
+}
+
+.sidebar .side-links > a[href="../"]:hover,
+.sidebar > .return:hover {
+  border-color: #769985;
+  background: #e2ece4;
+  box-shadow: 0 5px 14px rgba(48, 83, 66, .11);
+  color: #274b3a;
+}
+
+.sidebar .side-links > a[href="../"] .num {
+  min-width: 17px;
+  color: #527664;
+  font-size: 13px;
+}
+
+.sidebar .sidebar-bottom,
+.sidebar .side-bottom,
+.sidebar .sidebar-foot,
+.sidebar .side-foot {
+  margin-top: auto;
+  padding: 15px 9px 0;
+  border-top: 1px solid #dfe6df;
+  color: #839188;
+  font-size: 10.5px;
+  line-height: 1.75;
+}
+
+.sidebar .side-path {
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.sidebar .side-path .path-level {
+  color: #819087;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.sidebar .side-path .path-current {
+  margin-top: 9px;
+}
+
+@media (min-width: 821px) {
+  .site {
+    grid-template-columns: 260px minmax(0, 1fr) !important;
+  }
+
+  .sidebar {
+    width: 260px;
+    gap: 22px;
+    padding: 28px 20px 22px;
+  }
+
+  .main {
+    margin-left: 260px;
+  }
+}

@@ -56,6 +56,8 @@
     .subhead { font-size: clamp(15px, 1.25vw, 17px); color: #718274; font-weight: 580; margin-bottom: 19px; }
     .lead { color: #616c64; max-width: 710px; font-size: clamp(15px, 1.2vw, 17px); line-height: 2.05; }
     .hero { padding-bottom: 54px; border-bottom: 1px solid var(--line); }
+    .knowledge-graph { margin: 48px 0 8px; }
+    .knowledge-graph img { display: block; width: 100%; height: auto; }
     section { scroll-margin-top: 26px; }
     .problem { padding-top: 62px; }
     h2 { margin: 13px 0 23px; font-size: clamp(26px, 2.3vw, 35px); line-height: 1.5; font-weight: 760; letter-spacing: -.025em; }
@@ -119,6 +121,7 @@
     }
     @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition: none !important; } }
   </style>
+<link rel="stylesheet" href="./classical-vision-navigation.css"/>
 </head>
 <body>
 <div aria-hidden="true" class="overlay" id="overlay"></div>
@@ -127,6 +130,7 @@
 <div class="brand">沿途手记</div>
 <div class="brand-en">RESEARCH NOTES · STAGE 01</div>
 </div>
+<a class="return" href="../">← 返回 · 二维目标定位</a>
 <div aria-label="当前位置" class="side-path">
 <div class="path-level">Stage 01 · 固定抓取策略</div>
 <div class="path-level">二维目标定位</div>
@@ -152,6 +156,9 @@
 <p class="subhead">看得见目标，凭什么把它找出来？</p>
 <p class="lead">相机已经把场景变成了一张 RGB 图像。可图像里只有像素，并没有告诉我们：哪一部分才是要找的东西。</p>
 </header>
+<figure class="knowledge-graph">
+<img src="./image-feature-structure-knowledge-graph.png" alt="图像特征与结构提取知识图谱"/>
+</figure>
 <section class="problem" id="problem">
 <div class="chapter-index">00 · DEFINE THE PROBLEM</div>
 <h2>先说清楚，这里要解决什么</h2>

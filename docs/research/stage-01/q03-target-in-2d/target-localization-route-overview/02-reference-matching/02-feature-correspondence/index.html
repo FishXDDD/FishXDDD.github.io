@@ -1,0 +1,191 @@
+
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#faf8f3"><meta name="description" content="沿途手记｜02 局部特征与视觉对应：描述子距离、BF/FLANN、Ratio Test、Cross-check、变换模型与平面目标定位。广度优先，保留关键公式和机制图。"><title>02 · 局部特征与视觉对应｜沿途手记</title><style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.95 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,select,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:21px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:52px 0 44px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:17px;line-height:1.6;margin:27px 0 10px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 255px;gap:20px;align-items:center}.hero p{font-size:15.5px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:24px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}.chapter{padding:51px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:16px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:18px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula math{font-size:1.08em}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls select{padding:6px 9px;border-radius:7px;border:1px solid #dbcebf;background:#fff;color:#624e41}.demo-controls input{accent-color:var(--accent);vertical-align:middle}.demo-grid{display:grid;grid-template-columns:1fr 2fr;gap:13px;margin-top:14px}.canvas-panel{border:1px solid #e7ded4;border-radius:9px;background:#fff;padding:10px;min-width:0}.canvas-panel b{display:block;font-size:11px;color:#7f6353;margin-bottom:8px}.canvas-panel canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border:1px solid #ebddd1;border-radius:5px}.readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.readout strong{color:#84513b}.hint{font-size:11px;color:#948476;line-height:1.85;margin-top:10px}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 205px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:235px;justify-self:center;order:-1}.hero p{font-size:14px}.two-col,.three-col,.demo-grid{grid-template-columns:1fr}.chapter{padding:41px 0}.main{padding:0 18px 40px}.demo-controls{gap:8px}.formula .equation{font-size:16px}h1{font-size:31px}h2{font-size:23px}.hero{padding-top:27px}.demo{padding:13px}.canvas-panel canvas{max-width:400px;margin:auto}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+@media print{.sidebar,.mobile-bar,.overlay,.progress,.demo-controls,.end-links{display:none!important}.shell{display:block}.main{padding:0}.article{max-width:100%}.chapter{break-inside:avoid}.demo{break-inside:avoid}}
+
+/* Feature-correspondence study page: the diagrams carry mechanism, not decoration. */
+.step-line{margin:16px 0;display:flex;gap:7px;flex-wrap:wrap;align-items:center}.step-line span{font-size:12px;border:1px solid #e5dbcf;border-radius:8px;background:#fffdf9;padding:7px 9px}.step-line i{font-style:normal;color:#b79278}
+.formula .equation.multi{white-space:normal;line-height:1.9}
+.math-sup{font-size:.7em;vertical-align:super}
+.diagram-legend{display:flex;gap:14px;flex-wrap:wrap;color:#847064;font-size:11px;margin:6px 0 13px}.diagram-legend i{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:5px}
+.match-lab{border:1px solid #dbcbbd;background:#fffdfa;border-radius:13px;padding:17px;margin:22px 0}.lab-heading{display:flex;justify-content:space-between;align-items:start;gap:10px}.lab-heading strong{font-size:14px;color:#704c39}.lab-heading small{color:#988678;font-size:11px}.lab-controls{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:14px 0 11px}.lab-controls label{font-size:12px;color:#67564b}.lab-controls select{font-size:12px;border:1px solid #ded1c4;border-radius:7px;padding:5px 8px;background:#fffefa;color:#645247}.lab-controls input[type=range]{accent-color:var(--accent);vertical-align:middle;width:160px}.lab-flex{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:13px;margin:12px 0}.lab-svg{background:#fff;border:1px solid #e9ddd0;border-radius:10px;padding:7px}.lab-svg svg{display:block;width:100%;height:auto}.bar-item{display:grid;grid-template-columns:42px 1fr 42px;gap:7px;align-items:center;margin:10px 0;font-size:11px}.bar-item span:first-child{color:#675a50}.bar-track{height:14px;border-radius:3px;background:#f2ece4;overflow:hidden}.bar-fill{height:100%;background:#c3b0a0;transition:width .2s}.bar-item.best .bar-fill{background:#528570}.bar-item b{font-size:11px;color:#695345;text-align:right;font-variant-numeric:tabular-nums}.ratio-callout{font-size:12px;background:#f6f0e7;padding:12px 14px;border-radius:8px;line-height:1.8}.ratio-callout.good{border-left:3px solid #65907a;background:#f0f5ef}.ratio-callout.bad{border-left:3px solid #b98165;background:#fbf0e7}.note-line{font-size:12px;color:#85756b;margin:11px 0 0}.ref-link{color:#a16e54;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#cbb1a0}.subnote{font-size:12px;color:#8a7c70;border-left:2px solid #d2c3b4;padding:2px 0 2px 13px;margin:14px 0}.compact-compare{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:20px 0}.compact-compare>div{background:#fffefa;border:1px solid var(--line);border-radius:10px;padding:14px 16px}.compact-compare b{display:block;font-size:13px;color:#6b4a3a}.compact-compare p{font-size:12px;margin:5px 0 0}.formula math{font-size:1em}
+@media(max-width:690px){.lab-flex,.compact-compare{grid-template-columns:1fr}.lab-heading{display:block}.lab-controls input[type=range]{width:125px}}
+</style></head>
+<body><div id="progress" class="progress" aria-hidden="true"></div><div id="overlay" class="overlay"></div>
+<div class="mobile-bar"><button id="menu" type="button" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><b>沿途手记 · 02 / 03</b><span style="font-size:11px;color:#927f71">LOCAL CORRESPONDENCE</span></div>
+<div class="shell">
+<aside id="sidebar" class="sidebar" aria-label="章节导航">
+<a class="brand" href="/">✳ 沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+<a class="back" href="../">← 返回「参考匹配与视觉对应」</a>
+<div class="loc"><div class="eyebrow">当前位置 · CURRENT PAGE</div><strong>02 · 局部特征与视觉对应</strong><p>参考匹配与视觉对应 / Feature Correspondence</p></div>
+<nav class="side-nav" id="toc"><div class="eyebrow" style="padding:0 11px 9px">本篇目录</div>
+<a href="#opening" class="active"><span class="num">·</span>为什么需要局部对应？</a>
+<a href="#scope"><span class="num">00</span>问题定义与边界</a>
+<a href="#distance"><span class="num">01</span>描述子怎样匹配</a>
+<a href="#ambiguity"><span class="num">02</span>怎样排除歧义</a>
+<a href="#transform"><span class="num">03</span>匹配点怎样定位目标</a>
+<a href="#limits"><span class="num">04</span>局限与下一步</a>
+<a href="#selection"><span class="num">05</span>方法选择与回顾</a>
+</nav><div class="side-bottom">广度优先 · 核心公式 · 机制理解<br>不重复特征检测的底层实现</div>
+</aside>
+<main class="main" id="content"><article class="article">
+<div class="crumbs"><a href="/">沿途手记</a> / <a href="../">参考匹配与视觉对应</a> / <strong>局部特征与视觉对应</strong></div>
+<header class="hero" id="opening"><div class="kicker">DEEP DIVE · 02 / FEATURE CORRESPONDENCE</div>
+<div class="hero-layout"><div><h1>局部特征与视觉对应</h1><p class="sub">Feature Correspondence · 从局部相似到目标位置</p>
+<p>上篇尝试直接比较整块图像。但如果相机换了角度，盒子在画面里发生旋转、缩放甚至透视变化，整块图像逐像素比较往往就不合适了。</p>
+<p>假设盒子表面有几个容易辨认的局部图案，我们能不能在参考照片和当前画面里分别找到它们，再根据这些局部位置的对应，确定整个盒子在哪里？</p>
+<p>这一篇重点研究：<strong>怎样比较局部特征、怎样排除模糊匹配，以及怎样利用对应点估计目标的二维位置。</strong></p></div>
+<div class="hero-art"><svg viewBox="0 0 250 226" role="img" aria-label="参考图中局部特征对应当前图像中透视变换的目标">
+<rect x="5" y="5" width="240" height="216" rx="18" fill="#f5eee7" stroke="#e6dbce"/>
+<text x="17" y="27" fill="#947864" font-size="11">参考图</text><text x="144" y="27" fill="#947864" font-size="11">当前图</text>
+<rect x="20" y="45" width="83" height="112" rx="3" fill="#dfc3a2" stroke="#aa866a"/>
+<rect x="28" y="55" width="67" height="90" rx="2" fill="#fbf5e9"/>
+<path d="M34 69h25v19H34z" fill="#9ab3ab"/><circle cx="78" cy="76" r="9" fill="#bc7859"/><path d="M34 118l14-15 15 13 22-14" fill="none" stroke="#65829a" stroke-width="3"/>
+<path d="M150 51L219 37L231 158L140 172Z" fill="#dfc3a2" stroke="#aa866a" stroke-width="1.4"/>
+<path d="M155 60L215 47L224 150L148 160Z" fill="#fbf5e9"/>
+<path d="M161 75L182 71L184 88L161 91Z" fill="#9ab3ab"/><circle cx="205" cy="79" r="9" fill="#bc7859"/><path d="M158 130l17-15 16 13 22-20" fill="none" stroke="#65829a" stroke-width="3"/>
+<g stroke="#ae8063" stroke-width="1.5" stroke-dasharray="4 4" fill="none"><path d="M46 76L172 82"/><path d="M78 76L205 79"/><path d="M49 115L175 117"/></g>
+<g fill="#4f806e" stroke="#fff" stroke-width="1.4"><circle cx="46" cy="76" r="4"/><circle cx="78" cy="76" r="4"/><circle cx="49" cy="115" r="4"/><circle cx="172" cy="82" r="4"/><circle cx="205" cy="79" r="4"/><circle cx="175" cy="117" r="4"/></g>
+<text x="125" y="193" fill="#8d7665" font-size="11" text-anchor="middle">局部对应 → 估计几何变换</text></svg></div></div>
+<div class="tags"><span>输入：两图关键点 + 描述子</span><span>核心：L2 / Hamming · Ratio</span><span>输出：匹配点对 + 目标投影区域</span></div></header>
+
+<section class="chapter" id="scope"><div class="chapter-kicker"><b>00</b> DEFINE THE TASK</div><h2>先明确：这一篇研究的不是怎样提取特征</h2>
+<p>我们假定参考图像与当前图像都已经提取出关键点及其描述子。接下来的任务是寻找<strong>哪些关键点代表同一个局部位置</strong>，并利用这些对应关系确定目标所在的区域。</p>
+<div class="three-col"><div class="plain-panel"><div class="mini-label">INPUT</div><b>两组关键点 + 描述子</b><p>参考图 A 的点与特征，当前图 B 的点与特征。</p></div><div class="plain-panel"><div class="mini-label">CORE</div><b>相似性 → 对应关系</b><p>比较描述子、筛选候选对应，再确定所需的二维变换。</p></div><div class="plain-panel"><div class="mini-label">OUTPUT</div><b>匹配点对 + 目标位置</b><p>对应关系，以及在模型适用时得到的目标投影区域。</p></div></div>
+<div class="section-note"><strong>研究边界：</strong>Harris、FAST、SIFT、ORB 的检测和描述原理，在前面的「图像特征与结构提取」中研究；这里不重复。<strong>几何离群点剔除、RANSAC 和重投影误差</strong>留给下一篇《几何验证与可靠性判断》。</div>
+<div class="step-line" aria-label="常见参考图局部特征定位流程"><span>已提取的特征</span><i>→</i><span>描述子匹配</span><i>→</i><span>筛选歧义</span><i>→</i><span>估计几何关系</span><i>→</i><span>定位目标</span></div>
+<p class="hint">这是常见的基于局部特征的定位流程，不代表参考匹配只能采用这一种路线。</p>
+</section>
+
+<section class="chapter" id="distance"><div class="chapter-kicker"><b>01</b> DESCRIPTOR MATCHING</div><h2>两张图里，怎样判断两个局部特征是否相似？</h2>
+<p>关键点只有一个二维坐标，例如 <code>(120, 80)</code>。坐标不同并不能说明不是同一个局部，因为目标可能在图像中移动。真正用于比较的通常是关键点周围计算出的<strong>描述子（Descriptor）</strong>。</p>
+<h3>1.1 · 描述子距离：把“长得像”变成数值</h3>
+<p>描述子是局部图像信息的数值表达。匹配时，把参考关键点的描述子与当前图像中的描述子比较，距离越小，通常表示它们越相似。</p>
+<div class="formula"><div class="formula-name">L2 DISTANCE · 浮点描述子的欧氏距离</div><div class="equation">d<sub>L2</sub>(a,b) = √[ Σ<sub>i</sub> (a<sub>i</sub> − b<sub>i</sub>)<sup>2</sup> ]</div>
+<div class="formula-name" style="margin-top:12px">HAMMING DISTANCE · 二进制描述子的汉明距离</div><div class="equation">d<sub>H</sub>(a,b) = popcount(a XOR b)</div>
+<div class="explain">a、b 是两个描述子；<strong>L2</strong> 累计各维数值差，常用于 SIFT 等浮点描述子；<strong>Hamming</strong> 统计不同的比特数量，常用于 ORB 等二进制描述子。两种距离不能拿原始数值互相比大小。</div></div>
+<div class="figure"><div class="figure-title">机制图｜同一个“相似”，对不同描述子的计算方式不同</div><div class="figure-inner"><svg viewBox="0 0 760 196" role="img" aria-label="浮点描述子通过差值计算欧氏距离，二进制描述子用异或求不同位数">
+<rect x="8" y="6" width="360" height="166" rx="10" fill="#f7f1ea"/>
+<rect x="392" y="6" width="360" height="166" rx="10" fill="#f0f5f1"/>
+<text x="30" y="30" fill="#84644e" font-size="14" font-weight="700">浮点向量 · L2</text><text x="412" y="30" fill="#547968" font-size="14" font-weight="700">二进制指纹 · Hamming</text>
+<text x="30" y="68" font-size="13" fill="#544b42">a = [1, 2, 3]</text><text x="30" y="91" font-size="13" fill="#544b42">b = [1, 2, 4]</text>
+<path d="M32 109H327" stroke="#d1b7a4" stroke-width="1.2"/>
+<text x="30" y="133" fill="#96614d" font-size="13">√(0² + 0² + 1²) = 1</text>
+<text x="412" y="68" font-family="monospace" fill="#544b42" font-size="14">a = 101101</text><text x="412" y="91" font-family="monospace" fill="#544b42" font-size="14">b = 101001</text>
+<text x="412" y="122" font-family="monospace" fill="#477968" font-size="14">XOR = 000100</text><text x="412" y="145" font-size="13" fill="#477968">不同位置 1 位 → 距离 1</text>
+</svg></div><div class="figcap">这里只演示距离怎样计算；真实描述子通常有更多维度。距离小仅表示局部描述相似，不自动证明来自同一物体。</div></div>
+<h3>1.2 · 怎样从大量描述子中找到最近的？</h3>
+<p>已知参考描述子 <code>a</code>，把它与当前图像中的描述子 <code>b₁, b₂, …</code> 比较，再选择最近的候选。这一任务叫最近邻搜索。</p>
+<div class="compact-compare"><div><b>BFMatcher · 暴力匹配</b><p>逐个比较候选描述子，找距离最小的一项。概念直接，数据量大时比较次数也多。</p></div><div><b>FLANN · 近邻检索</b><p>利用索引结构加速搜索；索引方法需要与描述子类型匹配，例如浮点向量与二进制描述子的配置不同。</p></div></div>
+<p class="subnote">需要区分：BF / FLANN 负责<strong>怎么找最近邻</strong>；L2 / Hamming 负责<strong>怎么量距离</strong>。它们不是四种互斥的匹配技术。</p>
+</section>
+
+<section class="chapter" id="ambiguity"><div class="chapter-kicker"><b>02</b> AMBIGUOUS CORRESPONDENCE</div><h2>找到了最近邻，为什么还不能直接相信它？</h2>
+<p>一张图像里可能有重复的标签、规则纹理，甚至两个几乎一样的零件。参考特征无论有没有真正对应，总能在候选里找到一个“最近的”。问题是：<strong>这个第一名是否明显优于其他候选？</strong></p>
+<h3>2.1 · Lowe Ratio Test：检查第一名是否足够突出</h3>
+<div class="formula"><div class="formula-name">NEAREST-NEIGHBOR DISTANCE RATIO</div><div class="equation">r = d<sub>1</sub> / d<sub>2</sub>，若 r &lt; τ 则通过比值筛选</div><div class="explain">d₁、d₂ 分别是最近和次近候选的<strong>描述子距离</strong>（d₁ ≤ d₂）。r 较小，说明第一名比第二名明显更近；r 接近 1，说明两者难分。τ 是人为选定的阈值，不是目标存在的概率。</div></div>
+<div class="match-lab" id="ratio-demo"><div class="lab-heading"><strong>交互理解 · 第一名相似，为什么有时仍要拒绝？</strong><small>用真实 L2 距离计算的简化例子</small></div>
+<div class="lab-controls"><label>描述子场景 <select id="scenario"><option value="unique">独特纹理 · 明确匹配</option><option value="ambiguous">重复纹理 · 有歧义</option><option value="false">看似独特 · 也可能错配</option></select></label><label>阈值 τ <input id="ratio-threshold" type="range" min="0.40" max="0.95" step="0.05" value="0.80"/> <b id="threshold-label">0.80</b></label></div>
+<div class="lab-flex"><div class="lab-svg"><svg viewBox="0 0 370 212" role="img" aria-label="参考关键点与当前图像中三个候选关键点的匹配示意"><rect x="8" y="10" width="134" height="164" rx="8" fill="#f2eee7" stroke="#dcd1c4"/><rect x="228" y="10" width="134" height="164" rx="8" fill="#f2eee7" stroke="#dcd1c4"/>
+<text x="75" y="29" text-anchor="middle" font-size="12" fill="#736558">参考图</text><text x="295" y="29" text-anchor="middle" font-size="12" fill="#736558">当前图</text>
+<path d="M29 52h89v101H29z" fill="#e4c39e"/><path d="M251 54l83-9 5 109-88 4Z" fill="#ddc29f"/>
+<circle cx="80" cy="94" r="7" fill="#c27c55" stroke="white" stroke-width="2"/><text x="66" y="88" font-size="12" fill="#865942">a</text>
+<g fill="#567f6e" stroke="white" stroke-width="1.6"><circle cx="287" cy="69" r="6"/><circle cx="312" cy="111" r="6"/><circle cx="271" cy="142" r="6"/></g>
+<text x="296" y="67" font-size="12" fill="#4b7667">b₁</text><text x="320" y="108" font-size="12" fill="#4b7667">b₂</text><text x="278" y="158" font-size="12" fill="#4b7667">b₃</text>
+<path id="candidate-link" d="M87 94L287 69" stroke="#568b72" stroke-width="2.3" stroke-dasharray="6 5" fill="none"/>
+<text x="185" y="201" text-anchor="middle" font-size="11" fill="#907c6c">连线只表示候选对应，不是验证后的真值</text>
+</svg></div>
+<div><div id="distance-bars"><div class="bar-item best"><span>候选 1</span><div class="bar-track"><div class="bar-fill" style="width:25%"></div></div><b>0.20</b></div></div><div id="ratio-result" class="ratio-callout good" aria-live="polite"></div></div></div>
+<div class="note-line">场景使用三维玩具描述子，例如参考 a = [1,2,3]，距离由欧氏公式实时计算。真实特征维数更高，判断机制相同。</div></div>
+<p>举个固定例子：如果第一名距离为 20、第二名为 80，比例为 0.25，通常比较明确；如果是 20 和 22，比例约 0.91，虽然第一名仍最接近，但对应关系很模糊。</p>
+<h3>2.2 · Cross-check：两边都认为对方是最近邻吗？</h3>
+<p>从参考图 A 找最近邻得到 B，还可以反向检查：从当前图 B 找最近邻，得到的是否仍然是 A？如果双向都成立，叫相互最近邻。它可以减少一部分单向错配，但<strong>仍不能保证几何正确</strong>。</p>
+<div class="figure"><div class="figure-title">机制图｜单向最近邻与互相最近邻的区别</div><div class="figure-inner"><svg viewBox="0 0 760 176" role="img" aria-label="从A到B和从B到A的双向对应检查"><rect x="9" y="10" width="348" height="145" rx="10" fill="#f7f2eb"/><rect x="400" y="10" width="350" height="145" rx="10" fill="#f1f6f2"/>
+<g font-size="13" font-weight="700" fill="#77594a"><text x="26" y="34">单向 A → B</text><text x="418" y="34">Cross-check（互相最近邻）</text></g>
+<g fill="#ba7c5d"><circle cx="54" cy="86" r="7"/><circle cx="446" cy="86" r="7"/></g><g fill="#648d7a"><circle cx="295" cy="63" r="7"/><circle cx="295" cy="110" r="7"/><circle cx="684" cy="63" r="7"/><circle cx="684" cy="110" r="7"/></g>
+<path d="M61 86L288 63" stroke="#bc8667" stroke-width="2" stroke-dasharray="6 4"/><path d="M451 83L677 66" stroke="#568f72" stroke-width="2.5"/><path d="M677 66L451 83" stroke="#568f72" stroke-width="2.5" stroke-dasharray="3 3"/>
+<text x="177" y="142" text-anchor="middle" fill="#987d6c" font-size="11">A 选了 B，不代表 B 也选 A</text><text x="574" y="142" text-anchor="middle" fill="#638570" font-size="11">A ↔ B 两边都选中对方</text></svg></div></div>
+<div class="section-note green"><strong>很重要的区分：</strong>Ratio Test 衡量的是最近邻是否<strong>明显优于次近邻</strong>；Cross-check 检查的是对应是否<strong>互相一致</strong>。两者是不同的筛选思路，不是必须按顺序执行的两个阶段；通过之后仍可能是错误匹配。</div>
+</section>
+
+<section class="chapter" id="transform"><div class="chapter-kicker"><b>03</b> FROM MATCHES TO LOCATION</div><h2>匹配点只有几个，怎样知道整个目标在哪里？</h2>
+<p>现在我们得到若干对应点对：参考图中的 <code>pᵢ</code> 和当前图中的 <code>pᵢ′</code>。但它们只是零散位置，而我们希望得到整个盒子的中心、边界或四角。这里需要一个<strong>几何变换模型</strong>，把参考图中的位置映射到当前图。</p>
+<h3>3.1 · 先分清：不同变换能描述怎样的变化？</h3>
+<div class="table-wrap"><table><thead><tr><th>变换</th><th>可以描述的变化</th><th>不能随意描述的变化</th></tr></thead><tbody>
+<tr><td>Translation · 平移</td><td>整体向左、右、上、下移动</td><td>旋转、缩放、剪切</td></tr>
+<tr><td>Similarity · 相似</td><td>平移 + 旋转 + 统一缩放</td><td>一般剪切、透视变化</td></tr>
+<tr><td>Affine · 仿射</td><td>平移、旋转、非均匀缩放、剪切</td><td>一般透视收缩</td></tr>
+<tr><td>Homography · 单应</td><td>平面物体在透视成像下的二维投影关系</td><td>任意非平面物体的统一投影变换</td></tr>
+</tbody></table></div>
+<h3>3.2 · Homography：为什么四个对应点能帮助定位平面目标？</h3>
+<p>对近似平面的目标，参考图与当前图上的平面点可以通过一个 3×3 的单应矩阵 <code>H</code> 联系：</p>
+<div class="formula"><div class="formula-name">HOMOGRAPHY · 参考平面到当前图像的点映射</div>
+<div class="equation multi" style="font-size:17px">λ [u′, v′, 1]<sup>T</sup> = H [u, v, 1]<sup>T</sup></div>
+<div class="explain">(u,v) 是参考图位置；(u′,v′) 是当前图对应位置；H 为 3×3 矩阵；λ 表示齐次坐标的尺度因子。<strong>H 做的是点坐标映射，不是目标分类。</strong></div></div>
+<p>单应矩阵在忽略整体尺度后有 8 个自由度。理想情况下需要至少 <strong>4 组位置合适、且不退化的点对应</strong>才能估计 H。若点几乎共线、匹配错误，或者目标并非平面，就可能估计错误或不适用。</p>
+<div class="figure"><div class="figure-title">机制图｜先由局部对应估计 H，再映射参考目标四角</div><div class="figure-inner"><svg viewBox="0 0 760 284" role="img" aria-label="参考平面四角利用由特征对应估计的单应矩阵投影到目标图四边形">
+<rect x="8" y="10" width="314" height="232" rx="12" fill="#f7f1e9"/><rect x="446" y="10" width="306" height="232" rx="12" fill="#eef4ef"/>
+<text x="20" y="33" fill="#775c4b" font-size="14" font-weight="700">参考图 · 四角已知</text><text x="459" y="33" fill="#567866" font-size="14" font-weight="700">当前图 · 目标透视形变</text>
+<rect x="67" y="62" width="196" height="138" rx="3" fill="#dfc4a6" stroke="#a57c62" stroke-width="2"/>
+<path d="M78 92h170M78 164h170" stroke="#fff6ed" stroke-width="2"/>
+<path d="M514 79L672 56L698 200L482 214Z" fill="#ddc5a9" stroke="#a47f64" stroke-width="2"/>
+<path d="M531 103L660 86M504 185L680 175" stroke="#fff6ed" stroke-width="2"/>
+<g fill="#4c8970" stroke="#fff" stroke-width="2"><circle cx="104" cy="107" r="5"/><circle cx="211" cy="140" r="5"/><circle cx="160" cy="181" r="5"/><circle cx="537" cy="110" r="5"/><circle cx="652" cy="136" r="5"/><circle cx="602" cy="184" r="5"/></g>
+<g stroke="#b17d5d" stroke-width="1.4" stroke-dasharray="6 5" fill="none"><path d="M105 107C300 52 418 79 537 110"/><path d="M211 140C344 107 446 118 652 136"/><path d="M160 181C347 231 440 211 602 184"/></g>
+<path d="M334 94H421m-9-7 9 7-9 7" stroke="#9d8068" stroke-width="2" fill="none"/>
+<rect x="342" y="105" width="72" height="35" rx="7" fill="#fffefa" stroke="#dfd2c3"/><text x="378" y="127" font-size="14" font-weight="700" fill="#8a664f" text-anchor="middle">估计 H</text>
+<g fill="none" stroke="#c26b48" stroke-width="3" stroke-dasharray="7 5"><path d="M514 79L672 56L698 200L482 214Z"/></g>
+<text x="380" y="269" font-size="12" text-anchor="middle" fill="#8a7566">关键点用于估计变换；参考目标的四角经 H 映射得到当前图四边形</text>
+</svg></div><div class="figcap">示意图：为了突出机制只画出三条对应线；实际估计非退化的平面单应至少需要四组点对应。橙色四边形表示四角映射的结果。</div></div>
+<p>因此，即使匹配点不在目标四角，我们也可以在估计出可靠 H 后，把参考图事先标好的四个角映射到当前图，得到目标的投影四边形，进一步计算 BBox 或中心。</p>
+<div class="section-note"><strong>这里的关键假设：</strong>参考与当前图中的匹配点，需要对应同一个近似平面（或满足其他单应适用的成像条件）。对立体盒子的多个不同表面，不能默认使用同一个平面 H 精确映射全部结构。</div>
+</section>
+
+<section class="chapter" id="limits"><div class="chapter-kicker"><b>04</b> WHEN MATCHING FAILS</div><h2>特征有很多，为什么仍可能定位错？</h2>
+<p>描述子相似只说明局部数值接近，不能保证这些点在整个目标上处于合理的位置。想象一个包装盒反复印着相同图案：每个图案都很像，但连线可能彼此冲突。</p>
+<div class="table-wrap"><table><thead><tr><th>问题</th><th>会发生什么</th><th>需要进一步检查什么</th></tr></thead><tbody>
+<tr><td>重复纹理</td><td>许多点具有相似描述子</td><td>Ratio Test、互相最近邻、空间一致性</td></tr>
+<tr><td>纹理太少</td><td>找不到足够可区分的关键点</td><td>是否需要换成模板、轮廓或其他信息</td></tr>
+<tr><td>遮挡、模糊、极端视角</td><td>可重复识别的点减少或描述子改变</td><td>候选数量与匹配的可靠程度</td></tr>
+<tr><td>错误对应混入</td><td>拟合出的几何变换发生偏移</td><td>几何内点、重投影误差、模型适用性</td></tr>
+<tr><td>非平面物体</td><td>单个 H 无法统一映射各个表面</td><td>是否只定位某个平面区域</td></tr>
+</tbody></table></div>
+<p>这就引出一个还没完全解决的问题：<strong>即使不少描述子彼此相似，这批匹配是否真的能被同一个几何模型解释？</strong></p>
+<div class="section-note green">下一篇《03 · 几何验证与可靠性判断》专门解决这个问题：用 <strong>RANSAC、内点比例与重投影误差</strong>检查对应点，判断是否应当接受定位结果。本篇只明确为什么需要它们，不重复推导。</div>
+</section>
+
+<section class="chapter" id="selection"><div class="chapter-kicker"><b>05</b> QUICK REFERENCE</div><h2>回头看看：这些方法各自负责哪一件事？</h2>
+<div class="table-wrap"><table><thead><tr><th>我遇到的问题</th><th>优先想到的工具</th><th>它真正负责什么</th></tr></thead><tbody>
+<tr><td>两个局部特征像不像？</td><td>L2 / Hamming</td><td>把描述子的差异变成距离</td></tr>
+<tr><td>候选点太多，找最近邻很慢？</td><td>BF / FLANN</td><td>搜索最近邻</td></tr>
+<tr><td>第一名与第二名都很像？</td><td>Ratio Test</td><td>排除缺乏区分度的对应</td></tr>
+<tr><td>A 选 B，但 B 并不选 A？</td><td>Cross-check</td><td>检查双向对应是否一致</td></tr>
+<tr><td>怎样从几个点找到整个平面目标？</td><td>Affine / Homography</td><td>估计并应用几何映射</td></tr>
+<tr><td>大量匹配点里混有错配？</td><td>RANSAC（下一篇）</td><td>利用几何一致性筛除离群对应</td></tr>
+</tbody></table></div>
+<div class="final-line">这一篇最需要记住：描述子距离负责找<strong>外观上可能对应的点</strong>；Ratio / Cross-check 减少歧义；变换模型负责把这些点变成目标的位置。但要相信这个位置，还需要几何验证。</div>
+<div class="end-links"><a href="../01-direct-similarity/">← 上一篇 · 直接相似性比较</a><a href="../">返回问题导览 ↑</a><a href="../03-geometric-verification/">下一篇 · 几何验证与可靠性 ↗</a></div>
+</section>
+<footer class="footer">沿途手记 · 参考匹配与视觉对应 / 02 · 局部特征与视觉对应<br>这一页聚焦对应和二维位置映射；特征检测机制详见传统视觉笔记，可靠性验证见下一篇。</footer>
+</article></main></div>
+<script>
+(function(){'use strict';
+const sidebar=document.getElementById('sidebar'),menu=document.getElementById('menu'),overlay=document.getElementById('overlay'),progress=document.getElementById('progress');
+function toggle(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);menu.setAttribute('aria-expanded',String(open));}
+menu.addEventListener('click',()=>toggle(!sidebar.classList.contains('open')));overlay.addEventListener('click',()=>toggle(false));document.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>toggle(false)));window.addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});
+const links=[...document.querySelectorAll('.side-nav a[href^="#"]')];let ticking=false;function updateNav(){const y=scrollY+(innerWidth<=820?105:95);let active=links[0];for(const a of links){const target=document.getElementById(a.getAttribute('href').slice(1));if(target&&target.offsetTop<=y)active=a}links.forEach(a=>a.classList.toggle('active',a===active));const m=document.documentElement.scrollHeight-innerHeight;progress.style.width=(m?Math.max(0,Math.min(100,scrollY/m*100)):0)+'%';ticking=false}
+window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(updateNav)}},{passive:true});window.addEventListener('resize',updateNav);updateNav();
+const scenario=document.getElementById('scenario'),th=document.getElementById('ratio-threshold'),label=document.getElementById('threshold-label'),bars=document.getElementById('distance-bars'),result=document.getElementById('ratio-result'),line=document.getElementById('candidate-link');
+const a=[1,2,3],scenes={unique:{c:[[1.2,2,3],[2,3,4],[2,3.5,4.5]],text:'第一名与其余候选差距明显；这个局部具有较高区分度。',wrong:false},ambiguous:{c:[[1.3,2,3],[1,2.31,3],[2,3,4]],text:'两个候选距离几乎相同；仅凭描述子很难判断哪个才是对应位置。',wrong:false},false:{c:[[1.2,2,3],[2,3,4],[2,3.5,4.5]],text:'第一名虽然明显更近，但它可能来自另一处重复图案；比值检验不能证明几何正确。',wrong:true}};
+function distance(x,y){return Math.sqrt(x.reduce((sum,v,i)=>sum+(v-y[i])**2,0))}
+function draw(){const s=scenes[scenario.value],t=Number(th.value),list=s.c.map((v,i)=>({i,d:distance(a,v)})),ordered=[...list].sort((x,y)=>x.d-y.d),ratio=ordered[0].d/ordered[1].d,ok=ratio<t;label.textContent=t.toFixed(2);bars.innerHTML='';for(let i=0;i<list.length;i++){const item=list[i],row=document.createElement('div');row.className='bar-item'+(item.i===ordered[0].i?' best':'');const name=document.createElement('span');name.textContent='候选 '+(i+1);const track=document.createElement('div');track.className='bar-track';const fill=document.createElement('div');fill.className='bar-fill';fill.style.width=(Math.min(100,item.d/3*100)).toFixed(1)+'%';track.appendChild(fill);const n=document.createElement('b');n.textContent=item.d.toFixed(2);row.append(name,track,n);bars.appendChild(row)}result.className='ratio-callout '+(ok?'good':'bad');result.textContent='d₁ = '+ordered[0].d.toFixed(2)+'，d₂ = '+ordered[1].d.toFixed(2)+'，r = '+ratio.toFixed(2)+'；τ = '+t.toFixed(2)+'。'+(ok?' 通过 Ratio Test。':' 未通过 Ratio Test。')+' '+s.text;line.setAttribute('stroke',ok?(s.wrong?'#b98261':'#568b72'):'#b9a79b');line.setAttribute('stroke-dasharray',ok?'6 5':'2 7')}
+scenario.addEventListener('change',draw);th.addEventListener('input',draw);draw();
+})();
+</script></body></html>

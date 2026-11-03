@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#faf8f3" />
+<meta name="description" content="沿途手记｜参考匹配与视觉对应：直接相似性比较。理解模板匹配、SSD/NCC/ZNCC、直方图与形状相似性、多尺度搜索和可靠性。" />
+<title>01 · 直接相似性比较｜沿途手记</title>
+<style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.95 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,select,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:21px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:52px 0 44px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:17px;line-height:1.6;margin:27px 0 10px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 255px;gap:20px;align-items:center}.hero p{font-size:15.5px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:24px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}.chapter{padding:51px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:16px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:18px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula math{font-size:1.08em}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls select{padding:6px 9px;border-radius:7px;border:1px solid #dbcebf;background:#fff;color:#624e41}.demo-controls input{accent-color:var(--accent);vertical-align:middle}.demo-grid{display:grid;grid-template-columns:1fr 2fr;gap:13px;margin-top:14px}.canvas-panel{border:1px solid #e7ded4;border-radius:9px;background:#fff;padding:10px;min-width:0}.canvas-panel b{display:block;font-size:11px;color:#7f6353;margin-bottom:8px}.canvas-panel canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border:1px solid #ebddd1;border-radius:5px}.readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.readout strong{color:#84513b}.hint{font-size:11px;color:#948476;line-height:1.85;margin-top:10px}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 205px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:235px;justify-self:center;order:-1}.hero p{font-size:14px}.two-col,.three-col,.demo-grid{grid-template-columns:1fr}.chapter{padding:41px 0}.main{padding:0 18px 40px}.demo-controls{gap:8px}.formula .equation{font-size:16px}h1{font-size:31px}h2{font-size:23px}.hero{padding-top:27px}.demo{padding:13px}.canvas-panel canvas{max-width:400px;margin:auto}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+@media print{.sidebar,.mobile-bar,.overlay,.progress,.demo-controls,.end-links{display:none!important}.shell{display:block}.main{padding:0}.article{max-width:100%}.chapter{break-inside:avoid}.demo{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div><div class="overlay" id="overlay"></div>
+<div class="mobile-bar"><button id="menu" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><b>01 · 直接相似性比较</b><span aria-hidden="true">✳</span></div>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="章节导航">
+ <a class="brand" href="/">✳ 沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+ <a class="back" href="../">← 返回「参考匹配与视觉对应」</a>
+ <div class="loc"><div class="eyebrow">当前位置 · CURRENT PAGE</div><strong>01 · 直接相似性比较</strong><p>参考匹配与视觉对应 / Direct Similarity</p></div>
+ <nav class="side-nav" id="toc"><div class="eyebrow" style="padding:0 11px 9px">本篇目录</div>
+  <a href="#opening" class="active"><span class="num">·</span>知道外观，怎样找到它？</a>
+  <a href="#scope"><span class="num">00</span>问题定义与边界</a>
+  <a href="#pixels"><span class="num">01</span>像素级模板匹配</a>
+  <a href="#appearance"><span class="num">02</span>外观统计与形状匹配</a>
+  <a href="#search"><span class="num">03</span>位置搜索与尺度变化</a>
+  <a href="#reliability"><span class="num">04</span>匹配结果与可靠性</a>
+  <a href="#selection"><span class="num">05</span>方法选择与局限</a>
+ </nav>
+ <div class="side-bottom">广度优先 · 核心公式 · 直观机制<br>知识导航，不要求算法复现</div>
+</aside>
+<main class="main" id="content"><article class="article">
+ <div class="crumbs"><a href="/">沿途手记</a> / <a href="../">参考匹配与视觉对应</a> / <strong>直接相似性比较</strong></div>
+ <header class="hero" id="opening"><div class="kicker">DEEP DIVE · 01 / DIRECT SIMILARITY</div>
+  <div class="hero-layout"><div>
+   <h1>直接相似性比较</h1><p class="sub">Direct Similarity · 从已知外观寻找位置</p>
+   <p>已经拍过盒子上的标签，现在想在另一张图像中找到它。最容易想到的办法，是拿参考图片和当前画面逐个位置比较，找出最像的那一块。</p>
+   <p>不过，「最像」究竟怎样计算？如果光照改变、目标变大或发生旋转，原来的比较还能用吗？</p>
+   <p>这一篇先研究<strong>怎样定义相似性、怎样搜索位置，以及什么时候不应该相信最高得分</strong>。</p>
+  </div>
+  <div class="hero-art" aria-label="参考图像与当前场景中的目标匹配示意">
+    <svg viewBox="0 0 250 236" role="img"><rect x="4" y="4" width="242" height="228" rx="19" fill="#f5eee6" stroke="#e6dbce"/>
+    <text x="16" y="26" font-size="11" fill="#a58b77">已知标签</text><rect x="17" y="36" width="85" height="64" rx="7" fill="#fffdfa" stroke="#d8c6b6"/><rect x="32" y="44" width="55" height="49" rx="4" fill="#dfb590"/><rect x="41" y="57" width="37" height="22" rx="3" fill="#fff8ea"/><path d="M46 65H74M46 71H67" stroke="#c28057" stroke-width="2"/>
+    <path d="M117 78h22m-7-6 7 6-7 6" fill="none" stroke="#b67b5a" stroke-width="1.8"/>
+    <rect x="145" y="30" width="83" height="125" rx="8" fill="#fffefa" stroke="#d8c6b6"/><rect x="153" y="38" width="24" height="47" rx="3" fill="#c6d1cb"/><rect x="182" y="47" width="37" height="59" rx="3" fill="#dfb590"/><rect x="186" y="60" width="28" height="22" rx="2" fill="#fff8ea"/><path d="M191 68H211M191 74H206" stroke="#c28057" stroke-width="1.5"/><rect x="180" y="45" width="41" height="64" fill="none" stroke="#4d8975" stroke-width="2.5" stroke-dasharray="5 3"/><rect x="156" y="93" width="20" height="46" rx="3" fill="#b6bac8"/>
+    <text x="125" y="184" font-size="11" fill="#8d7562" text-anchor="middle">参考 → 相似度搜索 → 候选位置</text><path d="M34 197H218" stroke="#dbcaba"/><path d="M36 197v11m42-11v5m42-5v9m42-9v5m42-5v11" stroke="#c5b4a3" stroke-width="1.4"/><path d="M36 213q42-8 77-8 36 0 47-22 17 14 44 25" fill="none" stroke="#a56b50" stroke-width="2.5"/><circle cx="160" cy="183" r="4" fill="#547d6d"/>
+    </svg>
+  </div></div>
+  <div class="tags"><span>输入：参考 + 当前图像</span><span>数学：SSD / NCC / ZNCC</span><span>输出：得分图 + 候选框</span></div>
+ </header>
+ <section class="chapter" id="scope"><div class="chapter-kicker"><b>00</b> DEFINE THE TASK</div><h2>先明确：这里究竟匹配什么？</h2>
+  <p>我们已经拥有某种参考信息（一个图块、一段颜色统计或一条轮廓），希望在<strong>当前图像</strong>中找到与它相似的候选位置。直接相似性比较不要求先建立跨图像关键点对应关系。</p>
+  <div class="three-col"><div class="plain-panel"><div class="mini-label">INPUT</div><b>参考 R 与图像 I</b><p>已知目标图块、外观描述或轮廓；当前图像。</p></div><div class="plain-panel"><div class="mini-label">CORE</div><b>相似度 + 搜索</b><p>计算每个候选的相似程度，寻找得分较好的位置。</p></div><div class="plain-panel"><div class="mini-label">OUTPUT</div><b>响应图与候选位置</b><p>一个或多个匹配框、得分，或者无法可靠确定。</p></div></div>
+  <div class="section-note"><strong>研究边界：</strong>这里只研究外观或轮廓的直接比较，不重新解释颜色、纹理、轮廓的提取算法；局部描述子对应与 Homography / RANSAC 验证留给后续笔记。</div>
+ </section>
+ <section class="chapter" id="pixels"><div class="chapter-kicker"><b>01</b> PIXEL-LEVEL SIMILARITY</div><h2>两块图像有多像，怎样算出来？</h2>
+  <p class="intro">最直接的做法是：把参考模板与一个候选图块对齐，比较相同位置的像素。这里不是识别「盒子」这个语义，而是在比较两个数值数组。</p>
+  <h3>1.1 · SAD 与 SSD：比较像素误差</h3>
+  <div class="formula"><div class="formula-name">SAD · 绝对差之和</div><div class="equation">SAD = ∑<sub>i</sub> |T<sub>i</sub> − P<sub>i</sub>|</div><div class="formula-name" style="margin-top:9px">SSD · 平方差之和</div><div class="equation">SSD = ∑<sub>i</sub> (T<sub>i</sub> − P<sub>i</sub>)<sup>2</sup></div><div class="explain">T<sub>i</sub> 是参考模板第 i 个像素；P<sub>i</sub> 是候选图块对应位置的像素。两者都是<strong>误差</strong>，越小越相似；SSD 对较大差异惩罚更重。</div></div>
+  <p>例如参考图块是 <code>[50, 100, 150]</code>，候选是 <code>[55, 100, 145]</code>，那么 SAD = 10，SSD = 50。没有任何神秘的「特征识别」，只是每个对应像素相减，再把误差汇总。</p>
+  <div class="figure"><div class="figure-title">机制图｜同位置相减，再得到单个匹配分数</div><div class="figure-inner"><svg viewBox="0 0 765 172" role="img" aria-label="模板和候选图块逐像素比较并汇总误差">
+    <g font-family="Arial,Noto Sans SC,sans-serif" font-size="12" fill="#665347"><text x="95" y="18" text-anchor="middle">参考 T</text><text x="315" y="18" text-anchor="middle">候选 P</text><text x="542" y="18" text-anchor="middle">对应像素差</text><text x="690" y="18" text-anchor="middle">误差汇总</text></g>
+    <g><rect x="29" y="36" width="133" height="96" rx="7" fill="#ede5dc"/><rect x="249" y="36" width="133" height="96" rx="7" fill="#ede5dc"/><rect x="475" y="36" width="133" height="96" rx="7" fill="#f5e2d4"/>
+    <g font-size="16" font-weight="650" text-anchor="middle"><rect x="39" y="45" width="35" height="35" fill="#777"/><rect x="78" y="45" width="35" height="35" fill="#a2a2a2"/><rect x="117" y="45" width="35" height="35" fill="#c8c8c8"/><text x="57" y="68" fill="#fff">50</text><text x="95" y="68" fill="#fff">100</text><text x="134" y="68" fill="#333">150</text>
+    <rect x="259" y="45" width="35" height="35" fill="#808080"/><rect x="298" y="45" width="35" height="35" fill="#a2a2a2"/><rect x="337" y="45" width="35" height="35" fill="#c4c4c4"/><text x="277" y="68" fill="#fff">55</text><text x="315" y="68" fill="#fff">100</text><text x="355" y="68" fill="#333">145</text>
+    <rect x="485" y="45" width="35" height="35" fill="#eacbb8"/><rect x="524" y="45" width="35" height="35" fill="#f8eee6"/><rect x="563" y="45" width="35" height="35" fill="#eacbb8"/><text x="503" y="68" fill="#754f3b">5</text><text x="542" y="68" fill="#754f3b">0</text><text x="580" y="68" fill="#754f3b">5</text></g>
+    <text x="95" y="107" font-size="11" fill="#8d7f72" text-anchor="middle">逐位置取像素值</text><text x="315" y="107" font-size="11" fill="#8d7f72" text-anchor="middle">尺寸一致、位置对齐</text><text x="542" y="107" font-size="11" fill="#8d7f72" text-anchor="middle">差值：5、0、5</text><path d="M174 80h60m-8-6 8 6-8 6M394 80h67m-8-6 8 6-8 6M617 80h35m-7-6 7 6-7 6" stroke="#b28c74" stroke-width="2" fill="none"/>
+    <rect x="658" y="50" width="96" height="66" rx="7" fill="#eef4ee" stroke="#c7d8cb"/><text x="706" y="77" font-size="15" fill="#48735f" text-anchor="middle" font-weight="700">SSD = 50</text><text x="706" y="97" font-size="11" fill="#7a867b" text-anchor="middle">越小越好</text></g>
+    <text x="383" y="155" text-anchor="middle" font-size="11" fill="#95867a">真实图块是二维数组；这里用三个像素简化展示。</text>
+  </svg></div></div>
+  <h3>1.2 · 亮度变化之后，为什么 SSD 容易失败？</h3>
+  <p>同一张标签，如果拍摄时整体亮了 40，所有像素都增加 40。物体并没变，但 SSD 会累计大量误差。为减轻这种影响，可以比较图块的<strong>变化模式</strong>，而不只比较绝对数值。</p>
+  <div class="formula"><div class="formula-name">NCC · 归一化互相关</div><div class="equation">NCC = <span style="display:inline-block;vertical-align:middle;text-align:center;line-height:1.3"><span style="display:block;border-bottom:1px solid currentColor;padding:0 7px">∑<sub>i</sub> T<sub>i</sub>P<sub>i</sub></span><span style="display:block;padding-top:3px">√(∑T<sub>i</sub><sup>2</sup> · ∑P<sub>i</sub><sup>2</sup>)</span></span></div><div class="explain">比较两个像素向量的方向相似性。对于正比例增益变化较稳健，但不自动消除<strong>加法亮度偏移</strong>。</div></div>
+  <div class="formula"><div class="formula-name">ZNCC · 零均值归一化互相关</div><div class="equation">ZNCC = <span style="display:inline-block;vertical-align:middle;text-align:center;line-height:1.3"><span style="display:block;border-bottom:1px solid currentColor;padding:0 7px">∑<sub>i</sub>(T<sub>i</sub>−T̄)(P<sub>i</sub>−P̄)</span><span style="display:block;padding-top:3px">√[∑(T<sub>i</sub>−T̄)<sup>2</sup> · ∑(P<sub>i</sub>−P̄)<sup>2</sup>]</span></span></div><div class="explain">T̄、P̄ 是各图块的平均像素值。先减均值，再归一化，可抵消理想条件下的整体亮度偏移和正比例对比度变化；分数越接近 1 越相似。若图块几乎无纹理、发生饱和裁剪或局部光照变化，仍可能失效。</div></div>
+  <p>最容易记住的区别：<strong>SSD 看绝对误差；NCC 看归一化相关；ZNCC 先去掉平均亮度，再比较明暗变化模式。</strong></p>
+  <div class="demo" id="sim-demo"><div class="demo-head"><div><b>最小交互实验｜同一个标签变亮了，还能找到吗？</b><div style="font-size:11px;color:#958679">对所有候选位置执行真实的 SSD 或 ZNCC 计算，并展示响应图</div></div><small>纯浏览器计算 · 无外部依赖</small></div>
+   <div class="demo-controls"><label>比较方式 <select id="metric"><option value="ssd">SSD（误差最小）</option><option value="zncc">ZNCC（相关最大）</option></select></label><label>目标整体亮度 +<output id="bright-label">0</output> <input type="range" id="brightness" min="0" max="70" step="10" value="0" /></label></div>
+   <div class="demo-grid"><div class="canvas-panel"><b>参考模板（3×3 灰度图块）</b><canvas id="template-canvas" width="165" height="165"></canvas><div class="hint">固定不变的参考外观</div></div><div class="canvas-panel"><b>当前图像（绿色：真正目标；橙色：算法选中）</b><canvas id="scene-canvas" width="520" height="360"></canvas><div class="hint">改变亮度后，真正目标与参考的像素值会整体偏移。</div></div></div>
+   <div class="canvas-panel" style="margin-top:12px"><b>所有候选位置的匹配响应图（越深越匹配）</b><canvas id="heat-canvas" width="520" height="280"></canvas></div>
+   <div class="readout" id="demo-result" aria-live="polite">计算中…</div><div class="hint">教学示意：背景、真实目标和一个外观略有偏差的干扰图块由程序构造。SSD 和 ZNCC 的最优候选可能不同。实际图像还会受到噪声、遮挡和局部光照影响。</div>
+  </div>
+ </section>
+ <section class="chapter" id="appearance"><div class="chapter-kicker"><b>02</b> OTHER SIMILARITY EVIDENCE</div><h2>逐像素不同，还能比较哪些信息？</h2>
+  <p>像素匹配要求两块图像几乎逐位置对齐。若我们只知道目标大致是什么颜色、具有怎样的纹理，或者有一条特殊轮廓，也可以先把参考变成另一种描述，再计算相似程度。</p>
+  <h3>2.1 · 颜色直方图：比较颜色比例，而非每个像素的位置</h3>
+  <p>直方图记录不同颜色区间出现多少次。如果参考图和候选区域有相近的颜色分布，即使颜色排列顺序改变，它们的直方图也可能相近。</p>
+  <div class="formula"><div class="formula-name">Bhattacharyya 系数 · 两个归一化直方图的重合度</div><div class="equation">BC(p,q) = ∑<sub>k</sub> √(p<sub>k</sub> q<sub>k</sub>)</div><div class="explain">p<sub>k</sub>、q<sub>k</sub> 是第 k 个颜色区间的概率占比，均非负且各自总和为 1。BC 越接近 1，两个分布越接近。它比较的是颜色统计，不保留颜色在哪里出现。</div></div>
+  <div class="figure"><div class="figure-title">机制图｜不同空间排列，也可能有相同的颜色统计</div><div class="figure-inner"><svg viewBox="0 0 755 172" role="img" aria-label="两块颜色排列不同的图块有相同的直方图">
+   <g font-family="Arial,Noto Sans SC,sans-serif" font-size="12" fill="#665347"><text x="100" y="20" text-anchor="middle">参考 A</text><text x="293" y="20" text-anchor="middle">候选 B</text><text x="558" y="20" text-anchor="middle">颜色占比</text></g>
+   <g><rect x="24" y="35" width="62" height="48" fill="#cc8165"/><rect x="86" y="35" width="62" height="48" fill="#8ab1a1"/><rect x="24" y="83" width="62" height="48" fill="#8ab1a1"/><rect x="86" y="83" width="62" height="48" fill="#cc8165"/>
+   <rect x="217" y="35" width="62" height="48" fill="#8ab1a1"/><rect x="279" y="35" width="62" height="48" fill="#cc8165"/><rect x="217" y="83" width="62" height="48" fill="#cc8165"/><rect x="279" y="83" width="62" height="48" fill="#8ab1a1"/>
+   <path d="M166 80h36m-8-6 8 6-8 6M359 80h55m-8-6 8 6-8 6" fill="none" stroke="#aa8a73" stroke-width="2"/>
+   <rect x="460" y="51" width="115" height="23" rx="3" fill="#cc8165"/><rect x="460" y="85" width="115" height="23" rx="3" fill="#8ab1a1"/><text x="587" y="67" font-size="13" fill="#76675d">50%</text><text x="587" y="101" font-size="13" fill="#76675d">50%</text><path d="M642 80h28m-8-6 8 6-8 6" fill="none" stroke="#aa8a73" stroke-width="2"/><text x="689" y="80" font-size="14" fill="#568071" font-weight="700">相同</text>
+   </g><text x="379" y="153" text-anchor="middle" font-size="11" fill="#958579">统计一致 ≠ 目标相同；颜色分布相似也可能只是背景碰巧接近。</text>
+  </svg></div></div>
+  <h3>2.2 · Backprojection：已知颜色分布，怎样在图中找候选区域？</h3>
+  <p>先统计参考目标的颜色分布，再为当前图像的每个像素查询它落在哪种颜色区间，并赋予相应的响应值。这样就能得到一张<strong>颜色匹配响应图</strong>。但它本身不会告诉你每个高响应区域属于哪个实例。</p>
+  <div class="flow"><span>参考颜色直方图</span><i>→</i><span>当前像素颜色查表</span><i>→</i><span>响应热图</span><i>→</i><span>候选区域组织</span></div>
+  <h3>2.3 · 轮廓相似性：如果参考的是形状呢？</h3>
+  <p>可以用 Hu Moments 比较形状的整体统计特征，也可以用 Chamfer Matching 比较两组轮廓点靠得有多近。后者的直观想法是：<strong>参考轮廓上的每个点，到候选轮廓的最近距离有多大？</strong></p>
+  <div class="formula"><div class="formula-name">单向 Chamfer 距离</div><div class="equation">D(A,B) = <span style="display:inline-block;vertical-align:middle;text-align:center;line-height:1.3"><span style="display:block;border-bottom:1px solid currentColor;padding:0 7px">1</span><span style="display:block">|A|</span></span> ∑<sub>p∈A</sub> min<sub>q∈B</sub> ‖p−q‖</div><div class="explain">A 是参考轮廓点集，B 是候选轮廓点集。每个 p 找到 B 中最近的 q，算距离并取平均；越小越接近。它是单向的，且通常需要先考虑平移、尺度和旋转对齐。</div></div>
+  <div class="section-note green"><strong>这一节的共同点：</strong>我们改变的是「比较依据」，不是换了一种全新的目标识别能力。颜色统计、轮廓和纹理描述，都可能被不同物体共享；它们只提供匹配证据。</div>
+ </section>
+ <section class="chapter" id="search"><div class="chapter-kicker"><b>03</b> POSITION SEARCH</div><h2>相似度会算了，怎样在整张图里找位置？</h2>
+  <p>比较两块已经对齐的图像，只能回答「这两块有多像」。要定位目标，我们还不知道该取当前图像的哪一块，因此需要<strong>搜索候选位置</strong>。</p>
+  <h3>3.1 · Sliding Window：每个位置都算一次分数</h3>
+  <p>将宽 w、高 h 的模板，在宽 W、高 H 的当前图像上逐位置滑动。每个位置都会得到一个分数 S(u,v)，最后形成响应图。如果步长为 1 且不允许越界，响应图大小是：</p>
+  <div class="formula"><div class="formula-name">模板滑动的有效位置数</div><div class="equation">(W − w + 1) × (H − h + 1)</div><div class="explain">例如 100×80 的图，20×10 的模板，有 81×71 = 5751 个整像素候选位置。这里还没有计入不同尺度和旋转角度。</div></div>
+  <div class="figure"><div class="figure-title">机制图｜滑窗搜索把“相似性”变成一张位置响应图</div><div class="figure-inner"><svg viewBox="0 0 760 193" role="img" aria-label="模板在整幅图像滑动搜索生成匹配响应热图">
+   <defs><linearGradient id="heatgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3dfd5"/><stop offset=".42" stop-color="#c9d6cd"/><stop offset=".7" stop-color="#a3c1ad"/><stop offset="1" stop-color="#568c70"/></linearGradient></defs>
+   <text x="145" y="18" font-size="12" fill="#705649" text-anchor="middle">当前图像 + 滑动模板</text><text x="552" y="18" font-size="12" fill="#705649" text-anchor="middle">所有候选位置的响应图</text>
+   <rect x="21" y="32" width="260" height="136" rx="9" fill="#f5f0e9" stroke="#e6d9ca"/><rect x="36" y="53" width="47" height="85" rx="4" fill="#c7d1ca"/><rect x="110" y="55" width="54" height="80" rx="4" fill="#ddb596"/><rect x="185" y="75" width="44" height="64" rx="4" fill="#a9b9bf"/><rect x="113" y="79" width="48" height="29" rx="3" fill="#f8f4e9"/><path d="M120 89H153M120 97H143" stroke="#b78963" stroke-width="2"/><rect x="98" y="44" width="70" height="96" rx="3" fill="none" stroke="#a4664b" stroke-width="2" stroke-dasharray="6 4"/><path d="M294 100h49m-8-7 8 7-8 7" fill="none" stroke="#ac886e" stroke-width="2"/><rect x="362" y="32" width="260" height="136" rx="9" fill="#f4f0e9" stroke="#e6d9ca"/>
+   <g opacity=".9"><rect x="378" y="48" width="24" height="24" fill="#d8d7cd"/><rect x="404" y="48" width="24" height="24" fill="#c5d0c4"/><rect x="430" y="48" width="24" height="24" fill="#c2cec1"/><rect x="456" y="48" width="24" height="24" fill="#c9d2c8"/><rect x="482" y="48" width="24" height="24" fill="#d6dcd1"/><rect x="508" y="48" width="24" height="24" fill="#c9d2c6"/><rect x="534" y="48" width="24" height="24" fill="#d7dbd2"/><rect x="560" y="48" width="24" height="24" fill="#dfdfd9"/>
+   <rect x="378" y="74" width="24" height="24" fill="#cbd4c8"/><rect x="404" y="74" width="24" height="24" fill="#c3d0c4"/><rect x="430" y="74" width="24" height="24" fill="#9cbea8"/><rect x="456" y="74" width="24" height="24" fill="#89b298"/><rect x="482" y="74" width="24" height="24" fill="#a8c6af"/><rect x="508" y="74" width="24" height="24" fill="#c6d4c7"/><rect x="534" y="74" width="24" height="24" fill="#d3d8cf"/><rect x="560" y="74" width="24" height="24" fill="#e4e4dc"/>
+   <rect x="378" y="100" width="24" height="24" fill="#c3d0c1"/><rect x="404" y="100" width="24" height="24" fill="#b2c7b6"/><rect x="430" y="100" width="24" height="24" fill="#83ae94"/><rect x="456" y="100" width="24" height="24" fill="#42886b"/><rect x="482" y="100" width="24" height="24" fill="#9cc1a8"/><rect x="508" y="100" width="24" height="24" fill="#c0d0bf"/><rect x="534" y="100" width="24" height="24" fill="#d5dace"/><rect x="560" y="100" width="24" height="24" fill="#e1dfd5"/>
+   <rect x="378" y="126" width="24" height="24" fill="#d0d5ca"/><rect x="404" y="126" width="24" height="24" fill="#c7d2c7"/><rect x="430" y="126" width="24" height="24" fill="#acc7b0"/><rect x="456" y="126" width="24" height="24" fill="#87b095"/><rect x="482" y="126" width="24" height="24" fill="#aed0b4"/><rect x="508" y="126" width="24" height="24" fill="#c8d6c9"/><rect x="534" y="126" width="24" height="24" fill="#d8ddd4"/><rect x="560" y="126" width="24" height="24" fill="#e2e2da"/></g>
+   <circle cx="468" cy="112" r="7" fill="none" stroke="#a45d41" stroke-width="2.5"/><path d="M637 96h25" stroke="#ac886e" stroke-width="2"/><text x="668" y="90" font-size="12" fill="#84634d">峰值</text><text x="668" y="107" font-size="11" fill="#84634d">位置</text><text x="380" y="183" font-size="11" fill="#958579">示意热图：颜色越深表示相似度越高</text>
+  </svg></div></div>
+  <h3>3.2 · 目标缩放或旋转了，为什么要重复搜索？</h3>
+  <p>固定模板隐含了「目标尺寸和方向与参考差不多」的假设。目标缩小、放大或旋转后，原来的窗口往往无法对齐。</p>
+  <div class="two-col"><div class="plain-panel"><div class="mini-label">MULTI-SCALE</div><b>图像金字塔 / 多尺度搜索</b><p>在不同缩放倍率下比较模板，等于为目标准备了不同尺寸的候选。</p></div><div class="plain-panel"><div class="mini-label">ROTATION SEARCH</div><b>多角度模板</b><p>在多个候选旋转角度下计算得分，补偿有限范围的旋转变化。</p></div></div>
+  <p>它们的代价直观：搜索的尺度、角度越多，需要比较的候选越多。复杂的透视变化、形变或遮挡，仍不一定能靠这种枚举解决。</p>
+  <h3>3.3 · 响应图有多个峰值怎么办？</h3>
+  <p>如果画面里有多个类似标签，就可能产生多个较好的匹配位置。可以取最高峰，也可以从响应图提取多个局部极值，再用非极大值抑制（NMS）去除空间上高度重叠的候选。</p>
+  <div class="section-note"><strong>不要混淆：</strong>位置搜索回答「在哪里计算相似性」；相似度公式回答「怎么算相似」；候选筛选回答「返回哪几个位置」。它们相关，但不是同一类技术。</div>
+ </section>
+ <section class="chapter" id="reliability"><div class="chapter-kicker"><b>04</b> MATCH CONFIDENCE</div><h2>得分最好的位置，就一定是目标吗？</h2>
+  <p>不一定。即使参考目标根本不在画面里，只要我们扫描了所有位置，通常仍能找到一个得分「相对最好」的候选。</p>
+  <div class="table-wrap"><table><thead><tr><th>需要检查的现象</th><th>意味着什么</th><th>应该怎么理解</th></tr></thead><tbody>
+   <tr><td>最好得分仍然很差</td><td>没有任何候选足够像</td><td>应设置拒绝条件，而非强行定位</td></tr>
+   <tr><td>第一名和第二名接近</td><td>可能存在多个相似位置</td><td>需要返回多候选，或标记歧义</td></tr>
+   <tr><td>背景纹理与参考相似</td><td>低层外观线索碰巧一致</td><td>高得分不等于目标身份一致</td></tr>
+   <tr><td>光照、遮挡、形变明显</td><td>参考与现场不再满足匹配假设</td><td>更换比较依据，或考虑其他定位路线</td></tr>
+  </tbody></table></div>
+  <p>此外，不同相似度的分数不能直接相互比较：SSD 是误差越低越好，ZNCC 是相关值越高越好；阈值是否可靠也取决于模板大小、纹理和真实场景。</p>
+  <div class="quote">这里要学到的是：<strong>最优候选</strong>不等于<strong>可信定位</strong>。匹配算法提供证据，是否接受结果还需要明确标准。</div>
+ </section>
+ <section class="chapter" id="selection"><div class="chapter-kicker"><b>05</b> SELECTION & BOUNDARIES</div><h2>实际遇到一个参考，优先考虑什么？</h2>
+  <div class="table-wrap"><table><thead><tr><th>已知条件</th><th>可以先考虑</th><th>主要代价 / 限制</th></tr></thead><tbody>
+   <tr><td>外观、位置对齐关系相对稳定</td><td>SSD / SAD 模板匹配</td><td>对整体亮度、尺度和旋转敏感</td></tr>
+   <tr><td>亮度或对比度存在整体变化</td><td>ZNCC</td><td>低纹理区域、局部照明或遮挡仍有问题</td></tr>
+   <tr><td>目标的颜色分布具有特点</td><td>直方图比较 / Backprojection</td><td>失去空间排列，容易与相似背景混淆</td></tr>
+   <tr><td>已知轮廓形状，纹理不稳定</td><td>Hu Moments / Chamfer</td><td>需要可靠轮廓，位置与尺度对齐很重要</td></tr>
+   <tr><td>尺寸、旋转变化范围有限</td><td>多尺度 / 多角度搜索</td><td>候选数量增长，效率下降</td></tr>
+  </tbody></table></div>
+  <div class="final-line">这一篇的核心：先把「相似」变成可计算的分数，再在图像中搜索候选位置；得分最高只是候选，是否可信还要看任务条件。若参考与现场差别较大，下一篇再研究局部特征的跨图像对应。</div>
+  <div class="end-links"><a href="../">← 返回「参考匹配与视觉对应」</a><a href="../02-local-correspondence/">下一篇 · 局部特征与视觉对应 ↗</a></div>
+ </section>
+ <footer class="footer">沿途手记 · Stage 01 / 二维目标定位 / 参考匹配与视觉对应 / 01 直接相似性比较</footer>
+</article></main></div>
+<script>
+(function(){'use strict';
+const sidebar=document.getElementById('sidebar'),menu=document.getElementById('menu'),overlay=document.getElementById('overlay'),progress=document.getElementById('progress');
+function toggle(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);menu.setAttribute('aria-expanded',String(open));}
+menu.addEventListener('click',()=>toggle(!sidebar.classList.contains('open')));overlay.addEventListener('click',()=>toggle(false));document.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>toggle(false)));window.addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});
+const links=[...document.querySelectorAll('.side-nav a[href^="#"]')];let ticking=false;function updateNav(){const y=scrollY+(innerWidth<=820?105:95);let active=links[0];for(const a of links){const target=document.getElementById(a.getAttribute('href').slice(1));if(target && target.offsetTop<=y)active=a;}links.forEach(a=>a.classList.toggle('active',a===active));const m=document.documentElement.scrollHeight-innerHeight;progress.style.width=(m?Math.max(0,Math.min(100,scrollY/m*100)):0)+'%';ticking=false;}
+window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(updateNav)}},{passive:true});window.addEventListener('resize',updateNav);updateNav();
+// A small deterministic scene makes comparisons repeatable and keeps this demo independent of a camera/upload.
+const pattern=[[35,82,38],[95,178,101],[42,121,47]], W=13,H=9, tw=3,th=3, real={x:8,y:3},distractor={x:2,y:4};
+const metric=document.getElementById('metric'),brightness=document.getElementById('brightness'),label=document.getElementById('bright-label');
+const tc=document.getElementById('template-canvas'),sc=document.getElementById('scene-canvas'),hc=document.getElementById('heat-canvas'),readout=document.getElementById('demo-result');
+const T=pattern.flat();
+function seedBase(){let a=[];for(let y=0;y<H;y++){let row=[];for(let x=0;x<W;x++)row.push(62+((x*19+y*31+(x*y*7))%83));a.push(row)}return a}
+function paintPatch(scene,x0,y0,func){for(let y=0;y<th;y++)for(let x=0;x<tw;x++)scene[y0+y][x0+x]=Math.round(Math.max(0,Math.min(255,func(pattern[y][x],x,y))))}
+function buildScene(b){const scene=seedBase();paintPatch(scene,distractor.x,distractor.y,(v,x,y)=>v+((x+y)%2?15:-14));paintPatch(scene,real.x,real.y,v=>v+b);return scene}
+function ssd(A,B){return A.reduce((s,a,i)=>s+(a-B[i])**2,0)}
+function zncc(A,B){const ma=A.reduce((s,x)=>s+x,0)/A.length,mb=B.reduce((s,x)=>s+x,0)/B.length;let num=0,da=0,db=0;for(let i=0;i<A.length;i++){let x=A[i]-ma,y=B[i]-mb;num+=x*y;da+=x*x;db+=y*y;}return da>0&&db>0?num/Math.sqrt(da*db):-1}
+function patches(S){const arr=[];for(let y=0;y<=H-th;y++)for(let x=0;x<=W-tw;x++){let p=[];for(let j=0;j<th;j++)for(let i=0;i<tw;i++)p.push(S[y+j][x+i]);arr.push({x,y,p});}return arr}
+function drawCells(canvas,data,cell,offsetX,offsetY){let c=canvas.getContext('2d');data.forEach((row,y)=>row.forEach((v,x)=>{c.fillStyle=`rgb(${v},${v},${v})`;c.fillRect(offsetX+x*cell,offsetY+y*cell,cell-.6,cell-.6);}));}
+function render(){const b=+brightness.value,mode=metric.value;label.textContent=b;const S=buildScene(b),P=patches(S);for(const p of P)p.score=mode==='ssd'?ssd(T,p.p):zncc(T,p.p);
+const sorted=[...P].sort((a,b)=>mode==='ssd'?a.score-b.score:b.score-a.score),best=sorted[0];
+const tctx=tc.getContext('2d');tctx.clearRect(0,0,tc.width,tc.height);drawCells(tc,pattern,55,0,0);
+const cell=40;sc.width=W*cell;sc.height=H*cell;const c=sc.getContext('2d');c.clearRect(0,0,sc.width,sc.height);drawCells(sc,S,cell,0,0);c.strokeStyle='#4bba85';c.lineWidth=4;c.strokeRect(real.x*cell+2,real.y*cell+2,tw*cell-4,th*cell-4);c.strokeStyle='#f4a05e';c.lineWidth=4;c.setLineDash([10,5]);c.strokeRect(best.x*cell+6,best.y*cell+6,tw*cell-12,th*cell-12);c.setLineDash([]);
+const rw=W-tw+1,rh=H-th+1;hc.width=rw*44;hc.height=rh*40;const h=hc.getContext('2d');const ss=P.map(x=>x.score),lo=Math.min(...ss),hi=Math.max(...ss);for(const p of P){let s=mode==='ssd'?(hi-p.score)/(hi-lo||1):(p.score-lo)/(hi-lo||1);let L=91-41*Math.max(0,s);h.fillStyle=`hsl(153, 24%, ${L}%)`;h.fillRect(p.x*44,p.y*40,43,39)}h.strokeStyle='#e28d56';h.lineWidth=3;h.strokeRect(best.x*44+2,best.y*40+2,40,36);h.strokeStyle='#32765f';h.lineWidth=2.5;h.strokeRect(real.x*44+6,real.y*40+6,32,28);
+const ok=best.x===real.x&&best.y===real.y;let score=mode==='ssd'?Math.round(best.score).toLocaleString('zh-CN'):best.score.toFixed(4);const realResult=P.find(p=>p.x===real.x&&p.y===real.y),realScore=mode==='ssd'?Math.round(realResult.score).toLocaleString('zh-CN'):realResult.score.toFixed(4);
+readout.innerHTML=`<strong>算法选中：</strong>(${best.x}, ${best.y})　·　<strong>${mode==='ssd'?'SSD':'ZNCC'} 得分：</strong>${score}　·　<strong>真正目标：</strong>(${real.x}, ${real.y})，得分 ${realScore}<br><strong>${ok?'✓ 这一次找到了真正目标。':'✕ 这一次最优候选不是目标。'}</strong>${mode==='ssd'&&b>=20?' 整体变亮会累积像素误差，使另一个较暗但略有差异的图块更占优势。':mode==='zncc'?' 去均值之后，目标的整体亮度偏移不再改变其明暗排列模式。':''}`;
+}
+metric.addEventListener('change',render);brightness.addEventListener('input',render);render();
+})();
+</script>
+</body>
+</html>

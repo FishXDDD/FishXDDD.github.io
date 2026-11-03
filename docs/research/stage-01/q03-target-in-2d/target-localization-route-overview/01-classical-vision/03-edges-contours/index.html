@@ -95,12 +95,16 @@
 .tiny-evidence span{font-size:11px;color:#68564b;padding:5px 10px;background:#f6f0e9;border-radius:30px;border:1px solid #e7dacf}
 .refine-panel svg{width:100%;height:auto;display:block;background:#fff;border:1px solid #eaded4;border-radius:9px}
 @media(max-width:640px){.route-pair{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
-</style></head><body>
+/* 返回入口：提高对比度，避免与普通目录链接混淆 */
+.side-links[aria-label="返回"] a,.return-end a{background:#fffaf5;border:1px solid #cda88f;color:#6f3f2f;font-weight:760;box-shadow:0 3px 10px rgba(92,55,38,.08);transition:background .18s,border-color .18s,box-shadow .18s}
+.side-links[aria-label="返回"] a{padding:10px 12px}.side-links[aria-label="返回"] a .num{color:#9a5d43;font-size:13px}
+.side-links[aria-label="返回"] a:hover,.return-end a:hover{background:#f4e2d5;border-color:#b97a5e;color:#5d3022;box-shadow:0 5px 14px rgba(92,55,38,.13)}
+</style><link rel="stylesheet" href="../classical-vision-navigation.css"></head><body>
 <div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div>
 <div class="site">
 <aside class="sidebar" id="sidebar" aria-label="本篇章节导航">
   <div class="site-identity"><div class="brand">沿途手记</div><div class="brand-sub">STAGE 01 · CLASSICAL VISION</div></div>
-  <div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="index.html"><span class="num">←</span>图像特征与结构提取</a></nav></div>
+  <div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="../"><span class="num">←</span>图像特征与结构提取</a></nav></div>
   <div class="chapter-sidebar"><div class="side-group">本篇章节</div><div class="current-article">03 · 边缘与轮廓</div><nav class="sub-links" id="chapter-nav" aria-label="边缘与轮廓章节">
 <a href="#scope">00 · 问题与边界</a>
 <a href="#roadmap">技术路线图</a>
@@ -115,7 +119,7 @@
 </aside>
 <main class="layout-main" id="content"><div class="mobile-bar"><button type="button" id="mobile-menu" class="btn" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>03 / 06</span></div>
 <article class="article">
-  <div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="index.html">图像特征与结构提取</a><span class="slash">/</span><span>边缘与轮廓</span></div>
+  <div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="../">图像特征与结构提取</a><span class="slash">/</span><span>边缘与轮廓</span></div>
   <header class="hero"><div class="eyebrow">DEEP DIVE · 03 / 06</div><h1>边缘与轮廓</h1>
 <p class="subtitle">一处像素变化，怎样变成可用的物体边界？</p>
 <p class="lede">刚研究完区域与分割，我原以为拿到 Mask 就能得到边界。可换到只有 RGB 的画面时，情况不同了：物体外沿、桌面纹理、阴影与反光都能产生突变。<strong>检测到一条线，并不意味着找到了目标轮廓。</strong></p>
@@ -369,7 +373,7 @@ cv2.imwrite("contours.png", canvas)</pre>
 <div class="answer"><strong>这一篇收束为四个结论：</strong>
 <ol class="compact-list"><li><strong>边缘是观测证据：</strong>对亮度、颜色或纹理变化敏感，不自带物体归属。</li><li><strong>轮廓是有序边界：</strong>依赖可追踪的二值结构，包含外边界、孔洞和层级。</li><li><strong>简化只改变表示：</strong>能控制点数与偏差，但不会把错误区域变成正确物体，也不会自动完成几何识别。</li><li><strong>精修改变估计：</strong>亚像素拟合与主动轮廓可以调整边界位置，但必须通过可验证的误差指标评价。</li></ol></div>
 </section>
-<nav class="return-end" aria-label="返回上一级"><a href="index.html">← 返回「图像特征与结构提取」</a></nav>
+<nav class="return-end" aria-label="返回上一级"><a href="../">← 返回「图像特征与结构提取」</a></nav>
 <footer class="footer">沿途手记 · 先把边界的证据与表达分清楚，再去研究它是不是一条直线或一个角。<br>页面中的实验全部在浏览器端离线运行；演示算法为明确展示机制而作了简化。</footer>
 </article></main></div>
 

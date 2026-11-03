@@ -18,14 +18,19 @@ a{color:inherit;text-decoration:none}a:hover{color:var(--accentdeep)}button,inpu
 @media(max-width:760px){.site{display:block}.sidebar{position:fixed;inset:0 auto 0 0;width:min(290px,86vw);height:100dvh;z-index:40;transform:translateX(-103%);transition:transform .2s ease;box-shadow:10px 0 45px #30251c24}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:35;background:#2217106e}.mobile-bar{position:sticky;z-index:20;top:0;display:flex;align-items:center;gap:11px;background:#f8f4efec;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);height:53px;margin:0 -19px 0;padding:0 19px;font-size:11px;color:var(--muted)}.mobile-bar b{color:var(--ink);font-size:13px}.mobile-bar button{background:white;border:1px solid #ddd0c4;border-radius:7px;padding:5px 9px;color:#775346;font-size:12px}.mobile-bar .count{margin-left:auto}.main{padding:0 19px 60px}.crumb{margin-top:21px}.hero{padding-top:30px}.hero h1{font-size:41px}.hero .sub{font-size:18px}.chapter{padding-top:32px}.two-cards,.three-cards{grid-template-columns:1fr}.preview-grid{gap:10px}.fig-body{padding:12px}.table-scroll .data{min-width:520px}}
 @media(max-width:420px){.hero h1{font-size:37px}.preview-grid{grid-template-columns:1fr}.controls input[type=range]{width:150px}.mini-grid{grid-template-columns:repeat(3,38px)}.mini-grid span{height:38px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+/* 返回入口：提高对比度，避免与普通目录链接混淆 */
+.side-links a[href="../"],.page-links a[href="../"],.backnext a[href="../"]{background:#fffaf5;border:1px solid #cda88f;color:#6f3f2f;font-weight:760;text-decoration:none;box-shadow:0 3px 10px rgba(92,55,38,.08);transition:background .18s,border-color .18s,box-shadow .18s}
+.side-links a[href="../"]{padding:10px 12px}.page-links a[href="../"]{display:inline-flex;padding:6px 10px;border-radius:8px}.side-links a[href="../"] .num{color:#9a5d43;font-size:13px}
+.side-links a[href="../"]:hover,.page-links a[href="../"]:hover,.backnext a[href="../"]:hover{background:#f4e2d5;border-color:#b97a5e;color:#5d3022;box-shadow:0 5px 14px rgba(92,55,38,.13)}
 </style>
+<link rel="stylesheet" href="../classical-vision-navigation.css">
 </head>
 <body>
 <div class="overlay" id="overlay" aria-hidden="true"></div>
 <div class="site">
 <aside class="sidebar" id="sidebar" aria-label="笔记导航">
   <div><a href="https://fishxddd.github.io/" class="brand">沿途手记</a><div class="brand-sub">RESEARCH NOTES · STAGE 01</div></div>
-  <div><div class="side-group">返回问题</div><nav class="side-links"><a href="../"><span class="num">↗</span>图像特征与结构提取</a><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/"><span class="num">↗</span>二维目标定位</a></nav></div>
+  <div><div class="side-group">返回问题</div><nav class="side-links"><a href="../"><span class="num">↗</span>图像特征与结构提取</a></nav></div>
   <div><div class="side-group">本页目录 / ON THIS PAGE</div><nav class="side-chapters" id="chapter-nav">
     <a href="#scope" data-section="scope"><span class="n">00</span>问题与边界</a>
     <a href="#routes" data-section="routes"><span class="n">01</span>技术路线</a>
