@@ -1,0 +1,305 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#faf8f3"><meta name="description" content="沿途手记 · 训练与优化：Mini-batch、SGD、Momentum、Adam、学习率、初始化、归一化、正则化和最小排查路径。"><title>03 · 训练与优化｜沿途手记</title><style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.94 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}
+.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:53px 0 45px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3,h4{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:18px;line-height:1.65;margin:28px 0 11px}h4{font-size:14px;margin:17px 0 7px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 265px;gap:22px;align-items:center}.hero p{font-size:15.4px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:22px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}
+.chapter{padding:50px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:15px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:20px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula .eq-line{display:block}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}
+.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls input[type=range]{accent-color:var(--accent);vertical-align:middle;width:172px}.demo-controls input[type=checkbox]{accent-color:var(--accent);vertical-align:middle}.demo svg{display:block;width:100%;height:auto;max-height:380px;border:1px solid #e6ded6;background:#fbfaf7;border-radius:9px}.demo-readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.small-note{font-size:11px;color:#948476;line-height:1.85;margin-top:8px}.step-chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:19px 0}.step-chain .step{border:1px solid #e6d8ca;background:#fffdfa;padding:8px 12px;border-radius:8px;font-size:12px;color:#765b4b;font-weight:680}.step-chain .arrow{color:#aa947f}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 210px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:270px;justify-self:center;order:-1}h1{font-size:33px}.hero p{font-size:14.5px}.chapter{padding:37px 0 40px}.two-col,.three-col{grid-template-columns:1fr}.main{padding:0 18px 50px}.flow{gap:5px}.step-chain{gap:5px}.step-chain .step{padding:7px 8px;font-size:11px}.formula .equation{font-size:17px}.demo{padding:13px}.demo-head{display:block}.demo-controls{gap:8px}.demo-controls input[type=range]{width:125px}td,th{padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+
+.learn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0}.learn-grid>div{padding:14px 13px;border:1px solid var(--line);border-radius:10px;background:var(--white);min-height:102px}.learn-grid .n{font:italic 24px Georgia,serif;color:#b38c70}.learn-grid b{display:block;color:var(--ink);font-size:12.5px;margin:2px 0}.learn-grid small{font-size:11px;color:var(--muted);line-height:1.7;display:block}
+.micro{font-size:11px;color:#908276;line-height:1.9}.formula .equation.tight{font-size:18px;white-space:normal}.note-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:16px 0}.note-grid article{background:var(--white);border:1px solid var(--line);padding:14px 16px;border-radius:9px}.note-grid h4{margin:1px 0 6px;font-size:14px}.note-grid p{font-size:12px;line-height:1.75}.matdim{display:inline-block;padding:3px 6px;background:#eaf0ec;border-radius:5px;font-size:11px;color:#5a806d;font-weight:650}.eqstack{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0}.eqstack>div{padding:14px;background:var(--white);border:1px solid var(--line);border-radius:9px;min-width:0}.eqstack .formula{margin:7px 0;padding:8px}.eqstack p{font-size:12px;line-height:1.8}.callout-simple{border-left:3px solid #bf987b;padding:13px 15px;margin:15px 0 20px;color:#725744;background:#f9f0e7;border-radius:0 8px 8px 0;font-size:13px}.callout-simple.green{border-color:#779982;background:#eff5ef;color:#486957}.focusline{color:#846049;font-size:13px;font-weight:700;margin:16px 0 9px}.demo-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.demo-control-grid label{display:block;font-size:12px;font-weight:680}.demo-control-grid input{width:100%;accent-color:var(--accent)}.demo-control-grid output{font:750 13px Georgia,serif;color:#905f47}.demo-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:13px 0}.demo-stat-grid div{padding:10px;border-radius:7px;background:#f6f0e8;min-width:0}.demo-stat-grid small{display:block;color:#8d7b70;font-size:10px;line-height:1.5}.demo-stat-grid b{display:block;color:#6a4936;font:700 20px Georgia,serif;margin:3px 0}.demo-stat-grid .good{color:var(--green)}.demo-bottom{font-size:12px;color:#79685d;line-height:1.9}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}.chips button{border:1px solid #dfd2c4;background:#fff9f2;color:#80624f;border-radius:8px;padding:6px 11px;font:650 12px var(--sans)}.chips button.active{background:#e8d5c6;border-color:#ba8a69;color:#75462f}.formula small{display:block}.codeish{font:13px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;color:#745039}.route-link{display:flex;justify-content:space-between;align-items:center;border:1px solid #d8e3d9;background:#f1f6f0;padding:16px 19px;border-radius:10px;margin:23px 0;color:#557562;gap:12px}.route-link strong{display:block;font-size:14px;color:#557562}.route-link small{display:block;font-size:11px;margin-top:4px;color:#81998a}.route-link:hover{background:#e9f1e8}.footlinks{display:flex;justify-content:space-between;gap:12px;margin:24px 0;flex-wrap:wrap}.footlinks a{font-size:12px;color:#8d684f;border-bottom:1px solid #d7c4b6}.footlinks a:hover{color:#663b29}.svg-pad{padding:10px 11px 0}.svg-pad svg{display:block;width:100%;height:auto;max-width:100%}.overview-anchor{font-weight:720;color:#9b664c;border-bottom:1px dotted #d8ae95}.chip-hint{font-size:11px;color:#948074;margin-top:6px} .wide-fig svg{max-height:440px}
+@media(max-width:610px){.learn-grid,.note-grid{grid-template-columns:1fr}.eqstack{grid-template-columns:1fr}.demo-control-grid{grid-template-columns:1fr}.demo-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.demo-stat-grid b{font-size:17px}.route-link{padding:12px 14px}.figure-title{font-size:12px}.wide-fig svg{min-width:0}}
+
+/* Page 02 additions; same visual system as Page 01 */
+.hero-layout{grid-template-columns:minmax(0,1fr) 275px}.hero-art{min-width:0}
+.lesson-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:19px 0}.lesson-map>div{border:1px solid var(--line);background:var(--white);border-radius:10px;padding:14px 13px}.lesson-map .k{font:italic 24px Georgia,serif;color:#b58c71}.lesson-map b{display:block;font-size:12.8px;color:var(--ink);margin:2px 0}.lesson-map small{display:block;font-size:11.3px;line-height:1.75;color:var(--muted)}
+.figure svg{max-height:480px}.figure-inner{overflow:hidden}.formulas-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0}.formulas-two .formula{margin:0}.formulas-two .equation{font-size:19px;white-space:normal}.formula .equation.small{font-size:18px;white-space:normal}.line-formula{font:500 17px/2 Georgia,"Noto Serif SC",serif;color:#554133;word-break:break-word}.line-formula.indent{padding-left:20px}.inline-math{font:16px Georgia,"Noto Serif SC",serif;color:#73533f}.step-table{width:100%;border-collapse:collapse}.step-table td:first-child{width:40%;font-weight:600}.step-table .val{font-family:ui-monospace,Consolas,monospace;color:#647c69;font-size:12px;white-space:nowrap}.step-table th,.step-table td{padding:9px 12px}.step-table th{font-size:11px}
+.minicall{background:#f1f5f0;border:1px solid #d9e4d9;border-radius:10px;padding:15px 17px;margin:16px 0;color:#54725e;font-size:13px;line-height:1.9}.minicall strong{color:#4b6b56}.key-question{font-weight:700;color:#845e49;font-size:13px;margin:12px 0 9px}.number-bridge{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:16px 0}.number-bridge div{border:1px solid #eadccf;background:#fffdf9;border-radius:8px;padding:10px 7px;text-align:center}.number-bridge small{display:block;color:#9d8674;font-size:10px}.number-bridge b{color:#765743;font-family:Georgia,serif;font-size:17px}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:15px 0}.demo-panel{border:1px solid #e4d9cc;background:#fffaf3;border-radius:9px;padding:12px 14px}.demo-panel small{display:block;font-size:10.5px;color:#977f70}.demo-panel b{display:block;font:700 23px Georgia,serif;color:#9c694a;margin-top:2px}.demo-panel.secondary{background:#f1f6f0;border-color:#d9e7db}.demo-panel.secondary b{color:#5f866e}.demo label.range{display:block;font-size:12px;font-weight:650;color:#6e594c;line-height:1.9}.demo label.range input{display:block;width:100%;accent-color:var(--accent);margin:6px 0}.demo output{color:#965e42;font-weight:750;font-family:Georgia,serif}.demo-graph{border:1px solid #e7ded6;border-radius:9px;background:#faf8f4;overflow:hidden}.demo-graph svg{border:0!important;border-radius:0!important}
+.monostat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.monostat div{padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fffefa}.monostat small{display:block;font-size:10px;color:#927f70}.monostat strong{display:block;font:750 19px Georgia,serif;color:#785741;margin-top:4px}
+.warn{border-left:3px solid #c29275;border-radius:0 8px 8px 0;background:#f9eee5;color:#815d48;padding:13px 15px;font-size:12.5px;margin:15px 0}.footer-link{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;margin:25px 0}.footer-link a{border-bottom:1px solid #d5beac;color:#8f6045;font-size:12.5px}.footer-link a:hover{color:#563b2d}.next-route{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0;padding:16px 18px;border:1px solid #d4e1d6;background:#f0f6ef;border-radius:10px;color:#547765}.next-route strong{display:block;color:#50725c;font-size:14px}.next-route small{display:block;color:#8b9c8c;font-size:11px;margin-top:3px}.next-route:hover{background:#e8f2e8}.small-note{line-height:1.9}.formula .explain{line-height:1.9}.figure-title{line-height:1.7}.extra-compact p{font-size:13px;line-height:1.85}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 225px}}
+@media(max-width:820px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}}
+@media(max-width:610px){.lesson-map,.formulas-two{grid-template-columns:1fr}.number-bridge{grid-template-columns:repeat(2,1fr)}.demo-grid{grid-template-columns:1fr}.formula .equation{font-size:18px;white-space:normal}.figure svg{max-height:none}.number-bridge b{font-size:16px}}
+
+/* 03 · training and optimization: same visual identity as chapters 01–02 */
+.hero-layout{grid-template-columns:minmax(0,1fr) 270px}
+.hero-art{margin:0;min-width:0}.hero-art svg{width:100%;height:auto}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.trio>div{padding:13px 14px;border:1px solid var(--line);background:var(--white);border-radius:10px;min-width:0}
+.trio b{display:block;font-size:13px;color:#695343;margin-bottom:3px}.trio small{display:block;color:var(--muted);font-size:11px;line-height:1.72}
+.trio .index{font:italic 22px Georgia,serif;color:#b58c71;line-height:1.4}
+.formula .equation{white-space:normal}.formula .equation.tight{font-size:18px;white-space:normal}
+.formula .explain{line-height:1.9}.labelled-chart{border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden;margin:18px 0}.labelled-chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:9px 16px;font-size:11px;color:#806e60;padding:0 15px 13px}.legend i{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:6px;background:#b8876d;border-radius:3px}.legend i.green{background:#659179}.legend i.blue{background:#7095ae}
+.math-lines{font:18px/2 Georgia,'Noto Serif SC',serif;text-align:center;color:#59473a;padding:3px}.math-lines small{display:block;font:12px/1.7 var(--sans);color:#8e8074;margin-top:6px}
+.callout-green{border:1px solid #d7e3d8;background:#f0f6ef;border-radius:10px;padding:13px 16px;margin:14px 0;color:#5d7967;font-size:12.8px;line-height:1.9}.callout-green strong{color:#52705b}
+.note-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.note-chips span{border-radius:50px;border:1px solid #e7d9cb;background:#fffdfa;color:#83644f;padding:4px 10px;font-size:11px}
+.demo-section{border:1px solid #dfd1c3;background:#fffdf9;border-radius:13px;padding:17px;margin:22px 0}.demo-section h4{margin:0 0 6px;color:#714b37;font-size:14px}.demo-section .subnote{font-size:11px;color:#927f6f;line-height:1.8;margin:2px 0 12px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}.field-row label{display:block;font-size:11.5px;font-weight:700;color:#745b48}.field-row select,.field-row input[type=range]{width:100%;margin:7px 0 0}.field-row select{border:1px solid #dbccbf;border-radius:8px;background:#fff;padding:8px 9px;color:#6a5546}.field-row input[type=range]{accent-color:#a56f52}
+.demosvg{display:block;max-width:100%;width:100%;background:#faf9f6;border:1px solid #e4ded5;border-radius:9px;margin:13px auto 8px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.stats div{border:1px solid #e8dfd5;background:#faf7f1;border-radius:8px;padding:10px 12px;min-width:0}.stats small{display:block;font-size:10px;color:#9b8879;line-height:1.5}.stats strong{display:block;font:700 19px Georgia,serif;color:#795c48;overflow-wrap:anywhere}
+.demo-message{font-size:12px;line-height:1.85;color:#765e50;background:#f6eee5;border-radius:8px;padding:11px 13px;margin-top:12px}
+.pill-switch{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.pill-switch button{border:1px solid #dfcfc0;background:#fffaf4;color:#846551;padding:6px 12px;border-radius:7px;font-size:11px}.pill-switch button[aria-pressed=true]{background:#a77053;border-color:#a77053;color:white}
+.batch-dots{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:5px;margin:14px 0 8px}.batch-dot{height:19px;border-radius:5px;background:#ece5dc;border:1px solid #dfd5c7;transition:background .15s}.batch-dot.selected{background:#8db2a2;border:1px solid #6c9784}.batch-dot.outlier.selected{background:#c8a080;border-color:#b9896d}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.95em}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}.qa-grid .plain-panel{margin:0}.qa-grid p{margin:4px 0 0;font-size:12.4px}
+.small-demo-caption{font-size:11px;line-height:1.8;color:#958475}
+.next-route{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0;padding:16px 18px;border:1px solid #d4e1d6;background:#f0f6ef;border-radius:10px;color:#547765}.next-route strong{display:block;color:#50725c;font-size:14px}.next-route small{display:block;color:#8b9c8c;font-size:11px;margin-top:3px}.next-route:hover{background:#e8f2e8}
+.footer-link{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;margin:25px 0}.footer-link a{border-bottom:1px solid #d5beac;color:#8f6045;font-size:12.5px}.footer-link a:hover{color:#563b2d}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 225px}}
+@media(max-width:820px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}}
+@media(max-width:610px){.trio,.stats{grid-template-columns:1fr}.field-row,.qa-grid{grid-template-columns:1fr}.batch-dots{grid-template-columns:repeat(8,minmax(0,1fr))}.stats strong{font-size:17px}.formula .equation{font-size:18px}.formula .equation.tight{font-size:16px}.math-lines{font-size:16px}}
+</style></head><body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="mobile-bar"><b>沿途手记 / 训练与优化</b><button id="menuButton" type="button" aria-controls="sidebar" aria-expanded="false">☰ 目录</button></div>
+<div class="overlay" id="overlay" aria-hidden="true"></div>
+<div class="shell"><aside class="sidebar" id="sidebar" aria-label="阅读目录">
+<a class="brand" href="/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+<a class="back" href="../">← 返回 · 从神经网络到深度视觉</a>
+<div class="loc"><span class="eyebrow">当前位置 / CURRENT PAGE</span><strong>训练与优化</strong><p>学习式视觉定位 / 深度学习基础 / 03</p></div>
+<nav class="side-nav" aria-label="本篇目录">
+<a class="active" href="#opening"><span class="num">·</span>从上一站的问题开始</a>
+<a href="#boundary"><span class="num">00</span>任务与边界</a>
+<a href="#batch"><span class="num">01</span>Batch、Epoch 与 Step</a>
+<a href="#optimizer"><span class="num">02</span>SGD、Momentum、Adam</a>
+<a href="#lr"><span class="num">03</span>学习率与调度</a>
+<a href="#stability"><span class="num">04</span>初始化与归一化</a>
+<a href="#generalization"><span class="num">05</span>正则化与过拟合</a>
+<a href="#check"><span class="num">06</span>训练诊断与下一站</a>
+</nav><div class="side-bottom">上一篇 · <a href="../02-learning-mechanism/" style="color:#91694e">损失函数与反向传播 ↖</a><p style="margin:10px 0 0">下一篇 · <a href="../04-convolution-features/" style="color:#91694e">卷积与空间特征 ↗</a></p></div>
+</aside><main class="main"><article class="article">
+<nav class="crumbs" aria-label="页面路径"><a href="/">沿途手记</a><span>/</span><a href="/research/stage-01/">Stage 01</a><span>/</span><a href="../">从神经网络到深度视觉</a><span>/</span><span>训练与优化</span></nav>
+<header class="hero" id="opening"><div class="kicker">03 · MINI-BATCH · OPTIMIZERS · TRAINING STABILITY</div>
+<div class="hero-layout"><div><h1>训练与优化</h1><div class="sub">Training &amp; Optimization · From Gradients to Reliable Learning</div>
+<p>上一篇已经知道，反向传播可以计算每个参数的梯度。可真实训练并不是算一次梯度、更新一次参数就结束了：数据有成千上万条，梯度会变化，步子可能迈大，网络也可能越训练越不稳定。</p>
+<p>这一篇关心的是：<strong>拿到梯度之后，怎样组织训练、选择更新方式，并判断网络是否真的在学？</strong></p>
+<p>我们用最小的损失地形理解优化器；涉及完整的模型评测与数据泛化策略，只在这里建立必要概念。</p>
+<div class="tags"><span>Mini-batch</span><span>SGD</span><span>Momentum</span><span>Adam / AdamW</span><span>Learning Rate</span><span>Normalization</span></div></div>
+<figure class="hero-art"><svg viewBox="0 0 280 250" role="img" aria-label="训练过程像沿着损失曲面逐步寻找更低位置，不同优化器产生不同轨迹" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="6" width="268" height="238" rx="15" fill="#f7f1ea" stroke="#e6d8c8"/>
+<g fill="none" stroke="#d7c0ad" stroke-width="1.3" opacity=".95"><ellipse cx="142" cy="135" rx="105" ry="77"/><ellipse cx="142" cy="135" rx="79" ry="58"/><ellipse cx="142" cy="135" rx="55" ry="41"/><ellipse cx="142" cy="135" rx="31" ry="23"/></g>
+<path d="M225 69L189 113L164 126L149 132L142 135" fill="none" stroke="#a96d51" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M225 69L126 161L172 118L139 146L142 135" fill="none" stroke="#6b987d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 5"/>
+<circle cx="225" cy="69" r="6" fill="#b67d5d" stroke="white" stroke-width="2"/><circle cx="142" cy="135" r="6" fill="#5d8a71" stroke="white" stroke-width="2"/>
+<text x="185" y="48" font-size="11" font-family="sans-serif" fill="#977663">初始参数</text>
+<text x="150" y="155" font-size="11" font-family="sans-serif" fill="#5c8269">较低损失</text>
+<text x="141" y="207" text-anchor="middle" font-size="11" fill="#977f6c" font-family="sans-serif">梯度提供方向，优化器决定步伐</text>
+</svg></figure></div></header>
+
+<section class="chapter" id="boundary"><div class="chapter-kicker"><b>00</b> PROBLEM &amp; SCOPE</div>
+<h2>能计算梯度，为什么还不等于能训练好网络？</h2>
+<p>反向传播回答“参数往哪个方向变化会影响损失”；<strong>优化器</strong>决定如何利用梯度执行更新；训练设置则决定“用哪些样本计算梯度、每次走多大一步，以及何时停止”。</p>
+<div class="trio"><div><span class="index">01</span><b>梯度从哪里来？</b><small>用全部数据，还是分批近似整体方向？</small></div><div><span class="index">02</span><b>参数怎样更新？</b><small>直接沿梯度走，还是利用历史方向与自适应步幅？</small></div><div><span class="index">03</span><b>学得是否可靠？</b><small>损失是否稳定下降，能否在未见数据上工作？</small></div></div>
+<div class="flow"><span>样本批次</span><i>→</i><span>前向与损失</span><i>→</i><span>反向梯度</span><i>→</i><span>优化器更新</span><i>→</i><span>重复 / 验证</span></div>
+<div class="section-note"><strong>与上一篇的分工：</strong>上一站学“梯度如何算”；这一站学“多次迭代时如何有效地利用梯度”。具体图像模型的卷积结构、检测损失和数据集评测，留给后续对应专题。</div>
+</section>
+
+<section class="chapter" id="batch"><div class="chapter-kicker"><b>01</b> MINI-BATCH TRAINING</div>
+<h2>数据很多，难道每次都要用完整训练集求梯度？</h2>
+<p>如果一共有 N 个样本，完整梯度需要遍历全部数据；也可以只用一个样本估计梯度。现代深度学习更常见的折中是 <strong>Mini-batch</strong>：每次取一小批样本，计算平均损失与梯度，然后更新一次参数。</p>
+<div class="figure"><div class="figure-title">机制图 · 一个 Epoch 中的 Mini-batch 更新</div><div class="figure-inner"><svg viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="一个训练集被划分成多个 mini-batch，每个 batch 计算一次平均梯度并完成一次参数更新">
+<rect x="12" y="10" width="736" height="160" rx="11" fill="#fbf8f3" stroke="#e7ded5"/>
+<text x="26" y="33" font-size="14" font-weight="700" fill="#88654d">训练集：12 个样本，Batch Size = 4（示意）</text>
+<g>
+<rect x="35" y="65" width="29" height="29" rx="6" fill="#dfbca0" stroke="#c99a75"/><rect x="70" y="65" width="29" height="29" rx="6" fill="#dfbca0" stroke="#c99a75"/><rect x="105" y="65" width="29" height="29" rx="6" fill="#dfbca0" stroke="#c99a75"/><rect x="140" y="65" width="29" height="29" rx="6" fill="#dfbca0" stroke="#c99a75"/><rect x="193" y="65" width="29" height="29" rx="6" fill="#a7c5b8" stroke="#82a895"/><rect x="228" y="65" width="29" height="29" rx="6" fill="#a7c5b8" stroke="#82a895"/><rect x="263" y="65" width="29" height="29" rx="6" fill="#a7c5b8" stroke="#82a895"/><rect x="298" y="65" width="29" height="29" rx="6" fill="#a7c5b8" stroke="#82a895"/><rect x="351" y="65" width="29" height="29" rx="6" fill="#9db7cd" stroke="#779bb8"/><rect x="386" y="65" width="29" height="29" rx="6" fill="#9db7cd" stroke="#779bb8"/><rect x="421" y="65" width="29" height="29" rx="6" fill="#9db7cd" stroke="#779bb8"/><rect x="456" y="65" width="29" height="29" rx="6" fill="#9db7cd" stroke="#779bb8"/>
+</g>
+<g font-family="sans-serif" font-size="11" text-anchor="middle" fill="#876b59"><text x="84" y="114">Batch 1</text><text x="242" y="114">Batch 2</text><text x="404" y="114">Batch 3</text></g>
+<path d="M84 122v16h485" stroke="#b79d86" stroke-width="1.6" fill="none"/>
+<text x="580" y="143" font-size="12" fill="#5f866e">每批求梯度 → 更新一次</text>
+<text x="34" y="155" font-size="10.5" fill="#a08d7c">实际每个 Epoch 一般会先打乱样本，再按 Batch 分批；最后一批大小不一定相等。</text>
+</svg></div></div>
+<div class="formula"><div class="formula-name">小批量梯度 · 对批次样本求平均</div><div class="equation tight">g<sub>t</sub> = (1 / |B<sub>t</sub>|) ∑<sub>i∈Bₜ</sub> ∇<sub>θ</sub> ℓ<sub>i</sub>(θ<sub>t</sub>)</div><div class="explain">B<sub>t</sub> 为第 t 次取出的样本批次，ℓ<sub>i</sub> 是第 i 个样本损失。它估计整体训练集的梯度，估计值会因抽样而波动。</div></div>
+<h3>1.1 · Batch、Step 与 Epoch 到底是什么？</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>含义</th><th>简单例子</th></tr></thead><tbody>
+<tr><td>Batch Size</td><td>一次梯度计算所用的样本数</td><td>100 张图像</td></tr>
+<tr><td>Step / Iteration</td><td>常规情况下完成一次批次参数更新</td><td>读一批 → 更新一次</td></tr>
+<tr><td>Epoch</td><td>将训练集完整遍历一遍</td><td>1000 张、每批 100 张 → 通常 10 Step</td></tr>
+</tbody></table></div>
+<p>最后一批不满一个 Batch 时，是否保留取决于数据加载设置；使用<strong>梯度累积</strong>时，多次前向与反向计算也可能只对应一次优化器更新，因此 Step 的精确定义要看具体训练循环。</p>
+<h3>1.2 · 批次越小，梯度为什么越容易变化？</h3>
+<p>不同样本提供的梯度方向不完全一致。一次只看少数样本，算出来的平均方向可能偏离全数据梯度；批次增大，抽样误差的典型波动通常减小，但显存和一次更新的计算成本会增加。</p>
+<div class="demo-section" id="batchDemo"><h4>交互实验 · 每次抽到不同样本，梯度会改变</h4><p class="subnote">固定一个由 32 条样本组成的玩具数据集；绿色是当前抽中的样本。下面的值是样本梯度均值，不代表图像训练的真实测量。</p>
+<div class="pill-switch" role="group" aria-label="选择 Batch Size"><button data-batch="1" aria-pressed="false">B = 1</button><button data-batch="4" aria-pressed="true">B = 4</button><button data-batch="8" aria-pressed="false">B = 8</button><button data-batch="16" aria-pressed="false">B = 16</button><button data-batch="32" aria-pressed="false">B = 32</button></div>
+<div class="batch-dots" id="batchDots" aria-label="32 个训练样本与当前抽中样本"></div>
+<div class="stats"><div><small>全数据平均梯度</small><strong id="fullMean">—</strong></div><div><small>当前批次平均梯度</small><strong id="sampleMean">—</strong></div><div><small>与全数据梯度的差</small><strong id="batchDiff">—</strong></div></div>
+<button class="pill-switch" id="resample" type="button" style="margin:0;padding:7px 12px;border:1px solid #d3bbab;border-radius:7px;background:#a77053;color:white;font-size:12px">重新抽样 ↻</button>
+<div class="demo-message" id="batchMessage" aria-live="polite"></div></div>
+<div class="callout-green"><strong>要记住：</strong>小 Batch 的更新方向更随机，不代表一定更差；大 Batch 也不是无条件更好。合适的 Batch Size 与硬件、学习率、归一化方式和任务有关。</div>
+</section>
+
+<section class="chapter" id="optimizer"><div class="chapter-kicker"><b>02</b> OPTIMIZER FAMILIES</div>
+<h2>同样得到一组梯度，为什么还需要不同优化器？</h2>
+<p>优化器的核心职责是把梯度变成参数更新。三种经典思路可以这样区分：</p>
+<h3>2.1 · SGD：直接沿当前梯度更新</h3>
+<div class="formula"><div class="formula-name">不带动量的 Mini-batch SGD</div><div class="equation">θ<sub>t+1</sub> = θ<sub>t</sub> − ηg<sub>t</sub></div><div class="explain">η 是学习率，g<sub>t</sub> 是当前批次梯度。简单直接，但方向可能随批次变化而波动；需要正确设置学习率。</div></div>
+<h3>2.2 · Momentum：为什么要记住之前的方向？</h3>
+<p>如果连续几个批次的梯度方向相近，可以把历史更新方向累积起来；对于频繁反向的方向，动量可能抑制部分振荡。但动量也可能让参数越过极小值附近。</p>
+<div class="formula"><div class="formula-name">一种常见的动量写法</div><div class="equation tight">v<sub>t</sub> = μv<sub>t−1</sub> + g<sub>t</sub> &nbsp;;&nbsp; θ<sub>t+1</sub> = θ<sub>t</sub> − ηv<sub>t</sub></div><div class="explain">v 表示累积的梯度方向，μ 是动量系数（通常小于 1）。不同框架的实现和学习率放置方式可能采用等价的不同写法。</div></div>
+<h3>2.3 · Adam：为什么不同参数可以使用不同的有效步幅？</h3>
+<p>Adam 同时估计梯度的一阶矩（均值趋势）与二阶原始矩（平方梯度的趋势），经偏差修正后，为不同参数构造自适应更新尺度。</p>
+<div class="formula"><div class="formula-name">Adam 核心机制 · 逐元素运算</div>
+<div class="equation tight">m<sub>t</sub> = β₁m<sub>t−1</sub> + (1−β₁)g<sub>t</sub></div>
+<div class="equation tight">v<sub>t</sub> = β₂v<sub>t−1</sub> + (1−β₂)g<sub>t</sub><sup>2</sup></div>
+<div class="equation tight">m̂<sub>t</sub> = m<sub>t</sub>/(1−β₁<sup>t</sup>)，v̂<sub>t</sub> = v<sub>t</sub>/(1−β₂<sup>t</sup>)</div>
+<div class="equation tight">θ<sub>t+1</sub> = θ<sub>t</sub> − η · m̂<sub>t</sub>/(√v̂<sub>t</sub> + ε)</div>
+<div class="explain">g<sub>t</sub><sup>2</sup> 为逐元素平方；β₁、β₂ 为平滑系数。偏差修正用于缓解初始时刻 m、v 从零开始造成的偏小。ε 用来保持数值稳定。</div></div>
+<div class="table-wrap"><table><thead><tr><th>方法</th><th>如何利用梯度</th><th>主要关注</th></tr></thead><tbody>
+<tr><td>SGD</td><td>直接使用当前梯度</td><td>简单透明；学习率很关键</td></tr>
+<tr><td>Momentum</td><td>叠加历史方向</td><td>减轻部分振荡，但可能超调</td></tr>
+<tr><td>Adam</td><td>均值趋势 + 平方梯度自适应缩放</td><td>不同参数的有效步幅可不同</td></tr>
+</tbody></table></div>
+<div class="demo-section" id="optimizerDemo"><h4>交互实验 · 同一损失地形，不同参数更新轨迹</h4><p class="subnote">玩具目标：L(x,y)=½(18x²+y²)，初始 (1.7, 1.5)。狭长的等高线代表不同方向曲率差异很大。这里只可视化机制，不能据此得出某个优化器普遍更优。</p>
+<div class="field-row"><label for="method">优化器<select id="method"><option value="sgd">SGD</option><option value="momentum">Momentum (μ = 0.85)</option><option value="adam">Adam (β₁ = 0.9, β₂ = 0.999)</option></select></label><label for="learnRate">学习率 η：<output id="learnRateValue">0.07</output><input type="range" id="learnRate" min="0.01" max="0.14" step="0.01" value="0.07" aria-label="优化器学习率"></label></div>
+<div class="field-row" style="margin-top:13px"><label for="numberSteps">更新步数：<output id="numberStepsValue">20</output><input id="numberSteps" type="range" min="3" max="30" step="1" value="20" aria-label="更新步数"></label><div class="small-demo-caption">点表示每一步后的参数位置；虚线标出最小值 (0,0)。如果轨迹超出坐标范围，显示会裁剪，但损失仍按真实参数计算。</div></div>
+<svg id="optPlot" class="demosvg" viewBox="0 0 760 350" role="img" aria-label="二次损失的等高线和当前优化器的参数更新轨迹"><defs><clipPath id="plotClip"><rect x="89" y="24" width="583" height="286" rx="6"/></clipPath></defs><rect x="89" y="24" width="583" height="286" rx="8" fill="#fcfaf7" stroke="#e6ddd4"/><g id="contours" clip-path="url(#plotClip)"></g><path d="M380 24V310M89 167H672" stroke="#b8aaa0" stroke-dasharray="4 5" fill="none"/><text x="380" y="333" font-size="11" text-anchor="middle" fill="#958577">参数 x（高曲率方向）</text><text x="27" y="165" font-size="11" text-anchor="middle" fill="#958577" transform="rotate(-90 27 165)">参数 y</text><g id="trajectory" clip-path="url(#plotClip)"></g><circle cx="380" cy="167" r="5" fill="#5c9374" stroke="#fff" stroke-width="2"/><text x="395" y="156" font-size="11" fill="#57876a">最小值</text></svg>
+<div class="stats"><div><small>初始损失</small><strong id="startLoss">—</strong></div><div><small>最后一步损失</small><strong id="endLoss">—</strong></div><div><small>最终参数 (x, y)</small><strong id="lastPoint" style="font-size:14px;line-height:1.6">—</strong></div></div><div class="demo-message" id="optimizerMessage" aria-live="polite"></div></div>
+<p>再认识一个常见名词：<strong>AdamW</strong> 在 Adam 的自适应更新之外，采用解耦式权重衰减（Decoupled Weight Decay）。这不是“Adam 换一个名字”，它对正则化更新的处理与把 L2 惩罚直接加入 Adam 梯度不同。这里先理解区别，具体使用时再看框架参数。</p>
+</section>
+
+<section class="chapter" id="lr"><div class="chapter-kicker"><b>03</b> LEARNING RATE &amp; SCHEDULE</div>
+<h2>明明方向算对了，为什么学习率仍会让训练失败？</h2>
+<p>梯度给出局部变化方向，学习率决定沿这个方向移动的尺度。学习率太小，进展可能缓慢；太大，则可能在低损失区域两侧反复跳跃甚至发散。即使采用 Adam，也仍然需要合适的全局学习率。</p>
+<div class="figure"><div class="figure-title">机制图 · 相同地形，不同学习率的典型行为</div><div class="figure-inner"><svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="同一个二次损失函数上，学习率太小移动缓慢、合适时下降、过大时可能在谷底两侧反复跳跃或发散">
+<rect x="10" y="10" width="238" height="190" rx="10" fill="#fcf9f4" stroke="#eadfd3"/>
+<rect x="261" y="10" width="238" height="190" rx="10" fill="#fcf9f4" stroke="#eadfd3"/>
+<rect x="512" y="10" width="238" height="190" rx="10" fill="#fcf9f4" stroke="#eadfd3"/>
+<g font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle"><text x="129" y="33" fill="#947560">η 小：下降缓慢</text><text x="380" y="33" fill="#58816a">η 合适：接近谷底</text><text x="630" y="33" fill="#ae7559">η 大：越过谷底</text></g>
+<g stroke="#d8c7b8" stroke-width="2" fill="none"><path d="M31 68Q128 198 226 68"/><path d="M282 68Q379 198 477 68"/><path d="M533 68Q630 198 728 68"/></g>
+<path d="M45 85L67 111L87 132L103 144L116 150" stroke="#b99a72" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="116" cy="150" r="4" fill="#b99a72"/>
+<path d="M296 85L339 145L372 164L380 166" stroke="#6e9b7e" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="380" cy="166" r="4" fill="#6e9b7e"/>
+<path d="M547 85L710 89L560 103L717 79" stroke="#bf8464" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="717" cy="79" r="4" fill="#bf8464"/>
+<text x="129" y="187" text-anchor="middle" font-size="10" fill="#9b8676">示意轨迹，不是固定的普遍结果</text><text x="380" y="187" text-anchor="middle" font-size="10" fill="#9b8676">最小损失附近</text><text x="630" y="187" text-anchor="middle" font-size="10" fill="#9b8676">可能震荡或发散</text>
+</svg></div></div>
+<h3>3.1 · 为什么训练过程中要调整学习率？</h3>
+<p>训练早期往往希望较快探索参数空间，后期则更需要稳定地细化参数。常见做法包括阶梯衰减、余弦衰减，以及训练开始阶段的 Warmup。</p>
+<div class="formula"><div class="formula-name">余弦退火 · 一种常见的学习率计划</div><div class="equation tight">η(t) = η<sub>min</sub> + ½(η<sub>max</sub>−η<sub>min</sub>) · [1 + cos(πt/T)]</div><div class="explain">t 表示进度，T 为设定的衰减周期长度；该表达式表示从最大值平滑衰减到最小值。Warmup 可以在这段计划之前使用。</div></div>
+<h3>3.2 · 怎样区别优化器问题和学习率问题？</h3>
+<p>先检查学习率、损失尺度、梯度和数据，再考虑换优化器。直接从 SGD 改成 Adam，可能掩盖训练数值或数据本身的问题。</p>
+<div class="section-note"><strong>一个必要区分：</strong>Loss 曲线出现波动，不必然意味着训练失败。Mini-batch 本身引入梯度随机性，更重要的是观察趋势、梯度是否有限，以及验证集表现是否同步改善。</div>
+</section>
+
+<section class="chapter" id="stability"><div class="chapter-kicker"><b>04</b> INITIALIZATION &amp; NORMALIZATION</div>
+<h2>为什么网络越深，有时越难稳定训练？</h2>
+<p>参数的初始尺度不合理，或中间激活与梯度的数值范围失控，都可能让深层网络难以优化。这里先建立两项主要手段：<strong>合理初始化</strong>和<strong>归一化</strong>。</p>
+<h3>4.1 · 为什么权重不能随便初始化？</h3>
+<p>如果权重规模过大，激活或梯度可能被层层放大；过小则可能逐层衰减。此外，同一层神经元如果完全对称，可能无法学出有区别的表示。</p>
+<div class="formula"><div class="formula-name">He 初始化 · 针对 ReLU 类网络的常见近似尺度</div><div class="equation">Var(W) ≈ 2 / fan<sub>in</sub></div><div class="explain">fan<sub>in</sub> 是每个输出单元连接的输入数量。不同激活、网络结构和初始化分布需要不同假设；Xavier/Glorot 初始化则是另一类常见选择。</div></div>
+<h3>4.2 · BN、LN 分别在归一化什么？</h3>
+<p>归一化是选定若干统计维度，计算均值与方差，然后标准化，并通常允许可学习的缩放与平移。</p>
+<div class="formula"><div class="formula-name">归一化的基本计算</div><div class="equation tight">z = (x − μ) / √(σ² + ε)，&nbsp; y = γz + β</div><div class="explain">μ、σ² 来自选定维度的统计量；γ、β 是可学习参数。BN 和 LN 主要区别不是有没有这个公式，而是统计量沿哪些维度计算。</div></div>
+<div class="figure"><div class="figure-title">机制图 · 通过选定维度的统计量调整激活尺度</div><div class="figure-inner"><svg viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="激活值在不同批次或样本中分布不同，归一化对选定维度计算统计量并施加可学习的缩放和平移">
+<rect x="12" y="11" width="736" height="167" rx="12" fill="#faf8f5" stroke="#e7ded5"/>
+<text x="29" y="36" fill="#8d6b53" font-size="13" font-weight="700">未经归一化的激活</text><text x="434" y="36" fill="#5d846c" font-size="13" font-weight="700">归一化后，再做可学习仿射变换</text>
+<path d="M31 115H306M437 115H720" stroke="#c9b8a8" stroke-width="1.5"/>
+<g fill="#c7a489" opacity=".9"><rect x="60" y="104" width="19" height="11" rx="3"/><rect x="83" y="92" width="19" height="23" rx="3"/><rect x="106" y="61" width="19" height="54" rx="3"/><rect x="129" y="73" width="19" height="42" rx="3"/><rect x="152" y="53" width="19" height="62" rx="3"/><rect x="175" y="78" width="19" height="37" rx="3"/><rect x="198" y="90" width="19" height="25" rx="3"/><rect x="221" y="106" width="19" height="9" rx="3"/></g>
+<g fill="#86ae97" opacity=".96"><rect x="477" y="105" width="19" height="10" rx="3"/><rect x="500" y="86" width="19" height="29" rx="3"/><rect x="523" y="65" width="19" height="50" rx="3"/><rect x="546" y="52" width="19" height="63" rx="3"/><rect x="569" y="70" width="19" height="45" rx="3"/><rect x="592" y="87" width="19" height="28" rx="3"/><rect x="615" y="103" width="19" height="12" rx="3"/></g>
+<path d="M323 87H416m-8-7 8 7-8 7" stroke="#b39a85" stroke-width="2" fill="none"/>
+<text x="369" y="68" font-size="12" text-anchor="middle" fill="#92745e">Norm</text>
+<text x="166" y="149" text-anchor="middle" font-size="11" fill="#968474">原始统计量</text><text x="578" y="149" text-anchor="middle" font-size="11" fill="#6d8b77">按选定轴进行标准化</text>
+<text x="370" y="169" text-anchor="middle" font-size="10" fill="#a19589">示意：实际 BN 与 LN 使用不同的统计维度，输出分布也不必相同。</text>
+</svg></div></div>
+<div class="table-wrap"><table><thead><tr><th>方法</th><th>主要统计依据</th><th>需要特别注意</th></tr></thead><tbody>
+<tr><td>Batch Normalization (BN)</td><td>训练时使用当前 Mini-batch 的统计信息（卷积 BN 通常还汇总空间位置）</td><td>训练与推理处理方式不同；推理通常使用累计统计量</td></tr>
+<tr><td>Layer Normalization (LN)</td><td>对单个样本的指定特征维度计算统计量</td><td>不依赖同批其他样本的统计量；具体轴由实现定义</td></tr>
+</tbody></table></div>
+<h3>4.3 · 还有哪些常见数值问题？</h3>
+<div class="qa-grid"><div class="plain-panel"><b>梯度爆炸 / 消失</b><p>梯度在多层反向传递中可能变得极大或极小。可以检查梯度范数、激活值和初始化；梯度裁剪可限制过大的梯度，但不能解决所有根因。</p></div><div class="plain-panel"><b>训练 / 推理模式不一致</b><p>BN、Dropout 等层具有与模式有关的行为。训练中应使用训练模式，验证时切换推理模式，避免把运行模式错误误判为模型问题。</p></div></div>
+<div class="callout-green">Residual Connection（残差连接）也是深层网络可训练性的重要思路，相关机制放到下一阶段的「深层网络与多尺度」重点研究；这里不重复展开 ResNet 结构。</div>
+</section>
+
+<section class="chapter" id="generalization"><div class="chapter-kicker"><b>05</b> REGULARIZATION &amp; GENERALIZATION</div>
+<h2>训练损失不断下降，就说明模型越来越好吗？</h2>
+<p>不一定。训练优化关注的是让模型拟合训练样本；我们真正希望的是它在未见数据上也能工作。若训练集损失继续降低，但验证集损失逐渐变差，就需要警惕过拟合或训练与验证流程的问题。</p>
+<div class="figure"><div class="figure-title">机制图 · 训练损失与验证损失可能朝不同方向变化</div><div class="figure-inner"><svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="训练损失持续下降，但验证损失在某阶段后反而上升，提示可能出现过拟合">
+<rect x="12" y="10" width="736" height="219" rx="12" fill="#faf8f5" stroke="#e7ded5"/>
+<path d="M65 26V188H706" stroke="#c9b8a8" stroke-width="1.5" fill="none"/>
+<path d="M67 53C160 83 227 111 306 137S484 165 690 182" fill="none" stroke="#b88b6b" stroke-width="3" stroke-linecap="round"/>
+<path d="M67 60C170 110 275 139 352 143C460 141 535 119 690 65" fill="none" stroke="#638d79" stroke-width="3" stroke-linecap="round"/>
+<path d="M363 31V190" stroke="#acaaa4" stroke-width="1.3" stroke-dasharray="5 5"/>
+<text x="376" y="51" fill="#8e7968" font-size="12">观察验证集开始恶化的位置</text>
+<text x="570" y="178" font-size="12" fill="#ac7856">Training Loss</text><text x="575" y="91" font-size="12" fill="#638d79">Validation Loss</text>
+<text x="67" y="206" font-size="11" fill="#a29385">训练初期</text><text x="699" y="206" font-size="11" text-anchor="end" fill="#a29385">训练后期 →</text>
+<text x="26" y="32" font-size="11" fill="#968473" transform="rotate(-90 26 32)">Loss</text>
+</svg></div></div>
+<h3>5.1 · 常见约束手段在限制什么？</h3>
+<div class="table-wrap"><table><thead><tr><th>方法</th><th>主要作用</th><th>不应误解为</th></tr></thead><tbody>
+<tr><td>Weight Decay</td><td>抑制参数过大，形成一定的复杂度约束</td><td>所有参数都应以同样强度衰减</td></tr>
+<tr><td>Dropout</td><td>训练时随机屏蔽部分单元或连接的贡献</td><td>推理时仍应按相同方式随机丢弃</td></tr>
+<tr><td>Data Augmentation</td><td>通过合理的样本变换扩展训练变化范围</td><td>任意增强都一定符合任务语义</td></tr>
+<tr><td>Early Stopping</td><td>根据验证表现选择停止点或最佳检查点</td><td>训练损失最低就一定是最好模型</td></tr>
+</tbody></table></div>
+<p>这里仅理解它们为什么被提出。数据集划分、指标选择、分布变化和数据增强的具体策略，后面「训练、评价与泛化」将单独研究。</p>
+</section>
+
+<section class="chapter" id="check"><div class="chapter-kicker"><b>06</b> MINIMUM TRAINING CHECK</div>
+<h2>训练不正常时，应该先检查什么？</h2>
+<p>不用一开始就遍历所有超参数。先确认训练循环本身正确，再判断是数据、学习率、梯度尺度还是泛化问题。</p>
+<div class="table-wrap"><table><thead><tr><th>现象</th><th>优先检查</th></tr></thead><tbody>
+<tr><td>Loss 变成 NaN / Inf</td><td>输入是否有限、损失计算、学习率、梯度/激活范围、数值精度</td></tr>
+<tr><td>Loss 基本不变</td><td>是否真的更新参数、梯度是否为零、学习率、冻结层与标签</td></tr>
+<tr><td>Loss 大幅振荡</td><td>学习率是否过高、Batch 波动、异常样本、归一化状态</td></tr>
+<tr><td>训练好而验证差</td><td>训练/验证分布、数据泄漏、模式切换、过拟合与增强策略</td></tr>
+</tbody></table></div>
+<h3>6.1 · 一个最小的训练循环</h3>
+<div class="formula" style="background:#fffdf9"><div class="formula-name">伪代码 · 一次 Mini-batch 更新</div><pre style="overflow-x:auto;margin:5px 0 0;font:12.8px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;color:#625242">optimizer.zero_grad()   # 清除上次梯度
+prediction = model(batch_x)
+loss = criterion(prediction, batch_y)
+loss.backward()         # 计算梯度
+optimizer.step()        # 用梯度更新参数</pre><div class="explain">真实项目通常还需要数据加载、训练/验证模式、设备与精度管理、日志和检查点。此处仅展示最基本的“前向—反向—更新”关系。</div></div>
+<div class="plain-panel" style="margin:17px 0"><b>学完后应能独立解释</b><p>① 为什么 B=1 和 B=64 的梯度不同？② Momentum 和 Adam 在原理上各利用了什么历史信息？③ 为什么学习率过大可能使训练发散？④ BN 与 LN 的统计维度有什么不同？⑤ 为什么训练损失下降并不等于泛化提高？</p></div>
+<div class="final-line">这一篇要建立的不是“最优调参表”，而是一个可验证的训练模型：<br>① Mini-batch 决定梯度如何估计。<br>② 优化器与学习率决定怎样更新参数。<br>③ 初始化、归一化和正则化帮助训练，但不能替代数据与验证。</div>
+<a class="next-route" href="../04-convolution-features/"><span><strong>下一篇 · 卷积与空间特征</strong><small>神经网络能训练了，那么它怎样保留图像空间结构、学习局部视觉特征？</small></span><span style="font-size:24px" aria-hidden="true">↗</span></a>
+<div class="footer-link"><a href="../02-learning-mechanism/">← 上一篇 · 损失函数与反向传播</a><a href="../">返回 · 从神经网络到深度视觉</a></div>
+</section>
+<footer class="footer">沿途手记 · Stage 01 / 二维目标定位 / 学习式视觉定位 / 深度学习基础 / 训练与优化<br>Batch、优化器、学习率、稳定训练与泛化。</footer>
+</article></main></div><script>
+(()=>{
+ const sidebar=document.getElementById('sidebar'),menu=document.getElementById('menuButton'),overlay=document.getElementById('overlay');
+ function setMenu(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);menu.setAttribute('aria-expanded',String(open));document.body.style.overflow=(open&&innerWidth<=820)?'hidden':'';}
+ menu.addEventListener('click',()=>setMenu(!sidebar.classList.contains('open')));overlay.addEventListener('click',()=>setMenu(false));document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+ sidebar.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+ const anchors=[...document.querySelectorAll('.side-nav a[href^="#"]')];const sections=anchors.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+ let pending=false;
+ function onScroll(){pending=false;const height=document.documentElement.scrollHeight-innerHeight;document.getElementById('progress').style.width=(height>0?Math.min(100,Math.max(0,scrollY/height*100)):100)+'%';let current=sections[0];for(const sec of sections)if(sec.getBoundingClientRect().top<=(innerWidth<=820?110:135))current=sec;anchors.forEach(a=>{const active=a.getAttribute('href')==='#'+current.id;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});}
+ addEventListener('scroll',()=>{if(!pending){pending=true;requestAnimationFrame(onScroll)}},{passive:true});addEventListener('resize',()=>{if(innerWidth>820)setMenu(false);onScroll();},{passive:true});onScroll();
+ // Mini-batch sampling: fixed 32 per-sample gradients, deterministic seeded sampling.
+ const gradients=Array.from({length:32},(_,i)=>1.15+1.4*Math.sin(i*1.7+.25)+0.75*Math.cos(i*.73+1.1));
+ const mean=arr=>arr.reduce((a,b)=>a+b,0)/arr.length;
+ const full=mean(gradients);document.getElementById('fullMean').textContent=full.toFixed(3);
+ let batchSize=4,seed=11; const dots=document.getElementById('batchDots');
+ for(let i=0;i<32;i++){const cell=document.createElement('div');cell.className='batch-dot';cell.title='样本 '+(i+1);dots.appendChild(cell);}
+ function seededSample(n,seedVal){const idx=Array.from({length:32},(_,i)=>i);let s=seedVal>>>0;for(let i=31;i>0;i--){s=(Math.imul(s,1664525)+1013904223)>>>0;const j=s%(i+1);[idx[i],idx[j]]=[idx[j],idx[i]];}return idx.slice(0,n);}
+ function renderBatch(){const selected=seededSample(batchSize,seed),set=new Set(selected),sample=mean(selected.map(i=>gradients[i]));[...dots.children].forEach((d,i)=>{d.classList.toggle('selected',set.has(i));d.classList.toggle('outlier',Math.abs(gradients[i]-full)>1.2);d.title='样本 '+(i+1)+'，梯度 '+gradients[i].toFixed(2)+(set.has(i)?'，本批选中':'');});
+ document.querySelectorAll('[data-batch]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.batch)===batchSize)));
+ document.getElementById('sampleMean').textContent=sample.toFixed(3);document.getElementById('batchDiff').textContent=(sample-full).toFixed(3);
+ document.getElementById('batchMessage').textContent='当前选中 '+batchSize+' / 32 个样本，批次平均梯度 = '+sample.toFixed(3)+'；全数据平均梯度 = '+full.toFixed(3)+'。重新抽样时即使参数不变，批次梯度也可能改变。'+(batchSize===32?' 此时使用全部数据，偏差为零。':'');}
+ document.querySelectorAll('[data-batch]').forEach(b=>b.addEventListener('click',()=>{batchSize=Number(b.dataset.batch);renderBatch();}));document.getElementById('resample').addEventListener('click',()=>{seed+=101;renderBatch();});renderBatch();
+ // Real numerical SGD, heavy-ball momentum, and bias-corrected Adam on a 2D quadratic.
+ const ns='http://www.w3.org/2000/svg',contours=document.getElementById('contours'),trajectory=document.getElementById('trajectory');
+ function element(name,attrs,parent){const e=document.createElementNS(ns,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));parent.appendChild(e);return e;}
+ function map(x,y){return [380+120*x,167-61*y];}
+ for(const r of [0.25,0.5,1,2,4,8,16,32,64]){let rx=120*Math.sqrt(2*r/18),ry=61*Math.sqrt(2*r);element('ellipse',{cx:380,cy:167,rx,ry,stroke:r<4?'#d3e1d4':'#e6dad0','stroke-width':r<4?'1.6':'1.1',fill:'none'},contours);}
+ const method=document.getElementById('method'),lr=document.getElementById('learnRate'),steps=document.getElementById('numberSteps');
+ function objective(x,y){return .5*(18*x*x+y*y)}
+ function renderOptimizer(){const eta=Number(lr.value),n=Number(steps.value),alg=method.value;document.getElementById('learnRateValue').textContent=eta.toFixed(2);document.getElementById('numberStepsValue').textContent=String(n);
+ let x=1.7,y=1.5,vx=0,vy=0,mx=0,my=0,ux=0,uy=0;const positions=[[x,y,objective(x,y)]];
+ for(let t=1;t<=n;t++){const gx=18*x,gy=y;
+ if(alg==='sgd'){x-=eta*gx;y-=eta*gy;}
+ else if(alg==='momentum'){vx=.85*vx+gx;vy=.85*vy+gy;x-=eta*vx;y-=eta*vy;}
+ else {mx=.9*mx+.1*gx;my=.9*my+.1*gy;ux=.999*ux+.001*gx*gx;uy=.999*uy+.001*gy*gy;const mhatx=mx/(1-.9**t),mhaty=my/(1-.9**t),vhatx=ux/(1-.999**t),vhaty=uy/(1-.999**t);x-=eta*mhatx/(Math.sqrt(vhatx)+1e-8);y-=eta*mhaty/(Math.sqrt(vhaty)+1e-8);}
+ positions.push([x,y,objective(x,y)]);}
+ while(trajectory.firstChild)trajectory.removeChild(trajectory.firstChild);
+ const path=positions.map((p,i)=>{const v=map(p[0],p[1]);return (i?'L':'M')+v[0].toFixed(2)+' '+v[1].toFixed(2);}).join(' ');
+ element('path',{d:path,fill:'none',stroke:'#ba8062','stroke-width':2.8,'stroke-linejoin':'round','stroke-linecap':'round'},trajectory);
+ for(let i=0;i<positions.length;i++){const [px,py]=map(positions[i][0],positions[i][1]);element('circle',{cx:px,cy:py,r:i===0?6.5:i===positions.length-1?5.5:2.6,fill:i===0?'#597d9d':i===positions.length-1?'#5f947a':'#bc8869',stroke:'#fff', 'stroke-width':i===0?1.8:1},trajectory);}
+ document.getElementById('startLoss').textContent=positions[0][2].toFixed(4);document.getElementById('endLoss').textContent=positions[positions.length-1][2].toFixed(4);document.getElementById('lastPoint').textContent='('+x.toFixed(3)+', '+y.toFixed(3)+')';
+ const outside=positions.some(p=>Math.abs(p[0])>2.38||Math.abs(p[1])>2.33);
+ document.getElementById('optimizerMessage').textContent=(alg==='sgd'?'SGD：每一步只看当前梯度。':alg==='momentum'?'Momentum：同时利用历史累积方向，因此轨迹可能出现越过谷底的运动。':'Adam：根据历史一阶矩和二阶原始矩调整每个坐标的有效步幅。')+' 本次从 L='+positions[0][2].toFixed(3)+' 变到 '+positions[positions.length-1][2].toFixed(3)+'。'+(outside?'部分轨迹超出了可视范围；可降低学习率观察。':'')+' 这是同一超参数尺度下的演示，不是经过分别调参的公平性能比较。';}
+ [method,lr,steps].forEach(i=>i.addEventListener('input',renderOptimizer));renderOptimizer();
+})();
+</script></body></html>

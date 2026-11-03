@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#faf8f3">
+<meta name="description" content="沿途手记 · 卷积与空间特征：局部计算、共享权重、通道、特征图、步长、填充、池化、空间对应与感受野。">
+<title>04 · 卷积与空间特征｜沿途手记</title><style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.94 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}
+.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:53px 0 45px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3,h4{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:18px;line-height:1.65;margin:28px 0 11px}h4{font-size:14px;margin:17px 0 7px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 265px;gap:22px;align-items:center}.hero p{font-size:15.4px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:22px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}
+.chapter{padding:50px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:15px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:20px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula .eq-line{display:block}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}
+.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls input[type=range]{accent-color:var(--accent);vertical-align:middle;width:172px}.demo-controls input[type=checkbox]{accent-color:var(--accent);vertical-align:middle}.demo svg{display:block;width:100%;height:auto;max-height:380px;border:1px solid #e6ded6;background:#fbfaf7;border-radius:9px}.demo-readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.small-note{font-size:11px;color:#948476;line-height:1.85;margin-top:8px}.step-chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:19px 0}.step-chain .step{border:1px solid #e6d8ca;background:#fffdfa;padding:8px 12px;border-radius:8px;font-size:12px;color:#765b4b;font-weight:680}.step-chain .arrow{color:#aa947f}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 210px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:270px;justify-self:center;order:-1}h1{font-size:33px}.hero p{font-size:14.5px}.chapter{padding:37px 0 40px}.two-col,.three-col{grid-template-columns:1fr}.main{padding:0 18px 50px}.flow{gap:5px}.step-chain{gap:5px}.step-chain .step{padding:7px 8px;font-size:11px}.formula .equation{font-size:17px}.demo{padding:13px}.demo-head{display:block}.demo-controls{gap:8px}.demo-controls input[type=range]{width:125px}td,th{padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+
+.learn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0}.learn-grid>div{padding:14px 13px;border:1px solid var(--line);border-radius:10px;background:var(--white);min-height:102px}.learn-grid .n{font:italic 24px Georgia,serif;color:#b38c70}.learn-grid b{display:block;color:var(--ink);font-size:12.5px;margin:2px 0}.learn-grid small{font-size:11px;color:var(--muted);line-height:1.7;display:block}
+.micro{font-size:11px;color:#908276;line-height:1.9}.formula .equation.tight{font-size:18px;white-space:normal}.note-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:16px 0}.note-grid article{background:var(--white);border:1px solid var(--line);padding:14px 16px;border-radius:9px}.note-grid h4{margin:1px 0 6px;font-size:14px}.note-grid p{font-size:12px;line-height:1.75}.matdim{display:inline-block;padding:3px 6px;background:#eaf0ec;border-radius:5px;font-size:11px;color:#5a806d;font-weight:650}.eqstack{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0}.eqstack>div{padding:14px;background:var(--white);border:1px solid var(--line);border-radius:9px;min-width:0}.eqstack .formula{margin:7px 0;padding:8px}.eqstack p{font-size:12px;line-height:1.8}.callout-simple{border-left:3px solid #bf987b;padding:13px 15px;margin:15px 0 20px;color:#725744;background:#f9f0e7;border-radius:0 8px 8px 0;font-size:13px}.callout-simple.green{border-color:#779982;background:#eff5ef;color:#486957}.focusline{color:#846049;font-size:13px;font-weight:700;margin:16px 0 9px}.demo-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.demo-control-grid label{display:block;font-size:12px;font-weight:680}.demo-control-grid input{width:100%;accent-color:var(--accent)}.demo-control-grid output{font:750 13px Georgia,serif;color:#905f47}.demo-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:13px 0}.demo-stat-grid div{padding:10px;border-radius:7px;background:#f6f0e8;min-width:0}.demo-stat-grid small{display:block;color:#8d7b70;font-size:10px;line-height:1.5}.demo-stat-grid b{display:block;color:#6a4936;font:700 20px Georgia,serif;margin:3px 0}.demo-stat-grid .good{color:var(--green)}.demo-bottom{font-size:12px;color:#79685d;line-height:1.9}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}.chips button{border:1px solid #dfd2c4;background:#fff9f2;color:#80624f;border-radius:8px;padding:6px 11px;font:650 12px var(--sans)}.chips button.active{background:#e8d5c6;border-color:#ba8a69;color:#75462f}.formula small{display:block}.codeish{font:13px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;color:#745039}.route-link{display:flex;justify-content:space-between;align-items:center;border:1px solid #d8e3d9;background:#f1f6f0;padding:16px 19px;border-radius:10px;margin:23px 0;color:#557562;gap:12px}.route-link strong{display:block;font-size:14px;color:#557562}.route-link small{display:block;font-size:11px;margin-top:4px;color:#81998a}.route-link:hover{background:#e9f1e8}.footlinks{display:flex;justify-content:space-between;gap:12px;margin:24px 0;flex-wrap:wrap}.footlinks a{font-size:12px;color:#8d684f;border-bottom:1px solid #d7c4b6}.footlinks a:hover{color:#663b29}.svg-pad{padding:10px 11px 0}.svg-pad svg{display:block;width:100%;height:auto;max-width:100%}.overview-anchor{font-weight:720;color:#9b664c;border-bottom:1px dotted #d8ae95}.chip-hint{font-size:11px;color:#948074;margin-top:6px} .wide-fig svg{max-height:440px}
+@media(max-width:610px){.learn-grid,.note-grid{grid-template-columns:1fr}.eqstack{grid-template-columns:1fr}.demo-control-grid{grid-template-columns:1fr}.demo-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.demo-stat-grid b{font-size:17px}.route-link{padding:12px 14px}.figure-title{font-size:12px}.wide-fig svg{min-width:0}}
+
+/* Page 02 additions; same visual system as Page 01 */
+.hero-layout{grid-template-columns:minmax(0,1fr) 275px}.hero-art{min-width:0}
+.lesson-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:19px 0}.lesson-map>div{border:1px solid var(--line);background:var(--white);border-radius:10px;padding:14px 13px}.lesson-map .k{font:italic 24px Georgia,serif;color:#b58c71}.lesson-map b{display:block;font-size:12.8px;color:var(--ink);margin:2px 0}.lesson-map small{display:block;font-size:11.3px;line-height:1.75;color:var(--muted)}
+.figure svg{max-height:480px}.figure-inner{overflow:hidden}.formulas-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0}.formulas-two .formula{margin:0}.formulas-two .equation{font-size:19px;white-space:normal}.formula .equation.small{font-size:18px;white-space:normal}.line-formula{font:500 17px/2 Georgia,"Noto Serif SC",serif;color:#554133;word-break:break-word}.line-formula.indent{padding-left:20px}.inline-math{font:16px Georgia,"Noto Serif SC",serif;color:#73533f}.step-table{width:100%;border-collapse:collapse}.step-table td:first-child{width:40%;font-weight:600}.step-table .val{font-family:ui-monospace,Consolas,monospace;color:#647c69;font-size:12px;white-space:nowrap}.step-table th,.step-table td{padding:9px 12px}.step-table th{font-size:11px}
+.minicall{background:#f1f5f0;border:1px solid #d9e4d9;border-radius:10px;padding:15px 17px;margin:16px 0;color:#54725e;font-size:13px;line-height:1.9}.minicall strong{color:#4b6b56}.key-question{font-weight:700;color:#845e49;font-size:13px;margin:12px 0 9px}.number-bridge{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:16px 0}.number-bridge div{border:1px solid #eadccf;background:#fffdf9;border-radius:8px;padding:10px 7px;text-align:center}.number-bridge small{display:block;color:#9d8674;font-size:10px}.number-bridge b{color:#765743;font-family:Georgia,serif;font-size:17px}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:15px 0}.demo-panel{border:1px solid #e4d9cc;background:#fffaf3;border-radius:9px;padding:12px 14px}.demo-panel small{display:block;font-size:10.5px;color:#977f70}.demo-panel b{display:block;font:700 23px Georgia,serif;color:#9c694a;margin-top:2px}.demo-panel.secondary{background:#f1f6f0;border-color:#d9e7db}.demo-panel.secondary b{color:#5f866e}.demo label.range{display:block;font-size:12px;font-weight:650;color:#6e594c;line-height:1.9}.demo label.range input{display:block;width:100%;accent-color:var(--accent);margin:6px 0}.demo output{color:#965e42;font-weight:750;font-family:Georgia,serif}.demo-graph{border:1px solid #e7ded6;border-radius:9px;background:#faf8f4;overflow:hidden}.demo-graph svg{border:0!important;border-radius:0!important}
+.monostat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.monostat div{padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fffefa}.monostat small{display:block;font-size:10px;color:#927f70}.monostat strong{display:block;font:750 19px Georgia,serif;color:#785741;margin-top:4px}
+.warn{border-left:3px solid #c29275;border-radius:0 8px 8px 0;background:#f9eee5;color:#815d48;padding:13px 15px;font-size:12.5px;margin:15px 0}.footer-link{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;margin:25px 0}.footer-link a{border-bottom:1px solid #d5beac;color:#8f6045;font-size:12.5px}.footer-link a:hover{color:#563b2d}.next-route{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0;padding:16px 18px;border:1px solid #d4e1d6;background:#f0f6ef;border-radius:10px;color:#547765}.next-route strong{display:block;color:#50725c;font-size:14px}.next-route small{display:block;color:#8b9c8c;font-size:11px;margin-top:3px}.next-route:hover{background:#e8f2e8}.small-note{line-height:1.9}.formula .explain{line-height:1.9}.figure-title{line-height:1.7}.extra-compact p{font-size:13px;line-height:1.85}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 225px}}
+@media(max-width:820px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}}
+@media(max-width:610px){.lesson-map,.formulas-two{grid-template-columns:1fr}.number-bridge{grid-template-columns:repeat(2,1fr)}.demo-grid{grid-template-columns:1fr}.formula .equation{font-size:18px;white-space:normal}.figure svg{max-height:none}.number-bridge b{font-size:16px}}
+
+/* 03 · training and optimization: same visual identity as chapters 01–02 */
+.hero-layout{grid-template-columns:minmax(0,1fr) 270px}
+.hero-art{margin:0;min-width:0}.hero-art svg{width:100%;height:auto}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.trio>div{padding:13px 14px;border:1px solid var(--line);background:var(--white);border-radius:10px;min-width:0}
+.trio b{display:block;font-size:13px;color:#695343;margin-bottom:3px}.trio small{display:block;color:var(--muted);font-size:11px;line-height:1.72}
+.trio .index{font:italic 22px Georgia,serif;color:#b58c71;line-height:1.4}
+.formula .equation{white-space:normal}.formula .equation.tight{font-size:18px;white-space:normal}
+.formula .explain{line-height:1.9}.labelled-chart{border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden;margin:18px 0}.labelled-chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:9px 16px;font-size:11px;color:#806e60;padding:0 15px 13px}.legend i{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:6px;background:#b8876d;border-radius:3px}.legend i.green{background:#659179}.legend i.blue{background:#7095ae}
+.math-lines{font:18px/2 Georgia,'Noto Serif SC',serif;text-align:center;color:#59473a;padding:3px}.math-lines small{display:block;font:12px/1.7 var(--sans);color:#8e8074;margin-top:6px}
+.callout-green{border:1px solid #d7e3d8;background:#f0f6ef;border-radius:10px;padding:13px 16px;margin:14px 0;color:#5d7967;font-size:12.8px;line-height:1.9}.callout-green strong{color:#52705b}
+.note-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.note-chips span{border-radius:50px;border:1px solid #e7d9cb;background:#fffdfa;color:#83644f;padding:4px 10px;font-size:11px}
+.demo-section{border:1px solid #dfd1c3;background:#fffdf9;border-radius:13px;padding:17px;margin:22px 0}.demo-section h4{margin:0 0 6px;color:#714b37;font-size:14px}.demo-section .subnote{font-size:11px;color:#927f6f;line-height:1.8;margin:2px 0 12px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}.field-row label{display:block;font-size:11.5px;font-weight:700;color:#745b48}.field-row select,.field-row input[type=range]{width:100%;margin:7px 0 0}.field-row select{border:1px solid #dbccbf;border-radius:8px;background:#fff;padding:8px 9px;color:#6a5546}.field-row input[type=range]{accent-color:#a56f52}
+.demosvg{display:block;max-width:100%;width:100%;background:#faf9f6;border:1px solid #e4ded5;border-radius:9px;margin:13px auto 8px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.stats div{border:1px solid #e8dfd5;background:#faf7f1;border-radius:8px;padding:10px 12px;min-width:0}.stats small{display:block;font-size:10px;color:#9b8879;line-height:1.5}.stats strong{display:block;font:700 19px Georgia,serif;color:#795c48;overflow-wrap:anywhere}
+.demo-message{font-size:12px;line-height:1.85;color:#765e50;background:#f6eee5;border-radius:8px;padding:11px 13px;margin-top:12px}
+.pill-switch{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.pill-switch button{border:1px solid #dfcfc0;background:#fffaf4;color:#846551;padding:6px 12px;border-radius:7px;font-size:11px}.pill-switch button[aria-pressed=true]{background:#a77053;border-color:#a77053;color:white}
+.batch-dots{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:5px;margin:14px 0 8px}.batch-dot{height:19px;border-radius:5px;background:#ece5dc;border:1px solid #dfd5c7;transition:background .15s}.batch-dot.selected{background:#8db2a2;border:1px solid #6c9784}.batch-dot.outlier.selected{background:#c8a080;border-color:#b9896d}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.95em}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}.qa-grid .plain-panel{margin:0}.qa-grid p{margin:4px 0 0;font-size:12.4px}
+.small-demo-caption{font-size:11px;line-height:1.8;color:#958475}
+.next-route{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0;padding:16px 18px;border:1px solid #d4e1d6;background:#f0f6ef;border-radius:10px;color:#547765}.next-route strong{display:block;color:#50725c;font-size:14px}.next-route small{display:block;color:#8b9c8c;font-size:11px;margin-top:3px}.next-route:hover{background:#e8f2e8}
+.footer-link{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;margin:25px 0}.footer-link a{border-bottom:1px solid #d5beac;color:#8f6045;font-size:12.5px}.footer-link a:hover{color:#563b2d}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 225px}}
+@media(max-width:820px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}}
+@media(max-width:610px){.trio,.stats{grid-template-columns:1fr}.field-row,.qa-grid{grid-template-columns:1fr}.batch-dots{grid-template-columns:repeat(8,minmax(0,1fr))}.stats strong{font-size:17px}.formula .equation{font-size:18px}.formula .equation.tight{font-size:16px}.math-lines{font-size:16px}}
+
+/* Chapter 04 refinements */
+.hero-layout{grid-template-columns:minmax(0,1fr) 275px}
+.hero-art{margin:0;min-width:0}.hero-art svg{display:block;width:100%;height:auto}
+.section-note{line-height:1.9}
+.formula .equation{white-space:normal}.formula .explain{line-height:1.92}
+.formula .equation.tight{font-size:18px}
+.math-tag{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;border-radius:5px;padding:3px 6px;background:#f6eee6;color:#875742}
+.module{border:1px solid #e2d4c7;border-radius:13px;background:#fffdfa;padding:19px;margin:22px 0}
+.module-title{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#75513c;font-weight:750;font-size:13.5px}
+.module-note{font-size:11.5px;color:#948375;line-height:1.8;margin:8px 0 15px}
+.controls{display:flex;gap:13px;align-items:end;flex-wrap:wrap;margin:13px 0 15px}
+.controls label{min-width:145px;flex:1;font-size:11.5px;line-height:1.5;font-weight:700;color:#7b6656}
+.controls select,.controls input[type=number]{display:block;margin-top:5px;padding:8px 9px;width:100%;background:#fff;border:1px solid #dacdbf;border-radius:8px;color:#594f45;font-size:12px}
+.controls select:focus-visible,.controls input:focus-visible,.cell:focus-visible{outline:2px solid #a56e52;outline-offset:2px}
+.conv-demo-layout{display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1.1fr) 34px minmax(0,1fr);gap:7px;align-items:center}
+.matrix-col{min-width:0}.matrix-label{text-align:center;min-height:37px;color:#857061;font-size:11px;line-height:1.5;margin-bottom:7px}.matrix-label b{color:#684e40}
+.math-arrow{text-align:center;color:#b39179;font:24px Georgia,serif}
+.cell-grid{--cols:5;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:3px;max-width:100%;margin:auto}
+.cell{border:1px solid #e5dbd1;border-radius:5px;min-height:27px;aspect-ratio:1.03;display:flex;justify-content:center;align-items:center;font:600 clamp(10px,1vw,13px) ui-monospace,Consolas,monospace;color:#5b5148;background:#f4f0e8;transition:background .13s,border-color .13s}
+.cell.input-active{background:#f7dac0;border-color:#b87e5b;box-shadow:inset 0 0 0 1px #b87e5b}
+.cell.kernel-pos{background:#f2e0d2;color:#865b45;border-color:#e0bba2}
+.cell.kernel-neg{background:#e7eef4;color:#4e758d;border-color:#bfd3e2}
+.cell.kernel-zero{background:#f7f6f2;color:#b8ada3}
+.cell.output-cell{cursor:pointer;border-color:#d4d4c8}.cell.output-cell:hover{border-color:#a57e5e}
+.cell.output-selected{border-color:#ae7250;box-shadow:inset 0 0 0 2px #ae7250}
+.cell.output-pos{background:#e7f1e9;color:#567763}.cell.output-neg{background:#edf0f5;color:#5f7f95}.cell.output-zero{background:#f4f0ea;color:#8b8177}
+.demo-result{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:15px 0}
+.demo-result>div{background:#f7f2ea;border:1px solid #ebe0d6;border-radius:9px;padding:10px 12px;min-width:0}
+.demo-result small{display:block;color:#9a897b;font-size:10.5px}.demo-result strong{font:700 19px Georgia,serif;color:#79563f;display:block;margin-top:4px;overflow-wrap:anywhere}
+.calc-steps{padding:12px 15px;background:#f7f2ea;border-radius:9px;font-size:12px;color:#756155;line-height:1.9;overflow-wrap:anywhere}
+.demo-callout{font-size:12px;color:#6a584d;line-height:1.9;margin:11px 0 0}.demo-callout strong{color:#75523f}
+.layer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.layer-grid .plain-panel{margin:0}.layer-grid .plain-panel b{font-size:13px}
+.rf-illustration{border:1px solid #eadfd6;background:#fbfaf6;border-radius:10px;padding:5px;margin:12px 0 0}
+.rf-illustration svg{width:100%;height:auto;display:block;overflow:visible}
+.mini-title{font-size:12.5px;font-weight:740;color:#80614b;margin:20px 0 8px}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:17px 0}
+.qa-grid .plain-panel{margin:0}.qa-grid .plain-panel p{font-size:12px}
+.rf-controls{display:flex;flex-wrap:wrap;gap:15px;align-items:end;margin:12px 0}.rf-controls label{color:#766155;font-size:11.5px;font-weight:700;min-width:160px;flex:1}.rf-controls select{display:block;width:100%;border:1px solid #decebf;border-radius:7px;background:white;padding:9px 11px;margin-top:5px;color:#735744}
+.takeaways{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 0}
+.takeaways .plain-panel b{color:#795640}.takeaways .plain-panel p{font-size:12px}
+.checklist{list-style:none;padding:0;margin:12px 0}.checklist li{padding:10px 4px 10px 27px;border-bottom:1px solid #eae1d8;position:relative;font-size:13px}.checklist li:before{content:'□';position:absolute;left:4px;top:10px;color:#a67b60}
+.next-link{display:flex;justify-content:space-between;align-items:center;gap:15px;background:#edf3ee;border:1px solid #d8e4da;border-radius:10px;padding:17px 19px;margin:25px 0;color:#587967}.next-link strong{display:block;color:#567661;font-size:14px}.next-link small{display:block;color:#829486;font-size:11px}.next-link:hover{background:#e4efe7}
+.foot-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin:25px 0}.foot-links a{color:#93664d;font-size:12px;border-bottom:1px solid #d9c6b6}.foot-links a:hover{color:#603d2b}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 205px}}
+@media(max-width:900px){.conv-demo-layout{grid-template-columns:1fr 22px 1fr;gap:6px}.conv-demo-layout .out-arrow{display:none}.conv-demo-layout .output-col{grid-column:1/-1;max-width:250px;margin:14px auto 0;width:100%}.layer-grid{grid-template-columns:1fr 1fr}.hero-art{display:none}.hero-layout{grid-template-columns:1fr}}
+@media(max-width:610px){.conv-demo-layout{grid-template-columns:1fr 20px 1fr}.matrix-label{font-size:10px}.cell{min-height:23px;font-size:10px;gap:2px}.module{padding:13px}.demo-result,.qa-grid,.takeaways,.layer-grid{grid-template-columns:1fr}.formula .equation{font-size:17px}.formula .equation.tight{font-size:15px}.hero-art{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style></head><body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="mobile-bar"><b>沿途手记 / 卷积与空间特征</b><button id="menuButton" type="button" aria-controls="sidebar" aria-expanded="false">☰ 目录</button></div>
+<div class="overlay" id="overlay" aria-hidden="true"></div>
+<div class="shell"><aside class="sidebar" id="sidebar" aria-label="阅读目录">
+<a class="brand" href="/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+<a class="back" href="../">← 返回 · 从神经网络到深度视觉</a>
+<div class="loc"><span class="eyebrow">当前位置 / CURRENT PAGE</span><strong>卷积与空间特征</strong><p>学习式视觉定位 / 深度视觉基础 / 04</p></div>
+<nav class="side-nav" aria-label="本篇目录">
+<a class="active" href="#opening"><span class="num">·</span>从上一站的问题开始</a>
+<a href="#boundary"><span class="num">00</span>问题与研究边界</a>
+<a href="#conv"><span class="num">01</span>卷积核如何计算</a>
+<a href="#channels"><span class="num">02</span>通道与共享权重</a>
+<a href="#sizes"><span class="num">03</span>Stride、Padding、Pooling</a>
+<a href="#spatial"><span class="num">04</span>空间位置与感受野</a>
+<a href="#tradeoffs"><span class="num">05</span>优势与局限</a>
+<a href="#check"><span class="num">06</span>最小验证与下一站</a>
+</nav>
+<div class="side-bottom">上一篇 · <a href="../03-training-optimization/" style="color:#91694e">训练与优化 ↖</a><p style="margin:10px 0 0">下一篇 · <a href="../05-deep-multiscale/" style="color:#91694e">深层网络与多尺度 ↗</a></p></div>
+</aside><main class="main"><article class="article">
+<nav class="crumbs" aria-label="页面路径"><a href="/">沿途手记</a><span>/</span><a href="/research/stage-01/">Stage 01</a><span>/</span><a href="../">从神经网络到深度视觉</a><span>/</span><span>卷积与空间特征</span></nav>
+<header class="hero" id="opening"><div class="kicker">04 · CONVOLUTION · SPATIAL FEATURES</div>
+<div class="hero-layout"><div><h1>卷积与空间特征</h1><div class="sub">Convolution &amp; Spatial Features · From Pixels to Feature Maps</div>
+<p>前面已经知道，神经网络能够从数据学习参数。但一张图像不是普通的一维特征向量：<strong>邻近像素之间有空间关系，目标也有明确的位置和大小。</strong></p>
+<p>如果简单把整张图像展平成向量，再用全连接层处理，会丢失显式的二维邻接结构，也需要大量参数。我们可以从一个更自然的想法开始：<strong>让同一组可学习的局部计算，在图像不同位置重复使用。</strong></p>
+<p>这一篇研究卷积怎样产生特征图，以及图像尺寸变化后，网络为什么仍能保留可用于定位的空间信息。</p>
+<div class="tags"><span>Convolution</span><span>Channels</span><span>Feature Map</span><span>Stride / Padding</span><span>Pooling</span><span>Receptive Field</span></div></div>
+<figure class="hero-art"><svg viewBox="0 0 286 249" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="输入像素网格，三乘三卷积核滑动生成更小的特征图">
+<rect x="6" y="6" width="274" height="237" rx="15" fill="#f6f0e8" stroke="#e5d5c6"/>
+<text x="25" y="33" font-size="12" fill="#7b5c47" font-family="sans-serif" font-weight="bold">从局部像素到空间特征</text>
+<g transform="translate(25 58)">
+<rect x="0" y="0" width="18" height="18" rx="3" fill="#c3a283" opacity="0.65"/><rect x="21" y="0" width="18" height="18" rx="3" fill="#c3a283" opacity="0.7000000000000001"/><rect x="42" y="0" width="18" height="18" rx="3" fill="#e0d0bc" opacity="0.75"/><rect x="63" y="0" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.65"/><rect x="84" y="0" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.7000000000000001"/><rect x="105" y="0" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.75"/><rect x="0" y="21" width="18" height="18" rx="3" fill="#c3a283" opacity="0.7000000000000001"/><rect x="21" y="21" width="18" height="18" rx="3" fill="#c3a283" opacity="0.75"/><rect x="42" y="21" width="18" height="18" rx="3" fill="#e0d0bc" opacity="0.65"/><rect x="63" y="21" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.7000000000000001"/><rect x="84" y="21" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.75"/><rect x="105" y="21" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.65"/><rect x="0" y="42" width="18" height="18" rx="3" fill="#c3a283" opacity="0.75"/><rect x="21" y="42" width="18" height="18" rx="3" fill="#c3a283" opacity="0.65"/><rect x="42" y="42" width="18" height="18" rx="3" fill="#e0d0bc" opacity="0.7000000000000001"/><rect x="63" y="42" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.75"/><rect x="84" y="42" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.65"/><rect x="105" y="42" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.7000000000000001"/><rect x="0" y="63" width="18" height="18" rx="3" fill="#c3a283" opacity="0.65"/><rect x="21" y="63" width="18" height="18" rx="3" fill="#c3a283" opacity="0.7000000000000001"/><rect x="42" y="63" width="18" height="18" rx="3" fill="#e0d0bc" opacity="0.75"/><rect x="63" y="63" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.65"/><rect x="84" y="63" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.7000000000000001"/><rect x="105" y="63" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.75"/><rect x="0" y="84" width="18" height="18" rx="3" fill="#c3a283" opacity="0.7000000000000001"/><rect x="21" y="84" width="18" height="18" rx="3" fill="#c3a283" opacity="0.75"/><rect x="42" y="84" width="18" height="18" rx="3" fill="#e0d0bc" opacity="0.65"/><rect x="63" y="84" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.7000000000000001"/><rect x="84" y="84" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.75"/><rect x="105" y="84" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.65"/><rect x="0" y="105" width="18" height="18" rx="3" fill="#c3a283" opacity="0.75"/><rect x="21" y="105" width="18" height="18" rx="3" fill="#c3a283" opacity="0.65"/><rect x="42" y="105" width="18" height="18" rx="3" fill="#e0d0bc" opacity="0.7000000000000001"/><rect x="63" y="105" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.75"/><rect x="84" y="105" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.65"/><rect x="105" y="105" width="18" height="18" rx="3" fill="#9bb7c1" opacity="0.7000000000000001"/>
+<rect x="20" y="21" width="60" height="60" rx="3" stroke="#ac694b" fill="#efc5a133" stroke-width="2.4"/>
+</g>
+<path d="M157 113H192m-8-7 8 7-8 7" fill="none" stroke="#af8a70" stroke-width="2"/>
+<g transform="translate(205 88)">
+<rect x="0" y="0" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/><rect x="21" y="0" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/><rect x="42" y="0" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/><rect x="0" y="21" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/><rect x="21" y="21" width="18" height="18" rx="3" fill="#8db1a0" stroke="#94af9f" stroke-width=".5"/><rect x="42" y="21" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/><rect x="0" y="42" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/><rect x="21" y="42" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/><rect x="42" y="42" width="18" height="18" rx="3" fill="#d8e8db" stroke="#94af9f" stroke-width=".5"/>
+</g>
+<text x="78" y="205" text-anchor="middle" font-size="11" fill="#8c7766" font-family="sans-serif">局部窗口 × 共享权重</text>
+<text x="230" y="162" text-anchor="middle" font-size="10.5" fill="#60816c" font-family="sans-serif">特征图</text>
+</svg></figure></div></header>
+
+<section class="chapter" id="boundary"><div class="chapter-kicker"><b>00</b> PROBLEM &amp; SCOPE</div>
+<h2>从普通向量走向图像，真正增加了什么问题？</h2>
+<p>MLP 接收向量、逐层映射。图像则提供一张有序的二维网格：相同的边缘可能出现在左上角，也可能出现在右下角；网络不仅要发现某种图案，还要知道它大概出现在哪里。</p>
+<div class="two-col"><div class="plain-panel"><span class="mini-label">输入</span><b>图像张量</b><p>通常按 <code>[N, C, H, W]</code> 存储：批次、通道、高、宽。例如 [1, 3, 640, 640]。</p></div><div class="plain-panel"><span class="mini-label">目标</span><b>具有空间结构的特征图</b><p>通过局部计算提取响应，同时保留特征图的行列索引，为后续检测与分割提供空间依据。</p></div></div>
+<p><strong>研究边界：</strong>这里理解卷积与空间表示的机制，不重新推导反向传播，不讲完整的 ResNet/FPN，也不提前展开 YOLO 的 BBox 解码。实际视觉网络还会组合归一化、激活、注意力等模块。</p>
+</section>
+
+<section class="chapter" id="conv"><div class="chapter-kicker"><b>01</b> LOCAL COMPUTATION</div>
+<h2>卷积核为什么能从局部像素中提取信息？</h2>
+<p>先从最小的<strong>单通道灰度图</strong>开始。拿一个 3×3 权重矩阵，覆盖图像的一块 3×3 区域：对应元素相乘，再把九个乘积相加，得到输出特征图的一个数值。将窗口移动到其他位置，重复同样的运算。</p>
+<div class="formula"><div class="formula-name">二维卷积层的局部计算（深度学习框架常用的互相关记法）</div><div class="equation tight">Y[i,j] = b + ∑<sub>u=0</sub><sup>K−1</sup> ∑<sub>v=0</sub><sup>K−1</sup> W[u,v] · X[iS+u−P, jS+v−P]</div><div class="explain">X 为输入图像，W 为 K×K 卷积核，b 为偏置，S 为步长，P 为每侧填充宽度；越界位置按零填充。本篇先不考虑 Dilation。严格数学意义上的卷积通常还会翻转核，PyTorch 等深度学习框架常称这里的互相关运算为“卷积”。</div></div>
+<h3>1.1 · 一次手算：为什么某个方向的边缘会有较大响应？</h3>
+<p>设卷积核每一行都是 <code>[-1, 0, 1]</code>，表示从左到右计算亮度差。若一个局部 3×3 区域左侧较暗、右侧较亮，三个行差异会累加，输出较大的正响应。反过来则得到负响应。</p>
+<div class="formula"><div class="formula-name">最小算例 · 右侧比左侧更亮</div><div class="equation tight">(8−2) + (8−2) + (8−2) = 18</div><div class="explain">这是演示原理的人为设置核，不代表训练后的卷积核一定会变成边缘检测器。网络实际学习到的权重由训练目标与数据决定。</div></div>
+<div class="module" id="convDemo"><div class="module-title"><span>交互实验 · 一块局部窗口怎样产生一个输出值？</span><span class="math-tag">5×5 → 3×3 Kernel</span></div>
+<p class="module-note">输入固定为一个简单的灰度图。切换卷积核、Stride 和 Padding，点击右侧输出格子，左侧会高亮对应输入窗口，下面展示确切的乘加计算。这里不额外施加 ReLU。</p>
+<div class="controls"><label>卷积核<select id="kernelSelect"><option value="edge">竖直边缘响应</option><option value="blur">均值平滑</option><option value="identity">中心像素（恒等核）</option></select></label>
+<label>Stride（步长）<select id="strideSelect"><option value="1">S = 1</option><option value="2">S = 2</option></select></label>
+<label>Padding（零填充）<select id="paddingSelect"><option value="0">P = 0</option><option value="1">P = 1</option></select></label></div>
+<div class="conv-demo-layout"><div class="matrix-col"><div class="matrix-label"><b>输入 X</b><br>5 × 5</div><div class="cell-grid" id="inputGrid" style="--cols:5" aria-label="输入像素矩阵"></div></div><div class="math-arrow">×</div><div class="matrix-col"><div class="matrix-label"><b>共享卷积核 W</b><br>3 × 3</div><div class="cell-grid" id="kernelGrid" style="--cols:3;max-width:175px" aria-label="卷积核矩阵"></div></div><div class="math-arrow out-arrow">→</div><div class="matrix-col output-col"><div class="matrix-label"><b>输出 Y</b><br><span id="outputSize">3 × 3</span> · 点击数值</div><div class="cell-grid" id="outputGrid" style="--cols:3" aria-label="卷积输出数值矩阵"></div></div></div>
+<div class="demo-result"><div><small>当前选中输出位置 (row, col)</small><strong id="selectedPos">(1, 1)</strong></div><div><small>对应卷积计算结果</small><strong id="selectedValue">18</strong></div></div>
+<div class="calc-steps" id="calcSteps" aria-live="polite">—</div><p class="demo-callout">注意：改变 Stride 或 Padding，会改变<strong>在哪些位置计算</strong>；改变卷积核，会改变<strong>每个位置计算什么</strong>。</p></div>
+<h3>1.2 · “局部连接”和“权重共享”有什么区别？</h3>
+<div class="two-col"><div class="plain-panel"><span class="mini-label">局部连接</span><b>只看附近的像素</b><p>一个输出位置通常只依赖输入的一个局部邻域，而不是整张图像的所有像素。</p></div><div class="plain-panel"><span class="mini-label">权重共享</span><b>不同位置使用同一套权重</b><p>同一组核参数在图像中重复使用，因此能以较少参数检测不同位置出现的相似局部模式。</p></div></div>
+<p>需要区分：卷积通常具有对平移的<strong>等变性</strong>（输出响应随图案平移而平移），不是不论目标移到哪里都得到相同输出的“完全平移不变性”。边界、步长和下采样也会影响这种性质。</p>
+</section>
+
+<section class="chapter" id="channels"><div class="chapter-kicker"><b>02</b> CHANNELS &amp; TRAINABLE KERNELS</div>
+<h2>RGB 有三个通道，为什么卷积后会变成几十个通道？</h2>
+<p>单通道例子只解释了空间计算。真实图像往往有 RGB 三个输入通道；一个普通卷积的<strong>输出通道</strong>会同时读取所有输入通道：每个输入通道都有相应的卷积核切片，结果相加得到一张输出特征图。</p>
+<div class="figure"><div class="figure-title">机制图 · 输入通道 → 卷积核组 → 多张输出特征图</div><div class="figure-inner"><svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RGB 输入三通道，每个输出卷积核同时读取三通道并求和，16组卷积核得到16张输出特征图">
+<rect x="8" y="10" width="744" height="220" rx="12" fill="#fcfaf7" stroke="#e9e0d6"/>
+<g transform="translate(46 54)">
+<rect x="30" y="32" width="116" height="103" rx="5" fill="#a4b9ca" stroke="#7194b1"/>
+<rect x="16" y="16" width="116" height="103" rx="5" fill="#a5c9ad" stroke="#6eaa87"/>
+<rect x="0" y="0" width="116" height="103" rx="5" fill="#e3aaa0" stroke="#c68476"/>
+<text x="58" y="50" text-anchor="middle" font-size="13" font-weight="bold" fill="#79534b">RGB</text>
+<text x="60" y="153" font-size="11" text-anchor="middle" fill="#8d7b6b">3 个输入通道</text>
+</g>
+<path d="M200 119H273m-9-7 9 7-9 7" stroke="#b69c86" stroke-width="2" fill="none"/>
+<g transform="translate(300 70)">
+<rect width="102" height="100" rx="9" fill="#faefe4" stroke="#dfc7ad"/>
+<text x="51" y="35" font-size="13" text-anchor="middle" font-weight="bold" fill="#8e654b">3 × 3 × 3</text>
+<text x="51" y="55" font-size="11" text-anchor="middle" fill="#937b68">核权重</text>
+<text x="51" y="74" font-size="11" text-anchor="middle" fill="#937b68">逐通道求和</text>
+</g>
+<path d="M421 119H492m-9-7 9 7-9 7" stroke="#b69c86" stroke-width="2" fill="none"/>
+<g transform="translate(517 53)">
+<rect x="28" y="27" width="116" height="104" rx="6" fill="#b6cfc0" stroke="#719e86"/>
+<rect x="14" y="14" width="116" height="104" rx="6" fill="#d1e1d5" stroke="#86aa93"/>
+<rect x="0" y="0" width="116" height="104" rx="6" fill="#e6f0e8" stroke="#86aa93"/>
+<path d="M22 43H94M22 63H94M22 83H94" stroke="#97b7a2" stroke-width="1"/>
+<text x="60" y="149" font-size="11" text-anchor="middle" fill="#6d9278">16 个输出通道</text>
+</g>
+<text x="379" y="209" text-anchor="middle" font-size="11" fill="#8a786a">3 → 16 个通道：16 套彼此独立的卷积核权重</text>
+</svg></div><div class="figcap">一个输出通道不是“从 RGB 中选一个颜色通道”，而是将所有输入通道的信息按可学习权重组合起来。每增加一个输出通道，就增加一组独立的卷积核参数。</div></div>
+<div class="formula"><div class="formula-name">通道维度上的计算</div><div class="equation tight">Y[o,i,j] = b[o] + ∑<sub>c=0</sub><sup>C<sub>in</sub>−1</sup> ∑<sub>u,v</sub> W[o,c,u,v] · X[c,iS+u−P,jS+v−P]</div><div class="explain">o 为输出通道索引，c 为输入通道索引。普通卷积的权重形状是 <code>[C_out, C_in, K, K]</code>；这里省略 Batch 维度。</div></div>
+<h3>2.1 · 3 个输入通道、16 个输出通道，要多少参数？</h3>
+<div class="formula"><div class="formula-name">标准卷积参数量（groups = 1，含偏置）</div><div class="equation">3 × 3 × 3 × 16 + 16 = 448</div><div class="explain">空间核 3×3，输入 C<sub>in</sub>=3，输出 C<sub>out</sub>=16。每个输出通道有一个偏置；与输入图像是 64×64 还是 640×640 无关。分组卷积、Depthwise 卷积的参数规则不同，留作按需研究。</div></div>
+<h3>2.2 · 这些卷积核为什么是“可学习的”？</h3>
+<p>边缘核或平滑核可以人工设置，但神经网络中的卷积权重通常从初始化参数开始，通过损失函数与反向传播更新。训练目标不同，模型可能学到不同的局部模式；不应把每个通道都简单解释为一个固定、可命名的人类视觉特征。</p>
+<div class="section-note"><strong>连接上一阶段：</strong>卷积不是一套脱离神经网络的独立规则。它是一种带局部连接与权重共享约束的可训练线性运算；卷积后常接激活函数，才构成更丰富的非线性表示。</div>
+</section>
+
+<section class="chapter" id="sizes"><div class="chapter-kicker"><b>03</b> SPATIAL SHAPE</div>
+<h2>卷积之后，特征图为什么会变大或变小？</h2>
+<p>卷积既涉及“算什么”，也涉及“在什么位置算”。步长 Stride 控制窗口移动间隔；Padding 控制边缘是否补上额外数值；Pooling 则采用不同于学习卷积核的汇聚方式做空间压缩。</p>
+<div class="formula"><div class="formula-name">单个空间方向的输出尺寸（对称填充、Dilation = 1）</div><div class="equation tight">H<sub>out</sub> = ⌊(H + 2P − K) / S⌋ + 1</div><div class="explain">H 是输入高度，K 是核尺寸，P 是单侧填充量，S 是步长。宽度方向同理。若采用非对称填充或空洞卷积，公式需相应调整。</div></div>
+<div class="table-wrap"><table><thead><tr><th>输入</th><th>卷积设置</th><th>输出</th><th>为什么</th></tr></thead><tbody>
+<tr><td>5×5</td><td>K=3, S=1, P=0</td><td>3×3</td><td>只有完整的 3×3 窗口参与计算</td></tr>
+<tr><td>5×5</td><td>K=3, S=1, P=1</td><td>5×5</td><td>四周补零后保留空间尺寸</td></tr>
+<tr><td>5×5</td><td>K=3, S=2, P=1</td><td>3×3</td><td>窗口按两个像素的间隔移动</td></tr>
+<tr><td>640×640</td><td>K=3, S=2, P=1</td><td>320×320</td><td>常见的下采样卷积配置</td></tr>
+</tbody></table></div>
+<h3>3.1 · Stride、Padding 各解决什么问题？</h3>
+<div class="two-col"><div class="plain-panel"><span class="mini-label">STRIDE</span><b>决定输出采样密度</b><p>S=2 通常让空间宽高大约减半，但会降低采样密度。不能把它理解成简单“丢掉一半像素”，因为每个输出仍是局部加权组合。</p></div><div class="plain-panel"><span class="mini-label">PADDING</span><b>决定边缘如何参与</b><p>P=1 可以让 3×3、S=1 卷积在常见设置下保持宽高不变；边界响应会受到填充值影响，不等同于真实图像外部的内容。</p></div></div>
+<h3>3.2 · Pooling 与 Stride 卷积有什么不同？</h3>
+<p>Max Pooling 取局部最大值，Average Pooling 取局部平均值。常见池化窗口不具有卷积那样的一组可学习核权重；而 Stride 卷积同时完成可学习特征变换与空间下采样。两者都可能减少空间尺寸，但机制和表达能力不同。</p>
+<div class="formula"><div class="formula-name">2×2 池化窗口：四个输入 [1, 4; 2, 3]</div><div class="equation tight">MaxPool = 4&nbsp;&nbsp; · &nbsp;&nbsp;AvgPool = (1+4+2+3)/4 = 2.5</div></div>
+<div class="figure"><div class="figure-title">机制图 · 多次下采样后，空间网格逐渐变稀</div><div class="figure-inner"><svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="相同图像经过三个总步长为2的阶段，空间尺寸从640乘640依次缩小为320、160、80">
+<rect x="8" y="10" width="744" height="210" rx="12" fill="#fcfaf7" stroke="#e9e0d6"/>
+<g fill="none" stroke="#ccbaaa" stroke-width="1.4"><rect x="41" y="37" width="152" height="152" rx="7"/><rect x="267" y="57" width="116" height="116" rx="7"/><rect x="462" y="77" width="76" height="76" rx="7"/><rect x="617" y="91" width="49" height="49" rx="7"/></g>
+<g fill="#f1dfd0" opacity=".65"><rect x="42" y="38" width="150" height="150" rx="7"/><rect x="268" y="58" width="114" height="114" rx="7"/></g>
+<g stroke="#af9079" stroke-width=".9" opacity=".65">
+<path d="M60 37V189M41 56H193"/><path d="M79 37V189M41 75H193"/><path d="M98 37V189M41 94H193"/><path d="M117 37V189M41 113H193"/><path d="M136 37V189M41 132H193"/><path d="M155 37V189M41 151H193"/><path d="M174 37V189M41 170H193"/><path d="M296 57V173M267 86H383"/><path d="M325 57V173M267 115H383"/><path d="M354 57V173M267 144H383"/>
+</g>
+<g fill="#d4e5da"><rect x="463" y="78" width="74" height="74" rx="6"/><rect x="618" y="92" width="47" height="47" rx="6"/></g>
+<g stroke="#8da895" stroke-width=".9" opacity=".7"><path d="M500 77V153M462 115H538M641 91V140M617 115H666"/></g>
+<g stroke="#b18d74" fill="none" stroke-width="2"><path d="M207 111H253m-8-7 8 7-8 7"/><path d="M397 111H449m-8-7 8 7-8 7"/><path d="M551 111H606m-8-7 8 7-8 7"/></g>
+<g font-family="sans-serif" font-size="12" text-anchor="middle" fill="#866a55"><text x="117" y="205">640 × 640</text><text x="325" y="193">320 × 320</text><text x="500" y="170">160 × 160</text><text x="642" y="156">80 × 80</text></g>
+<g font-size="11" text-anchor="middle" fill="#ac8067"><text x="230" y="96">S = 2</text><text x="424" y="96">S = 2</text><text x="578" y="96">S = 2</text></g>
+</svg></div><div class="figcap">这里每一阶段假设总步长为 2。特征图的<strong>空间尺寸</strong>变小，不代表通道数也必须同步变小；深层网络常同时增加通道数。</div></div>
+</section>
+
+<section class="chapter" id="spatial"><div class="chapter-kicker"><b>04</b> RECEPTIVE FIELD &amp; POSITION</div>
+<h2>特征图变小后，目标的位置到底去哪了？</h2>
+<p>这是视觉定位中最关键的空间问题。特征图中的一个网格位置，不是原图中孤立的一个像素；它通常<strong>汇聚输入图像中一片邻域的信息</strong>。需要同时认识两个量：</p>
+<div class="two-col"><div class="plain-panel"><span class="mini-label">RECEPTIVE FIELD</span><b>理论感受野 r</b><p>某个特征位置在理论上能够依赖原图的多大区域。层层卷积会扩大它。</p></div><div class="plain-panel"><span class="mini-label">EFFECTIVE STRIDE / JUMP</span><b>相邻中心间距 j</b><p>特征图中相邻两个网格位置，对应到输入图像时，其感受野中心相隔多少像素。</p></div></div>
+<div class="formula"><div class="formula-name">逐层叠加的理论感受野（无空洞卷积）</div><div class="equation tight">r<sub>l</sub> = r<sub>l−1</sub> + (k<sub>l</sub>−1)j<sub>l−1</sub></div><div class="equation tight">j<sub>l</sub> = j<sub>l−1</sub> · s<sub>l</sub></div><div class="explain">初始 r₀ = 1、j₀ = 1；kₗ 是第 l 层核大小，sₗ 是该层步长。这里讨论顺序堆叠的普通卷积，残差、并行分支与注意力网络的具体关系要分别分析。</div></div>
+<h3>4.1 · 连续三个 3×3、Stride=2 的卷积，会发生什么？</h3>
+<div class="table-wrap"><table><thead><tr><th>阶段</th><th>相对输入步长 j</th><th>理论感受野 r</th><th>以 640×640 为输入时的空间尺寸</th></tr></thead><tbody>
+<tr><td>输入</td><td>1</td><td>1×1</td><td>640×640</td></tr>
+<tr><td>第 1 层</td><td>2</td><td>3×3</td><td>320×320</td></tr>
+<tr><td>第 2 层</td><td>4</td><td>7×7</td><td>160×160</td></tr>
+<tr><td>第 3 层</td><td>8</td><td>15×15</td><td>80×80</td></tr>
+</tbody></table></div>
+<div class="module" id="rfDemo"><div class="module-title"><span>交互实验 · 一个特征位置能看到原图多大范围？</span><span class="math-tag">3×3, S=2, P=1</span></div>
+<p class="module-note">为了能看清网格，使用 24×24 的玩具输入。每层均为 3×3、Stride=2、Padding=1。调整层数与输出位置，观察理论感受野覆盖范围。边界超出原图的区域对应零填充。</p>
+<div class="rf-controls"><label>观察第几层<select id="rfLayers"><option value="1">第 1 层 · 12×12</option><option value="2">第 2 层 · 6×6</option><option value="3" selected>第 3 层 · 3×3</option></select></label>
+<label>输出网格的行位置<select id="rfRow"></select></label><label>输出网格的列位置<select id="rfCol"></select></label></div>
+<div class="rf-illustration"><svg id="rfSvg" viewBox="0 0 780 326" role="img" aria-label="左侧原图网格高亮理论感受野，右侧特征图高亮当前输出网格"><rect x="0" y="0" width="780" height="326" rx="9" fill="#fbfaf6"/><g id="rfDraw"></g></svg></div>
+<div class="demo-result"><div><small>理论感受野大小</small><strong id="rfSize">15 × 15</strong></div><div><small>相邻输出中心在原图上的间距</small><strong id="rfJump">8 像素</strong></div></div>
+<p class="demo-callout" id="rfMessage">—</p></div>
+<h3>4.2 · 特征网格与原图坐标怎样联系？</h3>
+<p>在刚才这种 <code>K=3, S=2, P=1</code>、连续下采样的简化设置中，第 l 层输出网格索引 <code>(i, j)</code> 对应原图上的<strong>感受野中心</strong>约为 <code>(i · 2^l, j · 2^l)</code>（采用零起点像素中心坐标）。</p>
+<p>这不是任意网络都适用的通用坐标换算公式。实际还取决于核大小、填充方式、输入缩放、裁剪、插值、对齐约定与后续预测头；定位模型必须结合整条预处理和预测链路恢复原图位置。</p>
+<div class="section-note green"><strong>很重要的区分：</strong>理论感受野表示一个位置<strong>可能受到影响</strong>的输入范围，并不意味着该范围内所有像素对输出的影响都一样大。实际有效感受野通常更集中，且受权重与非线性运算影响。</div>
+</section>
+
+<section class="chapter" id="tradeoffs"><div class="chapter-kicker"><b>05</b> TRADE-OFFS &amp; LIMITATIONS</div>
+<h2>空间特征表示解决了什么，又付出了什么代价？</h2>
+<div class="qa-grid"><div class="plain-panel"><b>为什么卷积很适合图像？</b><p>局部连接利用相邻像素的空间结构，权重共享降低参数需求，并让相似局部图案在不同位置产生相应响应。</p></div><div class="plain-panel"><b>为什么不能无限降低分辨率？</b><p>下采样减少计算，但会使小目标、细线和精确边界更难表示。步长采样也可能发生混叠，信息丢失后不能单靠扩大感受野恢复。</p></div><div class="plain-panel"><b>感受野大就一定懂全局吗？</b><p>不一定。理论感受野只是潜在依赖范围；模型是否真的利用这些信息，还与训练、权重、网络结构有关。</p></div><div class="plain-panel"><b>所有视觉网络都必须用卷积吗？</b><p>不是。Transformer 等模型也能形成视觉表示。卷积仍是理解空间局部性与视觉特征图的重要基础。</p></div></div>
+<div class="section-note"><strong>下一步为什么研究多尺度？</strong>浅层通常保留更密集的空间信息；深层通常拥有更大的感受野与更抽象的表示。目标定位需要同时照顾两者，因此后面才引出 Backbone 的分层特征与 FPN 等融合机制。</div>
+</section>
+
+<section class="chapter" id="check"><div class="chapter-kicker"><b>06</b> MINIMUM CHECK</div>
+<h2>学到哪里，才算真正建立了卷积的空间模型？</h2>
+<p>这篇不要求复现一个完整 CNN。只要能独立解释并验证下面几件事，就足够进入下一站：</p>
+<ul class="checklist"><li>给定 3×3 灰度输入和 3×3 卷积核，能手算一个输出位置的数值。</li><li>给定 <code>C_in=3, C_out=16, K=3</code>，能解释 16 个输出通道从哪里来，并算出参数量。</li><li>给定 <code>H=640, K=3, S=2, P=1</code>，能算出输出高度为 320。</li><li>面对连续三个 Stride=2 的卷积，能算出输出步长 8、理论感受野 15×15，并说清特征图坐标与原图的关系。</li></ul>
+<div class="final-line">卷积层不是“把图像变模糊的滤波器”。它在空间网格上共享可学习权重，形成多通道特征图；Stride、Padding 与层级组合决定了这些特征的空间密度和感受范围。</div>
+<a class="next-link" href="../05-deep-multiscale/"><span><strong>下一篇 · 05 深层网络与多尺度</strong><small>既然单层卷积能提取局部特征，为什么还要 ResNet、Backbone 和 FPN？</small></span><span style="font-size:23px" aria-hidden="true">↗</span></a>
+<div class="foot-links"><a href="../03-training-optimization/">← 上一篇 · 训练与优化</a><a href="../">返回 · 从神经网络到深度视觉</a></div>
+</section>
+<footer class="footer">沿途手记 · Stage 01 / 二维目标定位 / 学习式视觉定位 / 深度视觉基础 / 卷积与空间特征<br>建议保存到 <code>03-learned-vision/02-deep-vision/04-convolution-features/index.html</code>，以使用相对路径导航。</footer>
+</article></main></div>
+<script>
+(()=>{
+  const sidebar=document.getElementById('sidebar'),menu=document.getElementById('menuButton'),overlay=document.getElementById('overlay');
+  function setMenu(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);menu.setAttribute('aria-expanded',String(open));document.body.style.overflow=(open&&innerWidth<=820)?'hidden':'';}
+  menu.addEventListener('click',()=>setMenu(!sidebar.classList.contains('open')));
+  overlay.addEventListener('click',()=>setMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+  sidebar.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+  const anchors=[...document.querySelectorAll('.side-nav a[href^="#"]')];
+  const sections=anchors.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  let pending=false;
+  function onScroll(){pending=false;const y=scrollY+Math.min(innerHeight*.35,170);let active=0;sections.forEach((el,i)=>{if(el.offsetTop<=y)active=i});anchors.forEach((a,i)=>a.classList.toggle('active',i===active));const max=document.documentElement.scrollHeight-innerHeight;document.getElementById('progress').style.width=(max>0?Math.min(100,Math.max(0,scrollY/max*100)):0)+'%';}
+  addEventListener('scroll',()=>{if(!pending){pending=true;requestAnimationFrame(onScroll)}},{passive:true});onScroll();
+
+  // Conv2d demo: exact zero-padded cross-correlation, shared 3x3 weights.
+  const input=[[1,1,1,8,8],[1,2,2,8,8],[1,2,5,8,8],[1,2,2,8,8],[1,1,1,8,8]];
+  const kernels={edge:[[-1,0,1],[-1,0,1],[-1,0,1]],blur:[[1/9,1/9,1/9],[1/9,1/9,1/9],[1/9,1/9,1/9]],identity:[[0,0,0],[0,1,0],[0,0,0]]};
+  const q=id=>document.getElementById(id);let selected=[1,1];
+  const format=v=>Math.abs(v)<1e-9?'0':(Number.isInteger(v)?String(v):v.toFixed(2));
+  const weightText=v=>Math.abs(v-1/9)<1e-10?'1/9':format(v);
+  function convAt(row,col,K,stride,padding){let sum=0,terms=[];for(let u=0;u<3;u++)for(let v=0;v<3;v++){const ir=row*stride+u-padding,ic=col*stride+v-padding;const p=(ir<0||ir>=5||ic<0||ic>=5)?0:input[ir][ic];sum+=p*K[u][v];terms.push([p,K[u][v]])}return {sum,terms}}
+  function drawConv(){
+    const kernelId=q('kernelSelect').value,K=kernels[kernelId],s=+q('strideSelect').value,p=+q('paddingSelect').value;
+    const size=Math.floor((5+2*p-3)/s)+1;selected=[Math.min(selected[0],size-1),Math.min(selected[1],size-1)];
+    const [rr,cc]=selected;
+    q('outputSize').textContent=size+' × '+size;
+    q('inputGrid').innerHTML=input.flatMap((row,r)=>row.map((x,c)=>`<div class="cell ${r>=rr*s-p&&r<=rr*s-p+2&&c>=cc*s-p&&c<=cc*s-p+2?'input-active':''}">${x}</div>`)).join('');
+    q('kernelGrid').innerHTML=K.flatMap(row=>row.map(x=>`<div class="cell ${x>0?'kernel-pos':x<0?'kernel-neg':'kernel-zero'}">${weightText(x)}</div>`)).join('');
+    const values=Array.from({length:size},(_,r)=>Array.from({length:size},(_,c)=>convAt(r,c,K,s,p).sum));
+    q('outputGrid').style.setProperty('--cols',size);
+    q('outputGrid').innerHTML=values.flatMap((row,r)=>row.map((v,c)=>`<button type="button" class="cell output-cell ${v>1e-9?'output-pos':v<-1e-9?'output-neg':'output-zero'} ${r===rr&&c===cc?'output-selected':''}" data-r="${r}" data-c="${c}" title="选中输出 (${r}, ${c})">${format(v)}</button>`)).join('');
+    q('outputGrid').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{selected=[+b.dataset.r,+b.dataset.c];drawConv()}));
+    const {sum,terms}=convAt(rr,cc,K,s,p);q('selectedPos').textContent=`(${rr}, ${cc})`;q('selectedValue').textContent=format(sum);
+    const nTerms=terms.filter(([pixel,weight])=>Math.abs(weight)>1e-10);
+    const expr=nTerms.map(([pixel,weight])=>`${format(pixel)} × ${weightText(weight)}`).join(' + ');
+    q('calcSteps').innerHTML=`<strong>这一格的计算：</strong> (${expr}) = <strong>${format(sum)}</strong><br><span style="color:#958171">核左上角对齐的输入位置：(${rr*s-p}, ${cc*s-p})；超出图像范围按 0 处理。</span>`;
+  }
+  ['kernelSelect','strideSelect','paddingSelect'].forEach(id=>q(id).addEventListener('change',()=>{selected=[1,1];drawConv()}));drawConv();
+
+  // Sequential 3x3, stride2, padding1 theoretical receptive fields on a 24x24 toy image.
+  const ns='http://www.w3.org/2000/svg';
+  function svgNode(tag,attrs,text){const el=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs||{}))el.setAttribute(k,String(v));if(text!=null)el.textContent=text;return el}
+  function updateRfSelectors(){const l=+q('rfLayers').value,n=24/(2**l),prevRow=+q('rfRow').value||0,prevCol=+q('rfCol').value||0;
+    for(const id of ['rfRow','rfCol']){const current=id==='rfRow'?prevRow:prevCol;q(id).innerHTML=Array.from({length:n},(_,i)=>`<option value="${i}">${i}</option>`).join('');q(id).value=String(Math.min(n-1,current))}}
+  function renderRf(){const layer=+q('rfLayers').value,r=+q('rfRow').value,c=+q('rfCol').value;
+    const jump=2**layer,rf=2**(layer+1)-1,half=(rf-1)/2,cy=r*jump,cx=c*jump,n=24/jump;
+    const g=q('rfDraw');g.replaceChildren();
+    g.append(svgNode('text',{x:36,y:28,fill:'#896955','font-size':14,'font-weight':700},'输入图像 · 24 × 24'));
+    g.append(svgNode('text',{x:470,y:28,fill:'#5f856d','font-size':14,'font-weight':700},`第 ${layer} 层特征图 · ${n} × ${n}`));
+    const x0=40,y0=46,cell=10.1;
+    for(let ir=0;ir<24;ir++)for(let ic=0;ic<24;ic++){
+      const inside=Math.abs(ir-cy)<=half&&Math.abs(ic-cx)<=half,center=ir===cy&&ic===cx;
+      g.append(svgNode('rect',{x:x0+ic*cell,y:y0+ir*cell,width:cell-1.15,height:cell-1.15,rx:1.4,fill:center?'#b57350':inside?'#efcda9':'#eeeae4',stroke:center?'#9b5b3c':inside?'#d9b18d':'#e0d9d1','stroke-width':center?1.2:.5}));
+    }
+    g.append(svgNode('path',{d:'M330 166H431m-9-7 9 7-9 7',fill:'none',stroke:'#b49a84','stroke-width':2.4}));
+    g.append(svgNode('text',{x:376,y:149,fill:'#997d68','font-size':12,'text-anchor':'middle'},'局部汇聚'));
+    const pX=476,pY=57,gridW=213,cs=gridW/n;
+    for(let ir=0;ir<n;ir++)for(let ic=0;ic<n;ic++){
+      const active=ir===r&&ic===c;
+      g.append(svgNode('rect',{x:pX+ic*cs,y:pY+ir*cs,width:Math.max(1,cs-1.4),height:Math.max(1,cs-1.4),rx:Math.min(3,cs/5),fill:active?'#75a088':'#e2eee5',stroke:active?'#53836c':'#c2d5c7','stroke-width':active?2:.55}));
+    }
+    g.append(svgNode('text',{x:582,y:286,fill:'#78917f','font-size':12,'text-anchor':'middle'},`选中输出网格 (${r}, ${c})`));
+    g.append(svgNode('text',{x:165,y:309,fill:'#a18b7a','font-size':11,'text-anchor':'middle'},'橙色 = 理论感受范围，深橙 = 中心'));
+    g.append(svgNode('text',{x:583,y:309,fill:'#77917e','font-size':11,'text-anchor':'middle'},'绿色 = 当前选中输出位置'));
+    q('rfSize').textContent=`${rf} × ${rf}`;q('rfJump').textContent=jump+' 像素';
+    const visibleR=Math.max(0,Math.min(23,cy+half)-Math.max(0,cy-half)+1),visibleC=Math.max(0,Math.min(23,cx+half)-Math.max(0,cx-half)+1);
+    q('rfMessage').innerHTML=`该特征位置的理论中心约为原图 <strong>(${cy}, ${cx})</strong>（行、列）。理论感受野 ${rf} × ${rf}，其中位于原图内部的区域为 ${visibleR} × ${visibleC}；剩余部分来自边界填充。`;
+  }
+  q('rfLayers').addEventListener('change',()=>{updateRfSelectors();renderRf()});['rfRow','rfCol'].forEach(id=>q(id).addEventListener('change',renderRf));
+  updateRfSelectors();q('rfRow').value='1';q('rfCol').value='1';renderRf();
+})();
+</script></body></html>

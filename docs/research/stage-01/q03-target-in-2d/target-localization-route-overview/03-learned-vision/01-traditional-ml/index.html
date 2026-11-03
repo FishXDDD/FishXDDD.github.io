@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#faf8f3">
+<meta name="description" content="沿途手记 · 学习式视觉定位 / 传统机器学习定位。人工特征如何进入 SVM、AdaBoost、DPM；从分类得分到滑窗目标定位。">
+<title>01 · 传统机器学习定位｜沿途手记</title>
+<style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.94 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}
+.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:53px 0 45px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3,h4{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:18px;line-height:1.65;margin:28px 0 11px}h4{font-size:14px;margin:17px 0 7px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 265px;gap:22px;align-items:center}.hero p{font-size:15.4px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:22px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}
+.chapter{padding:50px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:15px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:20px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula .eq-line{display:block}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}
+.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls input[type=range]{accent-color:var(--accent);vertical-align:middle;width:172px}.demo-controls input[type=checkbox]{accent-color:var(--accent);vertical-align:middle}.demo svg{display:block;width:100%;height:auto;max-height:380px;border:1px solid #e6ded6;background:#fbfaf7;border-radius:9px}.demo-readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.small-note{font-size:11px;color:#948476;line-height:1.85;margin-top:8px}.step-chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:19px 0}.step-chain .step{border:1px solid #e6d8ca;background:#fffdfa;padding:8px 12px;border-radius:8px;font-size:12px;color:#765b4b;font-weight:680}.step-chain .arrow{color:#aa947f}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 210px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:270px;justify-self:center;order:-1}h1{font-size:33px}.hero p{font-size:14.5px}.chapter{padding:37px 0 40px}.two-col,.three-col{grid-template-columns:1fr}.main{padding:0 18px 50px}.flow{gap:5px}.step-chain{gap:5px}.step-chain .step{padding:7px 8px;font-size:11px}.formula .equation{font-size:17px}.demo{padding:13px}.demo-head{display:block}.demo-controls{gap:8px}.demo-controls input[type=range]{width:125px}td,th{padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="mobile-bar"><b>沿途手记 / 传统机器学习定位</b><button id="menuButton" type="button" aria-controls="sidebar" aria-expanded="false">☰ 目录</button></div>
+<div class="overlay" id="overlay" aria-hidden="true"></div>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="阅读目录">
+ <a class="brand" href="/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+ <a class="back" href="../">← 返回 · 学习式视觉定位</a>
+ <div class="loc"><span class="eyebrow">当前位置 / CURRENT PAGE</span><strong>传统机器学习定位</strong><p>学习式视觉定位 / 01</p></div>
+ <nav class="side-nav" aria-label="本篇目录">
+  <a class="active" href="#opening"><span class="num">·</span>为什么要从样本学习？</a>
+  <a href="#boundary"><span class="num">00</span>问题与边界</a>
+  <a href="#learn"><span class="num">01</span>从特征到学习判别</a>
+  <a href="#search"><span class="num">02</span>从分类到目标定位</a>
+  <a href="#families"><span class="num">03</span>三种代表性方案</a>
+  <a href="#training"><span class="num">04</span>训练与错误样本</a>
+  <a href="#compare"><span class="num">05</span>比较与适用边界</a>
+ </nav>
+ <div class="side-bottom">下一篇 · <a href="../02-deep-vision/" style="color:#91694e">深度视觉的特征与预测 ↗</a><p style="margin:11px 0 0">本篇讨论学习得到的判别规则，不展开深度网络。</p></div>
+</aside>
+<main class="main"><article class="article">
+<nav class="crumbs" aria-label="页面路径"><a href="/">沿途手记</a><span>/</span><a href="/research/stage-01/">Stage 01</a><span>/</span><a href="../">学习式视觉定位</a><span>/</span><span>传统机器学习定位</span></nav>
+<header class="hero" id="opening">
+<div class="kicker">01 · HANDCRAFTED FEATURES + MACHINE LEARNING</div>
+<div class="hero-layout"><div>
+<h1>传统机器学习定位</h1><div class="sub">Handcrafted Features · From Features to Learned Decisions</div>
+<p>前面已经研究了怎样从图像里提取颜色、纹理、梯度和形状。如果目标的外观变化很多，每种情况都靠手写判断规则，似乎越来越难维护。</p>
+<p>换个思路：<strong>特征依然由人来设计，但「什么样的特征意味着目标」交给训练样本来决定。</strong> 接下来还得解决一个问题——分类器只认识一个图块，怎样让它在整张图像中找到位置？</p>
+<div class="tags"><span>HOG + SVM</span><span>Haar + AdaBoost</span><span>DPM</span><span>Sliding Window</span></div>
+</div><div class="hero-art">
+<svg viewBox="0 0 280 236" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="从训练样本、特征表示、判别函数到目标框的关系示意">
+ <rect x="4" y="4" width="272" height="226" rx="15" fill="#f7f0e8" stroke="#e8dacc"/>
+ <text x="18" y="23" fill="#907867" font-size="10">FEATURES → LEARNING → LOCALIZATION</text>
+ <rect x="16" y="39" width="74" height="101" rx="8" fill="#fffefa" stroke="#e3d6c8"/>
+ <rect x="26" y="50" width="54" height="65" rx="4" fill="#f1eee7"/>
+ <g transform="translate(46,54)"><circle cx="7" cy="9" r="8" fill="#cda487"/><path d="M0 20q7-5 14 0l5 23h-24z" fill="#a5aaa2"/><path d="m2 27-8 20m18-20 9 20" stroke="#8d948c" stroke-width="5" stroke-linecap="round"/></g>
+ <text x="53" y="132" text-anchor="middle" fill="#816e5c" font-size="10">带标签样本</text>
+ <path d="M92 85h26m-5-5 6 5-6 5" stroke="#a8816b" fill="none" stroke-width="1.5"/>
+ <rect x="122" y="39" width="63" height="101" rx="8" fill="#fffefa" stroke="#e3d6c8"/>
+ <g transform="translate(131,51)"><rect width="44" height="58" fill="#f4f0e9" rx="3"/>
+ <g stroke="#b98266" stroke-width="1.4"><path d="M4 47v-15l8-10M21 44V15l7-11M38 48v-20L32 12M9 55l14-7 15 4"/><path d="M2 17 13 7l10 5 14-8"/></g></g>
+ <text x="154" y="132" text-anchor="middle" fill="#816e5c" font-size="10">人工特征</text>
+ <path d="M187 85h18m-5-5 6 5-6 5" stroke="#a8816b" fill="none" stroke-width="1.5"/>
+ <rect x="209" y="39" width="53" height="101" rx="8" fill="#fffefa" stroke="#e3d6c8"/>
+ <path d="M217 110 252 64" stroke="#b47755" stroke-width="2"/><g fill="#6f9f89"><circle cx="220" cy="67" r="4"/><circle cx="231" cy="76" r="4"/><circle cx="226" cy="53" r="4"/></g><g fill="#d69d79"><circle cx="239" cy="104" r="4"/><circle cx="250" cy="108" r="4"/><circle cx="242" cy="119" r="4"/></g>
+ <text x="236" y="132" text-anchor="middle" fill="#816e5c" font-size="10">判别函数</text>
+ <path d="M141 150v15" stroke="#ae8b78" stroke-width="1.6" stroke-dasharray="3 3"/>
+ <path d="m136 160 5 6 5-6" stroke="#ae8b78" fill="none" stroke-width="1.5"/>
+ <rect x="54" y="171" width="172" height="42" rx="7" fill="#fffefa" stroke="#d8cabc"/>
+ <rect x="66" y="179" width="30" height="26" rx="3" fill="#e8e5de"/><path d="M78 183q4-4 9 1l4 17H74z" fill="#b6b6ac"/><rect x="74" y="178" width="17" height="25" fill="none" stroke="#b77b58" stroke-width="1.8"/>
+ <rect x="103" y="179" width="30" height="26" rx="3" fill="#e8e5de"/><path d="M116 182q4-4 8 1l3 18h-16z" fill="#b6b6ac"/><rect x="112" y="178" width="17" height="25" fill="none" stroke="#b77b58" stroke-width="1.8"/>
+ <text x="173" y="187" fill="#8a6550" font-size="10" text-anchor="middle">位置搜索</text><text x="173" y="201" fill="#8a6550" font-size="10" text-anchor="middle">得到目标框</text>
+</svg>
+</div></div>
+</header>
+<section class="chapter" id="boundary">
+<div class="chapter-kicker"><b>00</b> DEFINE THE PROBLEM</div><h2>先分清：哪些东西是人设计的，哪些是学出来的？</h2>
+<p>我们讨论的是<strong>监督式、基于人工特征的二维目标检测</strong>。输入若干正负样本，用它们训练出一个分类器，然后将分类器应用于图像中的候选位置。</p>
+<div class="three-col">
+<div class="plain-panel"><div class="mini-label">FEATURE</div><b>人工特征</b><p>先设计图像怎样表示，例如 HOG、Haar 特征。特征的计算规则通常不随分类器训练而改变。</p></div>
+<div class="plain-panel"><div class="mini-label">MODEL</div><b>学习判别</b><p>用正负样本学习特征到分类分数的映射，例如 SVM、AdaBoost。</p></div>
+<div class="plain-panel"><div class="mini-label">POSITION</div><b>搜索位置</b><p>在不同候选窗口计算得分，再按阈值及重叠关系输出目标框。</p></div>
+</div>
+<div class="section-note"><strong>研究边界：</strong>这里的「学习」主要指判别器参数来自训练数据；不重新讲 HOG、梯度和纹理如何计算，也不进入 CNN 的端到端特征学习。不同传统检测器的搜索过程可能有差异，滑窗只是最典型的组织方式。</div>
+</section>
+<section class="chapter" id="learn">
+<div class="chapter-kicker"><b>01</b> LEARN A DECISION RULE</div><h2>特征有了，模型怎样知道这是目标？</h2>
+<p>考虑一个行人检测器：对每个行人图块和背景图块，都计算同样的 HOG 特征。现在每个图块变成一个向量 <code>x</code>，问题就从「理解图片」变成了「区分两类向量」。</p>
+<h3>1.1 · SVM：从训练样本中学习分类边界</h3>
+<p>一个线性 SVM 为每个特征维度学习权重，再将它们加总。分数的正负可以表示候选更偏向目标还是背景，分数离边界多远则反映判别器的间隔信息。</p>
+<div class="formula"><div class="formula-name">LINEAR DECISION FUNCTION</div><div class="equation"><i>f</i>(<b>x</b>) = <b>w</b><sup>T</sup><b>x</b> + <i>b</i></div><div class="explain"><b>x</b>：人工特征向量；<b>w</b>：由训练学到的各维特征权重；<i>b</i>：偏置；<i>f</i>(<b>x</b>)：原始判别分数（不是概率）。标准线性分类器按 <i>f</i>(<b>x</b>) 的符号决策。</div></div>
+<figure class="figure"><div class="figure-title">机制图｜学习的不是特征，而是分隔两类特征的边界</div>
+<svg viewBox="0 0 760 235" role="img" aria-label="二维特征空间中的两类训练样本、线性决策边界与间隔" xmlns="http://www.w3.org/2000/svg">
+ <rect x="26" y="18" width="364" height="194" rx="9" fill="#faf7f1" stroke="#e8e0d5"/>
+ <path d="M57 190H358M57 190V39" stroke="#ac9e8e" stroke-width="1.5"/><text x="307" y="204" fill="#8d8275" font-size="12">特征维度 x₁ →</text><text x="47" y="47" fill="#8d8275" font-size="11">x₂</text>
+ <path d="M140 195 295 30" stroke="#b77c5a" stroke-width="2.5"/><path d="M103 195 258 30M177 195 332 30" stroke="#cdbda9" stroke-width="1.4" stroke-dasharray="5 6"/>
+ <g fill="#6f9a86" stroke="#fff" stroke-width="2"><circle cx="94" cy="68" r="7"/><circle cx="137" cy="54" r="7"/><circle cx="106" cy="111" r="7"/><circle cx="161" cy="84" r="7"/><circle cx="149" cy="127" r="7"/><circle cx="185" cy="62" r="7"/></g>
+ <g fill="#d09a75" stroke="#fff" stroke-width="2"><circle cx="256" cy="170" r="7"/><circle cx="287" cy="143" r="7"/><circle cx="312" cy="177" r="7"/><circle cx="327" cy="112" r="7"/><circle cx="285" cy="192" r="7"/><circle cx="263" cy="118" r="7"/></g>
+ <rect x="425" y="38" width="303" height="150" rx="10" fill="#fffefa" stroke="#e9dfd4"/>
+ <g font-size="14"><circle cx="447" cy="64" r="6" fill="#6f9a86"/><text x="466" y="69" fill="#6a5a4d">目标样本（正样本）</text><circle cx="447" cy="96" r="6" fill="#d09a75"/><text x="466" y="101" fill="#6a5a4d">背景样本（负样本）</text><path d="M440 128h22" stroke="#b77c5a" stroke-width="2.5"/><text x="466" y="133" fill="#6a5a4d">学习得到的决策边界</text><path d="M440 159h22" stroke="#cdbda9" stroke-dasharray="4 3" stroke-width="2"/><text x="466" y="164" fill="#6a5a4d">分类间隔示意</text></g>
+</svg><figcaption class="figcap">为了直观，仅绘出二维特征空间；实际 HOG 特征通常有很多维。SVM 希望在分类错误受控的前提下，让两类样本之间的间隔尽可能大。</figcaption></figure>
+<p>这里不需要完整推导 SVM 的二次规划。只要理解：<strong>特征的设计是固定的，判别边界的位置由训练样本决定</strong>。一个重要局限是：如果人工特征无法有效区分两类目标，分类器也无从凭空恢复丢失的信息。</p>
+<h3>1.2 · AdaBoost：能不能组合许多简单判断？</h3>
+<p>另一种思路是不直接学习一条大型规则，而是训练很多简单的弱分类器，再给它们不同的权重。前一轮分错的样本，在后续训练中会得到更多关注。</p>
+<div class="formula"><div class="formula-name">WEIGHTED WEAK CLASSIFIERS</div><div class="equation"><i>F</i>(<b>x</b>) = ∑<sub>t=1</sub><sup>T</sup> α<sub>t</sub> <i>h</i><sub>t</sub>(<b>x</b>)</div><div class="explain"><i>h</i><sub>t</sub>：第 t 个简单分类器；α<sub>t</sub>：学习得到的组合权重；<i>F</i>：组合后的判别分数。这里是二分类 AdaBoost 的示意形式。</div></div>
+<div class="step-chain" aria-label="AdaBoost 的简化学习过程"><span class="step">训练弱分类器</span><span class="arrow">→</span><span class="step">找出难分样本</span><span class="arrow">→</span><span class="step">调整样本权重</span><span class="arrow">→</span><span class="step">组合多个判断</span></div>
+<div class="section-note green">可以把 SVM 与 AdaBoost 看作两种<strong>不同的判别学习策略</strong>。它们不是需要串行执行的算法步骤，也并不只能配合某一种图像特征。</div>
+</section>
+<section class="chapter" id="search">
+<div class="chapter-kicker"><b>02</b> FROM CLASSIFICATION TO LOCALIZATION</div><h2>会判断一个图块，怎样找到整张图中的目标？</h2>
+<p>分类器得到一个图块后可以打分，但它本身并不知道图块在整张图像中的位置。经典做法是把同一个检测器应用于不同位置和尺度，获得一组候选目标框。</p>
+<div class="step-chain"><span class="step">当前图像</span><span class="arrow">→</span><span class="step">候选窗口 / 多尺度</span><span class="arrow">→</span><span class="step">人工特征</span><span class="arrow">→</span><span class="step">学习得到的分类器</span><span class="arrow">→</span><span class="step">候选得分</span></div>
+<div class="two-col"><div class="plain-panel"><div class="mini-label">SLIDING WINDOW</div><b>逐位置评分</b><p>窗口沿图像移动。每个窗口提取相同定义的特征，再交给同一个分类器判断。</p></div><div class="plain-panel"><div class="mini-label">IMAGE PYRAMID</div><b>逐尺度评分</b><p>在不同图像尺度上重复检测，或等价地在不同大小的候选区域上工作，以发现不同尺寸目标。</p></div></div>
+<h3>2.1 · 多个位置都被认为是目标，应该怎么办？</h3>
+<p>一个目标附近通常会有许多高度重叠的候选框。先根据分数过滤较弱候选，再利用 IoU 衡量候选框重叠程度，使用 NMS 抑制重复检测。</p>
+<div class="formula"><div class="formula-name">BOX OVERLAP</div><div class="equation">IoU(<i>A</i>, <i>B</i>) = |<i>A</i> ∩ <i>B</i>| / |<i>A</i> ∪ <i>B</i>|</div><div class="explain">两个框交集面积与并集面积的比值，范围是 0～1。越接近 1，重叠越明显。它用于比较框，不直接判断框里的物体是真是假。</div></div>
+<div class="demo" id="window-demo"><div class="demo-head"><b>交互示意｜分类得分怎样变成最终目标框？</b><small>模拟检测分数 · 并非真实模型推理</small></div>
+<div class="demo-controls"><label for="scoreThreshold">得分阈值 <strong id="thresholdText">0.60</strong></label><input id="scoreThreshold" type="range" min="0.25" max="0.95" step="0.05" value="0.60" aria-label="调整候选得分阈值"><label><input id="nmsCheck" type="checkbox" checked> 使用 NMS（IoU &gt; 0.40）</label></div>
+<svg id="detectScene" viewBox="0 0 540 252" role="img" aria-label="模拟场景：两个瓶状目标、一个杯子和多个不同得分的检测框，可以调节阈值与 NMS" xmlns="http://www.w3.org/2000/svg">
+ <rect x="1" y="1" width="538" height="250" fill="#f3f0e9" rx="8"/>
+ <rect x="16" y="17" width="508" height="212" rx="5" fill="#eeeae2" stroke="#ded5cb"/>
+ <path d="M16 174H524" stroke="#d8d0c8" stroke-width="2"/>
+ <g transform="translate(73,58)"><rect x="22" y="3" width="21" height="16" rx="3" fill="#829e95"/><path d="M20 19H46v18c19 7 24 19 24 34v68c0 7-6 13-13 13H9c-6 0-9-6-9-13V71c0-15 6-27 20-34Z" fill="#b4c8bc" stroke="#7f9f93" stroke-width="2"/><rect x="12" y="68" width="46" height="44" rx="4" fill="#f4eee4"/><path d="M17 92H53" stroke="#b58a6a" stroke-width="3"/></g>
+ <g transform="translate(285,72)"><rect x="19" y="0" width="25" height="17" rx="4" fill="#a89b87"/><path d="M15 17H47v17q18 12 18 31v67q0 9-10 9H9q-9 0-9-9V65q0-19 15-31Z" fill="#d4b49f" stroke="#b38e76" stroke-width="2"/><rect x="9" y="73" width="48" height="33" rx="4" fill="#f8f0e2"/></g>
+ <g transform="translate(190,108)"><path d="M0 16h55l-7 83q-2 9-11 9H18q-11 0-13-9Z" fill="#c6c1b6" stroke="#979187" stroke-width="2"/><path d="M55 33h12q13 0 11 15-2 15-22 15" stroke="#979187" stroke-width="6" fill="none"/></g>
+ <g id="dynamicBoxes"></g>
+ <text x="24" y="245" font-size="10" fill="#8d8279">教学示意：得分不是概率；背景也可能得到较高分数。</text>
+</svg>
+<div class="demo-readout" id="detectReadout" aria-live="polite">正在计算候选...</div><div class="small-note">调整阈值：低分候选会消失；勾选 NMS：同一目标附近的重叠框被抑制。演示使用预设候选分数和标准贪心 NMS，不涉及训练。</div></div>
+<div class="section-note"><strong>关键区别：</strong>上一篇「直接相似性比较」也可能滑窗搜索，但它比较的是<strong>目标参考与候选区域的相似程度</strong>；这里比较的是<strong>候选区域是否符合从一类训练样本中学到的目标规则</strong>。</div>
+</section>
+<section class="chapter" id="families">
+<div class="chapter-kicker"><b>03</b> THREE REPRESENTATIVE APPROACHES</div><h2>不同设计，究竟在解决什么困难？</h2>
+<p>下面三种方案并列介绍。它们都以人工设计的视觉表征为基础，但解决的侧重点不同：<strong>怎样判别、怎样更快判别、怎样容纳目标的结构变化。</strong></p>
+<h3>3.1 · HOG + SVM：利用梯度形状学会判断</h3>
+<p>以行人检测为例。同一个人的衣服颜色可能变化很大，但头部、肩膀、躯干和腿部产生的局部梯度结构具有一定规律。</p>
+<p><strong>HOG</strong> 将候选窗口表示为局部梯度方向的统计；<strong>SVM</strong> 从正负样本中学习哪些梯度组合更像目标。检测时在候选窗口上重复计算、评分。</p>
+<figure class="figure"><div class="figure-title">机制图｜图像块 → HOG 特征 → 学习得到的分数</div><svg viewBox="0 0 760 206" role="img" aria-label="HOG 梯度特征表示与 SVM 判别得分的管线" xmlns="http://www.w3.org/2000/svg">
+<rect x="18" y="24" width="160" height="146" rx="9" fill="#f5f1e9" stroke="#e1d4c5"/><g transform="translate(73,39)"><circle cx="24" cy="17" r="15" fill="#bfad97"/><path d="M13 36q11-10 23 0l11 58H1Z" fill="#a0a59f"/><path d="m15 81-13 25m31-25 16 25" stroke="#9da49d" stroke-width="10" stroke-linecap="round"/></g><text x="98" y="160" font-size="12" text-anchor="middle" fill="#866c59">候选图块</text>
+<path d="M184 91h46m-7-6 7 6-7 6" fill="none" stroke="#b9927b" stroke-width="1.7"/>
+<rect x="239" y="24" width="225" height="146" rx="9" fill="#fffdfa" stroke="#e1d4c5"/><g transform="translate(262,40)" stroke="#9b775e" stroke-width="2" stroke-linecap="round"><path d="M0 19l14-10M34 13l13 9M71 12l-4 20M102 10l11 19M146 20l14-10M6 51l8-10M37 59l8-15M82 45l15 13M117 61l8-12M159 47l-4 17M0 95l17-9M36 96l12 5M70 105l9-18M113 98l13 6M160 93l4-14"/></g><g stroke="#e4d8cc" stroke-width="1"><path d="M262 40v100m34-100v100m34-100v100m34-100v100m34-100v100m34-100v100M262 40h170M262 74h170M262 107h170M262 140h170"/></g><text x="351" y="160" font-size="12" text-anchor="middle" fill="#866c59">梯度统计 / 特征向量</text>
+<path d="M471 91h46m-7-6 7 6-7 6" fill="none" stroke="#b9927b" stroke-width="1.7"/>
+<rect x="527" y="24" width="215" height="146" rx="9" fill="#f9f3eb" stroke="#e1d4c5"/><rect x="552" y="48" width="166" height="18" rx="9" fill="#ebe4d9"/><rect x="552" y="48" width="131" height="18" rx="9" fill="#719c89"/><text x="634" y="89" font-size="13" fill="#4e7b68" text-anchor="middle" font-weight="700">f(x) &gt; 0</text><text x="634" y="113" font-size="12" fill="#715e4d" text-anchor="middle">偏向目标类别</text><text x="634" y="143" font-size="11" fill="#928376" text-anchor="middle">由训练样本学习权重</text>
+</svg><figcaption class="figcap">HOG 仍是人工设定的特征计算方式；训练主要决定如何根据这些特征评分。颜色不重要的某些任务中，这种表示可能较稳定，但面对复杂姿态、遮挡或场景变化时能力有限。</figcaption></figure>
+<h3>3.2 · Haar + AdaBoost：先把大量背景快速排除</h3>
+<p>Viola–Jones 人脸检测的一项重要思路是：整张图像里绝大多数候选位置都是背景，因此不值得让它们全部经过完整检测过程。</p>
+<div class="two-col"><div class="plain-panel"><div class="mini-label">HAAR + INTEGRAL IMAGE</div><b>特征计算足够快</b><p>用矩形区域之间的亮度差构成简单特征。积分图让指定矩形区域的像素和可由少数次查询得到。</p></div><div class="plain-panel"><div class="mini-label">ADABOOST + CASCADE</div><b>容易的负样本尽早退出</b><p>学习哪些简单特征具有区分能力，并把多个分类阶段串联；只有通过前一阶段的窗口才进入下一阶段。</p></div></div>
+<div class="formula"><div class="formula-name">SUMMED-AREA TABLE</div><div class="equation"><i>S</i>(<i>x</i>,<i>y</i>) = ∑<sub>i≤x, j≤y</sub> <i>I</i>(<i>i</i>,<i>j</i>)</div><div class="explain"><i>S</i>(x,y) 保存从左上角到 (x,y) 的像素累加和。一个矩形的区域和可用四个积分图值做加减得到，不必每次遍历矩形中的全部像素。</div></div>
+<figure class="figure"><div class="figure-title">机制图｜级联分类器的“尽早拒绝”策略</div><svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="候选区域依次经过三个级联分类阶段，大量负样本在早期被过滤，数量为教学示意">
+<rect x="23" y="64" width="134" height="84" rx="10" fill="#f6f1eb" stroke="#dfd3c7"/><text x="90" y="92" text-anchor="middle" fill="#785844" font-size="14" font-weight="700">大量窗口</text><text x="90" y="119" text-anchor="middle" fill="#b47d59" font-size="24" font-weight="700">100</text>
+<path d="M160 106h48m-7-6 7 6-7 6" stroke="#ac927b" fill="none" stroke-width="1.7"/>
+<rect x="214" y="64" width="126" height="84" rx="10" fill="#fffdfa" stroke="#dfd3c7"/><text x="277" y="92" text-anchor="middle" fill="#785844" font-size="13">阶段 1</text><text x="277" y="121" text-anchor="middle" fill="#a1775b" font-size="21" font-weight="700">20</text>
+<path d="M343 106h46m-7-6 7 6-7 6" stroke="#ac927b" fill="none" stroke-width="1.7"/>
+<rect x="395" y="64" width="126" height="84" rx="10" fill="#fffdfa" stroke="#dfd3c7"/><text x="458" y="92" text-anchor="middle" fill="#785844" font-size="13">阶段 2</text><text x="458" y="121" text-anchor="middle" fill="#a1775b" font-size="21" font-weight="700">6</text>
+<path d="M524 106h46m-7-6 7 6-7 6" stroke="#ac927b" fill="none" stroke-width="1.7"/>
+<rect x="576" y="64" width="159" height="84" rx="10" fill="#edf4ee" stroke="#cddfd3"/><text x="655" y="92" text-anchor="middle" fill="#547c68" font-size="13">阶段 3 通过</text><text x="655" y="121" text-anchor="middle" fill="#547c68" font-size="21" font-weight="700">2</text>
+<path d="M277 150v20m181-20v20" stroke="#c59b81" stroke-width="1.6" stroke-dasharray="4 4"/>
+<text x="277" y="189" text-anchor="middle" fill="#a58169" font-size="12">大量背景被拒绝</text><text x="458" y="189" text-anchor="middle" fill="#a58169" font-size="12">继续排除</text><text x="655" y="171" text-anchor="middle" fill="#668873" font-size="12">保留少数候选</text>
+<text x="380" y="35" text-anchor="middle" fill="#8d7968" font-size="12">越到后面，执行的检测通常越复杂；只有通过前级的候选才继续计算</text>
+</svg><figcaption class="figcap">图中的 100→20→6→2 是机制示意，不是某项算法的实测数据。级联主要降低大量负样本上的平均计算量，但过早拒绝也可能造成漏检。</figcaption></figure>
+<h3>3.3 · DPM：整体相像还不够，部件能不能适当移动？</h3>
+<p>同一类目标可能有不同姿态，例如人在走路时手臂和腿的位置会发生变化。只使用固定整体外观的检测器，容易把这些变化都看作不匹配。</p>
+<p>DPM（Deformable Part Model）将<strong>整体外观、局部部件证据与部件偏移代价</strong>结合。每个部件可以在一定范围内移动，但远离合理位置时会付出惩罚。</p>
+<div class="formula"><div class="formula-name">PART-BASED DETECTION SCORE · 概念化表达</div><div class="equation"><i>S</i> = <i>S</i><sub>root</sub> + ∑<sub>k</sub>( <i>S</i><sub>part,k</sub> − <i>C</i><sub>def,k</sub> )</div><div class="explain"><i>S</i><sub>root</sub>：整体模板匹配分数；<i>S</i><sub>part,k</sub>：第 k 个部件的匹配分数；<i>C</i><sub>def,k</sub>：该部件偏离预期位置的代价。实际模型还会优化部件的潜在位置，并可能采用不同姿态的混合模型。</div></div>
+<figure class="figure"><div class="figure-title">机制图｜整体 + 部件 + 位置约束</div><svg viewBox="0 0 760 238" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DPM 利用整体形状和可移动部件，并对部件偏移进行惩罚" >
+<rect x="28" y="22" width="280" height="185" rx="9" fill="#f8f5ef" stroke="#e2d6ca"/>
+<path d="M137 183V89q0-10 14-10h31q14 0 14 10v94" fill="#d2c1aa" opacity=".42" stroke="#9c8068" stroke-width="2" stroke-dasharray="5 5"/>
+<circle cx="166" cy="64" r="19" fill="#d1ad90" stroke="#b88a6f" stroke-width="2"/>
+<path d="M146 84h39l8 62-13 43h-27l-14-43Z" fill="#a1aa9f" stroke="#778c81" stroke-width="1.8"/>
+<path d="M142 98 105 136m81-35 31-44" stroke="#8e9d92" stroke-width="15" stroke-linecap="round"/>
+<path d="m156 181-24 28m40-28 28 28" stroke="#8e9d92" stroke-width="15" stroke-linecap="round"/>
+<g fill="none" stroke="#b77c59" stroke-width="2"><rect x="138" y="38" width="57" height="54" rx="4"/><rect x="127" y="89" width="69" height="64" rx="4"/><rect x="85" y="112" width="46" height="43" rx="4"/><rect x="189" y="40" width="48" height="52" rx="4"/><rect x="111" y="184" width="53" height="40" rx="4"/><rect x="171" y="184" width="53" height="40" rx="4"/></g>
+<g stroke="#b67e5c" stroke-width="1.3" stroke-dasharray="3 4"><path d="M161 119 107 133M169 119 211 70M156 146 136 197M174 146 201 197"/></g>
+<text x="167" y="19" text-anchor="middle" font-size="12" fill="#8b7563">部件位置可以变化</text>
+<path d="M311 112h62m-7-6 7 6-7 6" fill="none" stroke="#a68c79" stroke-width="1.6"/>
+<rect x="390" y="30" width="346" height="166" rx="10" fill="#fffdfa" stroke="#e5d9cc"/>
+<g fill="#6c5b4d" font-size="15"><text x="411" y="67">整体外观</text><text x="411" y="103">局部部件</text><text x="411" y="139">偏移代价</text></g>
+<g font-size="15" font-weight="650"><text x="699" y="67" text-anchor="end" fill="#547f6d">+ Root score</text><text x="699" y="103" text-anchor="end" fill="#547f6d">+ Part scores</text><text x="699" y="139" text-anchor="end" fill="#b17759">− Deformation</text></g>
+<path d="M410 152H707" stroke="#e8ded3"/><text x="559" y="182" fill="#785947" text-anchor="middle" font-size="13">寻找总得分较高的部件配置</text>
+</svg><figcaption class="figcap">线框与虚线仅表示允许的部件位置及其关系，并非实际 DPM 部件模板的固定数量与形状。DPM 的核心不是“识别人体骨架”，而是以可变形部件组合的分数来检测目标。</figcaption></figure>
+<div class="section-note green"><strong>三种方案的关系：</strong>HOG + SVM 强调人工形状特征与判别边界；Haar + AdaBoost + Cascade 强调可快速计算和早期排除背景；DPM 强调整体与部件的空间关系。不是“前者失败，所以后一种必然替代前者”的单线演进。</div>
+</section>
+<section class="chapter" id="training">
+<div class="chapter-kicker"><b>04</b> TRAINING & HARD EXAMPLES</div><h2>为什么模型训练过了，仍然会把背景当目标？</h2>
+<p>正负样本决定了分类器看到怎样的目标和背景。如果训练数据过于简单，模型可能在训练集得分很好，但在现场遇到相似背景、遮挡或不同尺度时失败。</p>
+<h3>4.1 · Hard Negative Mining：让模型再看一遍容易误判的背景</h3>
+<div class="step-chain"><span class="step">用已有样本训练</span><span class="arrow">→</span><span class="step">在负样本图像上检测</span><span class="arrow">→</span><span class="step">收集高分误检</span><span class="arrow">→</span><span class="step">加入困难负样本重新训练</span></div>
+<p>例如一个行人检测器把路灯柱或门框误判成行人，可以把这些容易混淆的背景裁成新的负样本，提高模型区分它们的能力。</p>
+<div class="two-col"><div class="plain-panel"><div class="mini-label">数据层面</div><b>覆盖真实变化</b><p>目标不同姿态、尺度、背景和遮挡情况，都可能影响模型从样本中学到的边界。</p></div><div class="plain-panel"><div class="mini-label">判断层面</div><b>阈值有代价</b><p>降低阈值可能减少漏检但增加误检；提高阈值通常让检测更保守。</p></div></div>
+<p>这种困难样本挖掘是一种训练策略，不等同于「把所有错误样本无限加入」：错误标注、重复数据和训练集偏置也可能带来新问题。</p>
+</section>
+<section class="chapter" id="compare">
+<div class="chapter-kicker"><b>05</b> CHOOSING & LIMITATIONS</div><h2>这几种方法各自解决了什么问题？</h2>
+<div class="table-wrap"><table><thead><tr><th>代表方法</th><th>主要解决的问题</th><th>代价与典型边界</th></tr></thead><tbody>
+<tr><td>HOG + SVM</td><td>把梯度形状转为特征，用样本学习区分类别的边界。</td><td>特征定义固定；对明显形变、姿态变化及复杂遮挡的适应能力有限。</td></tr>
+<tr><td>Haar + AdaBoost + Cascade</td><td>组合简单矩形特征，并快速排除大量背景窗口。</td><td>对特征与训练分布有依赖；早期阶段的错误拒绝无法在后面恢复。</td></tr>
+<tr><td>DPM</td><td>让整体和局部部件共同打分，允许结构存在一定形变。</td><td>训练与推理更复杂；部件设计和表示能力仍受模型假设限制。</td></tr>
+</tbody></table></div>
+<h3>它们共有的能力边界</h3>
+<p>这些方案的核心特点是：<strong>特征如何表示，由研究者预先决定；模型主要学习如何根据特征做判别</strong>。当新场景中的有效视觉线索不在人工表示中，增加分类器训练数据不一定能完全弥补这一缺口。</p>
+<p>这并不意味着传统机器学习检测器在所有工程任务中都已经失效。对于条件稳定、资源有限、目标规律明确的场景，它们仍可能是合理候选；只是对需要处理大幅外观变化的广泛任务，表达能力往往会受到约束。</p>
+<div class="final-line">这一篇最重要的三件事：<br>① 人设计特征，模型从样本学习判别规则。<br>② 分类器只能给候选图块评分，定位还需要位置搜索与候选筛选。<br>③ HOG + SVM、Haar + AdaBoost、DPM 重点解决的困难不同。</div>
+<div class="end-links"><a href="../">← 返回学习式视觉定位</a><a href="../02-deep-vision/">下一篇 · 深度视觉的特征与预测 →</a></div>
+</section>
+<footer class="footer">沿途手记 · Stage 01 / 二维目标定位 / 学习式视觉定位 / 传统机器学习定位<br>人工特征、统计学习与滑窗定位。</footer>
+</article></main></div>
+<script>
+(()=>{
+ const sidebar=document.getElementById('sidebar'),button=document.getElementById('menuButton'),overlay=document.getElementById('overlay');
+ const setMenu=open=>{sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);button.setAttribute('aria-expanded',String(open));document.body.style.overflow=(open&&innerWidth<=820)?'hidden':'';};
+ button.addEventListener('click',()=>setMenu(!sidebar.classList.contains('open')));overlay.addEventListener('click',()=>setMenu(false));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+ sidebar.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+ const anchors=[...document.querySelectorAll('.side-nav a[href^="#"]')];const parts=anchors.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+ const onScroll=()=>{const total=document.documentElement.scrollHeight-innerHeight;document.getElementById('progress').style.width=(total>0?Math.min(100,Math.max(0,scrollY/total*100)):100)+'%';let current=parts[0];for(const part of parts){if(part.getBoundingClientRect().top<=140)current=part;}anchors.forEach(a=>{const active=a.getAttribute('href')==='#'+current.id;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});};
+ addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',()=>{if(innerWidth>820)setMenu(false);onScroll();},{passive:true});onScroll();
+ const svgNS='http://www.w3.org/2000/svg'; const boxes=[{x:68,y:53,w:79,h:155,s:.92},{x:74,y:60,w:73,h:151,s:.86},{x:280,y:67,w:79,h:147,s:.80},{x:286,y:75,w:73,h:139,s:.73},{x:184,y:103,w:87,h:121,s:.53},{x:428,y:101,w:75,h:105,s:.29}];
+ const group=document.getElementById('dynamicBoxes'),th=document.getElementById('scoreThreshold'),nms=document.getElementById('nmsCheck'),readout=document.getElementById('detectReadout'),thText=document.getElementById('thresholdText');
+ function iou(a,b){const ix=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x));const iy=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));const inter=ix*iy;return inter/(a.w*a.h+b.w*b.h-inter);}
+ function makeEl(tag,attrs,text){const e=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;return e;}
+ function update(){const t=Number(th.value),before=boxes.filter(b=>b.s>=t).sort((a,b)=>b.s-a.s),kept=[];for(const b of before){if(!nms.checked||kept.every(k=>iou(k,b)<=.4))kept.push(b);}group.replaceChildren();kept.forEach((b,i)=>{const color=b.s>=.7?'#4d8874':'#b67c58';group.append(makeEl('rect',{x:b.x,y:b.y,width:b.w,height:b.h,rx:2,fill:'none',stroke:color,'stroke-width':i===0?3:2.2}));group.append(makeEl('rect',{x:b.x,y:Math.max(18,b.y-22),width:61,height:20,rx:4,fill:color}));group.append(makeEl('text',{x:b.x+30.5,y:Math.max(32,b.y-8),'text-anchor':'middle',fill:'white','font-size':12,'font-weight':700},b.s.toFixed(2)));});thText.textContent=t.toFixed(2);readout.innerHTML='超过得分阈值：<strong>'+before.length+'</strong> 个候选；最终保留：<strong>'+kept.length+'</strong> 个框。'+(nms.checked?' 由高分到低分执行 NMS，IoU &gt; 0.40 的重叠候选被抑制。':' 未执行 NMS，重叠框保留。');}
+ th.addEventListener('input',update);nms.addEventListener('change',update);update();
+})();
+</script>
+</body></html>
