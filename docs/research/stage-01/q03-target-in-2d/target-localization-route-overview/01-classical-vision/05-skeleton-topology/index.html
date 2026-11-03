@@ -1,327 +1,242 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="沿途手记 · 骨架与拓扑：二维前景连通、孔洞、Euler数、Medial Axis、Zhang–Suen细化、骨架图、剪枝、稳定性实验与OpenCV/scikit-image。"><title>骨架与拓扑｜沿途手记</title><style>
-:root{--paper:#fbfaf7;--sidebg:#f5f0e9;--white:#fff;--ink:#342f2c;--ink2:#625750;--muted:#908177;--line:#e8e0d8;--accent:#a75e49;--accentdeep:#844633;--accentwash:#f8efe9;--green:#547268;--mint:#edf4f0;--blue:#456d82;--reading:860px;--side:clamp(225px,19.5vw,290px)}
-*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:35px}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.87;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:hover{color:var(--accentdeep)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #dbad96;outline-offset:3px}::selection{background:#efd0bd}.site{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}
-.sidebar{position:sticky;top:0;height:100dvh;overflow-y:auto;background:var(--sidebg);border-right:1px solid var(--line);padding:28px clamp(16px,2vw,27px) 22px;display:flex;flex-direction:column;gap:21px;scrollbar-width:thin}.brand{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:700;letter-spacing:.045em}.brand-sub{font-size:10px;letter-spacing:.11em;color:var(--muted);margin-top:-2px}.side-group{font-size:10px;font-weight:800;letter-spacing:.13em;color:#94867a;margin:0 0 7px 9px}.side-links{display:grid;gap:1px}.side-links a{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:8px;color:#776a61;font-size:12px;line-height:1.55;transition:background .15s}.side-links a .num{color:#ac9a8e;min-width:19px;font-size:10.5px}.side-links a:hover{background:#efe6dd}.side-links a.active{background:#eadbd0;color:#773e30;font-weight:750}.side-links a.active .num{color:var(--accent)}.current-article{padding:0 10px 9px;font-size:13px;font-weight:700;color:var(--accentdeep)}.sub-links{display:grid;gap:2px}.sub-links a{border-left:2px solid transparent;padding:4px 10px;color:#8c7b6e;font-size:11.3px;line-height:1.58}.sub-links a.current{border-left-color:var(--accent);color:var(--accentdeep);font-weight:750}.side-bottom{margin-top:auto;padding:13px 10px 0;border-top:1px solid #e3d8cd;color:#96877c;font-size:11px}.page-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px}.page-links a{text-decoration:underline;text-decoration-color:#c6b4a6;text-underline-offset:4px}
-.layout-main{min-width:0;padding:36px clamp(23px,4.3vw,68px) 95px}.article{width:min(100%,var(--reading));margin:auto}.crumb{display:flex;align-items:center;flex-wrap:wrap;gap:9px;font-size:11px;color:#988b81}.slash{color:#c5b9ae}.hero{padding:40px 0 32px;border-bottom:1px solid var(--line)}.eyebrow,.chapter-label,.smallcap{font-size:11px;letter-spacing:.15em;font-weight:800;color:var(--accent)}h1,h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif}h1{font-size:clamp(40px,5vw,57px);line-height:1.22;letter-spacing:.035em;margin:11px 0 8px}h2{font-size:clamp(23px,3.1vw,30px);line-height:1.5;letter-spacing:.014em;margin:9px 0 20px}h3{font-size:17px;line-height:1.52;margin:29px 0 10px}h4{font-size:14px;margin:21px 0 6px}.subtitle{font-size:20px;font-weight:550;color:var(--ink2);margin:7px 0 17px}.lede{max-width:755px;color:#64564d;margin:12px 0 15px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}.tag{font-size:10.5px;border:1px solid #e6ddd5;padding:3px 11px;border-radius:40px;color:#806f63;background:#fffdfa}.chapter{padding:40px 0 29px;border-bottom:1px solid var(--line)}.chapter p{margin:11px 0 15px}.chapter strong{color:#42342f}.chapter li{margin:6px 0;padding-left:2px}.chapter ul,.chapter ol{padding-left:22px}.small{font-size:12px}.muted{color:var(--muted)}.mono,code,pre{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace}code{font-size:.87em;background:#f4ede6;padding:2px 5px;border-radius:4px}.lead-note{border-left:3px solid var(--accent);padding:2px 0 3px 17px;margin:18px 0 23px;color:#694a3b;font-weight:650;background:transparent}.scope-grid,.three,.two{display:grid;gap:11px;margin:20px 0}.scope-grid,.three{grid-template-columns:repeat(3,minmax(0,1fr))}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 15px}.tile .id{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.075em}.tile strong{display:block;font-size:13px;margin:5px 0 3px}.tile p{font-size:11.5px;line-height:1.72;margin:0;color:#726259}.note,.answer,.warn{border:1px solid #e9e0d7;background:#fff;padding:14px 17px;border-radius:10px;margin:19px 0;font-size:13px}.note{border-left:3px solid #a39789}.answer{border-left:3px solid #698c7e;background:#f7faf8}.warn{border-left:3px solid #c08b5f;background:#fffaf3}.math{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;background:#f8f5f1;border:1px solid #e9e0d7;border-radius:10px;padding:15px 17px;overflow:auto;color:#51473f;font-size:12px;line-height:2.1;margin:16px 0}.math>div{white-space:nowrap}.figure{border:1px solid var(--line);background:#fff;border-radius:13px;overflow:hidden;margin:20px 0}.figure-title{font-size:13px;font-weight:750;padding:14px 17px 0;color:#604b41}.figure-body{padding:12px 16px}.figure-body svg{display:block;max-width:100%;height:auto}.figcap{font-size:11.5px;color:#928175;line-height:1.74;padding:0 17px 14px}.viz{border:1px solid #e7d9cc;background:#fffdfa;border-radius:13px;margin:19px 0;padding:17px}.viz-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.viz-name{font-size:13px;font-weight:800;color:#7b4a35}.viz-help{font-size:11px;color:#968477}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 15px;margin:12px 0}.controls label{font-size:12px;color:#6d5d52}.controls input[type=range]{accent-color:var(--accent);width:170px;vertical-align:middle}.btn{border:1px solid #dec8b8;background:#fff7f1;color:#874735;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:720}.btn:hover,.btn.sel{background:#eed9ca}.result{background:#f8f2ed;border-radius:8px;padding:10px 12px;color:#66574b;font-size:11.5px;margin-top:10px}.bitmap{display:grid;gap:3px;padding:12px;border:1px solid #ede0d4;border-radius:10px;background:#f5f0eb;width:max-content;max-width:100%}.pixel{width:25px;height:25px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}.pixel.off{background:#e5ded5;color:transparent}.pixel.a{background:#b77357}.pixel.b{background:#739686}.pixel.c{background:#718a9b}.pixel.d{background:#b3a274}.pixel.reject{background:#d0cbc4;color:#514942}.pixel.seed{outline:2px solid #44382f;outline-offset:1px}.pixel.valued{font-size:9px;color:#604d44}.bitmap-wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}.bitmap-block{flex:0 1 auto}.bitmap-label{font-size:11px;font-weight:700;color:#756256;margin-bottom:7px}.mini-text{font-size:12px;color:#716258;line-height:1.75}.table-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:17px 0;background:#fff}.table-scroll table{border-collapse:collapse;width:100%;min-width:615px;text-align:left;font-size:12.3px;line-height:1.8}.table-scroll th{background:#f6f2ed;color:#645449;font-size:11px;white-space:nowrap}.table-scroll th,.table-scroll td{padding:10px 13px;border-bottom:1px solid #eee7df;vertical-align:top}.table-scroll tr:last-child td{border-bottom:0}.table-scroll td:first-child{font-weight:690;color:#4b3c34}.table-scroll code{font-size:11px}.code-title{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f0e9e1;border:1px solid #e9ded3;border-radius:9px 9px 0 0;margin-top:18px;color:#6c5a4c;font-size:11px;font-weight:720}.copy{font-size:10px;color:#77584b;background:#fff;border:1px solid #ded1c5;border-radius:5px;padding:3px 9px}.code-block{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;font-size:11.5px;line-height:1.8;tab-size:4;white-space:pre;overflow:auto;background:#302e2b;color:#eee7dc;padding:17px 19px;margin:0 0 18px;border-radius:0 0 9px 9px;max-height:570px}.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0}.flowpill{font-size:12px;border:1px solid #e8dace;background:white;border-radius:8px;padding:7px 11px;font-weight:650}.flowarrow{font-size:15px;color:#a99182}.compact-list{padding-left:21px!important}.index-row{display:flex;gap:13px;align-items:baseline;margin:17px 0 12px}.index-row .index{font-weight:850;letter-spacing:.07em;font-size:11px;color:var(--accent);flex-shrink:0}.index-row strong{font-size:13px}.example-key{display:inline-flex;align-items:center;gap:6px;margin:0 12px 6px 0;font-size:10.8px;color:#8c7d70}.dot{width:9px;height:9px;border-radius:3px;background:#b77357}.footer{padding-top:24px;color:#988a7c;font-size:11px}.next{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:27px 0}.next a{display:block;padding:15px 17px;border:1px solid var(--line);background:white;border-radius:10px;font-size:12px;color:#87786d}.next a strong{display:block;color:#493a33;font-size:13px;margin-top:3px}.next a:last-child{text-align:right}.progress{position:fixed;top:0;left:0;width:0;height:3px;background:#bc7861;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}.anchor{scroll-margin-top:35px}
-@media(max-width:1080px){:root{--side:clamp(210px,23vw,250px)}.layout-main{padding:29px 29px 75px}.sidebar{padding-left:16px;padding-right:13px}}@media(max-width:820px){.site{display:block}.sidebar{position:fixed;top:51px;left:0;width:min(315px,84vw);height:calc(100dvh - 51px);z-index:50;transform:translateX(-111%);transition:transform .22s ease;box-shadow:14px 12px 36px #211b1620}.sidebar.open{transform:translateX(0)}.overlay{position:fixed;inset:51px 0 0;background:#261e1766;z-index:45}.overlay.visible{display:block}.layout-main{padding:0 19px 55px}.mobile-bar{display:flex;position:sticky;top:0;z-index:42;align-items:center;justify-content:space-between;height:51px;background:#faf6f1f0;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin:0 -19px;padding:0 16px;font-size:12px}.mobile-bar .btn{padding:4px 10px}.crumb{padding-top:22px}.hero{padding-top:30px}}@media(max-width:600px){.scope-grid,.two,.three{grid-template-columns:1fr}.scope-grid{gap:8px}.tile{padding:12px 14px}.hero h1{font-size:41px}.chapter{padding-top:32px}.subtitle{font-size:18px}.controls input[type=range]{width:135px}.next{grid-template-columns:1fr}.bitmap-wrap{gap:12px}.pixel{width:20px;height:20px}.figure-body{padding:8px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}@media print{.sidebar,.mobile-bar,.overlay,.progress,.next,.copy{display:none!important}.site{display:block}.layout-main{padding:0}.article{width:100%}.chapter{break-inside:avoid}.viz,.figure{break-inside:avoid}body{font-size:12px}}
+<!DOCTYPE html>
 
-/* Page-specific diagrams and interactive experiments. */
-.current-article{padding:6px 10px 7px;color:#755043;font-size:12.8px;font-weight:780;line-height:1.45;background:#eadbd0;border-radius:8px;margin:0 0 8px}
-.chapter-sidebar{min-height:0}
-.chapter h2{scroll-margin-top:32px}
-.kernel{border:1px solid var(--line);background:#fff;border-radius:11px;padding:12px 15px;text-align:center}
-.kernel>span{display:block;font-weight:750;font-size:12px;color:#826550;margin-bottom:8px}
-.kernel table{border-spacing:4px;margin:auto}
-.kernel td{width:38px;height:34px;background:#f0e5da;border-radius:5px;font-family:Consolas,ui-monospace,monospace;font-size:13px;font-weight:700;color:#6b4f3f}
-.gray-grid{display:grid;grid-template-columns:repeat(7,34px);gap:3px;width:max-content;max-width:100%;padding:7px;background:#eee6de;border-radius:9px}
-.gray-grid.mini-grid{grid-template-columns:repeat(3,34px)}
-.gray-cell{width:34px;height:34px;padding:0;border:0;border-radius:3px;font-size:9.7px;font-weight:720;position:relative}
-.gray-cell:not(:disabled):hover{outline:2px solid #a75e49;outline-offset:-2px}
-.gray-cell.chosen{outline:3px solid #8d5a3f;outline-offset:1px;z-index:2}
-.gray-cell.noisy{box-shadow:inset 0 0 0 2px #a94d43}
-.gray-cell:disabled{cursor:default;opacity:1}
-.lab-readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:16px}
-.lab-readouts>div{border:1px solid #e8ddd2;border-radius:8px;background:#fbf6f1;padding:8px 10px}
-.lab-readouts small{display:block;font-size:10px;color:#9a8477;line-height:1.4}
-.lab-readouts b{font-size:18px;line-height:1.7;font-variant-numeric:tabular-nums;color:#86523e}
-.canvas-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
-.canvas-panel{padding:11px;background:#fff;border:1px solid #e9dfd6;border-radius:9px;min-width:0}
-.canvas-panel>div{font-weight:740;font-size:12px;margin-bottom:7px;color:#6a5548}
-.canvas-panel canvas{display:block;width:100%;height:auto;aspect-ratio:3 / 2;image-rendering:pixelated;background:#222;border-radius:5px}
-.canvas-panel small{display:block;font-size:10.5px;line-height:1.65;color:#938478;margin-top:8px}
-.control-check{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
-.control-check input{accent-color:var(--accent)}
-.trace-columns{align-items:start}
-.trace-columns svg{display:block;max-width:100%;height:auto;margin-top:4px}
-.trace-list{display:grid;gap:7px}
-.trace-select{text-align:left;border:1px solid #e6d9ce;background:#fff;border-radius:8px;padding:9px 10px;color:#685649;font-size:11.5px;line-height:1.5}
-.trace-select:hover,.trace-select.sel{background:#f3e5d9;border-color:#be9981;color:#804732;font-weight:740}
-.hier-tree{display:grid;gap:7px}
-.hier-node{font-size:12px;border-radius:7px;border:1px solid #e5d9cc;background:#fff;padding:6px 10px;font-weight:680;color:#735c4d}
-.hier-node.depth-1{margin-left:21px;border-left:3px solid #b67a5e}
-.hier-node.depth-2{margin-left:41px;border-left:3px solid #78978b}
-.select{font:inherit;font-size:12px;border:1px solid #dccbbc;border-radius:8px;padding:6px 9px;color:#6e5144;background:#fff}
-.return-end{margin:27px 0}
-.return-end a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px 16px;color:#73554a;font-size:12px;font-weight:700}
-.return-end a:hover{background:#f9eee7}
-@media(max-width:610px){.canvas-grid,.trace-columns{grid-template-columns:1fr}.lab-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.gray-grid{grid-template-columns:repeat(7,28px)}.gray-grid.mini-grid{grid-template-columns:repeat(3,28px)}.gray-cell{width:28px;height:28px;font-size:8.5px}.viz{padding:12px}.canvas-grid{gap:9px}.controls{align-items:flex-start}.controls label{display:flex;flex-wrap:wrap;gap:5px}.controls input[type=range]{width:150px}}
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#faf8f4" name="theme-color"/>
+<meta content="沿途手记 · 骨架与拓扑：广度优先，讲清连通性、距离变换、中轴、细化、骨架图和剪枝的直观机制、用途与局限。" name="description"/>
+<title>骨架与拓扑 · 核心公式与直观机制｜沿途手记</title>
+<style>
+:root{color-scheme:light;--paper:#faf8f4;--aside:#f5f0e9;--card:#fffefa;--ink:#3e352f;--body:#60554c;--sub:#8d7d71;--line:#e6dbcf;--rust:#ad7158;--rust-deep:#86503b;--rust-soft:#f5e8dc;--sage:#4f8272;--sage-soft:#edf5ef;--reading:830px;--aside-size:clamp(240px,20vw,294px);--serif:Georgia,"Noto Serif SC","Source Han Serif SC","Songti SC",serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.92 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:3px}::selection{background:#e7cfb8}
+.progress{height:3px;position:fixed;inset:0 auto auto 0;width:0;background:#bd856c;z-index:90;pointer-events:none}.site{display:grid;grid-template-columns:var(--aside-size) minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100dvh;background:var(--aside);border-right:1px solid var(--line);padding:30px 22px 20px;display:flex;flex-direction:column;gap:21px;overflow-y:auto;scrollbar-width:thin;z-index:50}.brand{font:700 23px/1.3 var(--serif);color:#50443c;letter-spacing:.06em}.brand small{display:block;font:500 10px/1.7 var(--sans);color:#a29285;margin-top:8px;letter-spacing:.065em}.return{display:block;background:#fffefa8c;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#795f50}.return:hover{background:#fffefa}.side-label{font-size:10px;letter-spacing:.12em;font-weight:700;color:#a08f80;margin:0 0 9px 8px}.current{font-size:14px;color:var(--rust-deep);font-weight:750;padding:0 8px 9px}.nav{display:flex;flex-direction:column;gap:2px}.nav a{display:flex;gap:12px;padding:8px 10px;align-items:flex-start;color:#75695e;font-size:12px;line-height:1.6;border-radius:8px}.nav a:hover{background:#ebe2d8}.nav a.active{background:#eeded2;color:#864f3b;font-weight:750}.nav em{font-style:normal;font:700 10px/2 var(--sans);color:#ad9e91;min-width:21px}.nav a.active em{color:#aa735d}.sidebar-foot{margin-top:auto;border-top:1px solid var(--line);padding:15px 9px 0;color:#a28f82;font-size:10px;letter-spacing:.045em}
+main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--reading);margin:auto}.crumb{min-height:65px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-bottom:1px solid var(--line);font-size:11.5px;color:#9b8b7f}.crumb a:hover{color:var(--rust)}.hero{padding:56px 0 47px;border-bottom:1px solid var(--line)}.eyebrow,.kicker{font-size:10.5px;color:var(--rust);font-weight:750;letter-spacing:.12em}.hero h1{color:var(--ink);font:750 clamp(35px,4.3vw,49px)/1.45 var(--serif);letter-spacing:-.024em;margin:10px 0 4px}.subtitle{font:italic 12px/1.7 Georgia,serif;color:#a39081;margin:0 0 25px}.hero p{margin:14px 0;max-width:780px;font-size:15.5px;line-height:2.1}.hero strong,.chapter strong{color:#86583f}.hero-tags{margin-top:23px;display:flex;gap:7px;flex-wrap:wrap}.hero-tags span{border:1px solid #e8dbcc;padding:3px 10px;font-size:10.5px;color:#9d806c;border-radius:30px;background:#fffdf8}
+.chapter{padding:56px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:30px}.chapter h2{font:700 clamp(23px,2.6vw,28px)/1.58 var(--serif);color:var(--ink);margin:10px 0 22px;letter-spacing:-.015em}.chapter h3{font-size:17px;line-height:1.63;font-weight:740;color:#4a3a31;margin:31px 0 11px}.chapter p{font-size:15px;line-height:2.05;margin:0 0 16px}.chapter p:last-child{margin-bottom:0}.chapter .intro{font-size:15.5px}.topic{margin:30px 0 12px;color:#9f7259;font-size:11px;font-weight:750;letter-spacing:.1em}.conclusion{border-left:3px solid var(--sage);padding:11px 16px;background:#f0f5ef;margin:22px 0 0;border-radius:0 8px 8px 0;font-size:13.5px;line-height:1.85;color:#597264}.conclusion strong{color:#456c59}.callout{background:#fffdf8;border:1px solid var(--line);border-radius:10px;padding:17px 19px;margin:21px 0}.callout p{font-size:14px;margin:0}.callout-title{display:block;font-size:11px;font-weight:750;color:#a16a50;letter-spacing:.07em;margin-bottom:7px}.bridge{font-size:14px;color:#726158;border-top:1px dashed #e3d5c6;padding-top:18px;margin-top:28px}.bridge b{color:#845640}.footnote{font-size:12px!important;color:#978679;line-height:1.8!important}.figure{background:var(--card);border:1px solid #e5dbd0;border-radius:13px;overflow:hidden;margin:23px 0 24px}.figure-header{padding:13px 18px 0;font-size:13px;color:#674f40;font-weight:730}.figure-body{padding:8px 16px 6px}.figure svg{display:block;width:100%;height:auto}.figure figcaption{color:#948478;font-size:11.5px;line-height:1.7;padding:5px 18px 15px}.compare{width:100%;border-collapse:collapse;text-align:left;background:#fffefa;font-size:13px;line-height:1.8}.compare th{background:#f5eee6;color:#775642;font-size:12px}.compare th,.compare td{padding:12px 13px;border-bottom:1px solid #eae0d5;vertical-align:top}.compare td:first-child{color:#7c5a45;font-weight:690;min-width:100px}.compare tr:last-child td{border-bottom:0}.table-wrap{border:1px solid var(--line);border-radius:10px;overflow-x:auto;margin:20px 0 24px}.table-wrap .compare{min-width:550px}.small-caps{color:#a16e54;font-size:11px;letter-spacing:.08em;font-weight:750}.term{font-weight:750;color:#87533e}.inline-math{background:#f5eee6;border:1px solid #ebddcf;border-radius:5px;padding:1px 5px;font-size:13px;white-space:nowrap}.two-notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}.mini-note{border:1px solid var(--line);background:#fffdfa;border-radius:10px;padding:16px 17px}.mini-note strong{display:block;color:#74513f;font-size:14px;margin-bottom:5px}.mini-note p{font-size:13px;line-height:1.85;margin:0}.mini-note.sage{border-top:3px solid #689183}.mini-note.rust{border-top:3px solid #b98062}.quick-check{padding-left:22px;margin:15px 0 0}.quick-check li{padding-left:2px;margin:8px 0;font-size:14px;line-height:1.85}.next{display:flex;justify-content:space-between;gap:13px;flex-wrap:wrap;padding:28px 0 0}.next a{display:inline-flex;align-items:center;border:1px solid var(--line);padding:10px 15px;border-radius:9px;font-size:12px;color:#91644c;background:#fffdfa}.next a:hover{background:#f8efe6}.footer{color:#a19386;font-size:11px;margin-top:32px}.mobile,.shade{display:none}
+@media(max-width:1000px){.sidebar{padding-left:15px;padding-right:15px}main{padding:0 31px 70px}}
+@media(max-width:810px){.site{display:block}.sidebar{position:fixed;top:0;bottom:0;left:0;height:100dvh;width:min(320px,88vw);transform:translateX(-105%);transition:transform .23s ease;visibility:hidden;box-shadow:10px 0 35px #37251926}.sidebar.open{transform:translateX(0);visibility:visible}.shade.on{display:block;position:fixed;inset:0;background:#2b211947;z-index:45}.mobile{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:35;height:55px;padding:0 18px;background:#faf8f4ed;backdrop-filter:blur(10px);border-bottom:1px solid var(--line);font-size:12px;color:#775c4e}.mobile button{border:1px solid #d9c6b5;border-radius:8px;background:#fffefa;color:#765747;padding:6px 12px;cursor:pointer}.mobile strong{font-size:12px}main{padding:0 22px 55px}.crumb{min-height:53px}.chapter{scroll-margin-top:72px}}
+@media(max-width:600px){.hero{padding:37px 0 35px}.hero h1{font-size:34px}.hero p{font-size:14.5px}.chapter{padding:43px 0 42px}.chapter h2{font-size:23px}.chapter p{font-size:14px}.two-notes{grid-template-columns:1fr}.figure-body{padding:7px 8px 2px}.figure figcaption{padding:7px 12px 14px}main{padding-left:18px;padding-right:18px}.table-wrap .compare{min-width:510px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
-
-.demo-canvas{display:block;width:100%;height:auto;background:#f6f0e9;border:1px solid #e9dacf;border-radius:9px;margin:10px 0;touch-action:pan-y}
-.lab-readouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}.lab-readouts>div{background:#fbf6f1;border:1px solid #ede2d8;border-radius:8px;padding:9px 11px}.lab-readouts small{display:block;color:#938175;font-size:10px;line-height:1.5}.lab-readouts b{display:block;font-size:18px;font-variant-numeric:tabular-nums;color:#8a503e;line-height:1.6}.viz .controls label{font-size:12px;color:#736356}.viz input[type=range]{max-width:155px;width:155px;accent-color:var(--accent)}.select{font:inherit;font-size:12px;border:1px solid #dccbbc;border-radius:8px;padding:6px 9px;color:#6e5144;background:#fff}.return-end{margin:27px 0}.return-end a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px 16px;color:#73554a;font-size:12px;font-weight:700}.return-end a:hover{background:#f9eee7}.next-links{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:23px;margin-top:30px;gap:15px}.next-links a{font-size:12px;color:#805b49;text-decoration:underline;text-underline-offset:4px}.next-links a:last-child{text-align:right}
-@media(max-width:610px){.lab-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.viz{padding:12px}.viz .controls{align-items:flex-start}.viz input[type=range]{width:115px}.lab-readouts b{font-size:16px}}
-.chapter-context{font-size:14.3px;line-height:1.95;color:#65564b;margin:12px 0 18px!important}
-.thinking{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 25px}
-.thinking>div{border-top:2px solid #c7aa98;padding:12px 12px 10px;background:#fffdfb;min-width:0}
-.thinking>div:nth-child(2){border-top-color:#b9876b}
-.thinking>div:nth-child(3){border-top-color:#73948a}
-.thinking-key{font-size:11px;font-weight:800;color:#855947;letter-spacing:.035em}
-.thinking>div:nth-child(2) .thinking-key{color:#9d624b}
-.thinking>div:nth-child(3) .thinking-key{color:#4e7667}
-.thinking p{font-size:12px;line-height:1.75;margin:7px 0 0!important;color:#6f6056}
-.chapter-handoff{margin:25px 0 0;padding:15px 19px;background:#f5efe9;border-left:3px solid #af7963;border-radius:0 8px 8px 0}
-.chapter-handoff span{font-size:11px;font-weight:800;color:#935742;letter-spacing:.06em}
-.chapter-handoff p{font-size:13px;margin:4px 0 0!important;color:#55483e}
-.route-start{display:flex;align-items:stretch;justify-content:center;gap:13px;margin:23px 0 18px}
-.route-source{display:flex;flex-direction:column;gap:5px;flex:1;background:white;border:1px solid var(--line);padding:18px 19px;border-radius:10px;justify-content:center}
-.route-source strong{font-size:14px;line-height:1.65}
-.route-source.emphasis{border-color:#debb9e;background:#fdf5ed}
-.route-arrow{align-self:center;color:#b27c5c;font-size:25px}
-.route-problems{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:0 0 20px}
-.problem-pill{font-size:11px;border:1px dashed #d2bbaa;color:#796456;background:#faf6f1;border-radius:40px;padding:5px 10px}
-.route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:19px 0}
-.route-card{display:block;background:#fff;border:1px solid #e6ded5;border-radius:11px;padding:15px 18px 13px;transition:transform .14s,border-color .14s,background .14s}
-.route-card:hover{background:#fff9f2;border-color:#d4b5a0;transform:translateY(-2px)}
-.route-card:first-child{grid-column:span 2;background:#f9f1e9;border-color:#e2cbb9}
-.route-index{display:block;font-size:10.3px;letter-spacing:.04em;color:#a56d53;font-weight:800}
-.route-card strong{display:block;font-size:15px;color:#44362d;margin:4px 0 4px}
-.route-card p{font-size:12px;line-height:1.64;color:#726357;margin:4px 0!important}
-.route-card em{font-size:11px;font-style:normal;color:#4c756a;font-weight:680}
-.route-legend{background:#f6f3ee;border:1px solid #e8dfd5;border-radius:9px;color:#716458;padding:12px 15px;font-size:12px;line-height:1.8}
-@media(max-width:640px){.thinking{grid-template-columns:1fr}.route-grid{grid-template-columns:1fr}.route-card:first-child{grid-column:auto}.route-start{flex-direction:column}.route-arrow{transform:rotate(90deg)}.route-source{padding:12px 14px}}
-
-.route-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
-.route-lane{padding:17px 18px;border-radius:11px;background:#fff;border:1px solid #e7ddd3;min-width:0}
-.route-lane:first-child{border-top:3px solid #b87860}.route-lane:last-child{border-top:3px solid #6d968b}
-.route-lane .smallcap{display:block;margin-bottom:6px}.route-lane strong{font-size:13px;display:block;line-height:1.6}
-.route-lane p{font-size:12px;line-height:1.8;color:#75675c;margin:6px 0!important}
-.route-converge{border-radius:8px;border:1px dashed #b9ac9e;text-align:center;font-size:12px;padding:10px;color:#695a4e;background:#f8f5f0;margin:8px 0 18px}
-.route-card:first-child{grid-column:auto;background:#fff;border-color:#e6ded5}
-.route-card:nth-child(1),.route-card:nth-child(4){border-top:3px solid #b87961}
-.route-card:nth-child(3),.route-card:nth-child(5){border-top:3px solid #699084}
-.route-card:nth-child(7){grid-column:span 2;background:#faf3eb}
-.tiny-evidence{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}
-.tiny-evidence span{font-size:11px;color:#68564b;padding:5px 10px;background:#f6f0e9;border-radius:30px;border:1px solid #e7dacf}
-.refine-panel svg{width:100%;height:auto;display:block;background:#fff;border:1px solid #eaded4;border-radius:9px}
-@media(max-width:640px){.route-pair{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
-
-.geom-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}
-.geom-input{background:#fff;border:1px solid #e8dfd6;border-top:3px solid #b37b5f;border-radius:10px;padding:15px 16px}
-.geom-input:nth-child(2){border-top-color:#668d82}.geom-input:nth-child(3){border-top-color:#5f8095}
-.geom-input strong{display:block;font-size:13px;color:#49392e}.geom-input p{font-size:11.5px;line-height:1.8;margin:7px 0 0!important;color:#7b6c60}
-.route-card:nth-child(2),.route-card:nth-child(5){border-top:3px solid #688d82}
-.route-card:nth-child(3),.route-card:nth-child(6){border-top:3px solid #7b8da2}
-.route-card:nth-child(7){grid-column:span 2;background:#fbf5ed}
-.corner-lab svg{display:block;width:100%;height:auto;background:#fff;border:1px solid #e9dfd6;border-radius:10px}
-.corner-reading{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
-.corner-reading div{border:1px solid #e9ddd2;border-radius:9px;padding:10px 13px;background:#fff}
-.corner-reading span{display:block;font-size:11px;color:#816f62}
-.corner-reading strong{font-size:20px;font-family:ui-monospace,monospace;color:#985c45}
-.geom-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:15px 0}
-.geom-steps span{font-size:12px;padding:8px 11px;border:1px solid #e5dace;border-radius:8px;background:#fff}
-.geom-steps i{font-style:normal;color:#a98d78}
-.geom-branch-svg{width:100%;height:auto;display:block}
-@media(max-width:700px){.geom-inputs,.corner-reading{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
+@media print{.sidebar,.mobile,.shade,.progress,.next{display:none!important}.site{display:block}main{padding:0}.article{max-width:none}.chapter{break-inside:auto}.figure{break-inside:avoid}}
 
 
-/* 05 skeleton topology: inherited from the geometry chapter */
-.puzzle{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:19px 0}.puzzle>div{background:#fff;border:1px solid var(--line);border-top:3px solid #b9886e;border-radius:9px;padding:13px 14px}.puzzle>div:nth-child(2){border-top-color:#71958a}.puzzle>div:nth-child(3){border-top-color:#7893a5}.puzzle strong{font-size:13px;display:block}.puzzle p{font-size:11.6px;color:#716258;margin:5px 0!important}
-.skel-branch{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:17px 0}.skel-branch>div{padding:15px 17px;border-radius:10px;background:white;border:1px solid #e7dfd7;border-top:3px solid #b98c70}.skel-branch>div:nth-child(2){border-top-color:#6b9589}.skel-branch strong{font-size:13px;display:block}.skel-branch p{font-size:12px;line-height:1.8;margin:6px 0!important;color:#72645a}
-.route-map-svg{width:100%;height:auto;display:block}.readout-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:13px 0}.readout-strip div{background:#fff;border:1px solid #e9dfd5;padding:9px 10px;border-radius:8px}.readout-strip span{display:block;color:#89796e;font-size:10.5px}.readout-strip strong{font-size:19px;letter-spacing:-.02em;color:#975c47;font-variant-numeric:tabular-nums}
-.viz-canvases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.viz-canvas-box{background:#fff;border:1px solid #e8ddd3;border-radius:10px;padding:12px;min-width:0}.viz-canvas-box b{font-size:12px;color:#675448;display:block;margin-bottom:7px}.viz-canvas-box canvas{width:100%;height:auto;display:block;image-rendering:pixelated;background:#f9f5ef;border-radius:5px;max-width:100%;}
-.badge-inline{border-radius:5px;padding:2px 7px;background:#f4ece4;font-size:11px;color:#875b45;white-space:nowrap}.ink-svg{display:block;width:100%;height:auto;background:#fff;border:1px solid #eee3d8;border-radius:10px}.tiny-help{font-size:11.5px;color:#8c7a6c;line-height:1.75;margin-top:10px!important}.interlude{border-left:3px solid #b78a70;background:#f8f1eb;border-radius:0 8px 8px 0;padding:11px 15px;margin:17px 0;color:#665246;font-size:13px}
-@media(max-width:720px){.puzzle,.readout-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.skel-branch{grid-template-columns:1fr}}@media(max-width:480px){.puzzle{grid-template-columns:1fr}.viz-canvases{grid-template-columns:1fr}.readout-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style></head><body><div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div><div class="site"><aside class="sidebar" id="sidebar" aria-label="本篇章节导航"><div class="site-identity"><div class="brand">沿途手记</div><div class="brand-sub">STAGE 01 · CLASSICAL VISION</div></div><div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="index.html"><span class="num">←</span>图像特征与结构提取</a></nav></div><div class="chapter-sidebar"><div class="side-group">本篇章节</div><div class="current-article">05 · 骨架与拓扑</div><nav class="sub-links" id="chapter-nav" aria-label="骨架与拓扑章节"><a href="#scope">00 · 问题与边界</a><a href="#roadmap">技术路线图</a><a href="#connectivity">01 · 连通、孔洞与 Euler 数</a><a href="#skeleton">02 · 中轴与细化</a><a href="#graph">03 · 从骨架到拓扑图</a><a href="#stability">04 · 剪枝与稳定性</a><a href="#localization">05 · 目标定位用途</a><a href="#selection">06 · 方法选择与实验</a></nav></div></aside><main class="layout-main" id="content"><div class="mobile-bar"><button id="mobile-menu" class="btn" type="button" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>05 / 06</span></div><article class="article"><div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="index.html">图像特征与结构提取</a><span class="slash">/</span><span>骨架与拓扑</span></div><header class="hero"><div class="eyebrow">DEEP DIVE · 05 / 06</div><h1>骨架与拓扑</h1><p class="subtitle">形状不规则，能不能找到它内部的连接关系？</p><p class="lede">前面已经研究过像素、区域、边缘和规则几何模型。可面对弯曲的线缆、分叉的枝条时，直线和旋转框都显得不够自然。我真正想要的不是一个“更复杂的框”，而是<strong>中心路径在哪里、从哪里分叉、是否连通，以及这些结果有多可靠。</strong></p><p class="lede">这篇沿着这个问题，先从最简单的数字连通性出发，尝试把区域压缩成骨架，再将骨架组织为可计算的节点与路径；每引入一个方法，都要说明它解决了什么，以及又引入了什么新的失效条件。</p><div class="meta"><span class="tag">单张 Mask / 2D 结构</span><span class="tag">连通与孔洞 · Medial Axis · Thinning</span><span class="tag">机制 / 公式 / Python / 可交互实验</span><span class="tag">独立 HTML · 离线阅读</span></div></header><section class="chapter anchor" id="scope"><div class="chapter-label">00 · QUESTION & SCOPE</div><h2>规则几何不够用时，我们真正缺的是什么？</h2>
-<p>上一站《几何结构》已经能对轮廓拟合直线、圆、椭圆，还能得到旋转包围框。但把这个思路用到一根弯曲线缆上就很别扭：<strong>它并不是“拟合得不够好”，而是我真正关心的东西变了。</strong></p>
-<div class="figure"><div class="figure-title">面对同一块前景，外接框与连接结构回答的不是同一个问题</div><div class="figure-body"><svg viewBox="0 0 780 240" class="route-map-svg" role="img" aria-label="弯曲分叉物体的外接框与中心骨架对比">
-<g font-family="Inter,Noto Sans SC,sans-serif"><rect x="9" y="8" width="363" height="201" rx="12" fill="#f7f1ea"/><rect x="409" y="8" width="363" height="201" rx="12" fill="#f1f6f3"/>
-<path d="M73 174Q113 135 155 139T231 104Q251 71 292 59M186 125Q199 65 232 41" fill="none" stroke="#bd8a70" stroke-width="33" stroke-linecap="round" stroke-linejoin="round"/><rect x="55" y="23" width="251" height="174" rx="1" fill="none" stroke="#a15843" stroke-width="2.4" stroke-dasharray="7 6"/><text x="189" y="229" font-size="12" text-anchor="middle" fill="#735e50">旋转框：范围 / 大致方向</text>
-<path d="M473 174Q513 135 555 139T631 104Q651 71 692 59M586 125Q599 65 632 41" fill="none" stroke="#a6c4bb" stroke-width="33" stroke-linecap="round" stroke-linejoin="round"/><path d="M473 174Q513 135 555 139T631 104Q651 71 692 59M586 125Q599 65 632 41" fill="none" stroke="#387970" stroke-width="3.5" stroke-linecap="round"/><circle cx="473" cy="174" r="6" fill="#b77751"/><circle cx="692" cy="59" r="6" fill="#b77751"/><circle cx="632" cy="41" r="6" fill="#b77751"/><circle cx="586" cy="125" r="6" fill="#356c65" stroke="#fff" stroke-width="2"/><text x="590" y="229" font-size="12" text-anchor="middle" fill="#5b7268">骨架：端点 / 路径 / 分叉 / 局部方向</text>
-</g></svg></div><div class="figcap">机制示意，不是对一张真实图像的算法测量结果。外接矩形可以正确包围目标，但不会表达内部的连接关系。</div></div>
-<div class="scope-grid"><div class="tile"><div class="id">INPUT</div><strong>二维前景 Mask</strong><p>可能包含弯曲、分叉、孔洞、细线；其质量直接决定后续结构可信度。</p></div><div class="tile"><div class="id">QUESTION</div><strong>形状怎么连、朝哪延伸</strong><p>连通数、孔洞、中心路径、端点、分叉点和路径之间的关系。</p></div><div class="tile"><div class="id">OUTPUT</div><strong>骨架像素与拓扑图</strong><p>Skeleton、G=(V,E)、像素路径、二维长度及局部宽度估计。</p></div></div>
-<div class="note"><b>先约束边界：</b>研究的是<strong>二维 Mask 的几何和拓扑</strong>，不是实例识别、三维线缆重建或自由曲线拟合。两条线缆在图像里交叉，不代表它们在物理上真的连接；骨架上的分支也不天然代表物体真实分支。</div>
-<div class="chapter-handoff"><span>新的问题</span><p>如果先不提骨架，最基础的“连接”应该怎样定义？</p></div></section><section class="chapter anchor" id="roadmap"><div class="chapter-label">TECHNICAL ROADMAP · 连接关系与内部中心线</div><h2>先画清技术路线：拓扑与骨架是两种证据</h2>
-<p>这个问题自然分成两种证据：一类只在乎<strong>通不通、有无孔洞</strong>；另一类在乎<strong>沿哪里延伸、中心线如何走</strong>。两条路线能合并使用，却不能说“先做 A 再做 B 才是正确算法”。</p>
-<div class="figure"><div class="figure-title">05 · 骨架与拓扑：技术路线图</div><div class="figure-body"><svg viewBox="0 0 800 420" class="route-map-svg" role="img" aria-label="Mask输入分为拓扑分析和骨架提取两条主路线，最终组合结构图并验证稳定性">
-<defs><marker id="skarr" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#9c8f80" stroke-width="1.5"/></marker></defs>
-<g font-family="Inter,Noto Sans SC,Microsoft YaHei,sans-serif" text-anchor="middle">
-<rect x="263" y="10" width="274" height="56" rx="10" fill="#f8e9dd" stroke="#dcbda9"/><text x="400" y="34" fill="#764c3b" font-size="15" font-weight="750">前景区域 Mask</text><text x="400" y="52" fill="#987868" font-size="11">有厚度、可能分叉或带孔的二维区域</text>
-<path d="M400 66V86H204V103M400 86H597V103" fill="none" stroke="#a8a093" stroke-width="2" marker-end="url(#skarr)"/>
-<rect x="21" y="104" width="365" height="120" rx="11" fill="#f5f0e9" stroke="#d9c7b7"/><text x="203" y="127" font-size="12" fill="#9d674e">ROUTE A · 连接关系</text><text x="203" y="153" font-size="17" fill="#4d4036" font-weight="750">数字拓扑</text><text x="203" y="179" fill="#75655a" font-size="12">4 / 8 邻接 · 连通分量 C · 孔洞 H</text><text x="203" y="200" fill="#75655a" font-size="11">Euler 数 χ = C − H</text>
-<rect x="414" y="104" width="365" height="120" rx="11" fill="#eef5f1" stroke="#bbd2c8"/><text x="596" y="127" font-size="12" fill="#638e7c">ROUTE B · 内部延伸形态</text><text x="596" y="153" font-size="17" fill="#3e6a5c" font-weight="750">中心骨架提取</text><text x="596" y="179" fill="#657b6e" font-size="12">Medial Axis：距离与局部半径</text><text x="596" y="200" fill="#657b6e" font-size="12">Thinning：保留连接的迭代细化</text>
-<path d="M203 225V254H400M596 225V254H400V270" stroke="#a99b8b" stroke-width="1.9" fill="none" marker-end="url(#skarr)"/>
-<rect x="177" y="271" width="446" height="65" rx="10" fill="#fff" stroke="#d8cbbf"/><text x="400" y="297" font-size="15" font-weight="750" fill="#514037">骨架像素 → 节点与路径图 G = (V, E)</text><text x="400" y="320" font-size="11.5" fill="#826f61">端点候选 · 分叉聚合 · 路径追踪 · 闭环特殊处理</text>
-<path d="M400 337V347" stroke="#a99b8b" stroke-width="2" marker-end="url(#skarr)"/><rect x="150" y="350" width="500" height="46" rx="10" fill="#fbf4eb" stroke="#d6bfa9"/><text x="400" y="370" fill="#7d5543" font-size="13.5" font-weight="750">验证与修正：毛刺剪枝 / 断裂 / 假连接 / 稳定性</text><text x="400" y="387" fill="#98806e" font-size="10.5">不能以“线更细、更光滑”替代“拓扑真的正确”</text>
-</g></svg></div><div class="figcap">这是一张证据与任务分支图，不是所有方法必须串行执行的流水线。区域连通性与骨架提取可以分别检查，再在图结构中汇合。</div></div>
-<div class="route-grid">
-<a href="#connectivity" class="route-card"><span class="route-index">01 · 最基本的关系</span><strong>连通分量 / 孔洞 / Euler 数</strong><p>先定义像素怎样接触，再讨论结构是否连接。</p><em>几乎相同的 Mask 为什么会突然多出一段连接？</em></a>
-<a href="#skeleton" class="route-card"><span class="route-index">02 · 一块区域太厚</span><strong>距离场 → Medial Axis / Thinning</strong><p>同一需求的两种路线：更注重几何中心与局部半径，或更注重细线连接。</p><em>一条细线是否真在区域中央？</em></a>
-<a href="#graph" class="route-card"><span class="route-index">03 · 骨架仍是一张位图</span><strong>邻居计数 → 节点聚合 → 路径压缩</strong><p>真正需要的数据结构是分支图，而非满屏 1 像素线条。</p><em>每个度数 ≥3 的像素就是一个分叉吗？</em></a>
-<a href="#stability" class="route-card"><span class="route-index">04 · 结果变成毛茸茸的树枝</span><strong>短枝剪除 / 宽度证据 / 连通性检查</strong><p>减少伪分支，同时避免删掉真实细结构。</p><em>剪枝阈值大就一定更好吗？</em></a>
-<a href="#localization" class="route-card"><span class="route-index">05 · 用于具体目标定位</span><strong>端点、主路径、局部方向、宽度</strong><p>针对线缆、分叉零件与带孔物体，选择可解释的结构输出。</p><em>图像上交叉能证明实际连接吗？</em></a>
-<a href="#selection" class="route-card"><span class="route-index">06 · 回到可验证实验</span><strong>扰动 Mask → 观察拓扑与骨架变化</strong><p>用缺口、噪声、错误桥接，测量算法的可靠边界。</p><em>什么情况下应该拒绝一个结构结论？</em></a>
-</div><div class="route-legend"><b>这里不存在“越新越好”的方法排序：</b>Medial Axis 与 Thinning 是两种骨架构造路线；连通数、孔洞是拓扑量；剪枝是后处理策略；图压缩是结构化表示。它们解决的不是同一种问题。</div>
-</section><section class="chapter anchor" id="connectivity"><div class="chapter-label">01 · DIGITAL TOPOLOGY</div><h2>还不急着提骨架：两个像素究竟怎样才算连上？</h2>
-<p>最直觉的做法，是把前景像素归为连通块。这在 02《区域与分割》中已经用过；当时它是为了找到候选区域。<strong>现在要换一个角度：把连通关系本身当作需要保护和检验的结构量。</strong></p>
-<div class="thinking"><div><div class="thinking-key">最初的尝试</div><p>只要两个前景像素能沿邻居一步步走到一起，就算连通。</p></div><div><div class="thinking-key">哪里开始失败</div><p>斜角接触到底算连上了吗？一像素的连接桥可能让两段线合成一体。</p></div><div><div class="thinking-key">引出的工具</div><p>明确前景 4 / 8 邻接；再统计连通分量和孔洞。</p></div></div>
-<div class="math"><div>p ~ q ⇔ 存在一条前景邻接路径 p → … → q</div><div>C = 前景连通分量数，H = 内部背景孔洞数</div><div>χ = C − H　（二维 Euler 特征数）</div></div>
-<p>邻接约定不可随便混用：常见做法是<strong>前景 8 邻接与背景 4 邻接</strong>互补（或反过来），避免对角接触时出现数字拓扑解释冲突。同一张 Mask 在不同邻接规则下，连通数、孔洞数及 Euler 数都可能变化。</p>
-<div class="viz" id="topology-viz"><div class="viz-head"><span class="viz-name">交互实验 · 一张 Mask，改变连接规则和缺陷</span><span class="viz-help">浏览器内计算拓扑与细化骨架</span></div>
-<div class="controls"><label for="shape">输入形状</label><select class="select" id="shape"><option value="fork">分叉线缆</option><option value="ring">封闭圆环</option><option value="diagonal">对角相接</option><option value="cross">二维交叉</option></select><label for="damage">局部变化</label><select class="select" id="damage"><option value="none">完整 Mask</option><option value="spur">边界凸起 / 毛刺</option><option value="break">小缺口</option><option value="bridge">额外连接桥</option></select></div>
-<div class="controls"><label for="adjacency">前景邻接规则</label><select class="select" id="adjacency"><option value="8">8 邻接（背景用 4）</option><option value="4">4 邻接（背景用 8）</option></select></div>
-<div class="viz-canvases"><div class="viz-canvas-box"><b>输入 · 二值前景</b><canvas id="input-canvas" width="480" height="300" aria-label="输入二值Mask"></canvas></div><div class="viz-canvas-box"><b>输出 · Zhang–Suen 细化骨架（深绿色）</b><canvas id="skeleton-canvas" width="480" height="300" aria-label="细化得到的骨架"></canvas></div></div>
-<div class="readout-strip"><div><span>连通分量 C</span><strong id="out-c">–</strong></div><div><span>背景孔洞 H</span><strong id="out-h">–</strong></div><div><span>Euler χ</span><strong id="out-e">–</strong></div><div><span>骨架像素数</span><strong id="out-p">–</strong></div></div><div class="result" id="topology-result" aria-live="polite"></div><p class="tiny-help">演示：在固定离散网格上构造教学 Mask，以 BFS 计算分量/孔洞，并真正执行 Zhang–Suen 双子迭代细化。骨架和计数会随输入变化，但它们依然只代表二维像素观测。</p></div>
-<p>还可以问<strong>有没有洞</strong>：同样是一个连通区域，实心圆满足 C=1、H=0；圆环满足 C=1、H=1。闭环上少几个像素，内部背景可能突然与外界连通，H 就从 1 变成 0。</p>
-<div class="warn"><b>不要过度解释：</b>一张二维交叉线缆 Mask 的拓扑，无法判断实际是“一条四向分叉线”，还是“两根互不相连的线缆”。那需要深度、颜色连续性、实例线索或其他先验。</div>
-<div class="chapter-handoff"><span>新的问题</span><p>连通数、孔洞数都清楚了，但它们不能告诉我线缆从哪里弯到哪里。能不能把一块有宽度的区域压缩成内部中心路径？</p></div></section><section class="chapter anchor" id="skeleton"><div class="chapter-label">02 · SKELETON EXTRACTION</div><h2>一整块有宽度的区域，怎样得到它的中心路径？</h2>
-<p>最简单的尝试是取前景的质心，可质心只是一个点：对弯曲、分叉的物体几乎没有表达力。于是换个问题：<strong>区域内部哪个位置离边界更远？这些内部位置是否可以连成路径？</strong></p>
-<div class="thinking"><div><div class="thinking-key">最初的尝试</div><p>从区域算中心点，或者直接沿上下轮廓取中间。</p></div><div><div class="thinking-key">哪里开始失败</div><p>一个质心表达不了多段弯曲；逐列取中点遇到竖直段和分叉立刻失效。</p></div><div><div class="thinking-key">引出的工具</div><p>先计算距离变换，再分别研究 Medial Axis 和 Thinning。</p></div></div>
-<div class="math"><div>D(p) = min {‖p−q‖₂ : q 属于背景}</div><div>若 p 在中轴附近：局部半径 r(p) ≈ D(p)，局部宽度可粗略看作 2D(p)</div></div>
-<div class="figure"><div class="figure-title">中心线从哪里来：距离场与边界剥离是两种不同的证据</div><div class="figure-body"><svg viewBox="0 0 780 235" class="route-map-svg" role="img" aria-label="Medial Axis利用距离和最大内切圆，Thinning从边缘逐层剥离保持拓扑">
-<g font-family="Inter,Noto Sans SC,sans-serif"><rect x="4" y="6" width="370" height="200" rx="12" fill="#f6eee8"/><rect x="407" y="6" width="369" height="200" rx="12" fill="#edf5f0"/><path d="M45 150Q135 55 318 110" fill="none" stroke="#d5ad95" stroke-width="62" stroke-linecap="round"/><path d="M45 150Q135 55 318 110" fill="none" stroke="#a35942" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="6 4"/><circle cx="185" cy="98" r="30" fill="none" stroke="#a35942" stroke-width="2"/><circle cx="185" cy="98" r="4" fill="#a35942"/><path d="M185 98L186 68" stroke="#a35942" stroke-width="1.7"/><text x="205" y="85" font-size="12" fill="#935d48">r ≈ D(p)</text><text x="189" y="226" text-anchor="middle" fill="#725b4e" font-size="12.5">Medial Axis：局部中心 / 半径</text>
-<path d="M446 151Q538 50 715 106" fill="none" stroke="#b5d1c4" stroke-width="62" stroke-linecap="round"/><path d="M446 151Q538 50 715 106" fill="none" stroke="#6a9c88" stroke-width="31" stroke-linecap="round" opacity=".55"/><path d="M446 151Q538 50 715 106" fill="none" stroke="#fff9f3" stroke-width="12" stroke-linecap="round" opacity=".75"/><path d="M446 151Q538 50 715 106" fill="none" stroke="#3b7967" stroke-width="3" stroke-linecap="round"/><text x="591" y="226" font-size="12.5" fill="#57786b" text-anchor="middle">Thinning：边界迭代剥离，保留连接</text></g></svg></div><div class="figcap">概念示意：真实 Medial Axis 的位置依赖几何边界，离散细化的中心线也依赖数字网格与删除规则，二者通常并不完全相同。</div></div>
-<div class="skel-branch"><div><span class="smallcap">路线 A · 几何中心证据</span><strong>Medial Axis（中轴）</strong><p>连续几何中可由最大内切圆圆心刻画；在离散图像中结合距离场和拓扑规则得到近似中轴。优势是中轴点可关联局部半径；代价是边界小凸起容易产生额外中轴枝条。</p></div><div><span class="smallcap">路线 B · 拓扑保留证据</span><strong>Thinning（细化）</strong><p>从边界开始反复删除满足约束的前景像素，目标是尽量保留原有连接关系并得到细骨架。优势是结构细；代价是不保证每个像素严格处在欧氏意义的区域中心。</p></div></div>
-<h3>2.1 · 最朴素的细化想法：只要在边界，就删掉？</h3>
-<p>这样很快就会把细枝和连接桥一起删断。真正重要的不是“越细越好”，而是<strong>哪些前景像素删除后仍能保持局部拓扑</strong>。经典 Zhang–Suen 将 3×3 邻域的 8 个相邻像素记作 p₂…p₉，分两个子迭代并行标记待删除点。</p>
-<div class="math"><div>N(p₁) = p₂ + p₃ + ⋯ + p₉；A(p₁) = 8 邻域按环遍历的 0→1 跳变数</div><div>共同约束：2 ≤ N(p₁) ≤ 6，A(p₁)=1</div><div>第 1 子迭代：p₂p₄p₆=0，p₄p₆p₈=0</div><div>第 2 子迭代：p₂p₄p₈=0，p₂p₆p₈=0</div></div>
-<p>按<strong>北、东北、东、东南、南、西南、西、西北</strong>的次序编号 p₂…p₉。每个子迭代是先扫描并收集需要删除的位置、再同时删除；不能逐点检查后立刻改写，否则结果与原算法不同。</p>
-<h3>2.2 · 换成 Guo–Hall 会怎样？</h3>
-<p>Guo–Hall 同属二值图细化算法，只是邻接与保连通判据不同。不同算法可能得到不同的转折、节点和局部粗细。这里真正要比较的指标不是“谁看起来更漂亮”，而是<strong>连接关系、路径定位和下游测量是否一致</strong>。</p>
-<div class="note"><b>经验边界：</b>距离变换本身不是骨架，不能把所有局部极大值简单连接起来；Medial Axis 不保证避开伪枝，Thinning 不保证几何中心绝对准确。若需要稳定物理宽度，还要检查像素尺度、边界误差与成像视角。</div>
-<div class="chapter-handoff"><span>新的问题</span><p>现在已经拿到细细的一条像素线。但机器人需要“第几条支路、从哪个端点到哪个节点”，而不是一张 0/1 图片，怎样让它成为结构化数据？</p></div></section><section class="chapter anchor" id="graph"><div class="chapter-label">03 · SKELETON TO GRAPH</div><h2>细线已经提取出来，怎样得到端点、分叉和路径？</h2>
-<p>最容易想到的办法，是数一个骨架像素周围还有几个骨架邻居。对理想的一像素链，邻居数为 1 像端点，为 2 像链内部，为 3 及以上可能是分叉。</p>
-<div class="thinking"><div><div class="thinking-key">最初的尝试</div><p>逐像素统计 8 邻域骨架数量，再给出端点和分叉的坐标。</p></div><div><div class="thinking-key">哪里开始失败</div><p>一个真实分叉经常对应多个挤在一起的“≥3 邻居像素”；一个转角也可能因对角连接误判。完整圆环甚至没有端点。</p></div><div><div class="thinking-key">引出的工具</div><p>把局部候选聚合成节点，再追踪并压缩中间路径，特殊处理纯闭环。</p></div></div>
-<div class="math"><div>deg₈(p) = Σ { S(q) : q ∈ N₈(p) }　（S 为 0 / 1 骨架）</div><div>通常的初筛：deg = 1 → 端点候选；deg ≥ 3 → 分叉候选</div><div>最终图：G = (V, E)，边存有序像素链、弧长、方向与局部宽度</div></div>
-<div class="figure"><div class="figure-title">同一条骨架：像素邻接图与压缩后的结构图</div><div class="figure-body"><svg viewBox="0 0 790 258" class="route-map-svg" role="img" aria-label="左侧像素骨架右侧端点和分叉构成的紧凑拓扑图">
-<g font-family="Inter,Noto Sans SC,sans-serif"><rect x="6" y="8" width="359" height="213" rx="12" fill="#f7f1eb"/><rect x="422" y="8" width="359" height="213" rx="12" fill="#edf5f1"/>
-<path d="M80 176L120 149L160 149L197 115L233 113L274 81L310 59M197 115L196 63L206 29" fill="none" stroke="#b88469" stroke-width="19" opacity=".25" stroke-linecap="round" stroke-linejoin="round"/><path d="M80 176L120 149L160 149L197 115L233 113L274 81L310 59M197 115L196 63L206 29" fill="none" stroke="#995b42" stroke-width="3" stroke-dasharray="4 5"/><g fill="#995b42"><circle cx="80" cy="176" r="4"/><circle cx="120" cy="149" r="4"/><circle cx="160" cy="149" r="4"/><circle cx="197" cy="115" r="4"/><circle cx="233" cy="113" r="4"/><circle cx="274" cy="81" r="4"/><circle cx="310" cy="59" r="4"/><circle cx="196" cy="63" r="4"/><circle cx="206" cy="29" r="4"/></g>
-<path d="M483 176Q546 131 597 115Q670 106 730 59M597 115Q598 57 607 29" stroke="#39796b" stroke-width="3" fill="none"/><g fill="#fff" stroke="#39796b" stroke-width="3"><circle cx="483" cy="176" r="9"/><circle cx="730" cy="59" r="9"/><circle cx="607" cy="29" r="9"/></g><circle cx="597" cy="115" r="11" fill="#bf7b5d" stroke="white" stroke-width="3"/><text x="188" y="245" text-anchor="middle" font-size="12" fill="#775e50">每一个骨架像素都有邻接关系</text><text x="601" y="245" text-anchor="middle" font-size="12" fill="#527b6b">端点 / 分叉成为节点，长链成为边</text></g></svg></div><div class="figcap">图是结构概念图，未直接对应像素的 8 邻接计数。真实分叉团块需要进行聚合，避免生成一堆重复节点。</div></div>
-<h3>3.1 · 真正压缩成图，需要处理四件事</h3>
-<ol class="compact-list"><li><b>找候选：</b>计算 8 邻域度数，标记端点和疑似分叉。</li><li><b>合并团块：</b>将相邻的分叉候选合并为一个逻辑节点，可记录节点区域与代表位置。</li><li><b>追踪边：</b>从逻辑节点沿连续骨架像素追踪至另一节点，把中间像素作为一条边的有序路径。</li><li><b>处理闭环：</b>没有端点的纯环需要创建辅助节点或单独记录 cycle，不能只靠“从端点出发”完成遍历。</li></ol>
-<h3>3.2 · 为什么单看邻居数并不够？</h3>
-<p>弯折、2×2 像素块和分叉附近的对角连边，都可能使 <code>deg₈</code> 出现比想象中更大的数。一个度数 ≥3 的像素只是<strong>分叉候选</strong>；实际分支数量应由图节点聚合、路径追踪和去重后的图定义。</p>
-<div class="warn"><b>图不等于实例：</b>图节点描述的是 Mask 内的像素连接，不自动对应物体关节、真实线缆交点或三维接触点。</div>
-<div class="chapter-handoff"><span>新的问题</span><p>可惜真正得到的骨架往往不像示意图那样干净：一个细小的边界锯齿就可能多出一条枝。怎样去除毛刺，同时不破坏真实结构？</p></div></section><section class="chapter anchor" id="stability"><div class="chapter-label">04 · STABILITY & PRUNING</div><h2>骨架为什么总长出毛刺？剪掉会更好吗？</h2>
-<p>刚开始容易误以为：只要把骨架做得足够细，结构就会变稳定。事实上恰好相反。<strong>骨架对边界的小扰动可能非常敏感</strong>：一粒凸起、一处缺口，都有机会改变局部端点、分叉甚至闭环数量。</p>
-<div class="thinking"><div><div class="thinking-key">最初的尝试</div><p>让 Mask 先平滑，再细化；或者把所有短枝全部删掉。</p></div><div><div class="thinking-key">哪里开始失败</div><p>开运算会吃掉细线，闭运算可能连接两个物体；短枝也可能是真实的电线头。</p></div><div><div class="thinking-key">引出的工具</div><p>分清输入噪声、拓扑错误和可修饰的支路；只在有证据的条件下剪枝。</p></div></div>
-<div class="skel-branch"><div><span class="smallcap">改善输入</span><strong>小尺度形态学 / 缺陷检查</strong><p>如果已知锯齿和洞为成像伪影，可做有限修正；但先记录细线最小宽度与连接的改变。</p></div><div><span class="smallcap">改善骨架</span><strong>短枝剪除 / 显著性筛选</strong><p>追踪“端点→最近分叉”的路径，删除短于阈值的末端枝。必要时结合局部半径、原图边缘支持和多帧稳定性。</p></div></div>
-<div class="viz"><div class="viz-head"><span class="viz-name">交互实验 · 短枝阈值提高，会保留什么？</span><span class="viz-help">分支长度是示例数据；不执行重新骨架化</span></div>
-<div class="controls"><label for="prune">最短保留末端枝</label><input id="prune" type="range" min="0" max="52" step="1" value="16"/><b id="prune-value" class="small">16 px</b></div>
-<svg viewBox="0 0 760 240" class="ink-svg" role="img" aria-label="基于示例分支长度阈值显示或隐藏数条短分支">
-<g fill="none" stroke="#9cc0b2" stroke-width="25" opacity=".38" stroke-linecap="round"><path d="M80 178Q218 171 339 127T684 91"/></g>
-<path d="M80 178Q218 171 339 127T684 91" stroke="#376f65" stroke-width="4" fill="none" stroke-linecap="round"/>
-<g id="prune-paths" fill="none" stroke="#b77d5d" stroke-width="4" stroke-linecap="round"><path data-len="10" d="M181 166L172 157"/><path data-len="21" d="M281 148L275 127L261 121"/><path data-len="35" d="M429 115L455 86L469 70"/><path data-len="49" d="M584 99L597 65L626 42L640 37"/></g>
-<g font-family="Inter,Noto Sans SC,sans-serif" font-size="11" fill="#857469"><text x="169" y="144">10</text><text x="258" y="111">21</text><text x="471" y="65">35</text><text x="641" y="29">49</text><text x="85" y="215">深绿：固定主干</text><text x="268" y="215">橙色：末端候选枝（示意长度 px）</text></g></svg>
-<div class="result" id="prune-result" aria-live="polite"></div></div>
-<p>这种基于长度的剪枝，只能作为带假设的规则。更可靠的方案往往还要问：<strong>这个分支周围的 Mask 真的有对应细长凸起吗？附近的 RGB 或深度证据是否支持它？</strong></p>
-<div class="warn"><b>最重要的取舍：</b>边界更平滑、骨架更短，不等于拓扑更正确。一根 6 px 的真实细枝和一根 6 px 的噪声毛刺，仅凭长度无法区分。</div>
-<div class="chapter-handoff"><span>新的问题</span><p>如果能得到可靠的节点、路径和宽度，它在真实定位里比一个包围框多提供什么？又有哪些事情绝不能仅凭二维骨架推断？</p></div></section><section class="chapter anchor" id="localization"><div class="chapter-label">05 · FOR 2D LOCALIZATION</div><h2>骨架结构到底能为二维定位提供什么？</h2>
-<p>对于圆形瓶盖或规则方盒，中心和外接框已能解决很多问题，不一定要提骨架。<strong>骨架真正有价值的场景，是目标的重要信息藏在“沿哪里走、在哪里分叉”里面。</strong></p>
-<div class="three"><div class="tile"><div class="id">CASE A · 线缆</div><strong>端点与中心路径</strong><p>选择端点、延伸方向、局部宽度，用于跟踪与局部接近；遮挡和交叉可能误导路径。</p></div><div class="tile"><div class="id">CASE B · 分叉结构</div><strong>节点与分支方向</strong><p>识别主要交汇点、主干与支路；注意伪分叉及数字网格的节点聚合问题。</p></div><div class="tile"><div class="id">CASE C · 环状物体</div><strong>孔洞与闭环</strong><p>闭环提供外接框没有的形状证据；极小缺口即可导致孔洞统计变化。</p></div></div>
-<div class="table-scroll"><table><thead><tr><th>可获得的二维结构</th><th>怎么计算</th><th>不可以直接推断</th></tr></thead><tbody>
-<tr><td>端点 / 分叉候选</td><td>骨架邻域计数与聚类</td><td>物体真实末端、三维接头</td></tr>
-<tr><td>路径像素序列</td><td>节点间路径追踪</td><td>不存在遮挡的真实连续路径</td></tr>
-<tr><td>二维弧长与切线</td><td>累计相邻像素距离 / 局部差分</td><td>真实空间长度、世界坐标轴</td></tr>
-<tr><td>局部宽度</td><td>Medial Axis + 距离变换半径</td><td>带透视校正的物理直径</td></tr>
-<tr><td>孔洞 / 闭环</td><td>拓扑计数 + 图遍历</td><td>物理结构一定相连</td></tr>
+/* 核心数学表达：重点是读懂公式，而不是堆叠推导。 */
+.formula-note{margin:20px 0 23px;padding:18px 20px 16px;border:1px solid #e5d7c9;border-left:3px solid #ab7459;border-radius:0 10px 10px 0;background:#fffdf9}
+.formula-head{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;color:#83563f;font-size:12px;font-weight:760;margin-bottom:11px}
+.formula-head span{font-size:10.5px;color:#a28d7b;font-weight:500;letter-spacing:.015em}
+.formula-expr{margin:0 0 11px;padding:11px 15px;border-radius:8px;background:#f7f2eb;overflow-x:auto;color:#3c3935;font-family:'Cambria Math','STIX Two Math','Noto Serif',serif;font-size:20px;line-height:1.7}
+.formula-expr math{font-size:1em;white-space:nowrap;max-width:none}
+.formula-expr .plain-math{white-space:nowrap}
+.formula-note p{font-size:13px!important;line-height:1.87!important;margin:8px 0!important;color:#665a50}
+.formula-note p:last-child{margin-bottom:0!important}
+.formula-note b,.formula-note strong{color:#79523e}
+.formula-takeaway{margin-top:9px!important;color:#497267!important;font-weight:640}
+.formula-example{display:flex;gap:9px;align-items:start;padding-top:10px;margin-top:10px;border-top:1px solid #ebe2d7}
+.formula-example .ex-mark{font-size:10px;flex:none;letter-spacing:.08em;font-weight:800;color:#8b735f;border:1px solid #ded0c2;border-radius:4px;padding:2px 6px;margin-top:2px}
+.formula-example p{margin:0!important}
+.mini-scope{margin:11px 0 19px;color:#79695c;font-size:13px;line-height:1.9}
+.mini-scope strong{color:#79523e}
+@media(max-width:610px){.formula-note{padding:14px 13px}.formula-expr{padding:9px 10px;font-size:17px}.formula-example{gap:6px}.formula-note p{font-size:12.5px!important}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="mobile"><button aria-controls="sidebar" aria-expanded="false" id="menu" type="button">☰ 目录</button><strong>沿途手记 · 骨架与拓扑</strong><span>05 / 06</span></div>
+<div class="shade" id="shade"></div>
+<div class="site">
+<aside aria-label="本文目录" class="sidebar" id="sidebar">
+<div><a class="brand" href="https://fishxddd.github.io/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a></div>
+<a class="return" href="index.html">← 返回 · 图像特征与结构提取</a>
+<div><div class="side-label">当前位置</div><div class="current">05 · 骨架与拓扑</div></div>
+<div><div class="side-label">本篇目录</div><nav class="nav" id="toc">
+<a class="active" href="#opening"><em>·</em>为什么研究骨架</a>
+<a href="#scope"><em>00</em>问题与边界</a>
+<a href="#connectivity"><em>01</em>连通与孔洞</a>
+<a href="#medial"><em>02</em>距离变换与中轴</a>
+<a href="#thinning"><em>03</em>细化：从区域到细线</a>
+<a href="#graph"><em>04</em>从骨架到节点和路径</a>
+<a href="#stability"><em>05</em>毛刺、断裂与剪枝</a>
+<a href="#usage"><em>06</em>什么时候值得用</a>
+</nav></div>
+<div class="sidebar-foot">广度优先 · 理解核心机制即可<br/>不要求推导、复现与算法实现</div>
+</aside>
+<main id="content"><div class="article">
+<nav aria-label="面包屑" class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span> / </span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span> / </span><a href="index.html">图像特征与结构提取</a><span> / </span><b>骨架与拓扑</b></nav>
+<header class="hero" id="opening">
+<div class="eyebrow">CLASSICAL VISION · 05 / 06</div>
+<h1>骨架与拓扑</h1>
+<p class="subtitle">Skeleton &amp; Topology · 从一块区域，读懂连接与延伸</p>
+<p>前面已经研究过像素、区域、边缘和规则几何结构。它们能帮我们找到目标的范围、轮廓，甚至拟合出直线和旋转框。</p>
+<p>可换成一根弯曲的线缆，或者一段分叉的藤蔓，外接框就不太够用了。我更关心的是：<strong>它沿着哪里延伸？在哪里分叉？不同部分到底有没有连在一起？</strong></p>
+<p>这页只要求掌握几种方法的<strong>用途、关键几何／数学表达、它如何带来结果、主要失效条件</strong>。保留核心公式与小例子，帮助以后能真正回忆起来；完整推导、逐像素证明和代码复现先不展开。</p>
+<div class="hero-tags"><span>输入：二维 Mask</span><span>重点：直观机制</span><span>输出：连接、中心线、分支</span></div>
+</header>
+<section class="chapter" id="scope">
+<div class="kicker">00 · PROBLEM &amp; SCOPE</div>
+<h2>先把问题说清楚</h2>
+<p>这里先假设我们已经有了目标的<strong>二维前景 Mask</strong>：白色表示目标，黑色表示背景。至于 Mask 是怎么分割出来的，不在这一篇重复讨论。</p>
+<p>现在希望从这块区域里读出两类信息：一类是<strong>连接关系</strong>，例如是否断开、有没有孔洞；另一类是<strong>内部结构</strong>，例如中心路径、端点与分叉点。</p>
+<figure class="figure">
+<div class="figure-header">同一根分叉线缆：外接框和骨架究竟有什么不同？</div>
+<div class="figure-body"><svg aria-label="外接框只能描述范围，骨架可以描述中心线、端点和分叉" role="img" viewbox="0 0 760 250">
+<rect fill="#f7f0e9" height="211" rx="11" width="359" x="9" y="10"></rect><rect fill="#eef5f0" height="211" rx="11" width="359" x="392" y="10"></rect>
+<g transform="translate(0,0)"><path d="M65 175 Q120 157 171 127 T278 68 M171 127 Q184 78 233 42" fill="none" stroke="#b6c6bd" stroke-linecap="round" stroke-linejoin="round" stroke-width="27"></path><rect fill="none" height="162" stroke="#b17754" stroke-dasharray="7 5" stroke-width="2.3" width="248" x="47" y="28"></rect></g>
+<g transform="translate(383,0)"><path d="M65 175 Q120 157 171 127 T278 68 M171 127 Q184 78 233 42" fill="none" stroke="#b6c6bd" stroke-linecap="round" stroke-linejoin="round" stroke-width="27"></path><path d="M65 175 Q120 157 171 127 T278 68 M171 127 Q184 78 233 42" fill="none" stroke="#367b69" stroke-linecap="round" stroke-width="3.5"></path><circle cx="65" cy="175" fill="#b77856" r="5.5"></circle><circle cx="278" cy="68" fill="#b77856" r="5.5"></circle><circle cx="233" cy="42" fill="#b77856" r="5.5"></circle><circle cx="171" cy="127" fill="#367b69" r="6.5" stroke="white" stroke-width="2"></circle></g>
+<g fill="#6c6258" font-size="13" text-anchor="middle"><text x="189" y="241">外接框：目标大概占据哪里</text><text x="572" y="241">骨架：路径、端点和分叉</text></g>
+</svg></div>
+<figcaption>示意图，不代表实际算法输出。骨架不是“更精细的外接框”，而是回答另一类问题。</figcaption>
+</figure>
+<p>这两类信息不是严格的处理流水线：<strong>拓扑</strong>关心区域如何连接；<strong>骨架</strong>关心区域内部如何延伸。它们可以独立计算，也可以结合使用。</p>
+<div class="conclusion"><strong>本篇边界：</strong>只讨论二维区域的几何与连接结构。不推断物体的真实三维连接，也不负责目标识别或抓取决策。</div>
+</section>
+<section class="chapter" id="connectivity">
+<div class="kicker">01 · DIGITAL TOPOLOGY</div>
+<h2>连通与孔洞：怎样判断一个形状有没有断开？</h2>
+<p>对于一张黑白 Mask，最直接的办法是检查前景像素能否沿着相邻像素走到一起。如果可以，它们就属于同一个<strong>连通分量</strong>。</p>
+<p>但这里有个细节：两个像素只在对角线上接触，算不算连接？取决于我们采用哪一种邻接规则。</p>
+<figure class="figure">
+<div class="figure-header">只改变邻接规则，结果就可能不同</div>
+<div class="figure-body"><svg aria-label="对角线上的两个前景像素，4 邻接时不连通，8 邻接时连通" role="img" viewbox="0 0 760 230">
+<rect fill="#f7f0e9" height="191" rx="10" width="355" x="8" y="8"></rect><rect fill="#eef5f0" height="191" rx="10" width="355" x="397" y="8"></rect>
+<g transform="translate(114 47)"><rect fill="#b87555" height="43" rx="4" width="43" x="0" y="0"></rect><rect fill="#e9e1d7" height="43" rx="4" width="43" x="49" y="0"></rect><rect fill="#e9e1d7" height="43" rx="4" width="43" x="0" y="49"></rect><rect fill="#b87555" height="43" rx="4" width="43" x="49" y="49"></rect></g>
+<g transform="translate(507 47)"><rect fill="#4a8a77" height="43" rx="4" width="43" x="0" y="0"></rect><rect fill="#e1e9e1" height="43" rx="4" width="43" x="49" y="0"></rect><rect fill="#e1e9e1" height="43" rx="4" width="43" x="0" y="49"></rect><rect fill="#4a8a77" height="43" rx="4" width="43" x="49" y="49"></rect><path d="M33 33L58 58" stroke="#d18d51" stroke-dasharray="5 4" stroke-width="3.2"></path></g>
+<g font-size="13" text-anchor="middle"><text fill="#815b45" font-weight="bold" x="185" y="26">4 邻接</text><text fill="#45715f" font-weight="bold" x="574" y="26">8 邻接</text><text fill="#61554b" x="185" y="164">只认上下左右</text><text fill="#8d6652" x="185" y="184">连通分量 C = 2</text><text fill="#61554b" x="574" y="164">也承认对角接触</text><text fill="#45715f" x="574" y="184">连通分量 C = 1</text></g>
+<text fill="#ad8974" font-size="21" text-anchor="middle" x="380" y="112">↔</text>
+<text fill="#988779" font-size="11" text-anchor="middle" x="380" y="218">同一组前景像素</text>
+</svg></div>
+<figcaption>为了避免前景与背景在对角接触处产生矛盾，常采用互补的邻接约定，如前景 8 邻接、背景 4 邻接。</figcaption>
+</figure><div aria-label="核心数学表达：Euler 数" class="formula-note"><div class="formula-head"><b>核心公式 · Euler 数</b><span>只需理解符号与计算含义</span></div><div class="formula-expr"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><mi>χ</mi><mo>=</mo><mi>C</mi><mo>−</mo><mi>H</mi></math></div><p><b>C</b> 表示前景有几个连通分量，<b>H</b> 表示前景包围着几个孔洞；<b>χ</b> 用一个数概括这两项计数。先约定前景/背景的邻接方式，结果才有确定意义。</p><div class="formula-example"><span class="ex-mark">例子</span><p>一个实心圆：C = 1、H = 0，所以 χ = 1；一个圆环：C = 1、H = 1，所以 χ = 0。</p></div><p class="formula-takeaway">记忆点：Euler 数告诉你「几块减几个洞」，但不会告诉你形状在哪里。</p></div>
+<p>除了数有几块彼此分离的区域，还可以数内部有没有被前景完全包围的<strong>孔洞</strong>。实心圆没有洞；圆环有一个洞。圆环只要被切出一个缺口，那个洞就可能与外部背景连通，不再算内部孔洞。</p>
+<p>有时会用一个简洁的量概括它们：<span class="inline-math">Euler 数 χ = 连通分量数 C − 孔洞数 H</span>。不需要深究拓扑学，知道它用来概括“几块、几个洞”就够了。</p>
+<div class="conclusion"><strong>什么时候有用：</strong>判断 Mask 是否断开、是否存在闭环。<strong>主要局限：</strong>一个像素的缺口或错误连接，就可能改变结果；二维连通也不等于物理连通。</div>
+<p class="bridge">不过，连通关系只能告诉我<strong>通不通</strong>，还不能告诉我一根线缆究竟<strong>沿哪里弯过去</strong>。这就需要骨架。</p>
+</section>
+<section class="chapter" id="medial">
+<div class="kicker">02 · DISTANCE &amp; MEDIAL AXIS</div>
+<h2>距离变换与中轴：中心线为什么能从区域里长出来？</h2>
+<p>现在有一根粗细可见的线缆 Mask。如果想得到它的中心路径，一个直观的线索是：<strong>越靠近区域中央，通常离边界越远。</strong></p>
+<p>距离变换（Distance Transform）就是给每个前景像素计算一个数：它离最近的背景像素有多远。于是原来只有“前景 / 背景”的 Mask，变成了一张记录内部距离的图。</p>
+<figure class="figure">
+<div class="figure-header">距离 → 内切圆 → 中轴的直观关系</div>
+<div class="figure-body"><svg aria-label="从区域中各点到边界的距离，理解最大内切圆圆心组成中轴" role="img" viewbox="0 0 760 254">
+<rect fill="#f7f0e9" height="212" rx="11" width="235" x="10" y="11"></rect><rect fill="#f7f0e9" height="212" rx="11" width="235" x="262" y="11"></rect><rect fill="#edf5f0" height="212" rx="11" width="235" x="514" y="11"></rect>
+<g fill="#7b6658" font-size="12" font-weight="bold" text-anchor="middle"><text x="127" y="35">① 有宽度的 Mask</text><text x="379" y="35">② 到边界的最近距离</text><text x="631" y="35">③ 最大内切圆的圆心</text></g>
+<rect fill="#bfd3c9" height="75" rx="37.5" stroke="#90b4a2" stroke-width="1.4" width="193" x="31" y="95"></rect>
+<rect fill="#bfd3c9" height="75" rx="37.5" stroke="#90b4a2" stroke-width="1.4" width="193" x="282" y="95"></rect><circle cx="310" cy="132.5" fill="none" r="11" stroke="#b77759" stroke-width="2"></circle><circle cx="379" cy="132.5" fill="none" r="36" stroke="#b77759" stroke-width="2.2"></circle><circle cx="310" cy="132.5" fill="#b77759" r="3.5"></circle><circle cx="379" cy="132.5" fill="#b77759" r="3.5"></circle><path d="M379 132.5V96.5" stroke="#a16a4d" stroke-width="1.7"></path><text fill="#865438" font-size="11" x="395" y="114">距离更大</text>
+<rect fill="#bfd3c9" height="75" rx="37.5" stroke="#90b4a2" stroke-width="1.4" width="193" x="534" y="95"></rect><circle cx="630" cy="132.5" fill="#e2a578" fill-opacity=".16" r="37.5" stroke="#ab7354" stroke-width="1.9"></circle><path d="M566 132.5H695" stroke="#2c7967" stroke-dasharray="5 5" stroke-width="3"></path><circle cx="630" cy="132.5" fill="#2c7967" r="4"></circle>
+<g fill="#817064" font-size="11.5" text-anchor="middle"><text x="127" y="200">区域内部有大量像素</text><text x="379" y="200">每个位置都有一个距离</text><text x="631" y="200">圆心位置形成中轴</text></g>
+<g fill="#ab8874" font-size="17" text-anchor="middle"><text x="253" y="136">›</text><text x="505" y="136">›</text></g>
+</svg></div>
+<figcaption>简化的直条形示意：一个圆如果既不能超出区域，也无法在区域内被更大的内切圆包含，就称为最大内切圆。它们的圆心形成中轴。并非“把距离最大的像素直接连起来”就能得到中轴。</figcaption>
+</figure><div aria-label="核心数学表达：距离变换" class="formula-note"><div class="formula-head"><b>核心公式 · 距离变换</b><span>只需理解符号与计算含义</span></div><div class="formula-expr"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><mi>D</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><munder><mo movablelimits="true">min</mo><mrow><mi>q</mi><mo>∈</mo><mi>B</mi></mrow></munder><mo>‖</mo><mi>p</mi><mo>−</mo><mi>q</mi><msub><mo>‖</mo><mn>2</mn></msub></math></div><p><b>p</b> 是当前前景像素；<b>B</b> 是所有背景像素组成的集合；<b>q</b> 是其中一个背景像素；<b>‖p − q‖₂</b> 是两点的欧氏距离。公式做的事只有一个：<b>找最近的背景像素，记录距离。</b></p><div class="formula-example"><span class="ex-mark">例子</span><p>对一条宽约 12 像素的直条 Mask，靠边的位置距离可能只有 1 像素，靠中间的位置约为 6 像素。因此距离图中间更「亮」。</p></div><p class="formula-takeaway">记忆点：D(p) 是距离图，不是中轴；中轴还要依据区域的内切圆几何来确定。</p></div>
+<p>Medial Axis（中轴）利用的正是这个几何性质：在形状内部考虑<strong>最大内切圆</strong>，这些圆的圆心集合构成中轴。对于规则长条，中轴靠近中央；对于弯曲、分叉的形状，中轴也会沿着内部形态弯曲和分叉。</p>
+<p>它还有一个有用的附带信息：圆的半径可以反映当地的粗细。不过，<strong>边界上一点点凸起，也可能改变最大内切圆的分布，生成多余的小分支</strong>。</p><div aria-label="核心数学表达：局部半径与宽度" class="formula-note"><div class="formula-head"><b>由中轴估计局部宽度</b><span>适用于近似管状、两侧边界明确的区域</span></div>
+<div class="formula-expr"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><mi>r</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><mi>D</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>,</mo><mspace width="1.2em"></mspace><mi>w</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>≈</mo><mn>2</mn><mi>D</mi><mo>(</mo><mi>p</mi><mo>)</mo></math></div>
+<p>对<strong>中轴上的点 p</strong>，距离 D(p) 是对应内切圆的半径 r(p)。对于局部宽度比较均匀的细长目标，可以用直径 2D(p) 粗略估计宽度。</p>
+<div class="formula-example"><span class="ex-mark">例子</span><p>中心点到最近边界约 5 px，可粗估局部宽度约 10 px。遇到急弯、宽度突变或透视投影时，这个估计不一定等于真实物理宽度。</p></div></div>
+<div class="conclusion"><strong>什么时候考虑：</strong>既想要中心路径，又在意局部宽度和几何中心关系。<strong>主要局限：</strong>对边界噪声敏感，得到的中轴不一定干净。</div>
+</section>
+<section class="chapter" id="thinning">
+<div class="kicker">03 · THINNING</div>
+<h2>细化：不找圆心，能不能直接把区域削成一条线？</h2>
+<p>除了利用几何中心，还有另一类常见办法：<strong>从区域边界开始，一层层删除可以安全删除的前景像素</strong>，直到留下比较细的结构。这叫细化（Thinning）。</p>
+<p>关键不在于删得多快，而在于：<strong>不能随便把连接桥、端点或重要分叉一起删掉</strong>。所以算法会检查一个像素周围的邻域，判断删掉它会不会破坏局部连接，再决定是否删除。</p>
+<figure class="figure">
+<div class="figure-header">细化不是把所有边界都删掉，而是受约束地逐步变细</div>
+<div class="figure-body"><svg aria-label="粗分叉 Mask 经过逐步细化保留细骨架" role="img" viewbox="0 0 760 239">
+<rect fill="#f7f0e9" height="200" rx="10" width="228" x="10" y="10"></rect><rect fill="#f7f0e9" height="200" rx="10" width="228" x="266" y="10"></rect><rect fill="#edf5f0" height="200" rx="10" width="228" x="522" y="10"></rect>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M49 166L117 120L192 54M117 120L83 53" stroke="#a7c8b7" stroke-width="44"></path><path d="M305 166L373 120L448 54M373 120L339 53" stroke="#a7c8b7" stroke-width="23"></path><path d="M561 166L629 120L704 54M629 120L595 53" stroke="#327965" stroke-width="3.5"></path></g>
+<g fill="#716258" font-size="12" text-anchor="middle"><text x="124" y="229">原始 Mask</text><text x="380" y="229">反复剥离可删除的边界</text><text x="636" y="229">保留细的连接结构</text></g>
+<g fill="#ab8974" font-size="24"><text x="246" y="114">›</text><text x="502" y="114">›</text></g>
+</svg></div>
+<figcaption>这是过程示意，不是具体细化算法逐次迭代的真实截图。细化得到的骨架不一定严格位于几何中心。</figcaption>
+</figure><div aria-label="核心数学表达：迭代细化" class="formula-note"><div class="formula-head"><b>核心公式 · 迭代细化</b><span>只需理解符号与计算含义</span></div><div class="formula-expr"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>S</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><mo>∖</mo><msub><mi>R</mi><mi>t</mi></msub></math></div><p><b>Sₜ</b> 是第 t 轮的前景像素集合；<b>Rₜ</b> 是本轮按照局部规则选出的可删除像素；<b>∖</b> 表示从集合中移除。不断重复，直到没有新的可删除像素。</p><div class="formula-example"><span class="ex-mark">例子</span><p>一条有 7 像素宽的粗线，算法逐轮删除满足条件的边缘像素；如果某个像素承担重要连接作用，就不应该被随意删除。</p></div><p class="formula-takeaway">记忆点：细化算法的核心约束是「删边界，但尽量不改变连通结构」。</p></div>
+<p>经典 <strong>Zhang–Suen</strong> 就是在一个 3×3 邻域中判断哪些边界像素可以删。它会检查邻居数量 N(p) 和邻域绕一圈时从背景到前景的跳变次数 A(p)。<strong>A(p)=1</strong> 可以直观理解为邻近前景在环状邻域中形成一段连续的连接，而不是分成好几段。它还会结合其他方向约束分两轮删除。这里理解判据的用途就足够，不必逐条手算。</p><div class="mini-scope"><strong>看懂两个数字即可：</strong>在 Zhang–Suen 中，候选像素要满足 <code>2 ≤ N(p) ≤ 6</code> 和 <code>A(p) = 1</code> 等条件。前者避免随意删除端点等特殊像素，后者帮助约束邻域连接；这两条并非完整的删除规则。</div>
+<div class="table-wrap"><table class="compare"><thead><tr><th>方法</th><th>抓住哪种信息？</th><th>最值得记住的区别</th></tr></thead><tbody>
+<tr><td>Medial Axis</td><td>区域内部的几何中心与最大内切圆</td><td>容易关联局部宽度；边界噪声可能带来伪枝</td></tr>
+<tr><td>Thinning</td><td>删去边界像素时尽量保留连接关系</td><td>容易得到细骨架；不保证严格几何居中</td></tr>
 </tbody></table></div>
-<div class="figure"><div class="figure-title">为什么“X 形骨架”不足以说明是一个分叉物体？</div><div class="figure-body"><svg viewBox="0 0 760 170" class="route-map-svg" role="img" aria-label="一个X形二维交叉在不同深度可能为两条独立线缆">
-<g font-family="Inter,Noto Sans SC,sans-serif"><rect x="4" y="6" rx="10" width="350" height="132" fill="#f7f1e9"/><rect x="406" y="6" rx="10" width="350" height="132" fill="#eef5f2"/><path d="M70 113L287 25M70 25L287 113" stroke="#b87c60" stroke-width="15" stroke-linecap="round"/><path d="M478 112L690 26" stroke="#427e73" stroke-width="15" stroke-linecap="round"/><path d="M478 26L690 112" stroke="#be8061" stroke-width="15" stroke-linecap="round"/><path d="M563 74L612 53" stroke="#427e73" stroke-width="15"/><text x="180" y="158" font-size="12" text-anchor="middle" fill="#765c50">单一 Mask：看起来是 X 连通节点</text><text x="581" y="158" font-size="12" text-anchor="middle" fill="#527b70">另一种可能：两根互相跨越的线缆</text></g></svg></div><div class="figcap">示意仅强调二维投影的歧义；真实交叉次序必须依靠额外图像、深度或实例证据，不可直接从平面连通性得出。</div></div>
-<div class="chapter-handoff"><span>新的问题</span><p>骨架方法已经知道不少了。下一步最值得验证的，不是能否输出一张好看的细线，而是输入哪一种扰动会改变它的关键结构。</p></div></section><section class="chapter anchor" id="selection"><div class="chapter-label">06 · EXPERIMENTS & SELECTION</div><h2>怎样验证这一套方法，而不是只做出一张漂亮图？</h2>
-<p>最后回到最实用的判断：不是什么目标都需要骨架。把问题与输出配对，比追求单张图片上的“最好骨架”更可靠。</p>
-<div class="table-scroll"><table><thead><tr><th>遇到的问题</th><th>首先尝试</th><th>检验条件</th></tr></thead><tbody>
-<tr><td>只是问 Mask 有几块、有没有孔</td><td>互补邻接 + C、H、Euler 数</td><td>一像素桥 / 缺口是否改变结论</td></tr>
-<tr><td>需要线状目标中心位置与粗细</td><td>Medial Axis + 距离值</td><td>半径和中心线对边界扰动是否稳定</td></tr>
-<tr><td>需要离散路径、端点与分叉</td><td>Zhang–Suen / Guo–Hall + 图压缩</td><td>候选节点是否聚合；环路是否遗漏</td></tr>
-<tr><td>骨架有很多短毛刺</td><td>检查 Mask，再尝试有约束剪枝</td><td>短真分支是否被误删；连接是否改变</td></tr>
-<tr><td>两根线图像上交叉</td><td>先检查独立实例、深度与外观</td><td>仅凭二值拓扑不能断言物理连接</td></tr>
+<p>两者并不是“先做 Medial Axis，再做 Thinning”的固定步骤，而是两种构造骨架的思路。选择时看你更在意中心几何，还是连接结构与细线表示。</p>
+<p class="bridge">到这里，我们得到了细细的骨架。但它本质上还是一张像素图。假如想问“第几条支路通向哪里”，还需要把像素组织成更好用的数据结构。</p>
+</section>
+<section class="chapter" id="graph">
+<div class="kicker">04 · SKELETON GRAPH</div>
+<h2>从骨架到图：怎样得到端点、分叉点和路径？</h2>
+<p>有了一像素左右宽的骨架，就可以检查每个骨架像素附近还有多少个骨架邻居。对于<strong>理想的细线</strong>，只有一个邻居的像素像端点；有两个邻居的通常位于路径中间；连着三个或更多方向的，可能是分叉。</p>
+<p>接下来把相邻的分叉候选合并成一个节点，再把节点之间连续的像素串起来，作为一条路径。这样就得到一个<strong>由节点和边组成的图</strong>：节点记录端点与交汇处，边记录从哪里到哪里，以及中间的像素路径。 这个结果通常写成 <strong>G = (V, E)</strong>：V 是端点、交汇处等节点，E 是节点之间的路径（可以保存整串像素坐标）。</p>
+<figure class="figure">
+<div class="figure-header">从“好多骨架像素”，到“少量节点 + 路径”</div>
+<div class="figure-body"><svg aria-label="Y形骨架压缩为三个端点一个分叉的节点与路径图" role="img" viewbox="0 0 760 251">
+<rect fill="#f7f0e9" height="207" rx="10" width="358" x="9" y="10"></rect><rect fill="#eef5f0" height="207" rx="10" width="358" x="393" y="10"></rect>
+<path d="M63 171L166 121L294 52M166 121L153 47" fill="none" stroke="#bd967c" stroke-dasharray="2 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"></path>
+<g fill="#a0684b"><circle cx="63" cy="171" r="4"></circle><circle cx="106" cy="150" r="4"></circle><circle cx="166" cy="121" r="6"></circle><circle cx="222" cy="92" r="4"></circle><circle cx="294" cy="52" r="4"></circle><circle cx="158" cy="80" r="4"></circle><circle cx="153" cy="47" r="4"></circle></g>
+<path d="M448 171L552 121L680 52M552 121L539 47" fill="none" stroke="#407c69" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"></path>
+<g fill="#fff" stroke="#407c69" stroke-width="2.8"><circle cx="448" cy="171" r="7.5"></circle><circle cx="680" cy="52" r="7.5"></circle><circle cx="539" cy="47" r="7.5"></circle><circle cx="552" cy="121" r="9.5"></circle></g>
+<g fill="#4e6b5d" font-size="12" text-anchor="middle"><text x="434" y="186">A</text><text x="695" y="55">B</text><text x="532" y="31">C</text><text x="570" y="118">P</text></g>
+<g fill="#78675b" font-size="12" text-anchor="middle"><text x="188" y="239">很多像素共同描述路径</text><text x="572" y="239">4 个节点、3 条路径</text></g>
+</svg></div>
+<figcaption>简化示意：右侧的交汇点 P 分别连接三个端点 A、B、C。路径可以保留中间的像素序列，而不是只有一根直线。</figcaption>
+</figure><div aria-label="核心数学表达：骨架像素的邻居数" class="formula-note"><div class="formula-head"><b>核心公式 · 骨架像素的邻居数</b><span>只需理解符号与计算含义</span></div><div class="formula-expr"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><mi>deg</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><munder><mo>∑</mo><mrow><mi>q</mi><mo>∈</mo><msub><mi>N</mi><mn>8</mn></msub><mo>(</mo><mi>p</mi><mo>)</mo></mrow></munder><mi>S</mi><mo>(</mo><mi>q</mi><mo>)</mo></math></div><p><b>S(q)</b> 为 0 或 1，表示邻居 q 是否属于骨架；<b>N₈(p)</b> 是 p 周围的八个位置。把这八个位置上的骨架值相加，就得到骨架像素 p 的邻居数。</p><div class="formula-example"><span class="ex-mark">例子</span><p>理想 Y 形细线中：末端像素常有 1 个邻居，普通路径点常有 2 个，分叉候选点通常有 3 个或更多。</p></div><p class="formula-takeaway">记忆点：deg 只是找节点的初筛。数字网格中还需要聚合相邻候选，特殊处理斜角与闭环。</p></div>
+<p>不过，不要把“邻居数 ≥ 3”机械理解成“这里一定有一个真实分叉”。一个交汇处可能挤着好几个候选像素；弯折和对角接触也会干扰统计。完整圆环甚至可以完全没有端点。</p>
+<div class="conclusion"><strong>什么时候有用：</strong>需要描述主干、支路、端点和沿线的路径时。<strong>主要局限：</strong>节点和分叉需要合并、去重与特殊情况处理，图结构仍只代表二维 Mask。</div>
+</section>
+<section class="chapter" id="stability">
+<div class="kicker">05 · PRUNING &amp; STABILITY</div>
+<h2>骨架为什么会长出毛刺？能不能直接剪掉？</h2>
+<p>骨架很容易让人误以为：已经压缩成一条细线了，结果应该比较稳定。实际上，<strong>原始 Mask 的边界稍微变一点，骨架就可能多出一条短枝</strong>；如果 Mask 中间断掉一小块，原来的路径也可能直接断开。</p>
+<figure class="figure">
+<div class="figure-header">输入只改变一点，输出的连接关系就可能改变</div>
+<div class="figure-body"><svg aria-label="普通路径与带伪枝路径的比较，以及一处缺口导致骨架断裂" role="img" viewbox="0 0 760 215">
+<rect fill="#f4f1eb" height="179" rx="9" width="237" x="9" y="9"></rect><rect fill="#f7f0e9" height="179" rx="9" width="237" x="262" y="9"></rect><rect fill="#f7f0e9" height="179" rx="9" width="237" x="515" y="9"></rect>
+<path d="M41 130Q120 128 216 54" fill="none" stroke="#b3d0c1" stroke-linecap="round" stroke-width="22"></path><path d="M41 130Q120 128 216 54" fill="none" stroke="#367c68" stroke-linecap="round" stroke-width="3"></path>
+<path d="M294 130Q372 128 469 54M367 104L379 83" fill="none" stroke="#b3d0c1" stroke-linecap="round" stroke-width="22"></path><path d="M294 130Q372 128 469 54M367 104L379 83" fill="none" stroke="#367c68" stroke-linecap="round" stroke-width="3"></path><circle cx="379" cy="83" fill="#b57754" r="6"></circle>
+<path d="M547 130Q600 118 615 108M648 90Q697 70 722 54" fill="none" stroke="#b3d0c1" stroke-linecap="round" stroke-width="22"></path><path d="M547 130Q600 118 615 108M648 90Q697 70 722 54" fill="none" stroke="#367c68" stroke-linecap="round" stroke-width="3"></path>
+<g fill="#78675b" font-size="12" text-anchor="middle"><text x="127" y="206">正常路径</text><text x="380" y="206">局部凸起 → 可能出现伪枝</text><text x="634" y="206">局部缺口 → 路径可能断开</text></g>
+</svg></div>
+<figcaption>仅展示常见失效机制。具体伪枝的形态与数量会随骨架构造方法和输入变化。</figcaption>
+</figure><div aria-label="核心数学表达：分支长度" class="formula-note"><div class="formula-head"><b>核心公式 · 分支长度</b><span>只需理解符号与计算含义</span></div><div class="formula-expr"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><mi>L</mi><mo>(</mo><mi>e</mi><mo>)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mo>‖</mo><msub><mi>p</mi><mi>i</mi></msub><mo>−</mo><msub><mi>p</mi><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow></msub><msub><mo>‖</mo><mn>2</mn></msub></math></div><p>把骨架一条分支视为有序像素点 <b>p₀, p₁, …, pₙ</b>，相邻两点间的距离累加，就是分支长度 <b>L(e)</b>。横竖相邻贡献 1 px，对角相邻贡献约 1.414 px。</p><div class="formula-example"><span class="ex-mark">例子</span><p>一条末端枝由 3 步横竖移动和 2 步对角移动组成，长度约为 3 + 2×1.414 = 5.83 px。若设剪枝阈值为 8 px，它会成为待删除的候选。</p></div><p class="formula-takeaway">记忆点：<strong>「末端枝」并且「长度小于阈值」</strong>可以作为简单剪枝规则，但短枝也可能真实存在。</p></div>
+<p>一种常见处理是<strong>剪枝（Pruning）</strong>：找到那些从端点出发、很短的末端分支，按长度等条件删除。这样确实能清理不少毛刺。</p>
+<p>问题是：真实线缆也可能恰好有一根很短的支线。<strong>短，不代表一定是错的。</strong>如果原始 Mask 本身已经断了，单靠把骨架剪得更漂亮，也修不好真正的连接关系。</p>
+<div class="conclusion"><strong>什么时候考虑：</strong>骨架已经能表达主要结构，但附带不少疑似伪枝时。<strong>主要局限：</strong>过度剪枝会删掉真实细节；必要时还得回看原始 Mask，甚至 RGB / 深度证据。</div>
+</section>
+<section class="chapter" id="usage">
+<div class="kicker">06 · USE IT WHEN NEEDED</div>
+<h2>回到目标定位：什么时候值得用骨架？</h2>
+<p>不是所有目标都需要骨架。找一个圆形瓶盖的中心，或者定位一个规则盒子的外接框，用简单几何可能就够了。</p>
+<p>骨架更值得用在那些<strong>中心路径、分支和连接方式比整体范围更重要</strong>的目标上。</p>
+<div class="table-wrap"><table class="compare"><thead><tr><th>任务</th><th>希望得到什么</th><th>可以考虑的结构</th><th>必须警惕什么</th></tr></thead><tbody>
+<tr><td>弯曲线缆</td><td>中心路径、两端、局部方向</td><td>骨架 + 路径追踪</td><td>交叉遮挡、断裂与假连接</td></tr>
+<tr><td>分叉藤蔓</td><td>主干、支路、分叉位置</td><td>骨架图的节点与路径</td><td>叶片粘连、伪分叉、二维投影</td></tr>
+<tr><td>环状物体</td><td>是否闭合、孔洞数量</td><td>连通性与孔洞分析</td><td>一处小缺口就会破坏闭环</td></tr>
+<tr><td>规则盒子</td><td>位置、范围、朝向</td><td>通常先考虑轮廓与几何拟合</td><td>没有必要为了用骨架而用骨架</td></tr>
 </tbody></table></div>
-<h3>6.1 · 最值得做的五个小实验</h3>
-<div class="three"><div class="tile"><div class="id">EXPERIMENT 01</div><strong>4 / 8 邻接</strong><p>只改变对角连接，记录分量数和 Euler 数是否改变。</p></div><div class="tile"><div class="id">EXPERIMENT 02</div><strong>圆环切一个口</strong><p>在相同 Mask 上删除几个像素，观察孔洞是否瞬间消失。</p></div><div class="tile"><div class="id">EXPERIMENT 03</div><strong>一粒边界凸起</strong><p>测量中轴/细化骨架端点与分叉候选的变化。</p></div><div class="tile"><div class="id">EXPERIMENT 04</div><strong>短枝剪除</strong><p>逐步增大阈值，检查何时删除了真实短分支。</p></div><div class="tile"><div class="id">EXPERIMENT 05</div><strong>两根线交叉</strong><p>对照分开的实例 Mask 与合并 Mask，识别假分叉。</p></div><div class="tile"><div class="id">EXPERIMENT 06</div><strong>Medial 与 Thinning</strong><p>比较中心偏移、局部半径、端点与图节点差异。</p></div></div>
-<h3>6.2 · 最小可运行实验</h3>
-<div class="code-title"><span>Python · 中轴、细化、Euler 数和节点候选</span><button type="button" class="copy">复制代码</button></div><pre class="code-block">import numpy as np
-from scipy.ndimage import convolve
-from skimage.morphology import medial_axis, skeletonize
-from skimage.measure import euler_number, label
-
-# 输入：单通道 bool mask，True 为前景
-mask = mask.astype(bool)
-
-# 几何中轴（同时返回像素到背景的欧氏距离）
-medial, distance = medial_axis(mask, return_distance=True)
-local_radius = distance[medial]
-
-# 拓扑细化骨架（具体实现依版本与方法参数而定）
-thin = skeletonize(mask)
-
-# 8 邻域候选计数；不等于已合并的逻辑节点数
-kernel = np.ones((3, 3), dtype=np.uint8)
-kernel[1, 1] = 0
-neighbors = convolve(thin.astype(np.uint8), kernel,
-                     mode=&#x27;constant&#x27;, cval=0)
-endpoints = thin &amp; (neighbors == 1)
-branch_candidates = thin &amp; (neighbors &gt;= 3)
-
-# 约定前景 8 邻接 / 背景 4 邻接
-component_count = int(label(mask, connectivity=2).max())
-euler = int(euler_number(mask, connectivity=2))
-holes = component_count - euler
-
-print(&#x27;connected components:&#x27;, component_count)
-print(&#x27;holes:&#x27;, holes, &#x27;Euler:&#x27;, euler)
-print(&#x27;endpoint candidates:&#x27;, int(endpoints.sum()))
-print(&#x27;branch-pixel candidates:&#x27;, int(branch_candidates.sum()))
-print(&#x27;medial radius samples:&#x27;, len(local_radius))
-# 真正得到 G=(V,E) 还需聚合分叉区、追踪边、单独处理环路。
-</pre>
-<div class="answer"><strong>这一篇最终得到什么？</strong><p>我们可以对非规则目标不再强行拟合一个直线或矩形，而是用 <strong>连通 / 孔洞</strong>描述拓扑，用 <strong>Medial Axis / Thinning</strong>构造内部骨架，再把骨架压缩成<strong>节点与路径图</strong>。重要的不是骨架有多细，而是输入发生扰动后，端点、分叉、闭环和主路径是否仍然可信。</p><p>它与颜色、分割、边缘、规则几何是并列的二维视觉证据，而不是每个物体定位任务必须执行的一步。下一条研究路线是<strong>局部特征与对应</strong>，将从另一种需求切入：不一定先拿到完整区域，也能否利用图像局部的可重复特征去建立对应关系？</p></div>
-</section><nav class="next" aria-label="阅读相邻篇章"><a href="04-geometric-structures.html">← 上一篇<strong>几何结构</strong></a><a href="06-local-features-matching.html">下一篇 →<strong>局部特征与对应</strong></a></nav><footer class="footer">沿途手记 · Stage 01 · 05 / 06 · 骨架与拓扑<br>页面中的主交互执行实际二值拓扑统计与 Zhang–Suen 细化；其余原理插画和剪枝示例已明确标为示意。所有脚本离线可用。</footer></article></main></div><script>
-'use strict';
-const $=id=>document.getElementById(id);
-const sections=[...document.querySelectorAll('.chapter')];
-const links=[...document.querySelectorAll('#chapter-nav a')];
-const sidebar=$('sidebar'),overlay=$('overlay'),menu=$('mobile-menu');
-function toggleMenu(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('visible',open);menu.setAttribute('aria-expanded',String(open));}
-menu.addEventListener('click',()=>toggleMenu(!sidebar.classList.contains('open')));
-overlay.addEventListener('click',()=>toggleMenu(false));
-sidebar.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{if(innerWidth<=820)toggleMenu(false)}));
-function refreshScroll(){const max=document.documentElement.scrollHeight-innerHeight;$('reading-progress').style.width=(max>0?Math.min(100,100*scrollY/max):0)+'%';let current=sections[0].id;for(const s of sections)if(s.getBoundingClientRect().top<=innerHeight*.27)current=s.id;links.forEach(a=>a.classList.toggle('current',a.getAttribute('href')==='#'+current));}
-addEventListener('scroll',refreshScroll,{passive:true});addEventListener('resize',refreshScroll,{passive:true});refreshScroll();
-document.querySelectorAll('.copy').forEach(btn=>btn.addEventListener('click',async()=>{const code=btn.closest('.code-title')?.nextElementSibling?.textContent||'';try{await navigator.clipboard.writeText(code);btn.textContent='已复制'}catch(e){btn.textContent='请手动复制'}setTimeout(()=>btn.textContent='复制代码',1500)}));
-// Real topology computation and classic Zhang-Suen thinning on a synthetic binary Mask.
-const W=48,H=30;
-const empty=()=>Array.from({length:H},()=>Array(W).fill(0));
-function circle(g,cx,cy,r,v=1){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if((x-cx)**2+(y-cy)**2<=r*r)g[y][x]=v;}
-function stroke(g,x1,y1,x2,y2,r=2.1,v=1){const n=Math.ceil(Math.hypot(x2-x1,y2-y1)*3);for(let i=0;i<=n;i++){const t=i/n;circle(g,x1+(x2-x1)*t,y1+(y2-y1)*t,r,v)}}
-function makeMask(kind,defect){const a=empty();
- if(kind==='fork'){stroke(a,8,23,21,16,2.35);stroke(a,21,16,39,8,2.35);stroke(a,21,16,18,5,2.35);}
- if(kind==='ring'){for(let y=0;y<H;y++)for(let x=0;x<W;x++){const d=Math.hypot(x-24,y-15);if(d>=7&&d<=11)a[y][x]=1;}}
- if(kind==='diagonal'){for(let y=8;y<=12;y++)for(let x=14;x<=18;x++)a[y][x]=1;for(let y=13;y<=17;y++)for(let x=19;x<=23;x++)a[y][x]=1;}
- if(kind==='cross'){stroke(a,9,7,38,23,1.7);stroke(a,9,23,38,7,1.7);}
- if(defect==='spur'){if(kind==='ring'){stroke(a,24,4,24,0,1.1);}else if(kind==='diagonal'){stroke(a,17,8,17,2,1.1);}else{stroke(a,31,12,33,4,1.15);}}
- if(defect==='break'){if(kind==='ring'){stroke(a,24,4,24,7,2.6,0);}else if(kind==='diagonal'){a[12][18]=0;a[13][19]=0;}else if(kind==='cross'){circle(a,24,15,2.3,0);}else{circle(a,31,12,2.7,0);}}
- if(defect==='bridge'){if(kind==='ring'){stroke(a,14,15,34,15,1.2);}else if(kind==='diagonal'){stroke(a,16,10,21,15,1.6);}else{stroke(a,12,8,32,26,1.4);}}
- return a;
-}
-const dirs8=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]],dirs4=[[-1,0],[1,0],[0,-1],[0,1]];
-function components(g,target,conn,onlyInternal=false){const dirs=conn===8?dirs8:dirs4,seen=Array.from({length:H},()=>Array(W).fill(false));let count=0;for(let y=0;y<H;y++)for(let x=0;x<W;x++){
- if(seen[y][x]||g[y][x]!==target)continue;const q=[[y,x]];seen[y][x]=true;let touchesBorder=(y===0||x===0||y===H-1||x===W-1);
- for(let k=0;k<q.length;k++){const [cy,cx]=q[k];for(const [dy,dx] of dirs){const yy=cy+dy,xx=cx+dx;if(yy<0||yy>=H||xx<0||xx>=W||seen[yy][xx]||g[yy][xx]!==target)continue;seen[yy][xx]=true;q.push([yy,xx]);if(yy===0||xx===0||yy===H-1||xx===W-1)touchesBorder=true;}}
- if(!onlyInternal||!touchesBorder)count++;
- }return count;}
-function zsThin(original){const g=original.map(r=>r.slice());const val=(x,y)=>y>=0&&y<H&&x>=0&&x<W?g[y][x]:0;
- for(let loop=0;loop<100;loop++){let nRemoved=0;for(let pass=0;pass<2;pass++){
- const remove=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
- if(!g[y][x])continue;
- const p=[val(x,y-1),val(x+1,y-1),val(x+1,y),val(x+1,y+1),val(x,y+1),val(x-1,y+1),val(x-1,y),val(x-1,y-1)];
- const N=p.reduce((a,b)=>a+b,0);if(N<2||N>6)continue;let A=0;for(let k=0;k<8;k++)if(p[k]===0&&p[(k+1)%8]===1)A++;if(A!==1)continue;
- const [p2,p3,p4,p5,p6,p7,p8,p9]=p;
- if(pass===0&&(p2*p4*p6!==0||p4*p6*p8!==0))continue;
- if(pass===1&&(p2*p4*p8!==0||p2*p6*p8!==0))continue;
- remove.push([x,y]);}
- for(const [x,y] of remove)g[y][x]=0;nRemoved+=remove.length;
- }if(!nRemoved)break;}
- return g;}
-function drawBinary(id,g,skel=false){const canvas=$(id),ctx=canvas.getContext('2d'),cw=canvas.width/W,ch=canvas.height/H;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#f8f4ee';ctx.fillRect(0,0,canvas.width,canvas.height);
- for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(g[y][x]){ctx.fillStyle=skel?'#3c7a6d':'#b77d61';ctx.fillRect(x*cw,y*ch,cw+.12,ch+.12)}
- if(skel){ctx.fillStyle='rgba(90,110,90,.12)';for(let x=0;x<W;x++)ctx.fillRect(x*cw,0,.45,canvas.height);for(let y=0;y<H;y++)ctx.fillRect(0,y*ch,canvas.width,.45)}
-}
-function render(){const kind=$('shape').value,defect=$('damage').value,fgConn=Number($('adjacency').value),g=makeMask(kind,defect),sk=zsThin(g),C=components(g,1,fgConn),holes=components(g,0,fgConn===8?4:8,true),skpixels=sk.flat().reduce((a,b)=>a+b,0);
- drawBinary('input-canvas',g,false);drawBinary('skeleton-canvas',sk,true);$('out-c').textContent=C;$('out-h').textContent=holes;$('out-e').textContent=C-holes;$('out-p').textContent=skpixels;
- const msgs={fork:'分叉目标：注意一点边界改变是否诱发多条末端细枝。',ring:'圆环：优先看 H 是否改变；小缺口可能破坏闭环。',diagonal:'对角接触：邻接规则本身就会影响连通数。',cross:'X 型二维交叉：连通不等于物理连接。'};
- $('topology-result').textContent=`前景 ${fgConn} 邻接、背景 ${fgConn===8?4:8} 邻接。${msgs[kind]} 目前 C=${C}、H=${holes}，这是当前像素输入的结果，不是物体实例个数。`;
-}
-['shape','damage','adjacency'].forEach(id=>$(id).addEventListener('change',render));render();
-function pruneRender(){const threshold=Number($('prune').value),paths=[...document.querySelectorAll('#prune-paths [data-len]')];let kept=0;paths.forEach(p=>{const visible=Number(p.dataset.len)>=threshold;p.style.opacity=visible?'1':'0.08';p.style.strokeDasharray=visible?'':'3 6';if(visible)kept++;});$('prune-value').textContent=threshold+' px';$('prune-result').textContent=`在这组示例末端支路中，保留 ${kept} / ${paths.length} 条。这个判断只用了路径长度，未验证哪些是真实细枝。`;}
-$('prune').addEventListener('input',pruneRender);pruneRender();
-</script></body></html>
+<h3>还有一个特别重要的边界</h3>
+<p>两条线缆在二维图像里交叉，Mask 可能把它们合成一块连通区域，骨架图也会出现一个交点。但它们在真实空间中可能是一根分叉线，也可能是两根上下交错的线。<strong>仅凭二维骨架，无法区分这两种情况。</strong></p>
+<p>所以骨架提供的是<strong>二维形状证据</strong>，不是物理连接的证明。真正需要判断三维关系时，还要借助深度、不同视角或其他信息。</p>
+<div class="callout"><strong>这一篇学到哪里就够了？</strong> 能解释 χ = C − H 的计数意义；看懂 D(p) 如何形成距离图以及中轴与内切圆的关系；知道细化在删除什么、保护什么；理解 deg(p) 怎样帮助找到节点和分叉；会用路径长度 L(e) 理解最简单的剪枝。<strong>记住公式的含义，不要求推导和复现。</strong></div>
+<div class="next"><a href="index.html">← 返回 · 图像特征与结构提取</a><a href="../">返回 · 二维目标定位 ↗</a></div>
+<div class="footer">沿途手记 · 骨架与拓扑 ｜ 广度优先：核心公式 + 直观机制 + 小例子 + 失效边界；不以证明或复现为目标。</div>
+</section>
+</div></main>
+</div>
+<script>
+(function(){
+  'use strict';
+  const sidebar=document.getElementById('sidebar');
+  const shade=document.getElementById('shade');
+  const menu=document.getElementById('menu');
+  const nav=[...document.querySelectorAll('#toc a[href^="#"]')];
+  const sections=nav.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  const progress=document.getElementById('progress');
+  function close(){sidebar.classList.remove('open');shade.classList.remove('on');menu.setAttribute('aria-expanded','false')}
+  menu.addEventListener('click',()=>{const show=!sidebar.classList.contains('open');sidebar.classList.toggle('open',show);shade.classList.toggle('on',show);menu.setAttribute('aria-expanded',String(show))});
+  shade.addEventListener('click',close);
+  nav.forEach(a=>a.addEventListener('click',close));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+  function update(){const y=scrollY+(innerWidth<=810?100:90);let active=sections[0];for(const s of sections){if(s.offsetTop<=y)active=s;else break}nav.forEach(a=>{const hit=a.hash==='#'+active.id;a.classList.toggle('active',hit);if(hit)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});const h=document.documentElement;const max=h.scrollHeight-h.clientHeight;progress.style.width=(max>0?100*scrollY/max:0)+'%'}
+  let pending=false;function schedule(){if(!pending){pending=true;requestAnimationFrame(()=>{pending=false;update()})}}
+  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);addEventListener('hashchange',schedule);update();
+})();
+</script>
+</body>
+</html>

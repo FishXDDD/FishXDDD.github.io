@@ -129,6 +129,20 @@
     .bottom-nav a:hover{background:#f8f0e7}
     .footer-note{margin:35px 0 0;padding:17px 0 0;border-top:1px solid var(--line);font-size:10.5px;color:#a69a8e;line-height:1.8}
 
+
+    /* 修订版 · 问题定义与路线导览的阅读节奏 */
+    .small-overline{display:block;margin-bottom:7px;font-size:10px;font-weight:780;letter-spacing:.11em;color:#ad8064}
+    .scope-intro{padding:20px 23px;margin:23px 0 24px}
+    .scope-intro p{font-size:15px;line-height:1.95;margin:0}
+    .minor-heading{margin:29px 0 12px;padding-left:12px;border-left:3px solid #b88a70;font:700 17px/1.7 var(--serif);color:#654937}
+    .topic-line{margin-top:13px!important;font-size:14px!important;color:#75665a}
+    .topic-line span{display:inline-block;margin-right:9px;color:#a4775a;font-weight:750;font-size:11px;letter-spacing:.035em}
+    .section-handoff{padding-top:27px;margin-top:34px;border-top:1px dashed #dfd0bf}
+    .section-handoff p{margin-bottom:11px}
+    .section-handoff .handoff-question{font:700 17px/1.8 var(--serif);color:#77533f;margin:13px 0 17px}
+    .boundary strong{color:#527260}
+    @media(max-width:620px){.minor-heading{font-size:16px}.scope-intro{padding:17px 18px}.scope-intro p{font-size:14px}}
+
     @media(min-width:1600px){.rn-layout{grid-template-columns:304px minmax(0,1fr)}.rn-sidebar{padding-left:30px;padding-right:30px}.rn-main{padding-left:64px;padding-right:64px}}
     @media(max-width:1120px) and (min-width:861px){.rn-layout{grid-template-columns:246px minmax(0,1fr)}.rn-sidebar{padding-left:14px;padding-right:14px}.rn-main{padding:0 31px 80px}.hero-layout{grid-template-columns:minmax(0,1fr) 198px;gap:20px}}
     @media(max-width:860px){
@@ -195,7 +209,7 @@
         <a href="#classical"><span class="rn-toc-number">01</span>图像特征与结构提取</a>
         <a href="#reference"><span class="rn-toc-number">02</span>参考匹配与视觉对应</a>
         <a href="#learned"><span class="rn-toc-number">03</span>学习式视觉定位</a>
-        <a href="#reflection"><span class="rn-toc-number">↳</span>三条路线，三种依据</a>
+        <a href="#reflection"><span class="rn-toc-number">↳</span>三条路线，各自的依据</a>
       </nav>
     </section>
     <div class="rn-spacer"></div>
@@ -253,101 +267,121 @@
             <figcaption>三只瓶子，目标条件还没说。</figcaption>
           </figure>
         </div>
-        <div class="hero-meta"><span>单帧二维图像</span><span>三条技术路线</span><span>先明确边界，再进入算法</span></div>
+        <div class="hero-meta"><span>单帧二维图像</span><span>问题定义与边界</span><span>三条研究路线</span></div>
       </header>
 
       <section class="chapter" id="definition">
         <div class="section-kicker"><b>00</b>THE TASK · 问题边界</div>
-        <h2>先明确：我们究竟在找什么？</h2>
-        <div class="scope-intro"><p><strong>二维目标定位：</strong>给定单帧图像与目标条件，确定符合条件的目标在图像中的位置或区域。</p></div>
+        <h2>先明确：怎样才算找到目标？</h2>
+        <p>前面已经发现了问题：知道图像中每个像素的位置，并不意味着知道目标在哪里。</p>
+        <p>不过，「找到目标」这个说法还是有些笼统。为了避免后面研究算法时把不同问题混在一起，<strong>这里先把任务定义和研究边界放在前面，具体怎么解决留到后面逐一展开。</strong></p>
+        <div class="scope-intro">
+          <span class="small-overline">本篇研究的问题</span>
+          <p><strong>二维目标定位：</strong>给定一张二维图像和明确的目标条件，确定符合条件的目标在图像中的位置或区域。</p>
+        </div>
+        <p>在进入具体方法之前，先统一三个约定：</p>
         <div class="definition-table"><table>
-          <thead><tr><th>需要明确</th><th>定义</th><th>例如</th></tr></thead>
+          <thead><tr><th>需要明确</th><th>具体问题</th><th>例如</th></tr></thead>
           <tbody>
-            <tr><td>找什么</td><td>目标条件</td><td>瓶子、红色物体、指定实例</td></tr>
-            <tr><td>找到什么程度</td><td>输出形式</td><td>点、BBox、Mask、轮廓、关键点</td></tr>
-            <tr><td>凭什么找</td><td>可用依据</td><td>当前图像、已有参考、训练获得的视觉知识</td></tr>
+            <tr><td>找什么</td><td>找某一类目标，还是某个指定实例？</td><td>所有瓶子、红色瓶子、指定的那只瓶子</td></tr>
+            <tr><td>输出什么</td><td>需要目标的哪些二维信息？</td><td>中心点、BBox、Mask、轮廓、关键点</td></tr>
+            <tr><td>如何判定结果</td><td>目标可能有几个？找不到或无法区分怎么办？</td><td>单个、多个、未找到、无法确定</td></tr>
           </tbody>
         </table></div>
-        <p>还需要允许多个候选、未找到和无法确定，而不是默认每次都有唯一答案。</p>
-        <div class="difference">
-          <span class="small-label">一个必须区分的问题</span>
-          <p><strong>图像里有一条边缘，不代表那里就是物体边界；找到一个完整区域，也不代表它就是目标。</strong>边缘、区域、轮廓、骨架等是可提取的视觉结构；目标定位还需要判断它们与目标条件的关系。</p>
+        <p>这里不默认画面中一定存在目标，也不默认每次都能得到唯一答案。具体输出形式应由任务需要决定。</p>
+        <div class="boundary">
+          <b>本篇的研究边界</b>
+          <p><strong>研究：</strong>单帧二维图像中的目标定位——怎样根据目标条件，找到对应的位置或区域。</p>
+          <p><strong>暂不讨论：</strong>跨帧目标跟踪、三维位置与姿态恢复，以及机器人后续的抓取规划。</p>
         </div>
-        <p>明确这个区别，再来看看有哪些路可以走。</p>
+        <div class="section-handoff">
+          <p>问题定义清楚后，接下来才是这一站真正需要研究的内容：</p>
+          <p class="handoff-question">面对一张图像，我们究竟可以依靠哪些信息找到目标？</p>
+          <p>有时可以利用图像中的颜色和形状；有时已经有目标的参考照片；还有些任务更适合让模型从样本中学习。按照这些信息的来源，下面先整理三条研究路线。<strong>它们是不同的选择，并不是必须依次执行的三个步骤。</strong></p>
+        </div>
       </section>
 
       <section class="chapter" id="classical">
         <div class="section-kicker"><b>01</b>CURRENT IMAGE · 当前图像</div>
         <h2>图像特征与结构提取</h2>
-        <div class="chapter-en">Classical Vision · 从图像本身寻找线索</div>
-        <p>如果桌面是白色的，瓶子是红色的，最自然的想法就是利用颜色把它找出来。</p>
-        <p>但颜色不是唯一线索。有些目标可以通过边缘与轮廓区分，有些具有明显的几何形状；面对一根弯曲的线缆，曲线和骨架可能比颜色更值得关注。</p>
-        <p class="question">当前图像里，有哪些能够被明确计算的视觉特征与结构？它们能否帮助我们区分目标？</p>
-        <p>像素与纹理、区域、边缘、轮廓、几何曲线、骨架、拓扑及局部特征，描述的是不同层面的视觉信息，并不都直接等于目标边界。</p>
+        <div class="chapter-en">Classical Vision · 从当前图像中寻找线索</div>
+        <p>先看一种直接的做法：利用当前图像中能够观察到的特征和结构，按照明确的规则寻找目标。</p>
+        <p>比如，桌面上放着一个红色瓶子。如果它和背景的颜色差异很明显，就可能通过颜色把瓶子所在的区域提取出来。</p>
+        <p>颜色只是其中一种线索。有些目标具有明显的边缘和轮廓；有些具有规则的几何形状；对于细长的线缆或弯曲的藤蔓，曲线、中心线和连接关系可能更有用。</p>
+        <p>这些信息各不相同，但有一个共同点：<strong>它们可以从当前图像中计算出来，再通过显式规则组织、筛选目标。</strong></p>
+        <h3 class="minor-heading">这条路线研究什么？</h3>
+        <p>研究图像中有哪些可提取的视觉特征与结构，以及怎样利用它们定位目标。</p>
+        <p class="topic-line"><span>主要问题</span>像素与纹理、区域、边缘与轮廓、几何结构、曲线与骨架、局部特征等。</p>
+        <p>这里还需要区分一件事：<strong>提取出某种视觉结构，不代表已经找到了目标。</strong>例如，边缘既可能来自瓶子的外轮廓，也可能来自桌面纹理，最终仍要根据目标条件进行判断。</p>
         <div class="boundary">
           <b>这条路线的研究边界</b>
-          <p>不依赖目标专属参考或学习得到的目标识别知识，从当前图像提取可计算的视觉结构，再通过显式规则组织、筛选目标。</p>
-          <p>当不同物体缺乏足以区分的可见特征时，仅靠这些规则可能无法确定目标。</p>
+          <p>重点研究基于当前图像与显式规则的定位方法，不依赖目标专属参考或训练得到的目标识别知识。</p>
+          <p>如果目标和其他物体之间缺少足以区分的可见特征，仅依靠这些规则就可能难以确定目标。</p>
         </div>
         <a class="depth-link" href="./01-classical-vision/" aria-label="进入下层笔记：图像特征与结构提取">
-          <span><span class="small">下一层笔记 · DEEP DIVE</span><span class="name">图像特征与结构提取</span><span class="hint">从可见证据到目标区域，研究不同视觉结构</span></span><span class="arr" aria-hidden="true">↗</span>
+          <span><span class="small">进入下层笔记 · DEEP DIVE</span><span class="name">图像特征与结构提取</span><span class="hint">分别研究可见特征、视觉结构与目标定位方法</span></span><span class="arr" aria-hidden="true">↗</span>
         </a>
       </section>
 
       <section class="chapter" id="reference">
-        <div class="section-kicker"><b>02</b>KNOWN REFERENCE · 已知参考</div>
+        <div class="section-kicker"><b>02</b>KNOWN REFERENCE · 已有参考</div>
         <h2>参考匹配与视觉对应</h2>
-        <div class="chapter-en">Reference Matching · 用已知信息寻找对应</div>
-        <p>如果我要找的盒子之前已经拍过照片，似乎就没必要重新描述它的颜色、纹理和轮廓了。</p>
-        <p>能不能直接拿着参考图，在当前画面中寻找对应的位置？</p>
-        <p>参考也不一定是完整照片，还可能是一块局部图像、已知轮廓、形状结构，或者提前记录的背景。</p>
-        <p class="question">已知参考中的哪些信息，能够与当前图像建立可靠对应？</p>
+        <div class="chapter-en">Reference Matching · 利用已经知道的目标信息</div>
+        <p>有时候，在拍摄当前画面之前，我们已经掌握了一些关于目标的信息。</p>
+        <p>比如，桌面上有几个外观相似的盒子，而我们手里恰好有其中一个盒子的照片。此时可以尝试利用这张照片，在当前图像中寻找与它对应的位置。</p>
+        <p>参考信息也不一定是完整照片。它还可以是局部外观、已知轮廓、形状结构，或者提前记录的场景背景。我们可以利用这些信息与当前图像进行比较，寻找相似的位置或对应的结构。</p>
+        <h3 class="minor-heading">这条路线研究什么？</h3>
+        <p>研究怎样利用已有参考，在当前图像中寻找可靠的视觉对应关系，并进一步确定目标位置。</p>
+        <p>与上一条路线相比，这里的关键区别并不在于用了哪一种特征提取算法，而在于<strong>是否引入了事先已知、可用于比较的参考信息</strong>。</p>
+        <p>参考与现场往往不会完全相同：观察角度、尺度、光照或遮挡发生变化，都可能影响对应关系。如果多个位置都很相似，也可能无法得到唯一结果。</p>
         <div class="boundary">
           <b>这条路线的研究边界</b>
-          <p>利用已有目标或场景的外观、特征、形状等参考信息，通过相似性与对应关系确定目标位置。</p>
-          <p>它可以借助传统视觉提取特征，但关键区别是引入了已有参考。参考与现场差异过大，或多个位置同样相似时，可能无法得到可靠或唯一的对应。</p>
+          <p>重点研究基于已知外观、特征或几何结构的匹配与定位，以及怎样判断对应关系是否可靠。</p>
+          <p>它可以使用传统视觉的特征提取方法，并不是与第一条路线完全隔离的算法体系。</p>
         </div>
         <a class="depth-link" href="./02-reference-matching/" aria-label="进入下层笔记：参考匹配与视觉对应">
-          <span><span class="small">下一层笔记 · DEEP DIVE</span><span class="name">参考匹配与视觉对应</span><span class="hint">从已知外观或结构，到当前图像中的匹配位置</span></span><span class="arr" aria-hidden="true">↗</span>
+          <span><span class="small">进入下层笔记 · DEEP DIVE</span><span class="name">参考匹配与视觉对应</span><span class="hint">利用已知信息，研究相似性与可靠对应</span></span><span class="arr" aria-hidden="true">↗</span>
         </a>
       </section>
 
       <section class="chapter" id="learned">
-        <div class="section-kicker"><b>03</b>LEARNED KNOWLEDGE · 训练知识</div>
+        <div class="section-kicker"><b>03</b>LEARNED KNOWLEDGE · 数据学习</div>
         <h2>学习式视觉定位</h2>
         <div class="chapter-en">Learned Vision · 从样本中学习视觉规律</div>
-        <p>但如果每天面对的瓶子都不一样呢？颜色、尺寸、形状不断变化，总不能每出现一种新外观，就重新写一套规则或准备一张参考照片。</p>
-        <p class="question">能不能让模型提前看过许多样本，从中学会哪些视觉规律能够用于识别目标？</p>
-        <p>传统机器学习通常利用人工设计的视觉特征学习判别规则；深度学习则可以从数据中学习视觉表示和预测关系。两者都能服务于目标定位。</p>
-        <p>至于输出 BBox、Mask 还是关键点，属于定位任务与结果形式的区别，并不是学习路线的划分依据。</p>
+        <p>还有一类常见任务：目标的外观变化很大，而且很难提前列出所有可能出现的样子。</p>
+        <p>例如，让机器人识别各种瓶子。它们的颜色、尺寸、材质和形状各不相同，以后还可能出现新的款式。对于这样的任务，逐一编写外观规则或准备参考照片，不一定合适。</p>
+        <p>于是可以采用另一种信息来源：<strong>通过带有目标信息的样本，让模型学习哪些视觉特征能够帮助我们识别和定位目标。</strong></p>
+        <p>传统机器学习通常先设计图像特征，再通过样本学习判别或定位规则；深度学习则可以从数据中学习视觉特征，以及它们与目标位置之间的关系。</p>
+        <h3 class="minor-heading">这条路线研究什么？</h3>
+        <p>研究怎样通过数据和训练，让模型在新图像中找到符合目标条件的物体。</p>
+        <p>这一方向包含基于人工特征的传统机器学习，也包含常规深度学习中的目标检测、实例分割和关键点定位等任务。<strong>BBox、Mask、关键点描述的是不同的输出要求，而不是不同的学习原理。</strong></p>
+        <p>学习式方法也有局限：模型能识别什么、在什么场景下可靠，取决于训练数据，以及学到的规律能否适用于当前图像。</p>
         <div class="boundary">
           <b>这条路线的研究边界</b>
-          <p>利用训练数据学习可复用的视觉特征与判别、定位关系，在新图像中寻找符合任务定义的目标。</p>
-          <p>这一站仅讨论传统机器学习与常规深度视觉方法，不深入开放词汇 Grounding、VLM 和多模态推理。学习到的规律仍可能受到目标与场景变化的限制。</p>
+          <p>重点研究传统机器学习与常规深度视觉中的目标定位方法。</p>
+          <p>开放词汇 Grounding、VLM 与多模态推理暂时不在这一站深入展开。</p>
         </div>
         <a class="depth-link" href="./03-learned-vision/" aria-label="进入下层笔记：学习式视觉定位">
-          <span><span class="small">下一层笔记 · DEEP DIVE</span><span class="name">学习式视觉定位</span><span class="hint">从手工特征与统计学习，到常规深度视觉定位</span></span><span class="arr" aria-hidden="true">↗</span>
+          <span><span class="small">进入下层笔记 · DEEP DIVE</span><span class="name">学习式视觉定位</span><span class="hint">从人工特征与统计学习，到常规深度视觉方法</span></span><span class="arr" aria-hidden="true">↗</span>
         </a>
       </section>
 
       <section class="chapter" id="reflection">
-        <div class="section-kicker"><b>↳</b>LOOKING BACK · 回头看看</div>
-        <h2>原来有三条不同的路</h2>
-        <p class="summary-lead">一开始只是想找到桌上的瓶子。走到这里，至少能从三种不同的依据出发。</p>
+        <div class="section-kicker"><b>↳</b>LOOKING BACK · 小结与跳转</div>
+        <h2>三条路线，各自依靠什么？</h2>
+        <p class="summary-lead">这三条路线的区别，首先是寻找目标时所依靠的信息来源不同。</p>
         <div class="definition-table route-matrix"><table>
-          <thead><tr><th>技术路线</th><th>核心依据</th><th>主要边界</th></tr></thead>
+          <thead><tr><th>技术路线</th><th>主要依靠什么</th><th>重点研究什么</th></tr></thead>
           <tbody>
-            <tr><td>图像特征与结构提取</td><td>当前图像 + 显式规则</td><td>是否存在足以区分目标的视觉结构</td></tr>
-            <tr><td>参考匹配与视觉对应</td><td>当前图像 + 已有参考</td><td>是否存在可靠、可区分的对应</td></tr>
-            <tr><td>学习式视觉定位</td><td>当前图像 + 训练获得的视觉知识</td><td>学到的规律能否适用于当前目标</td></tr>
+            <tr><td>图像特征与结构提取</td><td>当前图像 + 显式规则</td><td>提取并利用可见特征与结构</td></tr>
+            <tr><td>参考匹配与视觉对应</td><td>当前图像 + 已有参考</td><td>寻找可靠的匹配和对应关系</td></tr>
+            <tr><td>学习式视觉定位</td><td>当前图像 + 训练得到的视觉知识</td><td>从数据中学习识别与定位规律</td></tr>
           </tbody>
         </table></div>
-        <p>它们不是依次升级的三个阶段，也不互相排斥。传统视觉可以用于参考匹配，学习式方法也可以结合显式规则。</p>
-        <p>不过，无论选择哪一条，<strong>提取到视觉结构、发现候选区域、确定指定目标，始终是不同层次的问题。</strong></p>
-        <p>这一站只研究单帧二维目标定位。目标跟踪、三维位姿、点云配准和抓取规划，留给其他路线。</p>
-        <div class="foot-conclusion"><p>先弄清楚凭什么找，再研究究竟怎么找。</p></div>
-
-        <div class="deep-title">沿着三条路线，继续探索</div>
+        <p>它们不是依次升级的三个阶段，也不互相排斥。传统特征可以用于参考匹配；学习式模型也可以先给出候选区域，再通过几何规则筛选和修正。</p>
+        <p>这一页先明确<strong>研究什么、有哪些路线、各自的边界在哪里</strong>。至于具体有哪些方法、怎样计算、能解决什么问题，分别放到下层笔记中继续展开。</p>
+        <div class="foot-conclusion"><p>先把问题与路线放清楚，再沿着感兴趣的方向深入。</p></div>
+        <div class="deep-title">选择一条路线，继续阅读</div>
         <div class="deep-list" aria-label="下层技术笔记">
           <a href="./01-classical-vision/"><small>01 · CLASSICAL</small><b>图像特征与结构提取　↗</b><span>像素、区域、轮廓、曲线与骨架</span></a>
           <a href="./02-reference-matching/"><small>02 · REFERENCE</small><b>参考匹配与视觉对应　↗</b><span>外观、局部特征与结构参考</span></a>

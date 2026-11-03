@@ -1,382 +1,220 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="沿途手记 · 局部特征与对应：从局部模板、Harris/FAST 到 SIFT/ORB 描述、Ratio、RANSAC 和二维几何验证。技术路线与交互实验。"><title>局部特征与对应｜沿途手记</title><style>
-:root{--paper:#fbfaf7;--sidebg:#f5f0e9;--white:#fff;--ink:#342f2c;--ink2:#625750;--muted:#908177;--line:#e8e0d8;--accent:#a75e49;--accentdeep:#844633;--accentwash:#f8efe9;--green:#547268;--mint:#edf4f0;--blue:#456d82;--reading:860px;--side:clamp(225px,19.5vw,290px)}
-*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:35px}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.87;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:hover{color:var(--accentdeep)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #dbad96;outline-offset:3px}::selection{background:#efd0bd}.site{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}
-.sidebar{position:sticky;top:0;height:100dvh;overflow-y:auto;background:var(--sidebg);border-right:1px solid var(--line);padding:28px clamp(16px,2vw,27px) 22px;display:flex;flex-direction:column;gap:21px;scrollbar-width:thin}.brand{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:700;letter-spacing:.045em}.brand-sub{font-size:10px;letter-spacing:.11em;color:var(--muted);margin-top:-2px}.side-group{font-size:10px;font-weight:800;letter-spacing:.13em;color:#94867a;margin:0 0 7px 9px}.side-links{display:grid;gap:1px}.side-links a{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:8px;color:#776a61;font-size:12px;line-height:1.55;transition:background .15s}.side-links a .num{color:#ac9a8e;min-width:19px;font-size:10.5px}.side-links a:hover{background:#efe6dd}.side-links a.active{background:#eadbd0;color:#773e30;font-weight:750}.side-links a.active .num{color:var(--accent)}.current-article{padding:0 10px 9px;font-size:13px;font-weight:700;color:var(--accentdeep)}.sub-links{display:grid;gap:2px}.sub-links a{border-left:2px solid transparent;padding:4px 10px;color:#8c7b6e;font-size:11.3px;line-height:1.58}.sub-links a.current{border-left-color:var(--accent);color:var(--accentdeep);font-weight:750}.side-bottom{margin-top:auto;padding:13px 10px 0;border-top:1px solid #e3d8cd;color:#96877c;font-size:11px}.page-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px}.page-links a{text-decoration:underline;text-decoration-color:#c6b4a6;text-underline-offset:4px}
-.layout-main{min-width:0;padding:36px clamp(23px,4.3vw,68px) 95px}.article{width:min(100%,var(--reading));margin:auto}.crumb{display:flex;align-items:center;flex-wrap:wrap;gap:9px;font-size:11px;color:#988b81}.slash{color:#c5b9ae}.hero{padding:40px 0 32px;border-bottom:1px solid var(--line)}.eyebrow,.chapter-label,.smallcap{font-size:11px;letter-spacing:.15em;font-weight:800;color:var(--accent)}h1,h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif}h1{font-size:clamp(40px,5vw,57px);line-height:1.22;letter-spacing:.035em;margin:11px 0 8px}h2{font-size:clamp(23px,3.1vw,30px);line-height:1.5;letter-spacing:.014em;margin:9px 0 20px}h3{font-size:17px;line-height:1.52;margin:29px 0 10px}h4{font-size:14px;margin:21px 0 6px}.subtitle{font-size:20px;font-weight:550;color:var(--ink2);margin:7px 0 17px}.lede{max-width:755px;color:#64564d;margin:12px 0 15px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}.tag{font-size:10.5px;border:1px solid #e6ddd5;padding:3px 11px;border-radius:40px;color:#806f63;background:#fffdfa}.chapter{padding:40px 0 29px;border-bottom:1px solid var(--line)}.chapter p{margin:11px 0 15px}.chapter strong{color:#42342f}.chapter li{margin:6px 0;padding-left:2px}.chapter ul,.chapter ol{padding-left:22px}.small{font-size:12px}.muted{color:var(--muted)}.mono,code,pre{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace}code{font-size:.87em;background:#f4ede6;padding:2px 5px;border-radius:4px}.lead-note{border-left:3px solid var(--accent);padding:2px 0 3px 17px;margin:18px 0 23px;color:#694a3b;font-weight:650;background:transparent}.scope-grid,.three,.two{display:grid;gap:11px;margin:20px 0}.scope-grid,.three{grid-template-columns:repeat(3,minmax(0,1fr))}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 15px}.tile .id{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.075em}.tile strong{display:block;font-size:13px;margin:5px 0 3px}.tile p{font-size:11.5px;line-height:1.72;margin:0;color:#726259}.note,.answer,.warn{border:1px solid #e9e0d7;background:#fff;padding:14px 17px;border-radius:10px;margin:19px 0;font-size:13px}.note{border-left:3px solid #a39789}.answer{border-left:3px solid #698c7e;background:#f7faf8}.warn{border-left:3px solid #c08b5f;background:#fffaf3}.math{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;background:#f8f5f1;border:1px solid #e9e0d7;border-radius:10px;padding:15px 17px;overflow:auto;color:#51473f;font-size:12px;line-height:2.1;margin:16px 0}.math>div{white-space:nowrap}.figure{border:1px solid var(--line);background:#fff;border-radius:13px;overflow:hidden;margin:20px 0}.figure-title{font-size:13px;font-weight:750;padding:14px 17px 0;color:#604b41}.figure-body{padding:12px 16px}.figure-body svg{display:block;max-width:100%;height:auto}.figcap{font-size:11.5px;color:#928175;line-height:1.74;padding:0 17px 14px}.viz{border:1px solid #e7d9cc;background:#fffdfa;border-radius:13px;margin:19px 0;padding:17px}.viz-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.viz-name{font-size:13px;font-weight:800;color:#7b4a35}.viz-help{font-size:11px;color:#968477}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 15px;margin:12px 0}.controls label{font-size:12px;color:#6d5d52}.controls input[type=range]{accent-color:var(--accent);width:170px;vertical-align:middle}.btn{border:1px solid #dec8b8;background:#fff7f1;color:#874735;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:720}.btn:hover,.btn.sel{background:#eed9ca}.result{background:#f8f2ed;border-radius:8px;padding:10px 12px;color:#66574b;font-size:11.5px;margin-top:10px}.bitmap{display:grid;gap:3px;padding:12px;border:1px solid #ede0d4;border-radius:10px;background:#f5f0eb;width:max-content;max-width:100%}.pixel{width:25px;height:25px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}.pixel.off{background:#e5ded5;color:transparent}.pixel.a{background:#b77357}.pixel.b{background:#739686}.pixel.c{background:#718a9b}.pixel.d{background:#b3a274}.pixel.reject{background:#d0cbc4;color:#514942}.pixel.seed{outline:2px solid #44382f;outline-offset:1px}.pixel.valued{font-size:9px;color:#604d44}.bitmap-wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}.bitmap-block{flex:0 1 auto}.bitmap-label{font-size:11px;font-weight:700;color:#756256;margin-bottom:7px}.mini-text{font-size:12px;color:#716258;line-height:1.75}.table-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:17px 0;background:#fff}.table-scroll table{border-collapse:collapse;width:100%;min-width:615px;text-align:left;font-size:12.3px;line-height:1.8}.table-scroll th{background:#f6f2ed;color:#645449;font-size:11px;white-space:nowrap}.table-scroll th,.table-scroll td{padding:10px 13px;border-bottom:1px solid #eee7df;vertical-align:top}.table-scroll tr:last-child td{border-bottom:0}.table-scroll td:first-child{font-weight:690;color:#4b3c34}.table-scroll code{font-size:11px}.code-title{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f0e9e1;border:1px solid #e9ded3;border-radius:9px 9px 0 0;margin-top:18px;color:#6c5a4c;font-size:11px;font-weight:720}.copy{font-size:10px;color:#77584b;background:#fff;border:1px solid #ded1c5;border-radius:5px;padding:3px 9px}.code-block{font-family:"DejaVu Sans Mono",Consolas,ui-monospace,monospace;font-size:11.5px;line-height:1.8;tab-size:4;white-space:pre;overflow:auto;background:#302e2b;color:#eee7dc;padding:17px 19px;margin:0 0 18px;border-radius:0 0 9px 9px;max-height:570px}.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0}.flowpill{font-size:12px;border:1px solid #e8dace;background:white;border-radius:8px;padding:7px 11px;font-weight:650}.flowarrow{font-size:15px;color:#a99182}.compact-list{padding-left:21px!important}.index-row{display:flex;gap:13px;align-items:baseline;margin:17px 0 12px}.index-row .index{font-weight:850;letter-spacing:.07em;font-size:11px;color:var(--accent);flex-shrink:0}.index-row strong{font-size:13px}.example-key{display:inline-flex;align-items:center;gap:6px;margin:0 12px 6px 0;font-size:10.8px;color:#8c7d70}.dot{width:9px;height:9px;border-radius:3px;background:#b77357}.footer{padding-top:24px;color:#988a7c;font-size:11px}.next{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:27px 0}.next a{display:block;padding:15px 17px;border:1px solid var(--line);background:white;border-radius:10px;font-size:12px;color:#87786d}.next a strong{display:block;color:#493a33;font-size:13px;margin-top:3px}.next a:last-child{text-align:right}.progress{position:fixed;top:0;left:0;width:0;height:3px;background:#bc7861;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}.anchor{scroll-margin-top:35px}
-@media(max-width:1080px){:root{--side:clamp(210px,23vw,250px)}.layout-main{padding:29px 29px 75px}.sidebar{padding-left:16px;padding-right:13px}}@media(max-width:820px){.site{display:block}.sidebar{position:fixed;top:51px;left:0;width:min(315px,84vw);height:calc(100dvh - 51px);z-index:50;transform:translateX(-111%);transition:transform .22s ease;box-shadow:14px 12px 36px #211b1620}.sidebar.open{transform:translateX(0)}.overlay{position:fixed;inset:51px 0 0;background:#261e1766;z-index:45}.overlay.visible{display:block}.layout-main{padding:0 19px 55px}.mobile-bar{display:flex;position:sticky;top:0;z-index:42;align-items:center;justify-content:space-between;height:51px;background:#faf6f1f0;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin:0 -19px;padding:0 16px;font-size:12px}.mobile-bar .btn{padding:4px 10px}.crumb{padding-top:22px}.hero{padding-top:30px}}@media(max-width:600px){.scope-grid,.two,.three{grid-template-columns:1fr}.scope-grid{gap:8px}.tile{padding:12px 14px}.hero h1{font-size:41px}.chapter{padding-top:32px}.subtitle{font-size:18px}.controls input[type=range]{width:135px}.next{grid-template-columns:1fr}.bitmap-wrap{gap:12px}.pixel{width:20px;height:20px}.figure-body{padding:8px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}@media print{.sidebar,.mobile-bar,.overlay,.progress,.next,.copy{display:none!important}.site{display:block}.layout-main{padding:0}.article{width:100%}.chapter{break-inside:avoid}.viz,.figure{break-inside:avoid}body{font-size:12px}}
-
-/* Page-specific diagrams and interactive experiments. */
-.current-article{padding:6px 10px 7px;color:#755043;font-size:12.8px;font-weight:780;line-height:1.45;background:#eadbd0;border-radius:8px;margin:0 0 8px}
-.chapter-sidebar{min-height:0}
-.chapter h2{scroll-margin-top:32px}
-.kernel{border:1px solid var(--line);background:#fff;border-radius:11px;padding:12px 15px;text-align:center}
-.kernel>span{display:block;font-weight:750;font-size:12px;color:#826550;margin-bottom:8px}
-.kernel table{border-spacing:4px;margin:auto}
-.kernel td{width:38px;height:34px;background:#f0e5da;border-radius:5px;font-family:Consolas,ui-monospace,monospace;font-size:13px;font-weight:700;color:#6b4f3f}
-.gray-grid{display:grid;grid-template-columns:repeat(7,34px);gap:3px;width:max-content;max-width:100%;padding:7px;background:#eee6de;border-radius:9px}
-.gray-grid.mini-grid{grid-template-columns:repeat(3,34px)}
-.gray-cell{width:34px;height:34px;padding:0;border:0;border-radius:3px;font-size:9.7px;font-weight:720;position:relative}
-.gray-cell:not(:disabled):hover{outline:2px solid #a75e49;outline-offset:-2px}
-.gray-cell.chosen{outline:3px solid #8d5a3f;outline-offset:1px;z-index:2}
-.gray-cell.noisy{box-shadow:inset 0 0 0 2px #a94d43}
-.gray-cell:disabled{cursor:default;opacity:1}
-.lab-readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:16px}
-.lab-readouts>div{border:1px solid #e8ddd2;border-radius:8px;background:#fbf6f1;padding:8px 10px}
-.lab-readouts small{display:block;font-size:10px;color:#9a8477;line-height:1.4}
-.lab-readouts b{font-size:18px;line-height:1.7;font-variant-numeric:tabular-nums;color:#86523e}
-.canvas-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
-.canvas-panel{padding:11px;background:#fff;border:1px solid #e9dfd6;border-radius:9px;min-width:0}
-.canvas-panel>div{font-weight:740;font-size:12px;margin-bottom:7px;color:#6a5548}
-.canvas-panel canvas{display:block;width:100%;height:auto;aspect-ratio:3 / 2;image-rendering:pixelated;background:#222;border-radius:5px}
-.canvas-panel small{display:block;font-size:10.5px;line-height:1.65;color:#938478;margin-top:8px}
-.control-check{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
-.control-check input{accent-color:var(--accent)}
-.trace-columns{align-items:start}
-.trace-columns svg{display:block;max-width:100%;height:auto;margin-top:4px}
-.trace-list{display:grid;gap:7px}
-.trace-select{text-align:left;border:1px solid #e6d9ce;background:#fff;border-radius:8px;padding:9px 10px;color:#685649;font-size:11.5px;line-height:1.5}
-.trace-select:hover,.trace-select.sel{background:#f3e5d9;border-color:#be9981;color:#804732;font-weight:740}
-.hier-tree{display:grid;gap:7px}
-.hier-node{font-size:12px;border-radius:7px;border:1px solid #e5d9cc;background:#fff;padding:6px 10px;font-weight:680;color:#735c4d}
-.hier-node.depth-1{margin-left:21px;border-left:3px solid #b67a5e}
-.hier-node.depth-2{margin-left:41px;border-left:3px solid #78978b}
-.select{font:inherit;font-size:12px;border:1px solid #dccbbc;border-radius:8px;padding:6px 9px;color:#6e5144;background:#fff}
-.return-end{margin:27px 0}
-.return-end a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px 16px;color:#73554a;font-size:12px;font-weight:700}
-.return-end a:hover{background:#f9eee7}
-@media(max-width:610px){.canvas-grid,.trace-columns{grid-template-columns:1fr}.lab-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.gray-grid{grid-template-columns:repeat(7,28px)}.gray-grid.mini-grid{grid-template-columns:repeat(3,28px)}.gray-cell{width:28px;height:28px;font-size:8.5px}.viz{padding:12px}.canvas-grid{gap:9px}.controls{align-items:flex-start}.controls label{display:flex;flex-wrap:wrap;gap:5px}.controls input[type=range]{width:150px}}
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#faf8f4"><meta name="description" content="沿途手记 · 06 局部特征与对应：用关键公式与机制图理解角点、SIFT、ORB、描述子、匹配与几何验证。">
+<title>局部特征与对应 · 核心公式与直观机制｜沿途手记</title>
+<style>
+:root{color-scheme:light;--paper:#faf8f4;--aside:#f5f0e9;--card:#fffefa;--ink:#3e352f;--body:#60554c;--sub:#8d7d71;--line:#e6dbcf;--rust:#ad7158;--rust-deep:#86503b;--rust-soft:#f5e8dc;--sage:#4f8272;--sage-soft:#edf5ef;--reading:830px;--aside-size:clamp(240px,20vw,294px);--serif:Georgia,"Noto Serif SC","Source Han Serif SC","Songti SC",serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.92 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:3px}::selection{background:#e7cfb8}
+.progress{height:3px;position:fixed;inset:0 auto auto 0;width:0;background:#bd856c;z-index:90;pointer-events:none}.site{display:grid;grid-template-columns:var(--aside-size) minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100dvh;background:var(--aside);border-right:1px solid var(--line);padding:30px 22px 20px;display:flex;flex-direction:column;gap:21px;overflow-y:auto;scrollbar-width:thin;z-index:50}.brand{font:700 23px/1.3 var(--serif);color:#50443c;letter-spacing:.06em}.brand small{display:block;font:500 10px/1.7 var(--sans);color:#a29285;margin-top:8px;letter-spacing:.065em}.return{display:block;background:#fffefa8c;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#795f50}.return:hover{background:#fffefa}.side-label{font-size:10px;letter-spacing:.12em;font-weight:700;color:#a08f80;margin:0 0 9px 8px}.current{font-size:14px;color:var(--rust-deep);font-weight:750;padding:0 8px 9px}.nav{display:flex;flex-direction:column;gap:2px}.nav a{display:flex;gap:12px;padding:8px 10px;align-items:flex-start;color:#75695e;font-size:12px;line-height:1.6;border-radius:8px}.nav a:hover{background:#ebe2d8}.nav a.active{background:#eeded2;color:#864f3b;font-weight:750}.nav em{font-style:normal;font:700 10px/2 var(--sans);color:#ad9e91;min-width:21px}.nav a.active em{color:#aa735d}.sidebar-foot{margin-top:auto;border-top:1px solid var(--line);padding:15px 9px 0;color:#a28f82;font-size:10px;letter-spacing:.045em}
+main{padding:0 clamp(24px,5vw,76px) 85px;min-width:0}.article{max-width:var(--reading);margin:auto}.crumb{min-height:65px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-bottom:1px solid var(--line);font-size:11.5px;color:#9b8b7f}.crumb a:hover{color:var(--rust)}.hero{padding:56px 0 47px;border-bottom:1px solid var(--line)}.eyebrow,.kicker{font-size:10.5px;color:var(--rust);font-weight:750;letter-spacing:.12em}.hero h1{color:var(--ink);font:750 clamp(35px,4.3vw,49px)/1.45 var(--serif);letter-spacing:-.024em;margin:10px 0 4px}.subtitle{font:italic 12px/1.7 Georgia,serif;color:#a39081;margin:0 0 25px}.hero p{margin:14px 0;max-width:780px;font-size:15.5px;line-height:2.1}.hero strong,.chapter strong{color:#86583f}.hero-tags{margin-top:23px;display:flex;gap:7px;flex-wrap:wrap}.hero-tags span{border:1px solid #e8dbcc;padding:3px 10px;font-size:10.5px;color:#9d806c;border-radius:30px;background:#fffdf8}
+.chapter{padding:56px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:30px}.chapter h2{font:700 clamp(23px,2.6vw,28px)/1.58 var(--serif);color:var(--ink);margin:10px 0 22px;letter-spacing:-.015em}.chapter h3{font-size:17px;line-height:1.63;font-weight:740;color:#4a3a31;margin:31px 0 11px}.chapter p{font-size:15px;line-height:2.05;margin:0 0 16px}.chapter p:last-child{margin-bottom:0}.chapter .intro{font-size:15.5px}.topic{margin:30px 0 12px;color:#9f7259;font-size:11px;font-weight:750;letter-spacing:.1em}.conclusion{border-left:3px solid var(--sage);padding:11px 16px;background:#f0f5ef;margin:22px 0 0;border-radius:0 8px 8px 0;font-size:13.5px;line-height:1.85;color:#597264}.conclusion strong{color:#456c59}.callout{background:#fffdf8;border:1px solid var(--line);border-radius:10px;padding:17px 19px;margin:21px 0}.callout p{font-size:14px;margin:0}.callout-title{display:block;font-size:11px;font-weight:750;color:#a16a50;letter-spacing:.07em;margin-bottom:7px}.bridge{font-size:14px;color:#726158;border-top:1px dashed #e3d5c6;padding-top:18px;margin-top:28px}.bridge b{color:#845640}.footnote{font-size:12px!important;color:#978679;line-height:1.8!important}.figure{background:var(--card);border:1px solid #e5dbd0;border-radius:13px;overflow:hidden;margin:23px 0 24px}.figure-header{padding:13px 18px 0;font-size:13px;color:#674f40;font-weight:730}.figure-body{padding:8px 16px 6px}.figure svg{display:block;width:100%;height:auto}.figure figcaption{color:#948478;font-size:11.5px;line-height:1.7;padding:5px 18px 15px}.compare{width:100%;border-collapse:collapse;text-align:left;background:#fffefa;font-size:13px;line-height:1.8}.compare th{background:#f5eee6;color:#775642;font-size:12px}.compare th,.compare td{padding:12px 13px;border-bottom:1px solid #eae0d5;vertical-align:top}.compare td:first-child{color:#7c5a45;font-weight:690;min-width:100px}.compare tr:last-child td{border-bottom:0}.table-wrap{border:1px solid var(--line);border-radius:10px;overflow-x:auto;margin:20px 0 24px}.table-wrap .compare{min-width:550px}.small-caps{color:#a16e54;font-size:11px;letter-spacing:.08em;font-weight:750}.term{font-weight:750;color:#87533e}.inline-math{background:#f5eee6;border:1px solid #ebddcf;border-radius:5px;padding:1px 5px;font-size:13px;white-space:nowrap}.two-notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}.mini-note{border:1px solid var(--line);background:#fffdfa;border-radius:10px;padding:16px 17px}.mini-note strong{display:block;color:#74513f;font-size:14px;margin-bottom:5px}.mini-note p{font-size:13px;line-height:1.85;margin:0}.mini-note.sage{border-top:3px solid #689183}.mini-note.rust{border-top:3px solid #b98062}.quick-check{padding-left:22px;margin:15px 0 0}.quick-check li{padding-left:2px;margin:8px 0;font-size:14px;line-height:1.85}.next{display:flex;justify-content:space-between;gap:13px;flex-wrap:wrap;padding:28px 0 0}.next a{display:inline-flex;align-items:center;border:1px solid var(--line);padding:10px 15px;border-radius:9px;font-size:12px;color:#91644c;background:#fffdfa}.next a:hover{background:#f8efe6}.footer{color:#a19386;font-size:11px;margin-top:32px}.mobile,.shade{display:none}
+@media(max-width:1000px){.sidebar{padding-left:15px;padding-right:15px}main{padding:0 31px 70px}}
+@media(max-width:810px){.site{display:block}.sidebar{position:fixed;top:0;bottom:0;left:0;height:100dvh;width:min(320px,88vw);transform:translateX(-105%);transition:transform .23s ease;visibility:hidden;box-shadow:10px 0 35px #37251926}.sidebar.open{transform:translateX(0);visibility:visible}.shade.on{display:block;position:fixed;inset:0;background:#2b211947;z-index:45}.mobile{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:35;height:55px;padding:0 18px;background:#faf8f4ed;backdrop-filter:blur(10px);border-bottom:1px solid var(--line);font-size:12px;color:#775c4e}.mobile button{border:1px solid #d9c6b5;border-radius:8px;background:#fffefa;color:#765747;padding:6px 12px;cursor:pointer}.mobile strong{font-size:12px}main{padding:0 22px 55px}.crumb{min-height:53px}.chapter{scroll-margin-top:72px}}
+@media(max-width:600px){.hero{padding:37px 0 35px}.hero h1{font-size:34px}.hero p{font-size:14.5px}.chapter{padding:43px 0 42px}.chapter h2{font-size:23px}.chapter p{font-size:14px}.two-notes{grid-template-columns:1fr}.figure-body{padding:7px 8px 2px}.figure figcaption{padding:7px 12px 14px}main{padding-left:18px;padding-right:18px}.table-wrap .compare{min-width:510px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
-
-.demo-canvas{display:block;width:100%;height:auto;background:#f6f0e9;border:1px solid #e9dacf;border-radius:9px;margin:10px 0;touch-action:pan-y}
-.lab-readouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}.lab-readouts>div{background:#fbf6f1;border:1px solid #ede2d8;border-radius:8px;padding:9px 11px}.lab-readouts small{display:block;color:#938175;font-size:10px;line-height:1.5}.lab-readouts b{display:block;font-size:18px;font-variant-numeric:tabular-nums;color:#8a503e;line-height:1.6}.viz .controls label{font-size:12px;color:#736356}.viz input[type=range]{max-width:155px;width:155px;accent-color:var(--accent)}.select{font:inherit;font-size:12px;border:1px solid #dccbbc;border-radius:8px;padding:6px 9px;color:#6e5144;background:#fff}.return-end{margin:27px 0}.return-end a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px 16px;color:#73554a;font-size:12px;font-weight:700}.return-end a:hover{background:#f9eee7}.next-links{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:23px;margin-top:30px;gap:15px}.next-links a{font-size:12px;color:#805b49;text-decoration:underline;text-underline-offset:4px}.next-links a:last-child{text-align:right}
-@media(max-width:610px){.lab-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.viz{padding:12px}.viz .controls{align-items:flex-start}.viz input[type=range]{width:115px}.lab-readouts b{font-size:16px}}
-.chapter-context{font-size:14.3px;line-height:1.95;color:#65564b;margin:12px 0 18px!important}
-.thinking{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 25px}
-.thinking>div{border-top:2px solid #c7aa98;padding:12px 12px 10px;background:#fffdfb;min-width:0}
-.thinking>div:nth-child(2){border-top-color:#b9876b}
-.thinking>div:nth-child(3){border-top-color:#73948a}
-.thinking-key{font-size:11px;font-weight:800;color:#855947;letter-spacing:.035em}
-.thinking>div:nth-child(2) .thinking-key{color:#9d624b}
-.thinking>div:nth-child(3) .thinking-key{color:#4e7667}
-.thinking p{font-size:12px;line-height:1.75;margin:7px 0 0!important;color:#6f6056}
-.chapter-handoff{margin:25px 0 0;padding:15px 19px;background:#f5efe9;border-left:3px solid #af7963;border-radius:0 8px 8px 0}
-.chapter-handoff span{font-size:11px;font-weight:800;color:#935742;letter-spacing:.06em}
-.chapter-handoff p{font-size:13px;margin:4px 0 0!important;color:#55483e}
-.route-start{display:flex;align-items:stretch;justify-content:center;gap:13px;margin:23px 0 18px}
-.route-source{display:flex;flex-direction:column;gap:5px;flex:1;background:white;border:1px solid var(--line);padding:18px 19px;border-radius:10px;justify-content:center}
-.route-source strong{font-size:14px;line-height:1.65}
-.route-source.emphasis{border-color:#debb9e;background:#fdf5ed}
-.route-arrow{align-self:center;color:#b27c5c;font-size:25px}
-.route-problems{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:0 0 20px}
-.problem-pill{font-size:11px;border:1px dashed #d2bbaa;color:#796456;background:#faf6f1;border-radius:40px;padding:5px 10px}
-.route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:19px 0}
-.route-card{display:block;background:#fff;border:1px solid #e6ded5;border-radius:11px;padding:15px 18px 13px;transition:transform .14s,border-color .14s,background .14s}
-.route-card:hover{background:#fff9f2;border-color:#d4b5a0;transform:translateY(-2px)}
-.route-card:first-child{grid-column:span 2;background:#f9f1e9;border-color:#e2cbb9}
-.route-index{display:block;font-size:10.3px;letter-spacing:.04em;color:#a56d53;font-weight:800}
-.route-card strong{display:block;font-size:15px;color:#44362d;margin:4px 0 4px}
-.route-card p{font-size:12px;line-height:1.64;color:#726357;margin:4px 0!important}
-.route-card em{font-size:11px;font-style:normal;color:#4c756a;font-weight:680}
-.route-legend{background:#f6f3ee;border:1px solid #e8dfd5;border-radius:9px;color:#716458;padding:12px 15px;font-size:12px;line-height:1.8}
-@media(max-width:640px){.thinking{grid-template-columns:1fr}.route-grid{grid-template-columns:1fr}.route-card:first-child{grid-column:auto}.route-start{flex-direction:column}.route-arrow{transform:rotate(90deg)}.route-source{padding:12px 14px}}
-
-.route-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
-.route-lane{padding:17px 18px;border-radius:11px;background:#fff;border:1px solid #e7ddd3;min-width:0}
-.route-lane:first-child{border-top:3px solid #b87860}.route-lane:last-child{border-top:3px solid #6d968b}
-.route-lane .smallcap{display:block;margin-bottom:6px}.route-lane strong{font-size:13px;display:block;line-height:1.6}
-.route-lane p{font-size:12px;line-height:1.8;color:#75675c;margin:6px 0!important}
-.route-converge{border-radius:8px;border:1px dashed #b9ac9e;text-align:center;font-size:12px;padding:10px;color:#695a4e;background:#f8f5f0;margin:8px 0 18px}
-.route-card:first-child{grid-column:auto;background:#fff;border-color:#e6ded5}
-.route-card:nth-child(1),.route-card:nth-child(4){border-top:3px solid #b87961}
-.route-card:nth-child(3),.route-card:nth-child(5){border-top:3px solid #699084}
-.route-card:nth-child(7){grid-column:span 2;background:#faf3eb}
-.tiny-evidence{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}
-.tiny-evidence span{font-size:11px;color:#68564b;padding:5px 10px;background:#f6f0e9;border-radius:30px;border:1px solid #e7dacf}
-.refine-panel svg{width:100%;height:auto;display:block;background:#fff;border:1px solid #eaded4;border-radius:9px}
-@media(max-width:640px){.route-pair{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
-
-.geom-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}
-.geom-input{background:#fff;border:1px solid #e8dfd6;border-top:3px solid #b37b5f;border-radius:10px;padding:15px 16px}
-.geom-input:nth-child(2){border-top-color:#668d82}.geom-input:nth-child(3){border-top-color:#5f8095}
-.geom-input strong{display:block;font-size:13px;color:#49392e}.geom-input p{font-size:11.5px;line-height:1.8;margin:7px 0 0!important;color:#7b6c60}
-.route-card:nth-child(2),.route-card:nth-child(5){border-top:3px solid #688d82}
-.route-card:nth-child(3),.route-card:nth-child(6){border-top:3px solid #7b8da2}
-.route-card:nth-child(7){grid-column:span 2;background:#fbf5ed}
-.corner-lab svg{display:block;width:100%;height:auto;background:#fff;border:1px solid #e9dfd6;border-radius:10px}
-.corner-reading{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
-.corner-reading div{border:1px solid #e9ddd2;border-radius:9px;padding:10px 13px;background:#fff}
-.corner-reading span{display:block;font-size:11px;color:#816f62}
-.corner-reading strong{font-size:20px;font-family:ui-monospace,monospace;color:#985c45}
-.geom-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:15px 0}
-.geom-steps span{font-size:12px;padding:8px 11px;border:1px solid #e5dace;border-radius:8px;background:#fff}
-.geom-steps i{font-style:normal;color:#a98d78}
-.geom-branch-svg{width:100%;height:auto;display:block}
-@media(max-width:700px){.geom-inputs,.corner-reading{grid-template-columns:1fr}.route-card:nth-child(7){grid-column:auto}}
+@media print{.sidebar,.mobile,.shade,.progress,.next{display:none!important}.site{display:block}main{padding:0}.article{max-width:none}.chapter{break-inside:auto}.figure{break-inside:avoid}}
 
 
-/* 05 skeleton topology: inherited from the geometry chapter */
-.puzzle{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:19px 0}.puzzle>div{background:#fff;border:1px solid var(--line);border-top:3px solid #b9886e;border-radius:9px;padding:13px 14px}.puzzle>div:nth-child(2){border-top-color:#71958a}.puzzle>div:nth-child(3){border-top-color:#7893a5}.puzzle strong{font-size:13px;display:block}.puzzle p{font-size:11.6px;color:#716258;margin:5px 0!important}
-.skel-branch{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:17px 0}.skel-branch>div{padding:15px 17px;border-radius:10px;background:white;border:1px solid #e7dfd7;border-top:3px solid #b98c70}.skel-branch>div:nth-child(2){border-top-color:#6b9589}.skel-branch strong{font-size:13px;display:block}.skel-branch p{font-size:12px;line-height:1.8;margin:6px 0!important;color:#72645a}
-.route-map-svg{width:100%;height:auto;display:block}.readout-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:13px 0}.readout-strip div{background:#fff;border:1px solid #e9dfd5;padding:9px 10px;border-radius:8px}.readout-strip span{display:block;color:#89796e;font-size:10.5px}.readout-strip strong{font-size:19px;letter-spacing:-.02em;color:#975c47;font-variant-numeric:tabular-nums}
-.viz-canvases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.viz-canvas-box{background:#fff;border:1px solid #e8ddd3;border-radius:10px;padding:12px;min-width:0}.viz-canvas-box b{font-size:12px;color:#675448;display:block;margin-bottom:7px}.viz-canvas-box canvas{width:100%;height:auto;display:block;image-rendering:pixelated;background:#f9f5ef;border-radius:5px;max-width:100%;}
-.badge-inline{border-radius:5px;padding:2px 7px;background:#f4ece4;font-size:11px;color:#875b45;white-space:nowrap}.ink-svg{display:block;width:100%;height:auto;background:#fff;border:1px solid #eee3d8;border-radius:10px}.tiny-help{font-size:11.5px;color:#8c7a6c;line-height:1.75;margin-top:10px!important}.interlude{border-left:3px solid #b78a70;background:#f8f1eb;border-radius:0 8px 8px 0;padding:11px 15px;margin:17px 0;color:#665246;font-size:13px}
-@media(max-width:720px){.puzzle,.readout-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.skel-branch{grid-template-columns:1fr}}@media(max-width:480px){.puzzle{grid-template-columns:1fr}.viz-canvases{grid-template-columns:1fr}.readout-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* 核心数学表达：重点是读懂公式，而不是堆叠推导。 */
+.formula-note{margin:20px 0 23px;padding:18px 20px 16px;border:1px solid #e5d7c9;border-left:3px solid #ab7459;border-radius:0 10px 10px 0;background:#fffdf9}
+.formula-head{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;color:#83563f;font-size:12px;font-weight:760;margin-bottom:11px}
+.formula-head span{font-size:10.5px;color:#a28d7b;font-weight:500;letter-spacing:.015em}
+.formula-expr{margin:0 0 11px;padding:11px 15px;border-radius:8px;background:#f7f2eb;overflow-x:auto;color:#3c3935;font-family:'Cambria Math','STIX Two Math','Noto Serif',serif;font-size:20px;line-height:1.7}
+.formula-expr math{font-size:1em;white-space:nowrap;max-width:none}
+.formula-expr .plain-math{white-space:nowrap}
+.formula-note p{font-size:13px!important;line-height:1.87!important;margin:8px 0!important;color:#665a50}
+.formula-note p:last-child{margin-bottom:0!important}
+.formula-note b,.formula-note strong{color:#79523e}
+.formula-takeaway{margin-top:9px!important;color:#497267!important;font-weight:640}
+.formula-example{display:flex;gap:9px;align-items:start;padding-top:10px;margin-top:10px;border-top:1px solid #ebe2d7}
+.formula-example .ex-mark{font-size:10px;flex:none;letter-spacing:.08em;font-weight:800;color:#8b735f;border:1px solid #ded0c2;border-radius:4px;padding:2px 6px;margin-top:2px}
+.formula-example p{margin:0!important}
+.mini-scope{margin:11px 0 19px;color:#79695c;font-size:13px;line-height:1.9}
+.mini-scope strong{color:#79523e}
+@media(max-width:610px){.formula-note{padding:14px 13px}.formula-expr{padding:9px 10px;font-size:17px}.formula-example{gap:6px}.formula-note p{font-size:12.5px!important}}
 
-/* 06 Local Features — chapter-specific components */
-.route-svg{display:block;width:100%;height:auto;max-width:100%}
-.probe-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:17px 0 24px}
-.probe-grid>div{border-top:3px solid #c9a58e;background:#fffdfb;padding:12px 13px;min-width:0}
-.probe-grid>div:nth-child(2){border-color:#8ea99a}.probe-grid>div:nth-child(3){border-color:#8b9dae}
-.probe-grid b{font-size:12px;display:block;margin-bottom:5px}.probe-grid p{font-size:11.6px;color:#77675d;margin:0!important;line-height:1.8}
-.route-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:17px 0}
-.route-columns>div{background:#fff;border:1px solid #e7ded6;border-top:3px solid #b98265;border-radius:10px;padding:13px 15px}
-.route-columns>div:last-child{border-top-color:#609085}.route-columns b{display:block;font-size:13px;margin:6px 0 5px}
-.route-columns p{font-size:11.8px;line-height:1.75;color:#756459;margin:0!important}
-.arrow-note{display:flex;align-items:center;gap:11px;background:#f9f3ed;border-left:3px solid #b77e60;padding:12px 16px;margin:20px 0;font-size:12.8px;color:#695447}
-.arrow-note span{flex:0 0 auto;font-size:10px;font-weight:800;letter-spacing:.08em;color:#a9684b}
-.arrow-note p{margin:0!important}
-.key-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
-.key-metrics>div{background:#fff;border:1px solid #e8ddd4;border-radius:8px;padding:10px 12px}
-.key-metrics small{display:block;font-size:10px;color:#908073;line-height:1.5}.key-metrics strong{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#965a44}
-.viz-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:14px 0}
-.viz-pair>div{background:#fff;border:1px solid #e9ded5;border-radius:9px;padding:12px;min-width:0}
-.viz-pair b{display:block;font-size:12px;color:#715c4e;margin-bottom:8px}
-.viz-pair canvas{width:100%;display:block;height:auto;background:#f7f2eb;border-radius:7px;image-rendering:pixelated}
-.viz-pair p{font-size:11px;margin:8px 0 0!important;color:#84756a;line-height:1.6}
-.stage-tag{display:inline-block;font-size:10px;background:#f2e6dc;color:#945c42;padding:2px 8px;border-radius:5px;font-weight:750}
-.score-rail{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:13px 0}
-.score-rail .bar{flex:1 1 100px;height:9px;background:#ebddd2;border-radius:20px;overflow:hidden}
-.score-rail .fill{height:100%;background:#a67154;transition:width .15s}
-.micro-list{display:grid;gap:8px;margin:16px 0}.micro-item{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:baseline;padding:10px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12px}.micro-item b{color:#7c503f}.micro-item span{color:#75675e}
-.mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
-.mode-grid .tile{padding:12px 13px}
-.mode-grid .tile strong{font-size:12px}
-#match-canvas{display:block;width:100%;height:auto;max-width:100%;background:#fbf8f4;border:1px solid #e8ddd4;border-radius:10px}
-.chap-strap{font-size:11px;letter-spacing:.12em;font-weight:760;color:#9d7b65;margin:14px 0 3px}
-@media(max-width:650px){.probe-grid,.mode-grid{grid-template-columns:1fr}.viz-pair,.route-columns{grid-template-columns:1fr}.micro-item{grid-template-columns:1fr;gap:3px}.key-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-
-.mobile-roadmap{display:none}
-@media(max-width:650px){
- .desktop-roadmap{display:none}.mobile-roadmap{display:grid;gap:4px;text-align:center}
- .mroute-start,.mroute-step,.mroute-end,.mroute-split>div{border:1px solid #decdbd;border-radius:9px;padding:11px 10px;background:#fff8f2}
- .mroute-start{background:#f4e8df}.mroute-step.green,.mroute-end{background:#edf5f1;border-color:#bdd4c8}
- .mroute-arrow{font-size:17px;font-weight:800;color:#a28b7b;line-height:1.3}
- .mobile-roadmap b{display:block;font-size:12px;line-height:1.4;color:#634a3e}.mobile-roadmap small{display:block;font-size:10px;color:#9e6e52;font-weight:750}
- .mobile-roadmap span{display:block;font-size:10.5px;line-height:1.55;margin-top:4px;color:#806d61}.mroute-start small{font-size:10.5px;margin-top:4px}
- .mroute-split{display:grid;grid-template-columns:1fr 1fr;gap:7px}.mroute-split>div{background:#edf3ee;border-color:#cfdfd2;padding:11px 5px}.mroute-split b{font-size:11px}.mroute-split span{font-size:10px}
- .mroute-end{font-size:11px;font-weight:700;color:#537968}
-}
-</style></head><body><div class="progress" id="reading-progress"></div><div class="overlay" id="overlay"></div><div class="site"><aside class="sidebar" id="sidebar" aria-label="本篇章节导航"><div class="site-identity"><div class="brand">沿途手记</div><div class="brand-sub">STAGE 01 · CLASSICAL VISION</div></div><div><div class="side-group">返回上一级</div><nav class="side-links" aria-label="返回"><a href="index.html"><span class="num">←</span>图像特征与结构提取</a></nav></div><div class="chapter-sidebar"><div class="side-group">本篇章节</div><div class="current-article">06 · 局部特征与对应</div><nav class="sub-links" id="chapter-nav" aria-label="局部特征与对应章节"><a href="#scope">00 · 研究边界</a><a href="#roadmap">技术路线图</a><a href="#patch">01 · 从模板匹配开始</a><a href="#detector">02 · Harris / FAST</a><a href="#scale">03 · 尺度与方向</a><a href="#descriptor">04 · 局部描述子</a><a href="#matching">05 · 匹配与歧义</a><a href="#geometry">06 · 几何验证</a><a href="#selection">07 · 实验与结论</a></nav></div><div class="side-bottom">第六条独立技术路线<br>关键点 · 描述子 · 对应 · 几何验证</div></aside><main class="layout-main" id="content"><div class="mobile-bar"><button type="button" class="btn" id="mobile-menu" aria-expanded="false" aria-controls="sidebar">☰ 目录</button><b>沿途手记</b><span>06 / 06</span></div><article class="article"><div class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span class="slash">/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span class="slash">/</span><a href="index.html">图像特征与结构提取</a><span class="slash">/</span><span>局部特征与对应</span></div><header class="hero"><div class="eyebrow">DEEP DIVE · 06 / 06</div><h1>局部特征与对应</h1><p class="subtitle">不用先找出整个物体，能不能凭几个细节重新找到它？</p><p class="lede">一个盒子移动了、旋转了、被挡住一半——颜色和完整轮廓都不一定好用。先从简单的局部模板试起，逐步追问：<strong>什么局部值得记、怎么容忍尺度与角度、如何认出同一处、怎样排除那些看上去很像的错配？</strong></p><div class="meta"><span class="tag">独立研究路线 · 06 / 06</span><span class="tag">Harris · FAST · SIFT · ORB</span><span class="tag">匹配 / RANSAC / 2D 几何</span><span class="tag">单文件离线交互</span></div></header><section class="chapter anchor" id="scope"><div class="chapter-label">00 · SCOPE</div><h2>从“完整识别物体”，换成“重新认出局部”</h2>
-<p>前面研究过像素、区域、轮廓、几何和骨架。但它们通常试图回答“这个物体的整体形状在哪里”。现在换一种场景：手上只有一张带文字与图案的包装盒参考照片，下一张图里，它可能换了位置、角度和大小，甚至只露出一半。</p>
-<p><strong>能不能不先找完整 Mask，而是记住参考图里几个独特的小地方，再去另一张图里把它们找回来？</strong>这就是局部特征与对应（Local Features &amp; Correspondence）要解决的问题。</p>
-<div class="figure"><div class="figure-title">目标整体不完整，局部对应仍可能成立</div><div class="figure-body"><svg viewBox="0 0 790 242" class="route-svg" role="img" aria-label="参考包装盒的若干局部关键点在场景中经过缩放旋转和部分遮挡后仍可对应"><defs><pattern id="lfdots" width="15" height="15" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r=".9" fill="#d5cabf"/></pattern></defs>
-<rect x="7" y="10" width="259" height="196" rx="12" fill="#f5eee7"/><rect x="321" y="10" width="461" height="196" rx="12" fill="url(#lfdots)" stroke="#eee2d9"/>
-<g transform="translate(60 29)"><rect width="154" height="160" rx="5" fill="#dabba4" stroke="#936c52" stroke-width="2"/><path d="M17 22H135M17 135H135" stroke="#9c6952" stroke-width="3"/><rect x="22" y="43" width="40" height="40" rx="4" fill="#fff8f0"/><path d="M30 68L43 50L56 72" fill="none" stroke="#a55c45" stroke-width="6"/><path d="M79 52H130M79 66H118M25 105H124" stroke="#816b60" stroke-width="5" stroke-linecap="round"/><g fill="#3f8878" stroke="white" stroke-width="2"><circle cx="22" cy="43" r="6"/><circle cx="130" cy="52" r="6"/><circle cx="25" cy="105" r="6"/></g></g>
-<g transform="translate(478 21) rotate(17 90 83)"><rect x="8" y="7" width="176" height="167" rx="5" fill="#dabba4" stroke="#936c52" stroke-width="2"/><path d="M29 28H165M29 143H165" stroke="#9c6952" stroke-width="3"/><rect x="31" y="48" width="46" height="42" rx="4" fill="#fff8f0"/><path d="M39 76L54 56L70 80" fill="none" stroke="#a55c45" stroke-width="6"/><path d="M96 58H157M96 73H142M33 111H153" stroke="#816b60" stroke-width="5" stroke-linecap="round"/><g fill="#3f8878" stroke="white" stroke-width="2"><circle cx="31" cy="48" r="6"/><circle cx="157" cy="58" r="6"/><circle cx="33" cy="111" r="6"/></g></g>
-<path d="M247 75Q366 -5 520 57M247 109Q354 91 636 92M247 154Q362 196 514 148" fill="none" stroke="#73a295" stroke-width="1.8" stroke-dasharray="5 6" opacity=".75"/>
-<path d="M661 84L758 91L765 200L673 200Z" fill="#ddd6ce" opacity=".9"/><text x="136" y="229" text-anchor="middle" font-size="12" fill="#7b6659">参考图：有特征的位置</text><text x="555" y="229" text-anchor="middle" font-size="12" fill="#7b6659">场景图：缩放 / 旋转 / 局部遮挡</text></svg></div><div class="figcap">机制示意，不是实际匹配结果。局部特征建立的是跨图像候选对应，不直接识别物体类别，也不保证目标的三维姿态。</div></div>
-<div class="scope-grid"><div class="tile"><div class="id">INPUT</div><strong>参考图 + 待搜索图</strong><p>每张图可以独立提取关键点与描述子；不要求先得到完整物体区域。</p></div><div class="tile"><div class="id">EVIDENCE</div><strong>可重复的局部外观</strong><p>角点 / 纹理变化 / 尺度与方向 / 邻域的梯度或像素对关系。</p></div><div class="tile"><div class="id">OUTPUT</div><strong>对应点与二维变换</strong><p>候选匹配、几何内点、受适用条件约束的变换矩阵或参考角点映射。</p></div></div>
-<div class="note"><b>研究边界：</b>这是六条二维目标定位证据路线之一，<strong>不是其他五条方法处理完后的第六步</strong>。本篇只研究局部特征、描述、匹配和二维几何验证；不推导多视几何、6D Pose，也不把“局部匹配成功”直接等同于“物体身份确认”。</div>
-<div class="arrow-note"><span>问题接力</span><p>既然已有一张参考图片，最先想到的办法不是复杂模型，而是直接截取一小块像素。为什么不能一直这样做？</p></div></section>
-<section class="chapter anchor" id="roadmap"><div class="chapter-label">TECHNICAL ROADMAP</div><h2>先画清楚：局部特征技术是怎样一步步产生的？</h2>
-<p>这条路线内部确实存在依赖：要匹配，通常得先找到局部位置并描述它。但<strong>每个环节都有并行的技术选择</strong>：检测器不是描述子，描述相似也不是几何一致。</p>
-<div class="figure"><div class="figure-title">06 · 局部特征与对应：问题驱动技术路线图</div><div class="figure-body"><div class="desktop-roadmap"><svg viewBox="0 0 800 530" class="route-svg" role="img" aria-label="局部特征从模板比较出发，经过关键点检测、尺度方向、描述子、候选匹配和几何验证，多种方法形成分支选择">
-<defs><marker id="lfar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" stroke="#a49585" stroke-width="1.3" fill="none"/></marker></defs>
-<g font-family="Inter,Noto Sans SC,Microsoft YaHei,sans-serif" text-anchor="middle">
-<rect x="258" y="12" width="284" height="49" rx="9" fill="#f7eae0" stroke="#dcc4b3"/><text x="400" y="31" font-size="15" font-weight="750" fill="#6f4c3d">参考图 / 场景图</text><text x="400" y="48" font-size="11" fill="#927c70">局部能否在下一张图里再次找到？</text>
-<path d="M400 61V84" stroke="#aa9a8e" stroke-width="2" marker-end="url(#lfar)"/>
-<rect x="233" y="87" width="334" height="47" rx="8" fill="#fffdfa" stroke="#dfd0c4"/><text x="400" y="107" font-size="14" font-weight="700" fill="#654b3d">朴素办法：固定窗口 SSD / NCC</text><text x="400" y="124" font-size="10.5" fill="#977a67">平移尚可；旋转、缩放、重复纹理开始失败</text>
-<path d="M400 134V155" stroke="#aa9a8e" stroke-width="2" marker-end="url(#lfar)"/>
-<rect x="15" y="158" width="374" height="99" rx="10" fill="#fff6ee" stroke="#e1bca7"/><text x="202" y="179" font-size="11" fill="#b06e50" font-weight="730">01 · 什么位置值得记住？</text><text x="202" y="202" font-size="16" fill="#704938" font-weight="750">关键点检测</text><text x="202" y="225" font-size="12" fill="#82695b">Harris / Shi–Tomasi / FAST</text><text x="202" y="243" font-size="10.5" fill="#9c8271">二维定位稳定性 / 计算速度</text>
-<rect x="412" y="158" width="373" height="99" rx="10" fill="#f0f6f3" stroke="#b9d3c5"/><text x="597" y="179" font-size="11" fill="#5e8c77" font-weight="730">02 · 视角变化如何容忍？</text><text x="597" y="202" font-size="16" fill="#456f5d" font-weight="750">尺度与方向</text><text x="597" y="225" font-size="12" fill="#6d8474">SIFT DoG / 主方向；ORB 金字塔</text><text x="597" y="243" font-size="10.5" fill="#889e90">不同机制，不是升级替代关系</text>
-<path d="M202 257V278H400M597 257V278H400V290" stroke="#aaa094" stroke-width="2" fill="none" marker-end="url(#lfar)"/>
-<rect x="118" y="293" width="564" height="72" rx="10" fill="#f0f4f7" stroke="#bccbd4"/><text x="400" y="315" fill="#4d7186" font-size="11" font-weight="730">03 · 两个角点凭什么认为是同一处？</text><text x="400" y="339" fill="#35596a" font-size="16" font-weight="750">局部描述子</text><text x="400" y="356" fill="#688393" font-size="11">浮点：SIFT / SURF　｜　二进制：BRIEF / ORB</text>
-<path d="M400 365V385" stroke="#aaa094" stroke-width="2" marker-end="url(#lfar)"/>
-<rect x="15" y="387" width="374" height="70" rx="10" fill="#fff6ee" stroke="#e1c0aa"/><text x="202" y="409" font-size="11" fill="#ab6e53">04 · 哪些对应外观足够相似？</text><text x="202" y="432" font-size="15" font-weight="750" fill="#764f3d">KNN / Ratio / Cross-check</text><text x="202" y="449" font-size="10.5" fill="#94796a">输出候选匹配，不是最终真值</text>
-<rect x="412" y="387" width="373" height="70" rx="10" fill="#eef5f1" stroke="#b8d1c7"/><text x="597" y="409" font-size="11" fill="#5b8d77">05 · 是否符合共同的空间变换？</text><text x="597" y="432" font-size="15" font-weight="750" fill="#456e5e">Similarity / Affine / H + RANSAC</text><text x="597" y="449" font-size="10.5" fill="#7d9687">需检查重投影误差 / 覆盖 / 退化</text>
-<path d="M389 423H408" stroke="#aaa094" stroke-width="2" marker-end="url(#lfar)"/>
-<path d="M597 457V478H400V487" stroke="#aaa094" stroke-width="2" fill="none" marker-end="url(#lfar)"/>
-<rect x="214" y="491" width="371" height="33" rx="8" fill="#e6eee9" stroke="#bad0c3"/><text x="400" y="513" font-size="12.5" fill="#457263" font-weight="750">输出：匹配内点 / 参考点映射 / 可信度检查</text>
-</g></svg></div>
-<div class="mobile-roadmap" aria-label="局部特征问题驱动路线，手机纵向版本">
-<div class="mroute-start"><b>参考图 / 场景图</b><small>寻找可重复的局部结构</small></div>
-<div class="mroute-arrow">↓</div>
-<div class="mroute-step"><small>第一个朴素尝试</small><b>固定窗口 SSD / NCC</b><span>平移可用；旋转、缩放、纹理重复时失效</span></div>
-<div class="mroute-arrow">↓</div>
-<div class="mroute-split"><div><small>01 / 可定位</small><b>关键点检测</b><span>Harris / Shi–Tomasi / FAST</span></div><div><small>02 / 适应变化</small><b>尺度与方向</b><span>SIFT DoG / ORB 金字塔</span></div></div>
-<div class="mroute-arrow">↓</div>
-<div class="mroute-step"><small>03 / 局部怎么认出来</small><b>局部描述子</b><span>SIFT / SURF 浮点；BRIEF / ORB 二进制</span></div>
-<div class="mroute-arrow">↓</div>
-<div class="mroute-step"><small>04 / 外观是否足够像</small><b>KNN / Ratio / Cross-check</b><span>初步候选对应，不是最终真值</span></div>
-<div class="mroute-arrow">↓</div>
-<div class="mroute-step green"><small>05 / 空间是否一致</small><b>Similarity / Affine / Homography + RANSAC</b><span>重投影残差、内点覆盖、退化检查</span></div>
-<div class="mroute-arrow">↓</div>
-<div class="mroute-end">对应点 · 参考位置映射 · 可靠性验证</div>
-</div></div><div class="figcap">图中顺序表示本路线内的信息依赖，左右分支是可选方法。06 作为“局部特征”的独立证据路线，与区域分割、几何拟合、骨架提取并列，而不是它们的后处理。</div></div>
-<div class="route-columns"><div><span class="smallcap">选择 A · 更丰富的局部梯度证据</span><b>SIFT 一类浮点特征</b><p>尺度与方向信息更完整，描述信息较丰富；描述与匹配计算量相对高。适合作为鲁棒性基准，不能保证大透视或弱纹理成功。</p></div><div><span class="smallcap">选择 B · 更轻量的二进制证据</span><b>ORB 一类特征</b><p>图像金字塔 + FAST + 方向 + 二进制比较；检测与匹配快，需检验跨尺度、模糊与重复纹理的失效区间。</p></div></div>
-<div class="arrow-note"><span>问题接力</span><p>现在先把技术名字放下，试着做最简单的局部像素匹配。它究竟在什么条件下有效？</p></div></section>
-<section class="chapter anchor" id="patch"><div class="chapter-label">01 · SIMPLEST ATTEMPT</div><h2>直接拿一小块像素去搜，为什么不够？</h2>
-<p>从参考图裁一块 <code>k×k</code> 小窗口，在场景中逐位置滑动，计算 SSD（平方差和），选择最小的一处。这与模板匹配的想法完全一致。</p>
-<div class="math"><div>SSD(u,v) = Σ₍ₓ,ᵧ₎ [ T(x,y) − I(x+u,y+v) ]²</div><div>NCC：对去均值后的窗口作归一化相关，减弱整体亮度 / 对比度变化的影响（在非退化窗口上）</div></div>
-<div class="probe-grid"><div><b>先尝试</b><p>固定一个带纹理的模板，小范围平移搜索。</p></div><div><b>很快发现</b><p>旋转和缩放导致像素排列改变；纯色块处处相似；沿直边滑动可能得到一串同样好的候选。</p></div><div><b>于是引入</b><p>先挑出二维位置有区分度的局部，再针对尺度 / 方向建立稳健描述。</p></div></div>
-<div class="figure"><div class="figure-title">为什么“平坦—边缘—角点”不一样？试着平移观察窗口</div><div class="figure-body"><svg viewBox="0 0 785 192" class="route-svg" role="img" aria-label="平坦区域、垂直边缘和角点的窗口在二维平移时变化不同"><g font-family="Inter,Noto Sans SC,sans-serif"><rect x="6" y="7" width="250" height="142" rx="9" fill="#e6ded3"/><rect x="267" y="7" width="250" height="142" rx="9" fill="#e5ded3"/><rect x="528" y="7" width="251" height="142" rx="9" fill="#e5ded3"/>
-<rect x="290" y="8" width="106" height="140" fill="#b77b5e"/><path d="M641 8H778V149H641Z" fill="#bb7e5c"/><path d="M640 62H778V149H640Z" fill="#e5ded3"/>
-<g fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 5"><rect x="69" y="40" width="82" height="78"/><rect x="345" y="40" width="82" height="78"/><rect x="613" y="36" width="82" height="78"/></g>
-<g font-size="12.5" text-anchor="middle" fill="#715c4e"><text x="131" y="172">平坦：怎样移都相似</text><text x="392" y="172">单边：沿边移动仍相似</text><text x="654" y="172">角点：两个方向都受约束</text></g></g></svg></div></div>
-<p><strong>边缘不是没价值：</strong>它可以很好地约束一个法向位置。但如果需要确定一个二维关键点，单条长边沿切向有位置歧义。这个差别可以用局部灰度的方向变化写成数学。</p>
-<div class="arrow-note"><span>问题接力</span><p>具体怎样判断一个小窗口“向哪个方向移动都会改变”？这就引出角点检测的数学基础。</p></div></section>
-<section class="chapter anchor" id="detector"><div class="chapter-label">02 · KEYPOINT DETECTION</div><h2>怎样挑出真正能定位的局部位置？</h2>
-<p>不妨把窗口在水平和竖直方向各挪一点，观察灰度差。如果一个方向几乎不变，它的位置就可能沿该方向漂移。</p>
-<div class="probe-grid"><div><b>先尝试</b><p>人工观察局部角落，或者用两方向的差分判断。</p></div><div><b>很快发现</b><p>边缘也会有很大梯度，但只有一个方向敏感；单独看梯度大小分不出“角”与“边”。</p></div><div><b>于是引入</b><p>Harris / Shi–Tomasi 用结构张量分析两个主方向，FAST 则用圆周比较快速生成候选。</p></div></div>
-<h3>2.1 · Harris 与 Shi–Tomasi：为什么要看两个特征值？</h3>
-<div class="math"><div>E(u,v) = Σ_{p∈W} w(p) [ I(p+(u,v)) − I(p) ]²</div><div>一阶近似：E(u,v) ≈ [u v] M [u v]ᵀ</div><div>M = Σ_{p∈W} w(p) · [[Iₓ², IₓIᵧ], [IₓIᵧ, Iᵧ²]]</div><div>Harris: R = det(M) − k·trace(M)²　（常取 k≈0.04–0.06）</div><div>Shi–Tomasi: score = min(λ₁, λ₂)</div></div>
-<p>结构张量 <code>M</code> 的两个特征值对应两个主方向的变化：都小是平坦；一个大一个小是边；都大才可能是稳定角点。Shi–Tomasi 直接考察最弱方向的变化。两种评分都还需要合适阈值、非极大值抑制和空间筛选。</p>
-<div class="viz" id="corner-viz"><div class="viz-head"><span class="viz-name">交互实验 · 图案一换，结构张量真的不同吗？</span><span class="viz-help">离散中心差分 + 高斯权重；真实计算</span></div>
-<div class="controls"><label for="corner-kind">局部图案</label><select class="select" id="corner-kind"><option value="flat">纯色</option><option value="edge">单条直边</option><option value="corner" selected>直角拐角</option><option value="checker">十字交界</option></select><label for="corner-contrast">亮度对比</label><input type="range" id="corner-contrast" min="20" max="160" step="10" value="110"/><b id="corner-contrast-value" class="small">110</b></div>
-<div class="viz-pair"><div><b>15×15 图像窗口（演示）</b><canvas id="corner-canvas" width="300" height="300" aria-label="合成角点邻域的亮度图"></canvas><p>中间的红圈表示当前分析的窗口中心。</p></div><div><b>结构张量 M 与实际计算值</b><div class="math" id="corner-math"><div>M = —</div></div><div class="key-metrics"><div><small>较小特征值</small><strong id="corner-lmin">—</strong></div><div><small>较大特征值</small><strong id="corner-lmax">—</strong></div><div><small>Harris R</small><strong id="corner-score">—</strong></div></div><p class="tiny-help">用 M 的特征值可解释局部可定位性，但数值会随灰度单位、梯度算子和窗口权重变化，不能套固定绝对阈值。</p></div></div>
-<div class="result" id="corner-result" aria-live="polite"></div></div>
-<h3>2.2 · FAST：能不能不用完整张量就先找到候选点？</h3>
-<p>FAST 在像素周围半径 3 的 16 个 Bresenham 圆周像素上，寻找一段连续像素明显亮于或暗于中心值；常见 FAST-9 等变种按连续长度确定判据。它适合快速筛出候选，仍需角点评分或非极大值抑制。</p>
-<div class="route-columns"><div><span class="smallcap">角点的“可定位性”</span><b>Harris / Shi–Tomasi</b><p>从窗口二维灰度变化判断稳定程度；适合解释机制与基于质量的筛选，并非天然具备旋转或尺度不变匹配。</p></div><div><span class="smallcap">角点的“快速发现”</span><b>FAST</b><p>直接比较圆周像素而不是计算二阶矩阵；检测快速，但得到的是位置，不是可跨图像识别的描述。</p></div></div>
-<div class="arrow-note"><span>问题接力</span><p>在当前图中找到好角点，只完成了一半。相机离近一点、盒子转了一圈，同一个局部还会被重新找到吗？</p></div></section>
-<section class="chapter anchor" id="scale"><div class="chapter-label">03 · SCALE & ORIENTATION</div><h2>相机远近和角度变了，关键点怎么办？</h2>
-<p>同一张标签在图像里从 30 像素变成 90 像素，固定大小的角点邻域可能观察到完全不同的东西。于是最先想到：<strong>给一张图准备很多种观察尺度</strong>。</p>
-<div class="probe-grid"><div><b>先尝试</b><p>把图像逐级缩小，在多层上重复检测。</p></div><div><b>很快发现</b><p>不同层之间会出现重复点；同一位置的尺度到底选哪层？旋转后，即使找回点，邻域的方向也变了。</p></div><div><b>于是引入</b><p>SIFT 的尺度极值和主方向，或者 ORB 的金字塔、方向和旋转采样。</p></div></div>
-<h3>3.1 · SIFT：不仅“多层检测”，还要选择特征尺度</h3>
-<div class="math"><div>L(x,y,σ) = G(x,y,σ) * I(x,y)</div><div>DoG(x,y,σ) = L(x,y,kσ) − L(x,y,σ)</div><div>候选：与空间邻居、上下尺度的邻居比较，找 DoG 极值</div></div>
-<p>SIFT 使用尺度空间的高斯差分（DoG）发现候选位置与尺度，再排除低对比度响应及不稳定的边缘响应；为每个保留关键点估计局部梯度主方向，使后续描述子能够按方向归一化。这里要分清：<strong>尺度定位、方向分配、描述子生成</strong>是三个作用不同的环节。</p>
-<div class="figure"><div class="figure-title">同一个局部，在多个尺度下观察</div><div class="figure-body"><svg viewBox="0 0 790 200" class="route-svg" role="img" aria-label="尺度金字塔里同一图案从大到小显示不同像素范围"><g font-family="Inter,Noto Sans SC,sans-serif"><rect x="9" y="9" width="238" height="151" rx="10" fill="#f2e6db"/><rect x="275" y="31" width="202" height="129" rx="10" fill="#e6ece7"/><rect x="505" y="57" width="167" height="103" rx="10" fill="#e6edf0"/>
-<g fill="none" stroke="#a46851" stroke-width="9" stroke-linejoin="round"><path d="M71 116L116 57L157 120L185 92"/><path d="M331 125L369 75L404 127L426 104" stroke-width="7"/><path d="M547 130L573 97L600 133L615 117" stroke-width="6"/></g><g font-size="12" fill="#78685d"><text x="70" y="180">高分辨率 / 较小模糊</text><text x="316" y="180">中尺度</text><text x="524" y="180">低分辨率</text></g><path d="M251 93H268M263 88L269 93L263 99M480 104H500M494 98L500 104L494 110" fill="none" stroke="#9e9488" stroke-width="2"/></g></svg></div><div class="figcap">比例示意。Gaussian Pyramid 的逐层降采样，与 SIFT 中按 σ 构造的尺度空间及 DoG 极值搜索存在联系，但不应把它们当作完全同一计算过程。</div></div>
-<h3>3.2 · ORB 走了另一条工程路线</h3>
-<p>ORB 不采用 SIFT 的 DoG 极值检测，而是在图像金字塔各层利用 FAST 候选，再依据角点响应和分布策略筛选；用局部灰度质心方向为后续旋转 BRIEF 做准备。</p>
-<div class="table-scroll"><table><thead><tr><th>机制</th><th>SIFT</th><th>ORB</th></tr></thead><tbody><tr><td>尺度</td><td>DoG 尺度空间极值与定位</td><td>多级图像金字塔检测</td></tr><tr><td>方向</td><td>局部梯度方向直方图</td><td>局部灰度质心方向</td></tr><tr><td>后续描述</td><td>梯度方向统计，浮点向量</td><td>旋转后的二进制像素对测试</td></tr><tr><td>典型权衡</td><td>描述更丰富，计算较重</td><td>速度和存储友好，但同样存在失效条件</td></tr></tbody></table></div>
-<div class="arrow-note"><span>问题接力</span><p>即便同一个角点在两张图里都被找到，场景中可能还有几百个角点。仅凭位置或“都是角点”，为什么能认出同一个？</p></div></section>
-<section class="chapter anchor" id="descriptor"><div class="chapter-label">04 · LOCAL DESCRIPTION</div><h2>两处都是角点，凭什么判断它们是同一处？</h2>
-<p>两个位置都被 Harris 评为角点，不代表它们来自同一物理位置。我们需要为每个关键点留下一个<strong>可比较的局部指纹</strong>，同时让这个指纹尽量容忍光照、尺度与角度的变化。</p>
-<div class="probe-grid"><div><b>先尝试</b><p>直接保存关键点周围的灰度像素作为向量。</p></div><div><b>很快发现</b><p>曝光和方向改变时，向量差异可能很大；同一结构旋转后原坐标上的像素不再一一对应。</p></div><div><b>于是引入</b><p>用梯度方向分布描述局部形状，或把邻域编码为亮度比较的二进制串。</p></div></div>
-<h3>4.1 · 浮点描述：SIFT 的 128 维是怎么来的？</h3>
-<p>对齐关键点的尺度和主方向后，把局部邻域划为 <code>4×4</code> 个子区，各区累计 <code>8</code> 个梯度方向的加权统计，得到 <code>4×4×8=128</code> 维描述子，并进行归一化等处理。记录的是局部梯度的空间分布，而不是直接记住原像素值。</p>
-<div class="math"><div>descriptor_SIFT ∈ ℝ¹²⁸　（常见 SIFT 结构）</div><div>d_L2(a,b) = √ Σᵢ (aᵢ − bᵢ)²</div></div>
-<h3>4.2 · 二进制描述：BRIEF 为什么只比两个像素？</h3>
-<p>对邻域取若干对采样位置 <code>(pᵢ,qᵢ)</code>，比较亮度关系，将结果记为 0 / 1。多次比较形成短二进制串，计算两段描述子间的 Hamming 距离，只需统计异或结果中不同位的数量。</p>
-<div class="math"><div>τᵢ = [ I(pᵢ) &lt; I(qᵢ) ]，描述子 b = (τ₁,τ₂,…,τₙ)</div><div>d_H(a,b) = popcount(a XOR b)</div></div>
-<div class="figure"><div class="figure-title">两种“局部指纹”，并不是精度档位的区别</div><div class="figure-body"><svg viewBox="0 0 780 212" class="route-svg" role="img" aria-label="SIFT把局部划分多个区域统计梯度方向，BRIEF在固定采样点对上比较灰度"><g font-family="Inter,Noto Sans SC,sans-serif"><rect x="7" y="7" width="373" height="171" rx="11" fill="#f7efe7"/><rect x="400" y="7" width="373" height="171" rx="11" fill="#edf4f0"/>
-<g stroke="#b68b71" fill="none" stroke-width="1.3"><rect x="54" y="32" width="146" height="118"/><path d="M90 32V150M127 32V150M164 32V150M54 61H200M54 91H200M54 120H200"/></g><g stroke="#a05f45" stroke-width="2" stroke-linecap="round"><path d="M67 52L83 45M106 53L116 38M145 56L154 48M179 54L192 44M67 80L82 71M106 83L118 68M145 83L158 73M179 79L192 69M65 112L81 101M104 113L117 96M140 111L157 100M179 111L194 97"/></g><text x="253" y="67" font-size="14" fill="#875a42" font-weight="720">SIFT</text><text x="248" y="90" font-size="12" fill="#76685d">子区梯度直方图</text><text x="248" y="110" font-size="12" fill="#76685d">常见 128 维浮点</text>
-<g stroke="#57897d" stroke-width="1.7" fill="none"><path d="M452 51L537 113M460 119L552 63M473 70L559 137M449 96L523 40"/></g><g fill="#b47759" stroke="#fff" stroke-width="1"><circle cx="452" cy="51" r="5"/><circle cx="460" cy="119" r="5"/><circle cx="473" cy="70" r="5"/><circle cx="449" cy="96" r="5"/></g><g fill="#558e81" stroke="#fff" stroke-width="1"><circle cx="537" cy="113" r="5"/><circle cx="552" cy="63" r="5"/><circle cx="559" cy="137" r="5"/><circle cx="523" cy="40" r="5"/></g><text x="595" y="67" font-size="14" fill="#49766a" font-weight="720">BRIEF</text><text x="588" y="90" font-size="12" fill="#68796e">像素对比较</text><text x="588" y="110" font-size="12" fill="#68796e">形成 0 / 1 串</text>
-<text x="190" y="201" text-anchor="middle" font-size="12" fill="#837166">局部结构：方向分布</text><text x="585" y="201" text-anchor="middle" font-size="12" fill="#837166">局部结构：相对亮度顺序</text></g></svg></div></div>
-<h3>4.3 · ORB、SURF 放在这里如何理解？</h3>
-<p>原始 BRIEF 对旋转敏感，因为采样点对坐标固定。ORB 通过关键点方向估计，<strong>旋转采样点对</strong>来构造 rBRIEF，并与多层 FAST 检测组合。SURF 则是另一套浮点特征路线：用基于 Hessian 的响应寻找兴趣点，以积分图和盒式滤波近似提高效率，描述阶段使用 Haar 小波响应统计。它与 SIFT 相近但并非同一种实现。</p>
-<div class="warn"><b>局限是可预期的：</b>无纹理的纯色表面没有足够局部信息；重复栅格会产生很多“指纹相似”的位置；反光、模糊、遮挡和大视角形变可以让描述子失效。描述子不可能单凭“距离近”证明匹配正确。</div>
-<div class="arrow-note"><span>问题接力</span><p>现在每个点终于有了“指纹”，只要找描述子最近的那个，不就能定位了吗？重复图案会让这个想法立刻遇到麻烦。</p></div></section>
-<section class="chapter anchor" id="matching"><div class="chapter-label">05 · CORRESPONDENCE</div><h2>描述子最像，真的就是正确匹配吗？</h2>
-<p>先用最朴素的最近邻：对参考图每个描述子，在场景图里找距离最小的一条。对 SIFT 类浮点描述一般用 L2；对 ORB 类二进制描述一般用 Hamming。</p>
-<div class="probe-grid"><div><b>先尝试</b><p>保留所有最近邻匹配，并根据距离从小到大排序。</p></div><div><b>很快发现</b><p>重复文字 / 网格 / 螺丝孔会给出多个相近候选，最近的一个只是“相对最像”，并不一定是正确的。</p></div><div><b>于是引入</b><p>Lowe Ratio Test 用次近邻衡量歧义；Cross-check 用反向最邻近检查一致性。</p></div></div>
-<h3>5.1 · Ratio Test 为什么要同时看第二名？</h3>
-<div class="math"><div>最近邻距离 d₁，次近邻距离 d₂，且 d₁ ≤ d₂</div><div>通过条件：d₁ / d₂ &lt; ρ　（d₂ &gt; 0；ρ 常以 0.7～0.8 作为实验起点）</div></div>
-<div class="viz" id="ratio-viz"><div class="viz-head"><span class="viz-name">交互实验 · 第一名明明很像，为什么仍可能拒绝？</span><span class="viz-help">计算比值，不做真实特征提取</span></div><div class="controls"><label for="first-distance">第一名距离</label><input type="range" id="first-distance" min="5" max="95" value="30" step="1"/><b id="first-val" class="small">30</b><label for="second-distance">第二名距离</label><input type="range" id="second-distance" min="5" max="100" value="65" step="1"/><b id="second-val" class="small">65</b></div><div class="controls"><label for="ratio-limit">Ratio 阈值 ρ</label><input type="range" id="ratio-limit" min="0.5" max="0.95" step="0.05" value="0.75"/><b id="ratio-limit-val" class="small">0.75</b></div>
-<div class="score-rail"><span class="small">第一 / 第二</span><div class="bar"><div class="fill" id="ratio-fill" style="width:46%"></div></div><b class="small" id="ratio-value">0.46</b></div><div class="result" id="ratio-result" aria-live="polite"></div></div>
-<p><b>Cross-check 与 Ratio 不同：</b>前者要求 A 的最近邻是 B，同时 B 的最近邻也是 A；后者看最佳与次佳候选的相对优势。两者都只是在<strong>描述子空间</strong>里减少歧义，不能推出多个匹配一定属于同一个物体。</p>
-<div class="arrow-note"><span>问题接力</span><p>筛掉歧义以后，剩下的点还可能落在多个相似的包装盒上。能不能增加一个要求：它们必须符合同一个二维几何变化？</p></div></section>
-<section class="chapter anchor" id="geometry"><div class="chapter-label">06 · GEOMETRIC VERIFICATION</div><h2>怎样让一组局部对应接受共同的几何检验？</h2>
-<p>假设参考物体是平面包装盒正面，我们可以要求所有正确匹配在场景里都由<strong>同一个变换</strong>解释。错配即使局部外观很像，也通常很难同时满足几何关系。</p>
-<div class="probe-grid"><div><b>先尝试</b><p>直接对所有匹配最小二乘拟合一个变换。</p></div><div><b>很快发现</b><p>错误对应会严重拉偏模型；模型自由度过高时，极少数点可能产生看似完美却退化的拟合。</p></div><div><b>于是引入</b><p>用 RANSAC 在候选中反复抽样、拟合、计数内点，并对最终结果做残差与空间分布检查。</p></div></div>
-<h3>6.1 · 先选合理的变换，不要默认 Homography 最好</h3>
-<div class="mode-grid"><div class="tile"><div class="id">2 点起 · SIMILARITY</div><strong>平移 + 旋转 + 等比缩放</strong><p>自由度少，适合相似变换近似成立的目标。</p></div><div class="tile"><div class="id">3 点起 · AFFINE</div><strong>允许剪切 / 非等比缩放</strong><p>能解释一般仿射形变，但不能表达完整透视。</p></div><div class="tile"><div class="id">4 点起 · HOMOGRAPHY</div><strong>平面投影的 3×3 单应性</strong><p>适用于近似平面对应或纯旋转相机等特定条件；不等于真实 3D Pose。</p></div></div>
-<div class="math"><div>Homography：s [x′, y′, 1]ᵀ = H [x, y, 1]ᵀ</div><div>重投影残差：eᵢ = ‖p′ᵢ − π(H·pᵢ)‖₂</div><div>RANSAC：采样最小点集 → 估计候选模型 → 统计 eᵢ &lt; τ 的内点 → 最优模型重估与检查</div></div>
-<p>估计 Homography 至少需要四组非退化对应，而且点不能集中或近乎共线；实际应有更多且分布合理的对应点。显著非平面、形变目标无法被单个 H 普遍正确解释。</p>
-<h3>6.2 · 亲自观察：匹配数量与“正确对应”究竟差在哪里？</h3>
-<div class="viz" id="ransac-viz"><div class="viz-head"><span class="viz-name">交互实验 · 加入错误对应，让几何模型自己找内点</span><span class="viz-help">真实执行 2 点相似变换 RANSAC；固定随机种子</span></div>
-<div class="controls"><label for="outlier-count">人工加入错配</label><input type="range" id="outlier-count" min="0" max="14" step="1" value="6"/><b id="outlier-val" class="small">6 / 20</b><label for="reproj-threshold">重投影阈值</label><input type="range" id="reproj-threshold" min="1" max="14" step="0.5" value="4"/><b id="reproj-val" class="small">4.0 px</b></div>
-<canvas id="match-canvas" width="800" height="335" aria-label="左右两张图的特征点及RANSAC内外点连线"></canvas><div class="key-metrics"><div><small>原始候选对</small><strong id="match-total">20</strong></div><div><small>RANSAC 内点</small><strong id="match-inliers">—</strong></div><div><small>内点误差中位数</small><strong id="match-error">—</strong></div></div>
-<div class="result" id="ransac-result" aria-live="polite"></div><p class="tiny-help">为了让机制清楚，这个实验<strong>使用二维相似变换（最小 2 对）</strong>而非 Homography；采样、估计、打分和内点重估在浏览器里真实执行。生成数据时使用固定真实变换与人工错配，估计过程并不知道这个真实变换。绿色为当前估计的内点，灰色为外点。Homography 的最小样本、退化条件和重投影模型不同。</p></div>
-<h3>6.3 · 内点多，就说明目标确认成功了吗？</h3>
-<p>仍然不能。重复印刷图案可能在错误位置产生局部一致变换；内点即使很多，集中在一个极小区域时也可能支撑不了整个物体的四角映射。除了内点比例，还应该检查<strong>残差分布、覆盖面积、关键点是否近共线、投影四边形是否合理</strong>。</p>
-<div class="warn"><b>几何一致 ≠ 物体真值：</b>RANSAC 能支持“这一批对应符合某个模型”，却不能自动证明物体类别、实例身份或三维可抓取位姿。背景平面、重复图案和模型错误依然会造成假阳性。</div>
-<div class="arrow-note"><span>问题接力</span><p>到这里，整条路线终于能在两幅图之间建立经过验证的对应。最后该怎样测试，才能知道是检测失败、描述失败，还是几何模型不适合？</p></div></section>
-<section class="chapter anchor" id="selection"><div class="chapter-label">07 · VALIDATION</div><h2>怎样验证整条路线，而不是只看到漂亮的匹配线？</h2>
-<p>回头看，这条路线并不是“先学 Harris，再用 FAST 替换，最后 SIFT/ORB 一步到位”。每种机制回答的问题不同：<strong>点能不能再次出现、出现后能不能认出来、认出来以后能不能在空间上自洽。</strong></p>
-<div class="table-scroll"><table><thead><tr><th>遇到的失败</th><th>核心证据 / 技术</th><th>应该检查什么</th></tr></thead><tbody>
-<tr><td>整块窗口找错位置</td><td>SSD / NCC、局部可区分性</td><td>纯色 / 直边是否存在位移歧义</td></tr>
-<tr><td>二维位置不稳定</td><td>Harris、Shi–Tomasi、FAST</td><td>角点数量、分布、重复检测率</td></tr>
-<tr><td>旋转 / 缩放后丢失</td><td>DoG 尺度极值、金字塔、方向</td><td>不同变换下的重复检测率</td></tr>
-<tr><td>同一个点“认不出来”</td><td>SIFT/SURF、BRIEF/ORB</td><td>描述子距离的正负样本分布</td></tr>
-<tr><td>错误对应很多</td><td>KNN、Ratio、Cross-check</td><td>误匹配率，不只看匹配个数</td></tr>
-<tr><td>局部一致但全局错位</td><td>Similarity / Affine / H + RANSAC</td><td>残差中位数、覆盖、退化、四角误差</td></tr>
+/* 06 local features & correspondences: compact mechanism-first learning */
+.principle{padding-left:15px;border-left:3px solid #c4a18b;margin:19px 0;color:#725d50;font-size:14px;line-height:1.9}
+.principle strong{color:#83533e}.sig{font-size:12px;color:#916d57;font-weight:750;letter-spacing:.04em;margin:23px 0 9px}
+.mini-timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:21px 0 9px}.mini-timeline .step{border:1px solid #eaded1;background:#fffdfa;border-radius:8px;padding:12px 9px;min-width:0}.mini-timeline .step b{font-size:12px;color:#81523e}.mini-timeline .step span{display:block;font-size:11px;color:#938172;line-height:1.6;margin-top:5px}.mini-timeline .step .smallidx{font:700 10px Georgia,serif;color:#b59076;display:block;margin-bottom:3px}
+.svgtxt{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif}
+.tone{color:#527768}.limit-note{font-size:13px;color:#796c62;border-top:1px solid #ecdfd1;padding-top:15px;margin-top:17px}.method-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:20px 0}.method-pair>div{border:1px solid var(--line);border-radius:10px;background:#fffefa;padding:14px 16px;border-top:3px solid #ac7c60}.method-pair>div:nth-child(2){border-top-color:#608b7d}.method-pair b{display:block;font-size:13px;color:#695040;margin-bottom:7px}.method-pair p{font-size:13px;line-height:1.8;margin:0}.chipword{font-size:11px;color:#987964;letter-spacing:.03em}.formula-simple{font:20px/1.55 'Cambria Math','STIX Two Math',Georgia,serif;color:#473b32;white-space:nowrap;display:block;overflow:auto}.formula-simple sub,.formula-simple sup{font-size:.68em}.formula-inline{font-family:'Cambria Math',Georgia,serif;color:#6e4d3e}.micro-example{margin:10px 0;padding:12px 14px;background:#f7f2ed;border-radius:8px;color:#67584b;font-size:13px;line-height:1.85}.micro-example strong{color:#86533b}.little-link{font-size:12px;color:#946d56;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:670px){.mini-timeline{grid-template-columns:repeat(2,minmax(0,1fr))}.method-pair{grid-template-columns:1fr}.formula-simple{font-size:17px}}
+</style></head><body>
+<div class="progress" id="progress" aria-hidden="true"></div><div class="shade" id="shade"></div>
+<div class="mobile"><strong>沿途手记 · 06</strong><button type="button" id="menu" aria-expanded="false" aria-controls="sidebar">☰ 目录</button></div>
+<div class="site"><aside class="sidebar" id="sidebar" aria-label="本文目录">
+  <div><a class="brand" href="https://fishxddd.github.io/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a></div>
+  <a class="return" href="index.html">← 返回 · 图像特征与结构提取</a>
+  <div><div class="side-label">当前位置</div><div class="current">06 · 局部特征与对应</div></div>
+  <div><div class="side-label">本篇目录</div><nav class="nav" id="toc">
+  <a href="#opening" class="active"><em>·</em>从局部重新认出目标</a>
+  <a href="#scope"><em>00</em>问题与边界</a>
+  <a href="#patch"><em>01</em>从像素模板开始</a>
+  <a href="#corner"><em>02</em>找到稳定的关键点</a>
+  <a href="#scale"><em>03</em>尺度与方向变化</a>
+  <a href="#descriptor"><em>04</em>局部描述子</a>
+  <a href="#matching"><em>05</em>描述子匹配</a>
+  <a href="#geometry"><em>06</em>几何一致性验证</a>
+  <a href="#summary"><em>07</em>选型与边界</a>
+  </nav></div>
+  <div class="sidebar-foot">广度优先 · 保留关键数学表达<br>知道机制、用途与局限即可</div>
+</aside>
+<main><article class="article">
+  <nav class="crumb"><a href="https://fishxddd.github.io/">沿途手记</a><span>/</span><a href="https://fishxddd.github.io/research/stage-01/q03-target-in-2d/">二维目标定位</a><span>/</span><a href="index.html">图像特征与结构提取</a><span>/</span><b>局部特征与对应</b></nav>
+<header class="hero" id="opening">
+<div class="eyebrow">CLASSICAL VISION · 06 / 06</div><h1>局部特征与对应</h1><p class="subtitle">Local Features &amp; Correspondence · 从两张图像里认出同一处</p>
+<p>前面研究了颜色、区域、边缘、几何和骨架。这些信息可以描述目标当前长什么样。不过，还有一种场景：<strong>我手上已经有目标的一张照片，现在想在另一张图像中找到它。</strong></p>
+<p>假设是一只带标签的盒子。它可能换了位置、大小或拍摄角度，甚至只露出一部分。能不能不要求先分出完整物体，而是找到两张图像里<strong>确实对应的几个局部位置</strong>？</p>
+<p>这一页从最直接的局部像素比较开始，了解关键点、描述子、匹配和几何验证分别在干什么。保留核心数学表达来帮助记忆，不深入完整推导与代码复现。</p>
+<div class="hero-tags"><span>输入：参考图 + 当前图</span><span>输出：局部对应 / 平面定位</span><span>重点：核心机制与公式</span></div>
+</header>
+<section class="chapter" id="scope"><div class="kicker">00 · PROBLEM &amp; SCOPE</div><h2>先把任务定义清楚</h2>
+<p><strong>局部特征与对应：</strong>给定两张图像，寻找来自同一物理位置或结构的局部图像位置，并判断这些对应关系是否可信。</p>
+<p>它可以用于参考目标定位、图像配准、视觉里程计等任务；本篇只讨论<strong>二维图像中的局部特征与匹配机制</strong>。至于三维重建和相机位姿估计，留给对应章节。</p>
+<figure class="figure"><div class="figure-header">不一定识别完整物体：几个可靠局部也可能建立对应</div><div class="figure-body">
+<svg class="svgtxt" viewBox="0 0 760 252" role="img" aria-label="左侧参考盒子图像，右侧场景盒子旋转且被部分遮挡，相同图案角点用线连接">
+<rect x="10" y="9" width="330" height="203" rx="11" fill="#f6f0e9"/><rect x="420" y="9" width="330" height="203" rx="11" fill="#f1f5ef"/>
+<rect x="80" y="36" width="178" height="143" rx="6" fill="#e8c5a4" stroke="#a77e61" stroke-width="2"/>
+<rect x="100" y="56" width="138" height="51" rx="5" fill="#f8f1de"/><path d="M111 90L126 70L141 89L156 65L171 83" fill="none" stroke="#b96d52" stroke-width="5"/>
+<rect x="105" y="127" width="120" height="31" fill="#aec7bd"/><path d="M116 139H210M116 148H182" stroke="#638b7b" stroke-width="3"/>
+<g transform="translate(580 110) rotate(-14)"><rect x="-91" y="-68" width="182" height="139" rx="6" fill="#e8c5a4" stroke="#a77e61" stroke-width="2"/><rect x="-71" y="-47" width="140" height="48" rx="5" fill="#f8f1de"/><path d="M-60 -14L-45 -33L-30 -14L-15 -38L0 -20" stroke="#b96d52" stroke-width="5" fill="none"/><rect x="-67" y="25" width="120" height="28" fill="#aec7bd"/><path d="M-57 36H42M-57 45H10" stroke="#638b7b" stroke-width="3"/></g>
+<path d="M627 17L752 17L752 116L680 116Z" fill="#e0e5df" stroke="#c1ccc3"/>
+<g stroke="#3f8374" stroke-width="1.9" stroke-dasharray="6 5" fill="none"><path d="M110 89L520 102"/><path d="M170 81L578 78"/><path d="M118 140L523 153"/></g>
+<g fill="#b86d4e" stroke="#fff" stroke-width="2"><circle cx="110" cy="89" r="5"/><circle cx="170" cy="81" r="5"/><circle cx="118" cy="140" r="5"/><circle cx="520" cy="102" r="5"/><circle cx="578" cy="78" r="5"/><circle cx="523" cy="153" r="5"/></g>
+<g font-size="12" fill="#796b5e" text-anchor="middle"><text x="175" y="239">参考图：特征位置</text><text x="584" y="239">当前图：同一局部发生变化</text></g>
+</svg></div><figcaption>机制示意：寻找的是可对应的局部，不需要先得到完整的目标 Mask；虚线只是演示匹配关系，不表示实际算法结果。</figcaption></figure>
+<p>整条技术链可以先记成四件事：<strong>在哪里找点 → 用什么描述它 → 怎样找对应 → 对应是否符合几何关系。</strong>它们是不同子问题，不应当把 Harris、SIFT、ORB 和 RANSAC 当成同一种算法来比较。</p>
+<div class="mini-timeline"><div class="step"><span class="smallidx">01</span><b>检测关键点</b><span>找到值得记住的局部</span></div><div class="step"><span class="smallidx">02</span><b>生成描述子</b><span>把局部变成可比较的信息</span></div><div class="step"><span class="smallidx">03</span><b>建立候选匹配</b><span>在另一张图里寻找相似局部</span></div><div class="step"><span class="smallidx">04</span><b>几何验证</b><span>排除互相矛盾的对应</span></div></div>
+</section><section class="chapter" id="patch"><div class="kicker">01 · DIRECT PATCH MATCHING</div><h2>直接拿一块像素去搜索，为什么还需要特征？</h2>
+<p>最容易想到的方法，是从参考图里截取一块小图像，然后在当前图里逐位置比较。哪一处的像素最相似，就认为它可能对应参考区域。这就是<strong>模板匹配</strong>的基本想法。</p>
+<figure class="figure"><div class="figure-header">同一块图案：平移还好，旋转和缩放会让逐像素比较失去一致性</div><div class="figure-body"><svg class="svgtxt" viewBox="0 0 760 226" role="img" aria-label="参考图形与平移、旋转两个场景对比，像素窗口固定时旋转造成差异">
+<rect x="8" y="9" width="236" height="183" rx="10" fill="#f8f2eb"/><rect x="262" y="9" width="236" height="183" rx="10" fill="#f8f2eb"/><rect x="516" y="9" width="236" height="183" rx="10" fill="#f8f2eb"/>
+<g fill="#fffefb" stroke="#cbb8a5"><rect x="77" y="50" width="94" height="94" rx="4"/><rect x="329" y="50" width="94" height="94" rx="4"/><rect x="583" y="50" width="94" height="94" rx="4"/></g>
+<path d="M97 116L114 73L140 116Z" fill="#b77859"/><circle cx="145" cy="78" r="13" fill="#759e8a"/>
+<path d="M349 116L366 73L392 116Z" fill="#b77859"/><circle cx="397" cy="78" r="13" fill="#759e8a"/>
+<g transform="translate(630 97) rotate(32)"><path d="M-27 19L-10 -24L16 19Z" fill="#b77859"/><circle cx="21" cy="-19" r="13" fill="#759e8a"/></g>
+<g font-size="12" text-anchor="middle" fill="#75695d"><text x="126" y="214">参考模板</text><text x="380" y="214">平移：像素排列近似相同</text><text x="634" y="214">旋转：同一图案像素位置变了</text></g>
+</svg></div><figcaption>示意：模板匹配依赖像素排列，实际也受光照、形变和遮挡影响；NCC 等归一化方法只能缓解部分亮度变化。</figcaption></figure>
+<div class="formula-note"><div class="formula-head">关键公式 · SSD（平方差和）<span>像素到底怎样比较？</span></div>
+<div class="formula-expr"><span class="formula-simple">SSD(u,v) = Σ<sub>(x,y)∈W</sub> [ T(x,y) − I(x+u,y+v) ]²</span></div>
+<p><strong>T</strong> 是参考小块，<strong>I</strong> 是当前图像，<strong>(u,v)</strong> 是搜索位置，<strong>W</strong> 是小窗口内的像素集合。结果越小，说明该位置的像素越接近模板。</p>
+<div class="formula-example"><span class="ex-mark">例子</span><p>同一图案只是水平移动，找到正确偏移量后 SSD 可以很小；一旦旋转，原来相邻的像素对应不上，即使还是同一物体，SSD 也会变大。</p></div></div>
+<p>所以我们需要两件新能力：先找到<strong>有辨识度、容易再次出现的位置</strong>，再用一种比原始像素更稳健的方式描述它们。</p>
+</section><section class="chapter" id="corner"><div class="kicker">02 · KEYPOINT DETECTION</div><h2>图像里哪些位置值得被记住？</h2>
+<p>考虑一个小窗口。如果里面几乎是纯色，不管挪到哪里都差不多；如果只有一条直边，沿着边的方向移动仍然相似。<strong>角点</strong>更有价值：在水平和竖直方向上稍微挪动，窗口里的内容通常都会明显变化。</p>
+<figure class="figure"><div class="figure-header">平坦 / 边缘 / 角点：关键不在亮不亮，而在不同方向上是否容易区分位置</div><div class="figure-body"><svg class="svgtxt" viewBox="0 0 760 240" role="img" aria-label="平坦区域、直线边缘与角点三类窗口的灰度变化机制示意">
+<g><rect x="10" y="9" width="233" height="193" rx="10" fill="#f6f1eb"/><rect x="263" y="9" width="233" height="193" rx="10" fill="#f6f1eb"/><rect x="516" y="9" width="234" height="193" rx="10" fill="#f6f1eb"/>
+<rect x="73" y="35" width="106" height="106" rx="4" fill="#cfdbd0"/><rect x="327" y="35" width="106" height="106" rx="4" fill="#f6e9db"/><rect x="380" y="35" width="53" height="106" fill="#9bb8ab"/><rect x="578" y="35" width="106" height="106" rx="4" fill="#f6e9db"/><path d="M631 35H684V88H631Z" fill="#9bb8ab"/>
+<g fill="none" stroke="#b16f53" stroke-width="2.3"><path d="M103 89h46m-23 -23v46"/><path d="M354 89h45m-22 -23v46"/><path d="M608 89h45m-22 -23v46"/></g>
+<g fill="#ae6a50"><circle cx="126" cy="89" r="4"/><circle cx="377" cy="89" r="4"/><circle cx="631" cy="89" r="4"/></g>
+<g font-size="12" text-anchor="middle" fill="#755f50"><text x="126" y="175">平坦：各方向变化都小</text><text x="379" y="175">直边：一个方向不明显</text><text x="634" y="175">角点：两个方向都明显</text></g></g>
+</svg></div><figcaption>窗口中的中心点向不同方向小幅移动：角点在两个独立方向上通常更容易被定位。图中十字是移动示意，不是检测器的输出。</figcaption></figure>
+<p><strong>Harris / Shi–Tomasi</strong> 把这种直觉写成数学：观察窗口内的水平、垂直灰度变化，分析它在不同方向上究竟有多敏感。</p>
+<div class="formula-note"><div class="formula-head">关键公式 · 结构张量 <span>为什么角点需要两个方向都有变化？</span></div>
+<div class="formula-expr"><math display="block" aria-label="M 等于窗口内权重乘以图像梯度外积矩阵的求和"><mi>M</mi><mo>=</mo><munder><mo>∑</mo><mrow><mi>p</mi><mo>∈</mo><mi>W</mi></mrow></munder><mi>w</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>·</mo><mo>[</mo><mtable columnspacing="1em" rowspacing=".45em"><mtr><mtd><msubsup><mi>I</mi><mi>x</mi><mn>2</mn></msubsup></mtd><mtd><msub><mi>I</mi><mi>x</mi></msub><msub><mi>I</mi><mi>y</mi></msub></mtd></mtr><mtr><mtd><msub><mi>I</mi><mi>x</mi></msub><msub><mi>I</mi><mi>y</mi></msub></mtd><mtd><msubsup><mi>I</mi><mi>y</mi><mn>2</mn></msubsup></mtd></mtr></mtable><mo>]</mo></math></div>
+<p>这里的方括号表示一个 <strong>2×2 矩阵</strong>。<strong>I<sub>x</sub></strong>、<strong>I<sub>y</sub></strong> 是图像在水平、竖直方向的灰度变化，<strong>w(p)</strong> 是窗口权重。矩阵的两个特征值 <strong>λ₁、λ₂</strong> 表示两个主方向上的变化强弱。</p>
+<div class="micro-example">两者都小 → 平坦；一大一小 → 更像边缘；两者都大 → 更像角点。</div>
+<div class="formula-expr"><span class="formula-simple">Harris: R = det(M) − k · tr(M)²</span><span class="formula-simple">Shi–Tomasi: s = min(λ₁, λ₂)</span></div>
+<p>Harris 用矩阵行列式与迹得到角点响应；Shi–Tomasi 直接看<strong>最弱方向</strong>是否也变化明显。这里记住判断依据即可，不需要推导特征值的求解过程。</p></div>
+<p>另一种常见选择是 <strong>FAST</strong>：不构造结构张量，而是看候选点周围圆环上的一圈像素，是否存在连续一段明显比中心更亮或更暗。它的检测计算更简单、速度通常更快；不过它主要解决的是<strong>找点</strong>，不是描述点。</p>
+</section><section class="chapter" id="scale"><div class="kicker">03 · SCALE &amp; ORIENTATION</div><h2>同一个局部变大、旋转以后，怎样再次找到？</h2>
+<p>只在原图上找角点还不够。比如标签在远处只有几十像素，靠近后变成上百像素：固定大小的窗口看到的已经不是相同范围。旋转之后，局部纹理的方向也变了。</p>
+<figure class="figure"><div class="figure-header">两个需要处理的变化：观察尺度与局部方向</div><div class="figure-body"><svg class="svgtxt" viewBox="0 0 760 234" role="img" aria-label="多尺度图像金字塔和旋转关键点的方向归一化示意">
+<rect x="8" y="9" width="359" height="188" rx="10" fill="#f8f1e9"/><rect x="391" y="9" width="361" height="188" rx="10" fill="#f0f5f0"/>
+<g fill="#f9fcf8" stroke="#c8b49f" stroke-width="1.6"><rect x="41" y="27" width="170" height="124"/><rect x="227" y="49" width="111" height="81"/><rect x="278" y="135" width="57" height="41"/></g>
+<g stroke="#b37053" fill="none" stroke-width="4"><path d="M69 116L95 62L139 115"/><path d="M240 103L261 70L285 106" stroke-width="3"/><path d="M287 160L296 142L307 159" stroke-width="2"/></g>
+<g transform="translate(485 90)"><rect x="-44" y="-44" width="88" height="88" rx="4" fill="#ecceb0" stroke="#ac8367"/><path d="M-19 22L3 -21L23 22" fill="none" stroke="#ad654d" stroke-width="6"/><path d="M0 0L39 -26" stroke="#2d7d6b" stroke-width="3"/><path d="M39 -26L27 -24L34 -14" fill="none" stroke="#2d7d6b" stroke-width="2"/></g>
+<g transform="translate(655 90) rotate(35)"><rect x="-44" y="-44" width="88" height="88" rx="4" fill="#ecceb0" stroke="#ac8367"/><path d="M-19 22L3 -21L23 22" fill="none" stroke="#ad654d" stroke-width="6"/><path d="M0 0L39 -26" stroke="#2d7d6b" stroke-width="3"/><path d="M39 -26L27 -24L34 -14" fill="none" stroke="#2d7d6b" stroke-width="2"/></g>
+<g fill="#73645a" font-size="12" text-anchor="middle"><text x="181" y="219">多尺度：同一结构在不同大小下观察</text><text x="575" y="219">方向：跟着局部主方向比较</text></g>
+</svg></div><figcaption>概念示意：先寻找匹配的观察尺度，再尽量按关键点的方向描述局部；并非表示所有旋转、缩放和透视变化都能被消除。</figcaption></figure>
+<div class="method-pair"><div><b>SIFT · 尺度空间 + 主方向</b><p>把图像做不同程度的高斯模糊，在位置与尺度上寻找稳定的 DoG 极值，再根据局部梯度分布估计主方向。后续描述子以选定尺度、方向为参考。</p></div><div><b>ORB · 图像金字塔 + FAST + 方向</b><p>先在多层缩放图像中用 FAST 找候选点，再估计局部灰度质心方向，生成可随方向调整的二进制描述子。通常更注重速度和资源开销。</p></div></div>
+<div class="formula-note"><div class="formula-head">关键公式 · SIFT 的 DoG <span>怎样在不同尺度中找显著结构？</span></div>
+<div class="formula-expr"><span class="formula-simple">D(x,y,σ) = L(x,y,kσ) − L(x,y,σ)</span></div>
+<p><strong>L(x,y,σ)</strong> 是图像经尺度为 <strong>σ</strong> 的高斯平滑后的值；<strong>kσ</strong> 是更大的模糊尺度。相减可以突出随尺度变化的局部结构，SIFT 会在<strong>空间和尺度邻域</strong>内找极值来确定候选位置及特征尺度。</p>
+<div class="formula-example"><span class="ex-mark">记住</span><p><strong>金字塔不等于尺度不变性。</strong>多尺度观察只是基础，还需要在尺度之间选择对应的稳定特征。ORB 的多层 FAST 与 SIFT 的 DoG 极值也不是同一个检测机制。</p></div></div>
+</section><section class="chapter" id="descriptor"><div class="kicker">04 · LOCAL DESCRIPTORS</div><h2>两张图里都找到角点，凭什么判断是同一处？</h2>
+<p>关键点检测解决了“在哪里看”，但两张图里可能各有几百个角点。只知道坐标没有办法判断它们是否对应，所以需要给每个关键点生成一份<strong>能够比较的局部描述子</strong>。</p>
+<figure class="figure"><div class="figure-header">局部“指纹”的两种典型构造方法</div><div class="figure-body"><svg class="svgtxt" viewBox="0 0 760 228" role="img" aria-label="左边 SIFT 以四乘四子区梯度方向分布构造128维向量，右边 BRIEF 以像素对灰度比较构造二进制串">
+<rect x="8" y="9" width="358" height="190" rx="10" fill="#f8f1e9"/><rect x="394" y="9" width="357" height="190" rx="10" fill="#f0f5ef"/>
+<g transform="translate(42 36)"><rect width="142" height="142" rx="4" fill="#fff" stroke="#cbbba8"/>
+<g stroke="#cdbca9" stroke-width="1"><path d="M35.5 0V142M71 0V142M106.5 0V142M0 35.5H142M0 71H142M0 106.5H142"/></g>
+<g stroke="#b77656" stroke-width="2.6" stroke-linecap="round"><path d="M17 23L31 14M51 22L64 14M89 25L99 14M122 24L130 13M18 56L32 51M53 60L63 49M85 56L95 45M122 55L130 45M19 99L32 90M55 94L61 82M88 94L99 84M119 92L128 82M17 130L31 121M54 132L65 124M85 130L97 123M122 130L131 120"/></g></g>
+<text x="208" y="73" font-size="14" fill="#795e4e">4×4 个区域</text><text x="208" y="96" font-size="14" fill="#795e4e">各统计 8 个方向</text><text x="208" y="124" font-size="16" fill="#966448" font-weight="bold">→ 128 维</text>
+<g transform="translate(421 30)"><rect width="157" height="148" fill="#fff" stroke="#c4d3c6" rx="5"/><g fill="#b98160"><circle cx="34" cy="39" r="5"/><circle cx="106" cy="34" r="5"/><circle cx="56" cy="103" r="5"/><circle cx="121" cy="114" r="5"/></g><g stroke="#568776" stroke-width="2" stroke-dasharray="5 4"><path d="M34 39L106 34M56 103L121 114M42 106L99 54"/></g><g font-size="10" fill="#766657"><text x="15" y="137">比较两点灰度大小</text></g></g>
+<text x="598" y="74" fill="#608b7c" font-size="15" font-weight="bold">0 1 1 0 1 0 …</text><text x="598" y="100" fill="#6b7c70" font-size="12">多次比较组成二进制串</text><text x="598" y="132" fill="#6b7c70" font-size="12">Hamming：不同位数量</text>
+<g font-size="12" text-anchor="middle" fill="#75685b"><text x="183" y="217">SIFT：局部梯度分布</text><text x="574" y="217">BRIEF / ORB：亮度关系</text></g>
+</svg></div><figcaption>示意图不代表真实的梯度方向统计结果。两者不是“高精度 vs 低精度”的档位，而是不同的描述和比较方式。</figcaption></figure>
+<div class="method-pair"><div><b>SIFT 描述子：浮点向量</b><p>把按尺度、方向对齐的邻域分成 <strong>4×4</strong> 个子区，每区统计 <strong>8</strong> 个梯度方向，得到 <strong>4×4×8=128 维</strong>向量，再作归一化等处理。描述子之间常用 <span class="formula-inline">d₂(a,b)=√Σᵢ(aᵢ−bᵢ)²</span>（L2 距离）。</p></div><div><b>BRIEF / ORB：二进制描述</b><p>在局部区域选若干像素对，比较亮度并记录 0 或 1；ORB 会使用带方向的 BRIEF 变体，使比较模式随关键点方向调整。描述子常用 Hamming 距离。</p></div></div>
+<div class="formula-note"><div class="formula-head">关键公式 · 二进制描述与 Hamming 距离 <span>如何把局部比较变成数字？</span></div>
+<div class="formula-expr"><span class="formula-simple">b<sub>i</sub> = 1[ I(p<sub>i</sub>) &lt; I(q<sub>i</sub>) ]</span><span class="formula-simple">d<sub>H</sub>(a,b) = popcount(a XOR b)</span></div>
+<p>第一个式子表示：比较一对像素 <strong>p<sub>i</sub>、q<sub>i</sub></strong> 的亮度，条件成立记 1，否则记 0。第二个式子统计两串二进制描述子有多少位不同。</p>
+<div class="formula-example"><span class="ex-mark">例子</span><p><span class="formula-inline">101100</span> 与 <span class="formula-inline">100110</span> 有两位不同，因此 Hamming 距离为 <strong>2</strong>。不同的位越少，通常表示局部描述越相似。</p></div></div>
+<p>描述子只是局部外观的近似表示：重复纹理可能生成很像的描述子，光照或视角剧变也可能让同一处不再相似。</p>
+</section><section class="chapter" id="matching"><div class="kicker">05 · FEATURE MATCHING</div><h2>找到最相似的描述子，就一定匹配对了吗？</h2>
+<p>有了描述子，就能对参考图的一个关键点，在当前图中寻找描述距离最小的候选。但<strong>最像不等于真的对应</strong>，尤其是图像里有相似文字、栅格或重复螺丝孔时。</p>
+<figure class="figure"><div class="figure-header">两个候选都很像时，最近邻仍然可能不可靠</div><div class="figure-body"><svg class="svgtxt" viewBox="0 0 760 212" role="img" aria-label="左侧参考特征对应右侧两个相似候选，一个距离16另一个40表示较明确，另一个距离18和20表示歧义">
+<rect x="9" y="8" width="354" height="172" rx="9" fill="#f7f0e9"/><rect x="392" y="8" width="359" height="172" rx="9" fill="#eef5f0"/>
+<g><circle cx="54" cy="94" r="14" fill="#be815e"/><circle cx="232" cy="50" r="13" fill="#82a99b"/><circle cx="232" cy="141" r="13" fill="#b0b7ae"/><circle cx="444" cy="94" r="14" fill="#be815e"/><circle cx="624" cy="50" r="13" fill="#82a99b"/><circle cx="624" cy="141" r="13" fill="#b0b7ae"/></g>
+<g stroke-width="2.5" fill="none"><path d="M69 90L216 53" stroke="#468775"/><path d="M68 98L216 138" stroke="#aaa294" stroke-dasharray="6 5"/><path d="M458 90L609 53" stroke="#468775"/><path d="M458 99L609 138" stroke="#aaa294" stroke-dasharray="6 5"/></g>
+<g fill="#6c5d50" font-size="13"><text x="132" y="53">d₁=16</text><text x="134" y="145">d₂=40</text><text x="521" y="53">d₁=18</text><text x="520" y="145">d₂=20</text></g>
+<g fill="#6e655a" font-size="12" text-anchor="middle"><text x="183" y="201">距离差距大：候选更明确</text><text x="574" y="201">两者几乎一样：匹配存在歧义</text></g>
+</svg></div><figcaption>数字是教学示例，不是实际匹配结果。距离本身只能反映描述子相似程度，不能证明物理对应。</figcaption></figure>
+<div class="formula-note"><div class="formula-head">关键公式 · Lowe Ratio Test <span>为什么要比较第一名和第二名？</span></div>
+<div class="formula-expr"><span class="formula-simple">d₁ / d₂ &lt; ρ　( d₁ ≤ d₂, d₂ &gt; 0 )</span></div>
+<p><strong>d₁</strong> 是最近邻距离，<strong>d₂</strong> 是次近邻距离，<strong>ρ</strong> 是接受阈值。两者差距越大，最佳匹配通常越没有歧义。阈值常以 <strong>0.7～0.8</strong> 作为实验起点，但不是通用真理。</p>
+<div class="formula-example"><span class="ex-mark">例子</span><p><strong>16/40=0.4</strong>：最佳候选明显领先；<strong>18/20=0.9</strong>：第一和第二几乎一样，难以区分。</p></div></div>
+<p>另一种筛选是 <strong>Cross-check（交叉检查）</strong>：A 认为 B 最像，同时 B 也认为 A 最像，才留下对应。它和 Ratio Test 判断的是不同性质，不会自动保证几何正确。</p>
+<p class="bridge"><b>还缺一步：</b>如果桌上有好几个相同包装盒，多个局部匹配可能分别落在不同盒子上。怎样判断它们是否真属于<strong>同一个目标</strong>？</p>
+</section><section class="chapter" id="geometry"><div class="kicker">06 · GEOMETRIC VERIFICATION</div><h2>怎样判断多个匹配是否符合同一个几何变化？</h2>
+<p>描述子只判断“局部看起来像不像”。但如果参考图中的一组点都来自同一块平面，那么它们在当前图中的位置应该满足<strong>同一个平面投影变换</strong>。错误对应往往无法同时满足这种约束。</p>
+<figure class="figure"><div class="figure-header">描述子匹配以后：用同一个变换解释一组点，区分内点与错配</div><div class="figure-body"><svg class="svgtxt" viewBox="0 0 760 256" role="img" aria-label="参考矩形与目标透视四边形，三条绿色匹配满足投影位置，一条红色错配不满足">
+<rect x="10" y="8" width="342" height="209" rx="10" fill="#f7f1e9"/><rect x="409" y="8" width="341" height="209" rx="10" fill="#eef5f0"/>
+<rect x="95" y="47" width="160" height="131" rx="3" fill="#f6e3d0" stroke="#b38b6f" stroke-width="2"/><path d="M114 67H237M114 87H227M114 108H200" stroke="#ba876d" stroke-width="4"/><circle cx="120" cy="72" r="5" fill="#3a8b78"/><circle cx="228" cy="74" r="5" fill="#3a8b78"/><circle cx="220" cy="158" r="5" fill="#3a8b78"/><circle cx="116" cy="159" r="5" fill="#bc6450"/>
+<path d="M509 51L666 75L633 183L489 156Z" fill="#f6e3d0" stroke="#b38b6f" stroke-width="2"/><path d="M532 70L635 85M527 91L620 103M519 114L602 121" stroke="#ba876d" stroke-width="4"/><g fill="#3a8b78"><circle cx="524" cy="70" r="5"/><circle cx="643" cy="88" r="5"/><circle cx="617" cy="163" r="5"/></g><circle cx="706" cy="43" r="5" fill="#bc6450"/>
+<g fill="none" stroke-width="2" stroke-dasharray="5 5"><path stroke="#388b77" d="M120 72L524 70M228 74L643 88M220 158L617 163"/><path stroke="#b95a4c" d="M116 159L706 43"/></g>
+<g font-size="12" fill="#74675c" text-anchor="middle"><text x="181" y="242">参考平面上的特征点</text><text x="579" y="242">绿色：几何内点；红色：离群匹配</text></g>
+</svg></div><figcaption>示意：相似描述子产生的是候选对应；几何模型对候选进行一致性检验。真实估计仍需足够、分布合理的正确匹配。</figcaption></figure>
+<div class="formula-note"><div class="formula-head">关键公式 · Homography（单应性）<span>平面点在两幅图像中如何对应？</span></div>
+<div class="formula-expr"><span class="formula-simple">s · [x′, y′, 1]ᵀ = H · [x, y, 1]ᵀ</span></div>
+<p><strong>(x,y)</strong> 是参考图像中的点，<strong>(x′,y′)</strong> 是当前图中的对应点；<strong>H</strong> 是 3×3 单应性矩阵，<strong>s</strong> 是齐次坐标的尺度。对于同一平面上的点，可以用一个 H 来描述两张图之间的透视映射。</p>
+<p>注意：单应性不仅能用于纯平面，也可描述相机纯旋转情形的两视图关系；但这里讨论的是<strong>平面参考目标</strong>的定位。</p>
+<div class="formula-expr"><span class="formula-simple">eᵢ = ‖ p′ᵢ − π(H · pᵢ) ‖₂</span></div>
+<p><strong>eᵢ</strong> 是一个匹配点的重投影误差；<strong>π</strong> 表示把齐次坐标除以最后一个分量，还原成二维像素。若 <strong>eᵢ &lt; τ</strong>，就可以把该匹配视作候选几何内点（τ 为像素误差阈值）。</p>
+</div>
+<p><strong>RANSAC</strong> 的核心思路是：从匹配中反复抽取少量点估计候选 H，统计有多少匹配的重投影误差较小，选取几何一致性较强的模型，再用内点重估与检查。对于一般平面单应性，至少需要 <strong>4 组非退化点对应</strong>来估计候选 H。</p>
+<p class="limit-note"><strong>局限：</strong>足够多的内点不等于一定识别对了物体。重复图案可能形成错误却自洽的对应；点集中在一小块区域可能导致四角投影不稳定；明显非平面的目标通常也不应直接套用一个平面 H。</p>
+</section><section class="chapter" id="summary"><div class="kicker">07 · CHOICE &amp; BOUNDARY</div><h2>回头看：到底要记住哪些方法？</h2>
+<p>这一页并不是要求按顺序掌握所有经典算法。你真正要建立的是<strong>技术分工</strong>：哪一步负责找位置，哪一步记录局部外观，哪一步解决匹配歧义，哪一步验证几何是否说得通。</p>
+<div class="table-wrap"><table class="compare"><thead><tr><th>方法</th><th>主要在做什么</th><th>最重要的直觉</th><th>常见限制</th></tr></thead><tbody>
+<tr><td>Harris / Shi–Tomasi</td><td>寻找稳定局部角点</td><td>两个方向的灰度变化都明显</td><td>本身不解决尺度、描述与匹配</td></tr>
+<tr><td>FAST</td><td>快速检测候选关键点</td><td>圆环上出现连续明显亮/暗像素</td><td>需要配合筛选、尺度和描述子</td></tr>
+<tr><td>SIFT</td><td>尺度/方向选择与浮点描述</td><td>DoG 选尺度，梯度方向构造指纹</td><td>计算代价较高，弱纹理仍困难</td></tr>
+<tr><td>ORB</td><td>高效关键点与二进制描述</td><td>金字塔 + FAST + 方向化 BRIEF</td><td>大视角变化、模糊、重复纹理仍困难</td></tr>
+<tr><td>Ratio / Cross-check</td><td>筛掉部分歧义匹配</td><td>不能只看“谁最像”</td><td>不能证明对应点的空间一致性</td></tr>
+<tr><td>RANSAC + H</td><td>验证平面参考的共同几何变化</td><td>一组正确对应应由同一模型解释</td><td>平面假设、重复图案和点分布退化</td></tr>
 </tbody></table></div>
-<h3>7.1 · 三组值得真的动手做的实验</h3>
-<div class="three"><div class="tile"><div class="id">EXPERIMENT 01</div><strong>关键点可重复性</strong><p>同一张图加入旋转、缩放、模糊、亮度变化，在已知变换下检查 Harris / FAST / SIFT / ORB 关键点复现情况。</p></div><div class="tile"><div class="id">EXPERIMENT 02</div><strong>匹配歧义</strong><p>独特图案与重复栅格分别实验，记录近邻距离、Ratio 通过数、Cross-check 和人工核验错配。</p></div><div class="tile"><div class="id">EXPERIMENT 03</div><strong>几何可信度</strong><p>从已知平面变换出发，统计内点率、重投影残差、覆盖范围与四角投影误差，再加入离群点与非平面对象。</p></div></div>
-<h3>7.2 · 最小可运行 OpenCV 实验：ORB → 候选 → RANSAC</h3>
-<p>下面实现一条完整工程基线：对两张灰度图分别提取 ORB 特征，使用 Hamming KNN + Ratio 获得候选匹配，对<strong>近似平面</strong>目标估计 Homography，再投影参考图四角。每个中间结果都可检查，而不是只看最后那个框。</p>
-<div class="code-title"><span>Python · 完整最小实验（OpenCV + NumPy）</span><button class="copy" type="button">复制代码</button></div><pre class="code-block">import cv2
-import numpy as np
-
-ref = cv2.imread(&#x27;reference.png&#x27;, cv2.IMREAD_GRAYSCALE)
-scene = cv2.imread(&#x27;scene.png&#x27;, cv2.IMREAD_GRAYSCALE)
-if ref is None or scene is None:
-    raise FileNotFoundError(&#x27;需要 reference.png 和 scene.png&#x27;)
-
-orb = cv2.ORB_create(nfeatures=1500, scaleFactor=1.2, nlevels=8)
-kp_ref, des_ref = orb.detectAndCompute(ref, None)
-kp_scene, des_scene = orb.detectAndCompute(scene, None)
-if des_ref is None or des_scene is None or len(des_scene) &lt; 2:
-    raise RuntimeError(&#x27;关键点不足，无法构造二近邻匹配&#x27;)
-
-matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
-knn = matcher.knnMatch(des_ref, des_scene, k=2)
-good = [m for pair in knn if len(pair) == 2
-        for m, n in [pair] if m.distance &lt; 0.75 * n.distance]
-print(&#x27;keypoints:&#x27;, len(kp_ref), len(kp_scene), &#x27;ratio:&#x27;, len(good))
-if len(good) &lt; 4:
-    raise RuntimeError(&#x27;候选匹配不足，不能估计单应性&#x27;)
-
-src = np.float32([kp_ref[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-dst = np.float32([kp_scene[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-H, inlier_mask = cv2.findHomography(src, dst, cv2.RANSAC, 3.0)
-if H is None or inlier_mask is None:
-    raise RuntimeError(&#x27;未估计到有效 Homography&#x27;)
-
-inliers = inlier_mask.ravel().astype(bool)
-pred = cv2.perspectiveTransform(src, H).reshape(-1, 2)
-err = np.linalg.norm(pred - dst.reshape(-1, 2), axis=1)
-print(&#x27;inliers:&#x27;, int(inliers.sum()), &#x27;/&#x27;, len(good))
-print(&#x27;median reproj error (px):&#x27;,
-      float(np.median(err[inliers])) if inliers.any() else &#x27;N/A&#x27;)
-
-h, w = ref.shape
-corners = np.float32([[0, 0], [w-1, 0], [w-1, h-1], [0, h-1]]).reshape(-1, 1, 2)
-projected_corners = cv2.perspectiveTransform(corners, H)
-print(&#x27;projected corners:&#x27;, projected_corners.reshape(4, 2))
-# 上面的成功只说明找到一个几何一致解。
-# 实用系统还应检查内点数量/覆盖、点集非退化、
-# 四边形自交/面积和目标是否近似平面，并独立验证身份。</pre>
-<div class="answer"><strong>这一篇真正得到什么？</strong><p>我们获得了一条<strong>不依赖完整 Mask、利用局部外观建立跨图像对应</strong>的技术路线：可重复点 → 局部描述 → 候选匹配 → 几何验证。它适合带独特文字或纹理的平面参考目标、局部重定位和二维对齐；当目标弱纹理、重复纹理、严重遮挡或明显非平面时，必须承认信息本身不够。</p><p>这也说明前面六条研究路线并非谁取代谁：<strong>颜色、区域、边缘、几何、骨架、局部特征</strong>分别依赖不同的视觉证据。选择哪一条，取决于目标究竟提供了什么信息。</p></div>
-</section><nav class="next" aria-label="阅读相邻篇章"><a href="05-skeleton-topology.html">← 上一篇<strong>骨架与拓扑</strong></a><a href="index.html">返回总览 →<strong>图像特征与结构提取</strong></a></nav><footer class="footer">沿途手记 · Stage 01 · 06 / 06 · 局部特征与对应。交互实验采用合成数据，参数是用于理解机制的实验起点，不是通用工程阈值。所有图像机制示意均不代表真实模型输出。</footer></article></main></div><script>
-'use strict';
-const $=id=>document.getElementById(id);
-const sections=[...document.querySelectorAll('.chapter')],links=[...document.querySelectorAll('#chapter-nav a')];
-const sidebar=$('sidebar'),overlay=$('overlay'),menu=$('mobile-menu');
-function toggleMenu(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('visible',open);menu.setAttribute('aria-expanded',String(open));}
-menu.addEventListener('click',()=>toggleMenu(!sidebar.classList.contains('open')));
-overlay.addEventListener('click',()=>toggleMenu(false));
-sidebar.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{if(innerWidth<=820)toggleMenu(false)}));
-function refreshScroll(){const max=document.documentElement.scrollHeight-innerHeight;$('reading-progress').style.width=(max>0?Math.min(100,100*scrollY/max):0)+'%';let current=sections[0].id;for(const s of sections)if(s.getBoundingClientRect().top<=innerHeight*.27)current=s.id;links.forEach(a=>a.classList.toggle('current',a.getAttribute('href')==='#'+current));}
-addEventListener('scroll',refreshScroll,{passive:true});addEventListener('resize',refreshScroll,{passive:true});refreshScroll();
-document.querySelectorAll('.copy').forEach(btn=>btn.addEventListener('click',async()=>{const src=btn.closest('.code-title')?.nextElementSibling?.textContent||'';try{await navigator.clipboard.writeText(src);btn.textContent='已复制'}catch{btn.textContent='请手动复制'}setTimeout(()=>btn.textContent='复制代码',1400)}));
-// Lab A: structure tensor, computed from a synthetic 15x15 image.
-function cornerIntensity(kind,x,y,contrast){const lo=128-contrast/2,hi=128+contrast/2;if(kind==='flat')return 128;if(kind==='edge')return x>=7?hi:lo;if(kind==='corner')return (x>=7&&y>=7)?hi:lo;return ((x>=7)!==(y>=7))?hi:lo;}
-function renderCorner(){const kind=$('corner-kind').value,contrast=Number($('corner-contrast').value);$('corner-contrast-value').textContent=String(contrast);const img=Array.from({length:15},(_,y)=>Array.from({length:15},(_,x)=>cornerIntensity(kind,x,y,contrast)));const c=$('corner-canvas'),ctx=c.getContext('2d');const size=c.width/15;for(let y=0;y<15;y++)for(let x=0;x<15;x++){const v=Math.round(img[y][x]);ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(x*size,y*size,size+.1,size+.1);}ctx.beginPath();ctx.arc(7.5*size,7.5*size,7,0,Math.PI*2);ctx.strokeStyle='#c46449';ctx.lineWidth=3;ctx.stroke();let A=0,B=0,C=0,weightSum=0;for(let y=3;y<=11;y++)for(let x=3;x<=11;x++){const gx=(img[y][x+1]-img[y][x-1])/2,gy=(img[y+1][x]-img[y-1][x])/2,w=Math.exp(-((x-7)**2+(y-7)**2)/(2*2.4**2));A+=w*gx*gx;B+=w*gx*gy;C+=w*gy*gy;weightSum+=w;}A/=weightSum;B/=weightSum;C/=weightSum;const disc=Math.sqrt(Math.max(0,(A-C)**2+4*B*B)),lmax=(A+C+disc)/2,lmin=(A+C-disc)/2,R=A*C-B*B-.04*(A+C)**2;const fmt=v=>Math.abs(v)>=1e5?v.toExponential(2):v.toFixed(1);$('corner-math').innerHTML=`<div>M = [[${fmt(A)}, ${fmt(B)}], [${fmt(B)}, ${fmt(C)}]]</div><div>R = det(M) − 0.04 trace(M)²</div>`;$('corner-lmin').textContent=fmt(lmin);$('corner-lmax').textContent=fmt(lmax);$('corner-score').textContent=fmt(R);const explanations={flat:'平坦区域：两个方向都没有明显变化，难以重复定位。',edge:'直边：一个方向响应明显，但沿着边滑动仍缺少位置约束。',corner:'直角：两个主方向都有变化，角点可以稳定约束二维位置。',checker:'十字交界：多个方向都有变化，也可形成强角点响应，但这不是语义上的“物体角”。'};$('corner-result').textContent=explanations[kind]+' 这里的响应随亮度对比改变，不应跨不同灰度尺度直接套相同的绝对阈值。';}
-['corner-kind','corner-contrast'].forEach(id=>$(id).addEventListener('input',renderCorner));renderCorner();
-function renderRatio(){let d1=Number($('first-distance').value),d2=Number($('second-distance').value),rho=Number($('ratio-limit').value);$('first-val').textContent=d1;$('second-val').textContent=d2;$('ratio-limit-val').textContent=rho.toFixed(2);const valid=d1<=d2 && d2>0,ratio=d1/d2,passed=valid&&ratio<rho;$('ratio-value').textContent=valid?ratio.toFixed(3):'—';$('ratio-fill').style.width=(valid?Math.min(100,ratio*100):100)+'%';$('ratio-fill').style.background=passed?'#548778':'#b77658';$('ratio-result').textContent=(!valid?'输入不满足最近邻 ≤ 次近邻的前提，请把第二名距离调大。':passed?`通过：${d1} / ${d2} = ${ratio.toFixed(3)} < ${rho.toFixed(2)}。第一名相对更有优势，但仍需要几何验证。`:`拒绝：${d1} / ${d2} = ${ratio.toFixed(3)} ≥ ${rho.toFixed(2)}。两个候选太接近，描述子不足以消除歧义。`);}
-['first-distance','second-distance','ratio-limit'].forEach(id=>$(id).addEventListener('input',renderRatio));renderRatio();
-// Lab B: reproducible two-point similarity RANSAC on 20 synthetic correspondences.
-function makeRng(seed){let s=seed>>>0;return ()=>{s=(1664525*s+1013904223)>>>0;return s/4294967296;};}
-function syntheticMatches(outliers){const rand=makeRng(23040);const pts=[];const a=1.04*Math.cos(.22),b=1.04*Math.sin(.22),tx=19,ty=9;for(let i=0;i<20;i++){let x=33+(i%5)*50+(rand()-.5)*14,y=33+Math.floor(i/5)*61+(rand()-.5)*14;let u=a*x-b*y+tx+(rand()-.5)*2.8,v=b*x+a*y+ty+(rand()-.5)*2.8;pts.push({s:{x,y},t:{x:u,y:v},bad:false});}for(let i=20-outliers;i<20;i++){pts[i].t={x:20+rand()*265,y:12+rand()*284};pts[i].bad=true;}return pts;}
-function fromTwo(p,q){const sx=q.s.x-p.s.x,sy=q.s.y-p.s.y,tx=q.t.x-p.t.x,ty=q.t.y-p.t.y,den=sx*sx+sy*sy;if(den<20)return null;const a=(sx*tx+sy*ty)/den,b=(sx*ty-sy*tx)/den;return {a,b,tx:p.t.x-a*p.s.x+b*p.s.y,ty:p.t.y-b*p.s.x-a*p.s.y};}
-function predict(m,p){return {x:m.a*p.x-m.b*p.y+m.tx,y:m.b*p.x+m.a*p.y+m.ty};}
-function residual(m,p){const t=predict(m,p.s);return Math.hypot(t.x-p.t.x,t.y-p.t.y);}
-function refit(inliers){if(inliers.length<2)return null;let sx=0,sy=0,tx=0,ty=0;for(const p of inliers){sx+=p.s.x;sy+=p.s.y;tx+=p.t.x;ty+=p.t.y;}sx/=inliers.length;sy/=inliers.length;tx/=inliers.length;ty/=inliers.length;let den=0,dot=0,cross=0;for(const p of inliers){const x=p.s.x-sx,y=p.s.y-sy,u=p.t.x-tx,v=p.t.y-ty;den+=x*x+y*y;dot+=x*u+y*v;cross+=x*v-y*u;}if(den<1)return null;let a=dot/den,b=cross/den;return {a,b,tx:tx-a*sx+b*sy,ty:ty-b*sx-a*sy};}
-function ransacSimilarity(pts,threshold){const random=makeRng(202606);let best=null,bestCount=-1,bestTotal=Infinity;for(let k=0;k<250;k++){const i=Math.floor(random()*pts.length);let j=Math.floor(random()*(pts.length-1));if(j>=i)j++;const model=fromTwo(pts[i],pts[j]);if(!model)continue;const errs=pts.map(p=>residual(model,p));const count=errs.filter(x=>x<=threshold).length,total=errs.reduce((s,e)=>s+(e<=threshold?e:0),0);if(count>bestCount||(count===bestCount&&total<bestTotal)){best=model;bestCount=count;bestTotal=total;}}if(!best)return null;for(let i=0;i<2;i++){const group=pts.filter(p=>residual(best,p)<=threshold);const refined=refit(group);if(refined)best=refined;}return best;}
-function median(xs){if(!xs.length)return null;const s=xs.slice().sort((a,b)=>a-b),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;}
-function renderRansac(){const n=Number($('outlier-count').value),threshold=Number($('reproj-threshold').value);$('outlier-val').textContent=`${n} / 20`;$('reproj-val').textContent=threshold.toFixed(1)+' px';const pts=syntheticMatches(n),model=ransacSimilarity(pts,threshold),errs=pts.map(p=>model?residual(model,p):Infinity),accepted=errs.map(e=>e<=threshold),count=accepted.filter(Boolean).length,med=median(errs.filter(e=>e<=threshold));$('match-total').textContent=String(pts.length);$('match-inliers').textContent=String(count);$('match-error').textContent=med===null?'—':med.toFixed(2)+' px';const c=$('match-canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#fbf8f4';ctx.fillRect(0,0,800,335);ctx.fillStyle='#f0e5da';ctx.fillRect(13,15,315,302);ctx.fillStyle='#edf4f0';ctx.fillRect(471,15,315,302);ctx.font='bold 12px system-ui';ctx.fillStyle='#806756';ctx.fillText('REFERENCE',29,35);ctx.fillStyle='#527d70';ctx.fillText('SCENE',489,35);const left=p=>({x:29+p.x,y:20+p.y}),right=p=>({x:474+p.x,y:20+p.y});for(let i=0;i<pts.length;i++){const p=pts[i],s=left(p.s),t=right(p.t);ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(t.x,t.y);ctx.strokeStyle=accepted[i]?'rgba(56,128,108,.67)':'rgba(152,144,139,.34)';ctx.lineWidth=accepted[i]?1.8:1.1;ctx.stroke();}for(let i=0;i<pts.length;i++){const p=pts[i],s=left(p.s),t=right(p.t);for(const point of [s,t]){ctx.beginPath();ctx.arc(point.x,point.y,accepted[i]?4.5:3.7,0,2*Math.PI);ctx.fillStyle=accepted[i]?'#3d8b76':'#aa9385';ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=1.1;ctx.stroke();}}$('ransac-result').textContent=`${pts.length} 对候选中，当前相似变换找到 ${count} 个内点（${(count/pts.length*100).toFixed(0)}%），内点重投影误差中位数 ${med===null?'不可用':med.toFixed(2)+' px'}。阈值提高可能让错配也被接纳；内点数量不能替代覆盖范围与模型有效性检查。`;}
-['outlier-count','reproj-threshold'].forEach(id=>$(id).addEventListener('input',renderRansac));renderRansac();
+<p>对于<strong>带独特文字或纹理的平面目标</strong>，局部特征匹配是一条可考虑的路线；如果目标几乎无纹理、重复图案严重、发生强烈非刚性形变，或者你要找的是一个尚无参考的“任意瓶子”，这条路线就未必合适。</p>
+<div class="conclusion"><strong>这一页最值得记住的关系：</strong>角点检测解决“在哪里”，描述子解决“长什么样”，最近邻匹配解决“像不像”，几何验证解决“一组对应是否说得通”。这些环节能组合，但不能互相替代。</div>
+<div class="next"><a href="05-skeleton-topology.html">← 上一篇 · 骨架与拓扑</a><a href="index.html">返回 · 图像特征与结构提取 →</a></div>
+</section>
+<footer class="footer">沿途手记 · 06 局部特征与对应 · 核心数学表达与直观机制<br>一页只求理解主要机制，不以公式数量或实验数量衡量学习深度。</footer>
+</article></main></div><script>
+(function(){
+  'use strict';
+  const sidebar=document.getElementById('sidebar');
+  const shade=document.getElementById('shade');
+  const menu=document.getElementById('menu');
+  const nav=[...document.querySelectorAll('#toc a[href^="#"]')];
+  const sections=nav.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  const progress=document.getElementById('progress');
+  function close(){sidebar.classList.remove('open');shade.classList.remove('on');menu.setAttribute('aria-expanded','false')}
+  menu.addEventListener('click',()=>{const show=!sidebar.classList.contains('open');sidebar.classList.toggle('open',show);shade.classList.toggle('on',show);menu.setAttribute('aria-expanded',String(show))});
+  shade.addEventListener('click',close);
+  nav.forEach(a=>a.addEventListener('click',close));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+  function update(){const y=scrollY+(innerWidth<=810?100:90);let active=sections[0];for(const s of sections){if(s.offsetTop<=y)active=s;else break}nav.forEach(a=>{const hit=a.hash==='#'+active.id;a.classList.toggle('active',hit);if(hit)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});const h=document.documentElement;const max=h.scrollHeight-h.clientHeight;progress.style.width=(max>0?100*scrollY/max:0)+'%'}
+  let pending=false;function schedule(){if(!pending){pending=true;requestAnimationFrame(()=>{pending=false;update()})}}
+  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);addEventListener('hashchange',schedule);update();
+})();
 </script></body></html>
