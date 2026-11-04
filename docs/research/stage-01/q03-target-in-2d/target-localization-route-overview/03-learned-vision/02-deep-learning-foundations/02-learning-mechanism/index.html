@@ -1,0 +1,286 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#faf8f3"><meta name="description" content="沿途手记：从损失、导数与梯度、链式法则到完整手算反向传播，配逐步交互图与梯度下降验证。"><title>02 · 损失函数与反向传播｜沿途手记</title><style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.94 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}
+.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:53px 0 45px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3,h4{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:18px;line-height:1.65;margin:28px 0 11px}h4{font-size:14px;margin:17px 0 7px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 265px;gap:22px;align-items:center}.hero p{font-size:15.4px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:22px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}
+.chapter{padding:50px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:15px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:20px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula .eq-line{display:block}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}
+.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls input[type=range]{accent-color:var(--accent);vertical-align:middle;width:172px}.demo-controls input[type=checkbox]{accent-color:var(--accent);vertical-align:middle}.demo svg{display:block;width:100%;height:auto;max-height:380px;border:1px solid #e6ded6;background:#fbfaf7;border-radius:9px}.demo-readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.small-note{font-size:11px;color:#948476;line-height:1.85;margin-top:8px}.step-chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:19px 0}.step-chain .step{border:1px solid #e6d8ca;background:#fffdfa;padding:8px 12px;border-radius:8px;font-size:12px;color:#765b4b;font-weight:680}.step-chain .arrow{color:#aa947f}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 210px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:270px;justify-self:center;order:-1}h1{font-size:33px}.hero p{font-size:14.5px}.chapter{padding:37px 0 40px}.two-col,.three-col{grid-template-columns:1fr}.main{padding:0 18px 50px}.flow{gap:5px}.step-chain{gap:5px}.step-chain .step{padding:7px 8px;font-size:11px}.formula .equation{font-size:17px}.demo{padding:13px}.demo-head{display:block}.demo-controls{gap:8px}.demo-controls input[type=range]{width:125px}td,th{padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+
+.learn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0}.learn-grid>div{padding:14px 13px;border:1px solid var(--line);border-radius:10px;background:var(--white);min-height:102px}.learn-grid .n{font:italic 24px Georgia,serif;color:#b38c70}.learn-grid b{display:block;color:var(--ink);font-size:12.5px;margin:2px 0}.learn-grid small{font-size:11px;color:var(--muted);line-height:1.7;display:block}
+.micro{font-size:11px;color:#908276;line-height:1.9}.formula .equation.tight{font-size:18px;white-space:normal}.note-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:16px 0}.note-grid article{background:var(--white);border:1px solid var(--line);padding:14px 16px;border-radius:9px}.note-grid h4{margin:1px 0 6px;font-size:14px}.note-grid p{font-size:12px;line-height:1.75}.matdim{display:inline-block;padding:3px 6px;background:#eaf0ec;border-radius:5px;font-size:11px;color:#5a806d;font-weight:650}.eqstack{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0}.eqstack>div{padding:14px;background:var(--white);border:1px solid var(--line);border-radius:9px;min-width:0}.eqstack .formula{margin:7px 0;padding:8px}.eqstack p{font-size:12px;line-height:1.8}.callout-simple{border-left:3px solid #bf987b;padding:13px 15px;margin:15px 0 20px;color:#725744;background:#f9f0e7;border-radius:0 8px 8px 0;font-size:13px}.callout-simple.green{border-color:#779982;background:#eff5ef;color:#486957}.focusline{color:#846049;font-size:13px;font-weight:700;margin:16px 0 9px}.demo-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.demo-control-grid label{display:block;font-size:12px;font-weight:680}.demo-control-grid input{width:100%;accent-color:var(--accent)}.demo-control-grid output{font:750 13px Georgia,serif;color:#905f47}.demo-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:13px 0}.demo-stat-grid div{padding:10px;border-radius:7px;background:#f6f0e8;min-width:0}.demo-stat-grid small{display:block;color:#8d7b70;font-size:10px;line-height:1.5}.demo-stat-grid b{display:block;color:#6a4936;font:700 20px Georgia,serif;margin:3px 0}.demo-stat-grid .good{color:var(--green)}.demo-bottom{font-size:12px;color:#79685d;line-height:1.9}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}.chips button{border:1px solid #dfd2c4;background:#fff9f2;color:#80624f;border-radius:8px;padding:6px 11px;font:650 12px var(--sans)}.chips button.active{background:#e8d5c6;border-color:#ba8a69;color:#75462f}.formula small{display:block}.codeish{font:13px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;color:#745039}.route-link{display:flex;justify-content:space-between;align-items:center;border:1px solid #d8e3d9;background:#f1f6f0;padding:16px 19px;border-radius:10px;margin:23px 0;color:#557562;gap:12px}.route-link strong{display:block;font-size:14px;color:#557562}.route-link small{display:block;font-size:11px;margin-top:4px;color:#81998a}.route-link:hover{background:#e9f1e8}.footlinks{display:flex;justify-content:space-between;gap:12px;margin:24px 0;flex-wrap:wrap}.footlinks a{font-size:12px;color:#8d684f;border-bottom:1px solid #d7c4b6}.footlinks a:hover{color:#663b29}.svg-pad{padding:10px 11px 0}.svg-pad svg{display:block;width:100%;height:auto;max-width:100%}.overview-anchor{font-weight:720;color:#9b664c;border-bottom:1px dotted #d8ae95}.chip-hint{font-size:11px;color:#948074;margin-top:6px} .wide-fig svg{max-height:440px}
+@media(max-width:610px){.learn-grid,.note-grid{grid-template-columns:1fr}.eqstack{grid-template-columns:1fr}.demo-control-grid{grid-template-columns:1fr}.demo-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.demo-stat-grid b{font-size:17px}.route-link{padding:12px 14px}.figure-title{font-size:12px}.wide-fig svg{min-width:0}}
+
+/* Page 02 additions; same visual system as Page 01 */
+.hero-layout{grid-template-columns:minmax(0,1fr) 275px}.hero-art{min-width:0}
+.lesson-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:19px 0}.lesson-map>div{border:1px solid var(--line);background:var(--white);border-radius:10px;padding:14px 13px}.lesson-map .k{font:italic 24px Georgia,serif;color:#b58c71}.lesson-map b{display:block;font-size:12.8px;color:var(--ink);margin:2px 0}.lesson-map small{display:block;font-size:11.3px;line-height:1.75;color:var(--muted)}
+.figure svg{max-height:480px}.figure-inner{overflow:hidden}.formulas-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0}.formulas-two .formula{margin:0}.formulas-two .equation{font-size:19px;white-space:normal}.formula .equation.small{font-size:18px;white-space:normal}.line-formula{font:500 17px/2 Georgia,"Noto Serif SC",serif;color:#554133;word-break:break-word}.line-formula.indent{padding-left:20px}.inline-math{font:16px Georgia,"Noto Serif SC",serif;color:#73533f}.step-table{width:100%;border-collapse:collapse}.step-table td:first-child{width:40%;font-weight:600}.step-table .val{font-family:ui-monospace,Consolas,monospace;color:#647c69;font-size:12px;white-space:nowrap}.step-table th,.step-table td{padding:9px 12px}.step-table th{font-size:11px}
+.minicall{background:#f1f5f0;border:1px solid #d9e4d9;border-radius:10px;padding:15px 17px;margin:16px 0;color:#54725e;font-size:13px;line-height:1.9}.minicall strong{color:#4b6b56}.key-question{font-weight:700;color:#845e49;font-size:13px;margin:12px 0 9px}.number-bridge{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:16px 0}.number-bridge div{border:1px solid #eadccf;background:#fffdf9;border-radius:8px;padding:10px 7px;text-align:center}.number-bridge small{display:block;color:#9d8674;font-size:10px}.number-bridge b{color:#765743;font-family:Georgia,serif;font-size:17px}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:15px 0}.demo-panel{border:1px solid #e4d9cc;background:#fffaf3;border-radius:9px;padding:12px 14px}.demo-panel small{display:block;font-size:10.5px;color:#977f70}.demo-panel b{display:block;font:700 23px Georgia,serif;color:#9c694a;margin-top:2px}.demo-panel.secondary{background:#f1f6f0;border-color:#d9e7db}.demo-panel.secondary b{color:#5f866e}.demo label.range{display:block;font-size:12px;font-weight:650;color:#6e594c;line-height:1.9}.demo label.range input{display:block;width:100%;accent-color:var(--accent);margin:6px 0}.demo output{color:#965e42;font-weight:750;font-family:Georgia,serif}.demo-graph{border:1px solid #e7ded6;border-radius:9px;background:#faf8f4;overflow:hidden}.demo-graph svg{border:0!important;border-radius:0!important}
+.monostat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.monostat div{padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fffefa}.monostat small{display:block;font-size:10px;color:#927f70}.monostat strong{display:block;font:750 19px Georgia,serif;color:#785741;margin-top:4px}
+.warn{border-left:3px solid #c29275;border-radius:0 8px 8px 0;background:#f9eee5;color:#815d48;padding:13px 15px;font-size:12.5px;margin:15px 0}.footer-link{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;margin:25px 0}.footer-link a{border-bottom:1px solid #d5beac;color:#8f6045;font-size:12.5px}.footer-link a:hover{color:#563b2d}.next-route{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0;padding:16px 18px;border:1px solid #d4e1d6;background:#f0f6ef;border-radius:10px;color:#547765}.next-route strong{display:block;color:#50725c;font-size:14px}.next-route small{display:block;color:#8b9c8c;font-size:11px;margin-top:3px}.next-route:hover{background:#e8f2e8}.small-note{line-height:1.9}.formula .explain{line-height:1.9}.figure-title{line-height:1.7}.extra-compact p{font-size:13px;line-height:1.85}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 225px}}
+@media(max-width:820px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}}
+@media(max-width:610px){.lesson-map,.formulas-two{grid-template-columns:1fr}.number-bridge{grid-template-columns:repeat(2,1fr)}.demo-grid{grid-template-columns:1fr}.formula .equation{font-size:18px;white-space:normal}.figure svg{max-height:none}.number-bridge b{font-size:16px}}
+
+
+/* Revised pedagogical controls and precise mathematical layout */
+:root { --math:#4c392c; --olive:#56846e; }
+main .article{max-width:920px}
+.hero{padding-top:40px;padding-bottom:37px}
+.hero-layout{grid-template-columns:minmax(0,1fr) 230px}
+.chapter{padding-top:40px;padding-bottom:43px}
+.chapter h3{font-size:17px;margin:22px 0 7px}
+.chapter .intro{font-size:14.5px}
+.chapter p{max-width:76ch}
+.mathline{display:block;text-align:center;overflow-x:auto;padding:10px 12px;font-size:21px;color:var(--math)}
+.mathline math{font-size:1em;font-family:'STIX Two Math','Cambria Math',serif;white-space:nowrap;max-width:none}
+.mathline.compact{font-size:18px}
+.inline-math math{vertical-align:middle;font-size:1em}
+.formula{padding:12px 15px}
+.formula .explain{margin-top:4px}
+.framed{background:var(--white);border:1px solid var(--line);border-radius:11px;padding:16px 18px;margin:18px 0}
+.flow-visual{display:flex;align-items:stretch;gap:6px;margin:17px 0;flex-wrap:wrap}
+.flow-visual>div{background:#fffefa;border:1px solid var(--line);padding:11px 9px;border-radius:9px;min-width:0;flex:1 1 104px;text-align:center}
+.flow-visual b{font-size:13px;display:block}.flow-visual small{font-size:10.5px;color:var(--muted);display:block}
+.flow-visual em{align-self:center;color:#b39681;font-style:normal;font-size:18px}
+.flow-visual .active-s{border-color:#b98f71;background:#fff2e6}
+.junction{font-weight:700;color:#b17c5e;margin:14px 0 8px;font-size:13px}
+.anchor-note{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:17px 0}
+.anchor-note>div{border:1px solid var(--line);background:var(--white);border-radius:10px;padding:12px 15px}
+.anchor-note h4{margin:0 0 4px;color:var(--ink)}.anchor-note p{font-size:12px;line-height:1.8;margin:0}
+.learning-path{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:16px 0 8px}
+.learning-path span{border:1px solid #e3d5c7;background:#fffdfa;border-radius:8px;padding:6px 10px;color:#785c4a;font-weight:650;font-size:12px}
+.learning-path i{font-style:normal;color:#b09b88}
+.stepper{background:#fffdfa;border:1px solid #ddcec0;border-radius:13px;padding:15px;margin:23px 0}
+.stepper .controlbar{display:flex;gap:9px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:0 0 11px}
+.stepper .controlbar strong{font-size:14px;color:#684735}
+.stepper .buttons{display:flex;gap:7px;flex-wrap:wrap}
+.stepper button{border-radius:8px;border:1px solid #d6bdac;background:#fff9f2;color:#7c513c;font-size:12px;font-weight:650;padding:6px 12px}
+.stepper button.primary{background:#a9785a;border-color:#a9785a;color:white}
+.stepper button:disabled{opacity:.38;cursor:default}
+#bpCanvas{width:100%;height:auto;border-radius:9px;background:#faf8f4;border:1px solid #e5dcd2;display:block}
+#bpCanvas .bpnode{transition:fill .3s ease,stroke .3s ease,opacity .3s ease}
+#bpCanvas .bpnode.active{fill:#e5efdf;stroke:#5c8c6d;stroke-width:2.4}
+#bpCanvas .bparrow{transition:stroke .22s ease,opacity .22s ease,stroke-width .22s ease}
+#bpCanvas .bparrow.active{stroke:#598771;stroke-width:4;opacity:1;stroke-dasharray:9 7;animation:runflow 1s linear infinite}
+#bpCanvas .bptext{font-family:var(--sans);font-size:15px;fill:#71584a;text-anchor:middle}
+#bpCanvas .bpvalue{font-family:Georgia,serif;font-size:17px;font-weight:bold;fill:#a16b4d;text-anchor:middle}
+#bpCanvas .bpicon{font-family:var(--sans);font-size:12px;fill:#957b6b;text-anchor:middle}
+@keyframes runflow{to{stroke-dashoffset:-32}}
+#stepDesc{background:#f5f0e9;border-radius:9px;padding:13px 15px;margin-top:10px;min-height:94px}
+#stepDesc strong{display:block;color:#6d4d39;font-size:13.5px;margin-bottom:5px}
+#stepDesc p{font-size:12.5px;line-height:1.8;margin:0}
+#stepDesc .mini-eq{font-family:Georgia,'Noto Serif SC',serif;font-size:15px;color:#5f785d;margin-top:4px;line-height:1.8}
+.meter{height:4px;background:#ede2d7;border-radius:10px;overflow:hidden;margin-top:12px}.meter>div{height:100%;background:#8eae93;transition:width .25s}
+.mini-two{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0}
+.mini-two>div{background:#fffefa;border:1px solid var(--line);border-radius:10px;padding:13px}
+.mini-two b{display:block;color:#71503b;font-size:13px}
+.mini-two p{font-size:12px;line-height:1.7;margin:4px 0 0}
+.gradient-pill{background:#f1f5ee;border:1px solid #d9e5d8;border-radius:9px;padding:16px;margin:16px 0}
+.gradient-pill .mathline{font-size:19px}
+.callout-pivot{background:#eef4ef;border-left:3px solid #67927a;padding:14px 17px;margin:18px 0;border-radius:0 8px 8px 0;font-size:13px;color:#54715e}
+.split-fig{border:1px solid var(--line);border-radius:10px;background:#fffefa;padding:12px;margin:18px 0}
+.split-fig svg{display:block;width:100%;height:auto}
+.tiny-label{font-size:10px;color:var(--muted);margin:0 0 5px}
+.simple-stat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
+.simple-stat div{border:1px solid var(--line);background:var(--white);padding:10px 11px;border-radius:8px}
+.simple-stat small{display:block;color:var(--muted);font-size:10px}.simple-stat b{color:#876247;font:700 18px Georgia,serif}
+.math-bridge{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:8px 0 14px;color:#775a46;font-size:12.5px}
+.math-bridge code{padding:4px 7px;background:#f0e8df}
+#slopeGraph{display:block;width:100%;height:auto;background:#fffdfa;border-radius:8px}
+#gradLegend{font-size:12px;color:#77665b}
+.output-box{font-size:12.5px;line-height:1.9;background:#f7f2eb;border-radius:8px;padding:12px;margin:8px 0}
+.source-hint{font-size:11px;color:#938679}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}.anchor-note,.mini-two{grid-template-columns:1fr}.mathline{font-size:17px}.mathline.compact{font-size:15px}.stepper{padding:10px}.stepper .buttons{width:100%;justify-content:space-between}.stepper button{padding:7px 10px}.simple-stat b{font-size:15px}.flow-visual>div{flex:1 1 80px}.flow-visual em{display:none}}
+@media(prefers-reduced-motion:reduce){#bpCanvas .bparrow.active{animation:none}}
+
+.bpMobileFlow{display:none}
+@media(max-width:610px){
+  #bpCanvas{display:none}
+  .bpMobileFlow{display:flex;flex-direction:column;gap:5px;border:1px solid #e7ddd3;background:#faf8f4;border-radius:9px;padding:10px}
+  .bpMobileFlow .mn{display:flex;align-items:center;justify-content:space-between;background:#fffefa;border:1px solid #e4d8cb;padding:9px 12px;border-radius:8px;transition:background .25s,border-color .25s}
+  .bpMobileFlow .mn.active{background:#e5efdf;border-color:#669879}
+  .bpMobileFlow strong{font-size:12.5px;color:#704e38}
+  .bpMobileFlow span{font:700 15px Georgia,serif;color:#a56e4c}
+  .bpMobileFlow em{font-size:12px;color:#a99483;text-align:center;line-height:1;font-style:normal}
+}
+</style></head><body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="mobile-bar"><b>沿途手记 / 损失函数与反向传播</b><button id="menuButton" type="button" aria-expanded="false">☰ 目录</button></div><div class="overlay" id="overlay"></div>
+<div class="shell"><aside class="sidebar" id="sidebar" aria-label="阅读目录">
+  <a class="brand" href="/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+  <a class="back" href="../">← 返回 · 从神经网络到深度视觉</a>
+  <div class="loc"><span class="eyebrow">当前位置 / CURRENT PAGE</span><strong>损失函数与反向传播</strong><p>学习式视觉定位 / 深度学习基础 / 02</p></div>
+  <nav class="side-nav" aria-label="本篇目录">
+   <a class="active" href="#opening"><span class="num">·</span>从上一站的问题开始</a>
+   <a href="#boundary"><span class="num">00</span>整体学习路线</a>
+   <a href="#loss"><span class="num">01</span>损失：怎么衡量错误</a>
+   <a href="#gradient"><span class="num">02</span>导数与梯度</a>
+   <a href="#chain"><span class="num">03</span>链式法则</a>
+   <a href="#backprop"><span class="num">04</span>逐步手算反向传播</a>
+   <a href="#meaning"><span class="num">05</span>梯度汇总与分支</a>
+   <a href="#update"><span class="num">06</span>梯度下降与验证</a>
+   <a href="#check"><span class="num">07</span>知识闭环与下一站</a>
+  </nav>
+  <div class="side-bottom">本路线起点 · <a href="../" style="color:#91694e">深度视觉基础索引 ↖</a><p style="margin:10px 0 0">下一篇 · <a href="../03-training-optimization/" style="color:#91694e">训练与优化 ↗</a></p></div>
+</aside><main class="main"><article class="article">
+<nav class="crumbs" aria-label="页面路径"><a href="/">沿途手记</a><span>/</span><a href="../">从神经网络到深度视觉</a><span>/</span><span>损失函数与反向传播</span></nav>
+<header class="hero" id="opening">
+ <div class="kicker">02 · LOSS · GRADIENT · BACKPROPAGATION</div>
+ <div class="hero-layout"><div><h1>损失函数与反向传播</h1><div class="sub">Learning Mechanism · 从「错了多少」到「每个参数该如何改变」</div>
+ <p>上一篇我们已经会让 MLP 做<strong>前向传播</strong>：给定权重，算出预测。但预测错了，怎样知道是哪一个权重造成的？又应该怎么修改？</p>
+ <p>这次不急着背反向传播公式。先弄懂<strong>导数和梯度在问什么</strong>，再用同一个最小网络，把四个参数的梯度一步一步算出来。</p>
+ <div class="tags"><span>一个模型贯穿全文</span><span>规范分式</span><span>逐步计算图</span><span>可交互验证</span></div></div>
+ <figure class="hero-art" aria-label="前向计算和反向求导"><svg viewBox="0 0 240 190"><rect x="3" y="3" width="234" height="184" rx="13" fill="#f6f0e9" stroke="#e3d5c6"/><g font-size="13" font-family="sans-serif" text-anchor="middle" fill="#755440"><rect x="19" y="49" width="62" height="47" rx="9" fill="#ead9c8"/><rect x="90" y="49" width="63" height="47" rx="9" fill="#e7d4c1"/><rect x="163" y="49" width="60" height="47" rx="9" fill="#deeadf"/><text x="50" y="76">输入 x</text><text x="121" y="76">网络 θ</text><text x="194" y="76">输出 ŷ</text></g><path d="M82 73H89M154 73H162" stroke="#a78168" stroke-width="2"/><path d="M194 96V125H77" fill="none" stroke="#6c987c" stroke-width="2.4" stroke-dasharray="5 4"/><path d="m84 119-8 6 8 6" fill="none" stroke="#6c987c" stroke-width="2"/><text x="121" y="31" text-anchor="middle" font-size="12" fill="#a3795d">前向：求值 → 求损失</text><text x="121" y="150" text-anchor="middle" font-size="12" fill="#54826b">反向：损失 → 参数梯度</text><text x="121" y="169" text-anchor="middle" font-size="11" fill="#a28a76">最后才更新参数</text></svg></figure></div>
+</header>
+<section class="chapter" id="boundary"><div class="chapter-kicker"><b>00</b> LEARNING ROADMAP</div><h2>先把学习顺序理顺</h2>
+<p>这次最重要的调整是：<strong>梯度不是反向传播之后才学的东西。</strong> 反向传播本身就是一种高效计算梯度的方法。所以我们应该先知道梯度是什么意思，再理解如何把它从输出层一路算到输入层。</p>
+<div class="learning-path"><span>① 损失</span><i>→</i><span>② 导数 / 梯度</span><i>→</i><span>③ 链式法则</span><i>→</i><span>④ 反向传播</span><i>→</i><span>⑤ 梯度下降</span></div>
+<div class="anchor-note"><div><h4>这一篇要学会</h4><p>损失的定义、单变量导数、多参数梯度、链式求导、反向传播、一次更新与梯度校验。</p></div><div><h4>这一篇不扩展</h4><p>SGD、Momentum、Adam、Batch、初始化、归一化、正则化：统一放到下一篇《训练与优化》。</p></div></div>
+<div class="section-note"><strong>贯穿全文的模型：</strong>一个输入 x，一个 ReLU 隐藏神经元，一个线性输出。它虽然小，但足以完整展示「前向 → 求导 → 反向 → 更新」。</div>
+</section>
+<section class="chapter" id="loss"><div class="chapter-kicker"><b>01</b> LOSS · MEASURE THE ERROR</div><h2>第一步：预测错了多少？</h2>
+<p>我们把模型输出记为 ŷ，真实答案记为 y*。先只考虑预测一个数值的回归任务，定义平方误差损失。</p>
+<div class="formula"><div class="formula-name">最小损失函数 · 半平方误差</div><div class="mathline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtext>L = </mtext><mfrac><mn>1</mn><mn>2</mn></mfrac><mtext>(ŷ − y*)²</mtext></math></div><div class="explain">二分之一只是方便求导时与平方产生的 2 抵消，不是开平方。预测越接近目标，损失越小。</div></div>
+<p><strong>为什么要有损失函数？</strong> 因为只有把预测错误变成一个明确的数值，我们才能进一步计算「改变参数会让这个错误增大还是减小」。</p>
+<div class="framed"><div class="tiny-label">最小网络 · 初始条件</div>
+ <div class="flow-visual"><div><b>输入</b><small>x = 2</small></div><em>→</em><div><b>隐藏层</b><small>z = w₁x+b₁ = 2<br>h = ReLU(z) = 2</small></div><em>→</em><div><b>输出</b><small>ŷ = w₂h+b₂ = 2</small></div><em>→</em><div><b>损失</b><small>L = 0.5</small></div></div>
+ <p class="micro">固定参数：w₁ = w₂ = 1，b₁ = b₂ = 0；真实目标 y* = 1。这些数值后续全部沿用，不会中途更换例子。</p>
+</div>
+<div class="callout-pivot"><strong>转折：</strong>我们已经知道损失是 0.5，但这还没有告诉我们：到底应该修改 w₁、b₁、w₂ 还是 b₂？接下来要理解「参数对损失有多大影响」。</div>
+</section>
+<section class="chapter" id="gradient"><div class="chapter-kicker"><b>02</b> DERIVATIVE · GRADIENT</div><h2>第二步：梯度究竟在告诉我们什么？</h2>
+<p>先不看神经网络，只看一个参数 w。如果我们轻微改变 w，损失 L 会怎样变化？<strong>导数是损失在当前位置对这个参数的变化率。</strong></p>
+<div class="formula"><div class="formula-name">求导示例 · 一条参数如何影响损失</div><div class="mathline compact"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mfrac><mtext>∂L</mtext><mtext>∂w</mtext></mfrac><mtext> = </mtext><mfrac><mtext>∂L</mtext><mtext>∂ŷ</mtext></mfrac><mtext> · </mtext><mfrac><mtext>∂ŷ</mtext><mtext>∂w</mtext></mfrac><mtext> = (wx − y*) x</mtext></math></div><div class="explain">例如 x=2、w=1、y*=1，预测 ŷ=2，此时导数是 (2−1)×2=2。把 w 增大一点，损失在局部会增大。</div></div>
+<div class="split-fig"><div class="figure-title">图解 · 导数的正负，决定局部上升还是下降</div><svg id="slopeGraph" viewBox="0 0 660 208" role="img" aria-label="单参数损失曲线，以及当前点的切线"><path d="M50 12V174H632" fill="none" stroke="#ab9888" stroke-width="1.5"/><path id="lossCurve" fill="none" stroke="#b58d71" stroke-width="3"/><path id="tangent" fill="none" stroke="#659579" stroke-width="2.5" stroke-dasharray="6 4"/><circle id="curvePoint" r="6.5" fill="#659579" stroke="#fff" stroke-width="2"/><text x="55" y="18" font-size="12" fill="#998578">损失 L</text><text x="635" y="192" font-size="12" text-anchor="end" fill="#998578">参数 w</text><text id="curveLabel" x="340" y="27" text-anchor="middle" font-size="13" fill="#6d8f74">当前点</text></svg>
+ <label class="range" for="wSlider">改变参数 w：<output id="wOut">1.00</output><input id="wSlider" type="range" min="-0.2" max="1.5" step="0.05" value="1"></label>
+ <div class="output-box" id="slopeText">在 w=1 时，导数为正。朝减小 w 的方向移动，损失在局部下降。</div></div>
+<h3>2.1 · 导数和梯度有什么区别？</h3>
+<div class="mini-two"><div><b>一个参数：导数</b><p>例如只有 w 一个参数，我们关心 ∂L/∂w，是一个数。</p></div><div><b>多个参数：梯度</b><p>网络有许多参数，分别求偏导，再按固定顺序排成一个向量，叫梯度 ∇L。</p></div></div>
+<p>梯度方向是<strong>损失在局部增长最快的方向</strong>；负梯度方向是局部下降最快的方向（在通常的欧氏距离度量下）。这里说的是局部性质，不保证跨很大一步仍然下降。</p>
+<div class="callout-pivot"><strong>转折：</strong>单个参数的导数不难算。但是第一层的 w₁ 不直接决定损失：它先改变 z，再改变 h，再改变 ŷ，最后才改变 L。怎样处理一串间接影响？这就需要链式法则。</div>
+</section>
+<section class="chapter" id="chain"><div class="chapter-kicker"><b>03</b> CHAIN RULE</div><h2>第三步：一层影响下一层，导数怎么连起来？</h2>
+<p>前向计算依次发生：<strong>w₁ 改变 z → z 改变 h → h 改变 ŷ → ŷ 改变损失 L</strong>。链式法则的思想很朴素：把每一段的局部变化率连乘起来。</p>
+<div class="formula"><div class="formula-name">链式法则 · 一条完整的因果依赖</div><div class="mathline compact"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mfrac><mtext>∂L</mtext><mtext>∂w₁</mtext></mfrac><mtext> = </mtext><mfrac><mtext>∂L</mtext><mtext>∂ŷ</mtext></mfrac><mtext> · </mtext><mfrac><mtext>∂ŷ</mtext><mtext>∂h</mtext></mfrac><mtext> · </mtext><mfrac><mtext>∂h</mtext><mtext>∂z</mtext></mfrac><mtext> · </mtext><mfrac><mtext>∂z</mtext><mtext>∂w₁</mtext></mfrac></math></div><div class="explain">每一项都只对相邻两步求导；从最右边的 w₁ 到最左边的 L，连接起来就是它对最终损失的影响。</div></div>
+<div class="table-wrap"><table><thead><tr><th>局部关系</th><th>这一小段的导数</th><th>在本例的值</th></tr></thead><tbody>
+<tr><td>ŷ → L</td><td>∂L / ∂ŷ = ŷ − y*</td><td>2 − 1 = <strong>1</strong></td></tr>
+<tr><td>h → ŷ</td><td>∂ŷ / ∂h = w₂</td><td><strong>1</strong></td></tr>
+<tr><td>z → h</td><td>ReLU′(z) = 1（z &gt; 0）</td><td><strong>1</strong></td></tr>
+<tr><td>w₁ → z</td><td>∂z / ∂w₁ = x</td><td><strong>2</strong></td></tr>
+</tbody></table></div>
+<div class="formula"><div class="formula-name">把四段局部导数代入：</div><div class="mathline compact"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mfrac><mtext>∂L</mtext><mtext>∂w₁</mtext></mfrac><mtext> = 1 × 1 × 1 × 2 = 2</mtext></math></div></div>
+<p>这说明：让 w₁ 在当前位置增加一点，损失的变化率是 2。不过如果每次求 w₁ 的导数都从头展开完整长式子，会做很多重复计算。</p>
+<div class="callout-pivot"><strong>转折：</strong>链式法则告诉了我们<strong>怎么算</strong>。反向传播更进一步告诉我们<strong>怎么复用已经计算的导数，快速求出所有参数的梯度</strong>。</div>
+</section>
+<section class="chapter" id="backprop"><div class="chapter-kicker"><b>04</b> BACKPROPAGATION · STEP BY STEP</div><h2>第四步：真正手算一次反向传播</h2>
+<p>我们继续用同一组数值。前向先算出 z=2、h=2、ŷ=2、L=0.5；反向从损失开始，把已经求到的梯度继续向前一层传递。每走过一层，都顺手计算这一层的参数梯度。</p>
+<div class="stepper" id="bpStepper"><div class="controlbar"><strong>逐步演示 · 一次完整的前向与反向</strong><div class="buttons"><button id="bpPrev" type="button">← 上一步</button><button id="bpPlay" type="button">▶ 自动演示</button><button id="bpNext" type="button" class="primary">下一步 →</button></div></div>
+ <svg id="bpCanvas" viewBox="0 0 760 235" role="img" aria-label="可逐步演示的损失计算和梯度反向传播图"><defs><marker id="bpArr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#a88770" stroke-width="1.3"/></marker></defs>
+ <g id="bpForward" stroke="#b59176" stroke-width="2" fill="none" marker-end="url(#bpArr)"><path d="M143 91H163"/><path d="M276 91H295"/><path d="M409 91H429"/><path d="M543 91H562"/></g>
+ <g id="bpReverse" stroke="#6f9b7a" stroke-width="2.4" fill="none"><path class="bparrow" data-edge="1" d="M604 141V168H485V143"/><path class="bparrow" data-edge="2" d="M464 141V183H351V143"/><path class="bparrow" data-edge="3" d="M329 141V199H218V143"/><path class="bparrow" data-edge="4" d="M192 141V215H86V143"/></g>
+ <g class="bp-block"><rect class="bpnode" data-node="x" x="25" y="52" width="119" height="88" rx="10" fill="#f0e7da" stroke="#d5c3b4"/><text class="bptext" x="85" y="76">输入 x</text><text class="bpvalue" x="85" y="104">2</text><text class="bpicon" x="85" y="125">常量</text></g>
+ <g><rect class="bpnode" data-node="z" x="162" y="52" width="115" height="88" rx="10" fill="#f0dfcf" stroke="#d5b89d"/><text class="bptext" x="219" y="76">z = w₁x+b₁</text><text class="bpvalue" x="219" y="104">2</text><text class="bpicon" x="219" y="125">第一层</text></g>
+ <g><rect class="bpnode" data-node="h" x="295" y="52" width="115" height="88" rx="10" fill="#f0dfcf" stroke="#d5b89d"/><text class="bptext" x="352" y="76">h = ReLU(z)</text><text class="bpvalue" x="352" y="104">2</text><text class="bpicon" x="352" y="125">激活</text></g>
+ <g><rect class="bpnode" data-node="y" x="429" y="52" width="115" height="88" rx="10" fill="#e4e8df" stroke="#b8c5b6"/><text class="bptext" x="486" y="76">ŷ = w₂h+b₂</text><text class="bpvalue" x="486" y="104">2</text><text class="bpicon" x="486" y="125">输出层</text></g>
+ <g><rect class="bpnode" data-node="l" x="562" y="52" width="175" height="88" rx="10" fill="#e4ece4" stroke="#afc9b7"/><text class="bptext" x="650" y="76">L = (ŷ−y*)² / 2</text><text class="bpvalue" x="650" y="104">0.5</text><text class="bpicon" x="650" y="125">目标 y* = 1</text></g>
+ <text x="25" y="31" font-size="13" fill="#a27b60">棕色：前向数值  →</text><text x="265" y="31" font-size="13" fill="#638d71">绿色：反向梯度  ←</text><text x="380" y="228" text-anchor="middle" font-size="12" fill="#9a8979">按「下一步」观察，每个局部导数怎样被复用</text></svg>
+ <div class="bpMobileFlow" id="bpMobileFlow" aria-label="移动端前向和反向计算图">
+    <div class="mn" data-node="x"><strong>输入 x</strong><span>2</span></div><em>↓ 前向 / ↑ 反向</em>
+    <div class="mn" data-node="z"><strong>z = w₁x + b₁</strong><span>2</span></div><em>↓ / ↑</em>
+    <div class="mn" data-node="h"><strong>h = ReLU(z)</strong><span>2</span></div><em>↓ / ↑</em>
+    <div class="mn" data-node="y"><strong>ŷ = w₂h + b₂</strong><span>2</span></div><em>↓ / ↑</em>
+    <div class="mn" data-node="l"><strong>损失 L，目标 y* = 1</strong><span>0.5</span></div>
+ </div>
+ <div id="stepDesc" aria-live="polite"><strong>阶段 0 / 6 · 前向计算</strong><p>计算 z、h、ŷ 与损失，保存反向求导需要的中间值。</p></div><div class="meter"><div id="bpMeter" style="width:0%"></div></div><div class="small-note">绿色箭头表示数学上的梯度计算依赖，不代表物理信号反向通过神经元。开启「自动演示」后可以随时暂停。</div>
+</div>
+<div class="framed"><div class="tiny-label">完整参数梯度 · 四个数都算出来了</div><div class="simple-stat"><div><small>第一层</small><b>∂L/∂w₁ = 2</b><small>∂L/∂b₁ = 1</small></div><div><small>第二层</small><b>∂L/∂w₂ = 2</b><small>∂L/∂b₂ = 1</small></div><div><small>损失</small><b>L = 0.5</b><small>当前参数 θ = (1, 0, 1, 0)</small></div></div></div>
+<div class="callout-pivot"><strong>关键转折：</strong>手算完成的是<strong>所有参数的偏导数</strong>，也就是模型的梯度。到这里，反向传播的核心过程已经学完了。下一步不是重新学一次梯度，而是把结果组织起来，补上多分支的情况，再用这些梯度更新参数。</div>
+</section>
+<section class="chapter" id="meaning"><div class="chapter-kicker"><b>05</b> AFTER BACKPROP · WHAT IS STILL MISSING?</div><h2>反向传播算完了，关于梯度还缺什么？</h2>
+<h3>5.1 · 梯度向量：四个偏导数合在一起是什么？</h3>
+<p>网络的参数是一个整体：θ=(w₁,b₁,w₂,b₂)。我们把刚刚算出的四个偏导数排在一起，就得到梯度向量。</p>
+<div class="gradient-pill"><div class="mathline compact"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtext>θ = (w₁, b₁, w₂, b₂)</mtext><mspace width="1em"/><mtext>∇L = (2, 1, 2, 1)</mtext></math></div><p class="micro" style="margin:6px 0 0;text-align:center">它告诉我们在当前参数位置，分别调整四个参数对损失的局部影响。</p></div>
+<h3>5.2 · 如果一项结果通往两条路径，梯度要相加</h3>
+<p>刚才的最小网络主要是一条链。但真实网络中，一个中间变量可能被多个后续操作使用。<strong>链式法则在分支汇合时，需要把各条路径的梯度贡献相加。</strong></p>
+<div class="split-fig"><svg viewBox="0 0 640 180" role="img" aria-label="变量 a 分别进入平方和三倍分支，梯度需要相加"><g font-size="14" font-family="sans-serif" fill="#7c5948" text-anchor="middle"><rect x="22" y="60" width="100" height="56" rx="9" fill="#f0decf" stroke="#d5bba6"/><text x="72" y="93">输入 a</text><rect x="218" y="14" width="138" height="55" rx="9" fill="#f1e8db" stroke="#dccab7"/><text x="287" y="46">u = a²</text><rect x="218" y="112" width="138" height="55" rx="9" fill="#f1e8db" stroke="#dccab7"/><text x="287" y="144">v = 3a</text><rect x="470" y="60" width="144" height="56" rx="9" fill="#e7f0e8" stroke="#bad2c1"/><text x="542" y="93">L = u + v</text></g><path d="M122 82L216 41M122 94L216 138M356 41L468 81M356 138L468 95" fill="none" stroke="#b79379" stroke-width="2"/><text x="395" y="24" font-size="12" fill="#598b6d">上路贡献 2a</text><text x="393" y="165" font-size="12" fill="#598b6d">下路贡献 3</text></svg><p class="figcap">在 a=2 时，上路贡献 2a=4，下路贡献 3，最终 ∂L/∂a = 4+3 = 7。</p></div>
+<div class="mini-two"><div><b>5.3 · ReLU 会挡住梯度吗？</b><p>当 z&lt;0 时，ReLU′(z)=0，这条路径的梯度会被乘成 0。本例 z=2，所以没有被挡住。z=0 处不可导，框架会采用约定的次梯度。</p></div><div><b>5.4 · 梯度可能算错吗？</b><p>可以用有限差分独立核对。自动微分使用链式法则；有限差分只是根据相邻损失近似导数，两者不是同一算法。</p></div></div>
+<div class="callout-pivot"><strong>转折：</strong>现在我们有了完整的梯度向量，也知道分支出现时如何求和。但<strong>模型参数仍然没有变化</strong>。要让下一次预测更接近目标，还缺最后一件事：优化器根据梯度更新权重。</div>
+</section>
+<section class="chapter" id="update"><div class="chapter-kicker"><b>06</b> UPDATE · CHECK</div><h2>最后一步：梯度怎么算成新的参数？</h2>
+<p>梯度的正方向是损失的局部上升方向，所以最简单的做法是沿负梯度方向迈出一小步。</p>
+<div class="formula"><div class="formula-name">最基本的梯度下降</div><div class="mathline"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtext>θ新 = θ旧 − η · </mtext><mfrac><mtext>∂L</mtext><mtext>∂θ</mtext></mfrac></math></div><div class="explain">η 是学习率；梯度只告诉我们局部方向，是否真正降低损失还要更新后重新前向计算。</div></div>
+<h3>6.1 · 四个参数一起更新</h3>
+<p>取学习率 η=0.1，初始参数 θ=(1,0,1,0)，梯度 ∇L=(2,1,2,1)。</p>
+<div class="formula"><div class="formula-name">带入四个梯度，一次性更新：</div><div class="mathline compact"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtext>θ新 = (1,0,1,0) − 0.1 × (2,1,2,1)</mtext><mspace width="1em"/><mtext>= (0.8, −0.1, 0.8, −0.1)</mtext></math></div></div>
+<p>使用更新后的参数重新执行前向传播：</p>
+<div class="formula"><div class="formula-name">用新参数重新算：</div><div class="mathline compact"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtext>z新 = 0.8 × 2 − 0.1 = 1.5</mtext><mspace width="1em"/><mtext>ŷ新 = 0.8 × 1.5 − 0.1 = 1.1</mtext><mspace width="1em"/><mtext>L新 = </mtext><mfrac><mn>1</mn><mn>2</mn></mfrac><mtext>(1.1−1)² = 0.005</mtext></math></div></div>
+<p>本例损失从 <strong>0.5 降到 0.005</strong>，说明这一次更新有效；但学习率过大或网络非线性复杂时，一次更新也可能让损失变大。</p>
+<div class="demo" id="updateDemo"><div class="demo-head"><div><b>交互实验 · 同一梯度，不同学习率</b><small>只更新一次所有参数，再重新计算损失</small></div></div>
+<label class="range" for="eta">学习率 η：<output id="etaOut">0.100</output><input id="eta" type="range" min="0" max="1" step="0.025" value="0.1"></label>
+<div class="demo-grid"><div class="demo-panel"><small>更新前损失</small><b>0.5000</b></div><div class="demo-panel secondary"><small>更新后损失</small><b id="newLoss">0.0050</b></div></div><div class="output-box" id="sgdReadout"></div>
+</div>
+<h3>6.2 · 怎么确认反向传播的梯度真的算对了？</h3>
+<p>可以暂时固定其他参数，只对一个参数做很小的扰动，再观察损失的变化。</p>
+<div class="formula"><div class="formula-name">中心差分：检验 w₁ 的梯度</div><div class="mathline compact"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mfrac><mtext>∂L</mtext><mtext>∂w₁</mtext></mfrac><mtext> ≈ </mtext><mfrac><mtext>L(w₁+ε) − L(w₁−ε)</mtext><mtext>2ε</mtext></mfrac></math></div><div class="explain">固定其他参数，分别向两侧轻微扰动 w₁，比较前后损失。它用来核对梯度，而非替代大型网络的反向传播。</div></div>
+<div class="demo" id="gradCheck"><label class="range" for="eps">扰动大小 ε：<output id="epsOut">0.1000</output><input id="eps" type="range" min="-4" max="-1" step="1" value="-1"></label><div class="demo-grid"><div class="demo-panel"><small>反向传播的解析梯度</small><b>2.000000</b></div><div class="demo-panel secondary"><small>有限差分近似</small><b id="numericGrad">2.000000</b></div></div><div class="output-box" id="gradReadout"></div></div>
+<div class="section-note"><strong>三个动作不能混淆：</strong><code>forward()</code> 用当前参数计算预测和损失；<code>backward()</code> 沿计算图计算梯度；<code>optimizer.step()</code> 才会使用梯度修改参数。实际 PyTorch 训练还需要在适当时机清空上一轮累计梯度。</div>
+</section>
+<section class="chapter" id="check"><div class="chapter-kicker"><b>07</b> CHECKPOINT & NEXT</div><h2>怎样确认这条学习链真的闭合了？</h2>
+<div class="table-wrap"><table><thead><tr><th>现在应该理解</th><th>你可以尝试回答</th></tr></thead><tbody>
+<tr><td>损失</td><td>为什么需要把预测误差变成一个可优化的标量？</td></tr>
+<tr><td>导数 / 梯度</td><td>∂L/∂w=2 意味着什么？为什么它不等于参数应该减少 2？</td></tr>
+<tr><td>链式法则</td><td>为什么第一层的 w₁ 需要经过 z、h、ŷ 才能影响损失？</td></tr>
+<tr><td>反向传播</td><td>为什么先计算 ∂L/∂ŷ，再逐层算出四个参数的梯度？</td></tr>
+<tr><td>梯度汇合</td><td>如果中间变量通向两条路径，为什么梯度要相加？</td></tr>
+<tr><td>参数更新</td><td>为什么反向传播结束不代表模型已经学会了？</td></tr>
+</tbody></table></div>
+<div class="final-line"><strong>完整理解：</strong>前向传播计算预测和损失；导数描述局部变化；反向传播利用链式法则高效计算所有参数梯度；优化器使用这些梯度修改参数。<br>至此，最小神经网络的<strong>一次训练迭代</strong>才算完整。</div>
+<a class="next-route" href="../03-training-optimization/"><span><strong>下一篇 · 训练与优化</strong><small>会算一次更新之后，再研究如何用 Batch、SGD、Momentum、Adam 等方法持续而稳定地训练。</small></span><span style="font-size:24px" aria-hidden="true">↗</span></a>
+<div class="footer-link"><a href="../">← 返回 · 深度视觉基础索引</a><a href="../03-training-optimization/">下一篇 · 训练与优化 →</a></div></section>
+<footer class="footer">沿途手记 · Stage 01 / 学习式视觉定位 / 深度学习基础 / 损失函数与反向传播</footer>
+</article></main></div>
+<script>
+(()=>{
+ const sidebar=document.getElementById('sidebar'),menu=document.getElementById('menuButton'),overlay=document.getElementById('overlay');
+ function setMenu(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);menu.setAttribute('aria-expanded',String(open));document.body.style.overflow=(open&&innerWidth<=820)?'hidden':'';}
+ menu.addEventListener('click',()=>setMenu(!sidebar.classList.contains('open')));overlay.addEventListener('click',()=>setMenu(false));document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+ sidebar.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+ const anchors=[...document.querySelectorAll('.side-nav a[href^="#"]')],sections=anchors.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+ function onScroll(){let current=sections[0];const height=document.documentElement.scrollHeight-innerHeight;document.getElementById('progress').style.width=(height>0?Math.min(100,Math.max(0,scrollY/height*100)):100)+'%';for(const section of sections){if(section.getBoundingClientRect().top<=(innerWidth<=820?110:135))current=section;}anchors.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+current.id));}
+ addEventListener('scroll',()=>requestAnimationFrame(onScroll),{passive:true});addEventListener('resize',()=>{if(innerWidth>820)setMenu(false);onScroll()});onScroll();
+ // One-parameter slope example, L=(2w-1)^2/2
+ const wSlider=document.getElementById('wSlider'),point=document.getElementById('curvePoint'),tan=document.getElementById('tangent'),curve=document.getElementById('lossCurve');
+ const sx=w=>75+(w+0.2)/1.7*510,sy=l=>172-Math.min(4,Math.max(0,l))/4*148;
+ let path='';for(let w=-.2;w<=1.50001;w+=.01){let l=.5*(2*w-1)**2;path+=(path?'L':'M')+sx(w).toFixed(2)+' '+sy(l).toFixed(2)+' ';}curve.setAttribute('d',path);
+ function updateSlope(){const w=+wSlider.value,l=.5*(2*w-1)**2,g=2*(2*w-1),x=sx(w),y=sy(l),delta=.13;
+   point.setAttribute('cx',x);point.setAttribute('cy',y);
+   const y1=sy(l-g*delta),y0=sy(l+g*delta);tan.setAttribute('d',`M ${sx(w-delta)} ${y0} L ${sx(w+delta)} ${y1}`);
+   document.getElementById('wOut').textContent=w.toFixed(2);document.getElementById('curveLabel').textContent=`w=${w.toFixed(2)}，L=${l.toFixed(3)}，导数=${g.toFixed(2)}`;
+   document.getElementById('slopeText').textContent= Math.abs(g)<1e-8?'此时导数为 0，处于这条损失曲线的最低点。':g>0?`导数 ${g.toFixed(2)} > 0：增大 w 会让损失在局部上升；减小 w 才是局部下降方向。`:`导数 ${g.toFixed(2)} < 0：增大 w 会让损失在局部下降。`;
+ }
+ wSlider.addEventListener('input',updateSlope);updateSlope();
+ // Step-through computational graph
+ const stages=[
+  {title:'阶段 0 / 6 · 先做前向传播',desc:'输入 x=2，第一层 z=2、h=2，输出 ŷ=2。与真实答案 y*=1 比较后，损失 L=0.5。反向求导需要保留这些中间值。',eq:'前向：x → z → h → ŷ → L',node:'l',edge:0},
+  {title:'阶段 1 / 6 · 从损失算到预测',desc:'L=(ŷ−y*)²/2，先对 ŷ 求导。因为 ŷ=2，y*=1，所以 ∂L/∂ŷ=ŷ−y*=1。这是后续计算的起点。',eq:'∂L/∂ŷ = 1',node:'y',edge:1},
+  {title:'阶段 2 / 6 · 计算输出层的梯度',desc:'ŷ=w₂h+b₂。于是 ∂L/∂w₂=(∂L/∂ŷ)·h=1×2=2；∂L/∂b₂=1。同时还要计算传给上一层的 ∂L/∂h=(∂L/∂ŷ)·w₂=1×1=1。',eq:'∂L/∂w₂ = 2，∂L/∂b₂ = 1，∂L/∂h = 1',node:'h',edge:2},
+  {title:'阶段 3 / 6 · 穿过激活函数',desc:'h=ReLU(z)，而 z=2>0，所以 ReLU′(z)=1。来自上一层的梯度乘上这段局部导数，得到 ∂L/∂z=(∂L/∂h)×1=1。',eq:'∂L/∂z = 1 × 1 = 1',node:'z',edge:3},
+  {title:'阶段 4 / 6 · 计算第一层的梯度',desc:'z=w₁x+b₁。于是 ∂L/∂w₁=(∂L/∂z)·x=1×2=2；∂L/∂b₁=(∂L/∂z)·1=1。四个参数的偏导数全部得到了。',eq:'∂L/∂w₁ = 2，∂L/∂b₁ = 1',node:'x',edge:4},
+  {title:'阶段 5 / 6 · 四个偏导数组成梯度',desc:'固定参数顺序 θ=(w₁,b₁,w₂,b₂)，那么当前梯度向量就是 (2,1,2,1)。反向传播到这里结束，它只负责求导，不修改参数。',eq:'∇L(θ) = (2, 1, 2, 1)',node:'l',edge:0},
+  {title:'阶段 6 / 6 · 使用梯度更新参数',desc:'以学习率 0.1 沿负梯度方向更新，得到 θ新=(0.8,−0.1,0.8,−0.1)。再做前向传播：z=1.5、h=1.5、ŷ=1.1、损失 0.005。',eq:'θ新 = θ旧 − 0.1 × ∇L；L新 = 0.005',node:'l',edge:0}
+ ];
+ let idx=0,interval=null;const bpPrev=document.getElementById('bpPrev'),bpNext=document.getElementById('bpNext'),bpPlay=document.getElementById('bpPlay');
+ function drawStep(){const s=stages[idx];document.getElementById('stepDesc').innerHTML='<strong>'+s.title+'</strong><p>'+s.desc+'</p><div class="mini-eq">'+s.eq+'</div>';document.getElementById('bpMeter').style.width=(idx/6*100)+'%';bpPrev.disabled=idx===0;bpNext.disabled=idx===6;document.querySelectorAll('#bpCanvas .bpnode, #bpMobileFlow .mn').forEach(n=>n.classList.toggle('active',n.dataset.node===s.node));document.querySelectorAll('#bpCanvas .bparrow').forEach(a=>a.classList.toggle('active',Number(a.dataset.edge)===s.edge && s.edge!==0));}
+ function stop(){if(interval){clearInterval(interval);interval=null;}bpPlay.textContent='▶ 自动演示';}
+ bpPrev.addEventListener('click',()=>{stop();idx=Math.max(0,idx-1);drawStep()});bpNext.addEventListener('click',()=>{stop();idx=Math.min(6,idx+1);drawStep()});bpPlay.addEventListener('click',()=>{if(interval){stop();return}if(idx===6)idx=0;drawStep();bpPlay.textContent='Ⅱ 暂停';interval=setInterval(()=>{idx++;if(idx>6){idx=6;stop()}drawStep();},1700)});drawStep();
+ function lossAt(w1,b1,w2,b2){const z=2*w1+b1,h=Math.max(0,z),p=w2*h+b2;return {z,h,p,loss:.5*(p-1)**2};}
+ const eta=document.getElementById('eta');function onEta(){const e=+eta.value,r=lossAt(1-2*e,-e,1-2*e,-e);document.getElementById('etaOut').textContent=e.toFixed(3);document.getElementById('newLoss').textContent=r.loss.toFixed(4);document.getElementById('sgdReadout').textContent=`参数更新后：w₁=${(1-2*e).toFixed(3)}、b₁=${(-e).toFixed(3)}、w₂=${(1-2*e).toFixed(3)}、b₂=${(-e).toFixed(3)}。重新前向得到 ŷ=${r.p.toFixed(4)}，L=${r.loss.toFixed(4)}。`+(r.loss<.5?'本次损失下降。':r.loss>.5?'本次损失上升，说明学习率未必越大越好。':'损失没有下降。');}
+ eta.addEventListener('input',onEta);onEta();
+ const eps=document.getElementById('eps');function onEps(){const e=10**Number(eps.value),lp=lossAt(1+e,0,1,0).loss,lm=lossAt(1-e,0,1,0).loss,ng=(lp-lm)/(2*e);document.getElementById('epsOut').textContent=e.toFixed(4);document.getElementById('numericGrad').textContent=ng.toFixed(6);document.getElementById('gradReadout').textContent=`L(w₁+ε)=${lp.toFixed(6)}，L(w₁−ε)=${lm.toFixed(6)}；两者之差除以 2ε=${(2*e).toFixed(4)}，得到近似梯度 ${ng.toFixed(6)}，与手算的 2 很接近。`;}eps.addEventListener('input',onEps);onEps();
+})();
+</script></body>

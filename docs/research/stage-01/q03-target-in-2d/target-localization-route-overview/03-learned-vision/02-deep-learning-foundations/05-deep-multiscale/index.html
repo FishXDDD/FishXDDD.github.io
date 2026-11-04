@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#faf8f3">
+<meta name="description" content="沿途手记 · 深层网络与多尺度：Backbone、VGG、ResNet 残差连接、分层特征与 FPN。以公式、机制图和交互示例理解如何兼顾语义与位置。">
+<title>05 · 深层网络与多尺度｜沿途手记</title><style>
+:root{--paper:#faf8f3;--white:#fffefa;--sidebar:#f5f1ea;--ink:#453b35;--body:#66594e;--muted:#95887b;--line:#e6ddd1;--accent:#aa7054;--accent-dark:#86513b;--accent-pale:#f5e9df;--green:#507c6b;--green-pale:#ebf3ee;--blue:#4e748e;--blue-pale:#ecf2f5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--paper);color:var(--body);font:15px/1.94 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}strong{color:var(--ink);font-weight:720}::selection{background:#efdcc9}
+.shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--sidebar);border-right:1px solid var(--line);padding:28px 21px 22px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;scrollbar-width:thin;z-index:20}.brand{font:750 19px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}.brand small{display:block;font:500 10px/1.5 var(--sans);letter-spacing:.14em;color:var(--muted);margin-top:2px}.back{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dfd2c4;border-radius:9px;background:rgba(255,255,255,.65);font-size:12px;font-weight:650;color:#84654f}.back:hover{background:#fff}.eyebrow{color:#a39587;font-weight:770;font-size:10px;letter-spacing:.13em}.loc{padding:0 9px}.loc strong{display:block;font-size:15px;margin-top:7px}.loc p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.65}.side-nav{border-top:1px solid var(--line);padding-top:16px}.side-nav>a{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:8px;font-size:12.5px;line-height:1.5;color:#76695e}.side-nav a:hover{background:#ede4da}.side-nav a.active{background:#efe0d4;color:#864e38;font-weight:730}.side-nav .num{width:24px;flex-shrink:0;color:#ac9786;font:750 11px Georgia,serif}.side-nav a.active .num{color:var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 9px 0;color:#a29587;font-size:10px;letter-spacing:.03em}
+.main{min-width:0;padding:0 clamp(24px,5vw,72px) 70px}.article{max-width:895px;margin:auto}.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:var(--muted);min-height:67px;border-bottom:1px solid var(--line)}.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}.hero{padding:53px 0 45px;border-bottom:1px solid var(--line)}.kicker{color:var(--accent);font:750 11px/1.7 Georgia,var(--sans);letter-spacing:.13em}h1,h2,h3,h4{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(32px,3.3vw,43px);letter-spacing:-.025em;line-height:1.5;margin:9px 0 3px}h2{font-size:clamp(23px,2.35vw,29px);line-height:1.58;letter-spacing:-.015em;margin:7px 0 17px}h3{font-size:18px;line-height:1.65;margin:28px 0 11px}h4{font-size:14px;margin:17px 0 7px}p{margin:0 0 14px}p:last-child{margin-bottom:0}.sub{font:italic 12px Georgia,serif;color:#a28b79;margin:0 0 24px}.hero-layout{display:grid;grid-template-columns:minmax(0,1fr) 265px;gap:22px;align-items:center}.hero p{font-size:15.4px;line-height:2.02}.hero-art svg{width:100%;height:auto;display:block}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:22px}.tags span{border:1px solid #e6d9ca;background:#fcf7f0;border-radius:99px;color:#8e735e;font-size:10px;padding:3px 10px}
+.chapter{padding:50px 0 52px;border-bottom:1px solid var(--line);scroll-margin-top:24px}.chapter-kicker{font-size:11px;font-weight:730;color:#ad8067;letter-spacing:.1em}.chapter-kicker b{font:italic 18px Georgia,serif;margin-right:13px}.chapter>.intro{font-size:15px;color:#655447}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}.plain-panel{padding:15px 17px;background:var(--white);border:1px solid var(--line);border-radius:10px}.plain-panel .mini-label{color:var(--accent);font-size:10px;font-weight:740;letter-spacing:.09em}.plain-panel b{display:block;color:var(--ink);font-size:13.5px;margin:2px 0 5px}.plain-panel p{font-size:12.5px;line-height:1.8;margin:0}.section-note{margin:19px 0;padding:15px 18px;border-left:3px solid #a37e65;background:#f8f0e7;border-radius:0 8px 8px 0;font-size:13.5px}.section-note.green{background:#edf3ee;border-color:#719487}.formula{background:#f8f5f0;border:1px solid #e7ded4;border-radius:11px;margin:15px 0 11px;padding:15px 18px;overflow-x:auto}.formula .equation{color:#49382f;text-align:center;font-size:20px;font-family:Georgia,"Noto Serif SC",serif;white-space:nowrap;letter-spacing:.005em;line-height:2}.formula .formula-name{font-size:10px;color:#a37f68;font-weight:750;letter-spacing:.08em;margin-bottom:3px}.formula .explain{font-size:12px;color:#867468;margin-top:7px;line-height:1.8}.formula .eq-line{display:block}.figure{margin:20px 0;border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden}.figure-title{font-size:12.5px;font-weight:740;color:#725341;padding:12px 16px 0}.figure svg{width:100%;height:auto;display:block}.figure-inner{padding:9px 16px 6px}.figcap{padding:0 16px 14px;font-size:11.5px;color:#948578;line-height:1.7}.table-wrap{margin:19px 0;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}table{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.85;text-align:left}th{background:#f6f0e9;color:#82634d;font-size:11.5px}td,th{padding:11px 13px;border-bottom:1px solid #ebe2d8;vertical-align:top}tr:last-child td{border-bottom:0}td:first-child{font-weight:670;color:#70513e}code{font:12px ui-monospace,Consolas,monospace;color:#8e5846;background:#f6eee6;padding:2px 5px;border-radius:4px}.bullet{padding-left:20px;margin:10px 0 17px}.bullet li{margin:5px 0}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill-row span{font-size:11px;background:#f7efe7;border:1px solid #eadbcb;padding:4px 10px;border-radius:20px;color:#786052}.flow{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:18px 0}.flow span{padding:7px 11px;border:1px solid #e2d6c8;background:#fffdfa;border-radius:7px;font-size:12px;font-weight:640}.flow i{font-style:normal;color:#b0937b}.quote{font:650 15px/1.95 var(--serif);color:#785540;margin:20px 0}.final-line{margin:22px 0 0;padding:17px 19px;border-left:3px solid var(--accent);background:#f8eee5;border-radius:0 9px 9px 0;font:650 14px/1.9 var(--serif);color:#785540}
+.demo{border:1px solid #decec0;background:#fffdfa;border-radius:13px;padding:18px;margin:22px 0}.demo-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}.demo-head b{font-size:14px;color:#714b38}.demo-head small{font-size:11px;color:#a18b78}.demo-controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:13px 0}.demo-controls label{font-size:12px;color:#68584e}.demo-controls input[type=range]{accent-color:var(--accent);vertical-align:middle;width:172px}.demo-controls input[type=checkbox]{accent-color:var(--accent);vertical-align:middle}.demo svg{display:block;width:100%;height:auto;max-height:380px;border:1px solid #e6ded6;background:#fbfaf7;border-radius:9px}.demo-readout{font-size:12px;background:#f6f0e8;padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.8}.small-note{font-size:11px;color:#948476;line-height:1.85;margin-top:8px}.step-chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:19px 0}.step-chain .step{border:1px solid #e6d8ca;background:#fffdfa;padding:8px 12px;border-radius:8px;font-size:12px;color:#765b4b;font-weight:680}.step-chain .arrow{color:#aa947f}.end-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:31px 0}.end-links a{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 14px;font-size:12px;color:#8a644e}.end-links a:hover{background:#fbf2e9}.footer{font-size:10px;color:#aa9a8b;padding:20px 0;border-top:1px solid var(--line)}.progress{position:fixed;top:0;left:0;height:3px;background:#bf8465;width:0;z-index:60;pointer-events:none}.mobile-bar,.overlay{display:none}
+@media(max-width:1110px){.shell{grid-template-columns:237px minmax(0,1fr)}.sidebar{padding-left:15px;padding-right:15px}.main{padding-left:31px;padding-right:31px}.hero-layout{grid-template-columns:minmax(0,1fr) 210px}}
+@media(max-width:820px){html{scroll-padding-top:75px}.shell{display:block}.mobile-bar{position:sticky;top:0;z-index:28;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;background:#faf8f3ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.mobile-bar b{font-size:12px;color:#6b584b}.mobile-bar button{border:1px solid #dfd3c5;background:#fffefa;border-radius:8px;padding:5px 10px;color:#765b4a;font-size:12px}.sidebar{position:fixed;top:0;left:0;z-index:50;height:100dvh;width:min(310px,85vw);transform:translateX(-104%);transition:transform .2s ease;box-shadow:12px 0 28px #251b171a}.sidebar.open{transform:translateX(0)}.overlay.show{display:block;position:fixed;inset:0;z-index:40;background:#221a1666}.main{padding:0 24px 55px}.crumbs{min-height:54px}.chapter{scroll-margin-top:75px}.hero{padding:40px 0 38px}.hero-layout{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:610px){.hero-layout{grid-template-columns:1fr}.hero-art{max-width:270px;justify-self:center;order:-1}h1{font-size:33px}.hero p{font-size:14.5px}.chapter{padding:37px 0 40px}.two-col,.three-col{grid-template-columns:1fr}.main{padding:0 18px 50px}.flow{gap:5px}.step-chain{gap:5px}.step-chain .step{padding:7px 8px;font-size:11px}.formula .equation{font-size:17px}.demo{padding:13px}.demo-head{display:block}.demo-controls{gap:8px}.demo-controls input[type=range]{width:125px}td,th{padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sidebar{transition:none}}
+
+.learn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0}.learn-grid>div{padding:14px 13px;border:1px solid var(--line);border-radius:10px;background:var(--white);min-height:102px}.learn-grid .n{font:italic 24px Georgia,serif;color:#b38c70}.learn-grid b{display:block;color:var(--ink);font-size:12.5px;margin:2px 0}.learn-grid small{font-size:11px;color:var(--muted);line-height:1.7;display:block}
+.micro{font-size:11px;color:#908276;line-height:1.9}.formula .equation.tight{font-size:18px;white-space:normal}.note-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:16px 0}.note-grid article{background:var(--white);border:1px solid var(--line);padding:14px 16px;border-radius:9px}.note-grid h4{margin:1px 0 6px;font-size:14px}.note-grid p{font-size:12px;line-height:1.75}.matdim{display:inline-block;padding:3px 6px;background:#eaf0ec;border-radius:5px;font-size:11px;color:#5a806d;font-weight:650}.eqstack{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0}.eqstack>div{padding:14px;background:var(--white);border:1px solid var(--line);border-radius:9px;min-width:0}.eqstack .formula{margin:7px 0;padding:8px}.eqstack p{font-size:12px;line-height:1.8}.callout-simple{border-left:3px solid #bf987b;padding:13px 15px;margin:15px 0 20px;color:#725744;background:#f9f0e7;border-radius:0 8px 8px 0;font-size:13px}.callout-simple.green{border-color:#779982;background:#eff5ef;color:#486957}.focusline{color:#846049;font-size:13px;font-weight:700;margin:16px 0 9px}.demo-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.demo-control-grid label{display:block;font-size:12px;font-weight:680}.demo-control-grid input{width:100%;accent-color:var(--accent)}.demo-control-grid output{font:750 13px Georgia,serif;color:#905f47}.demo-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:13px 0}.demo-stat-grid div{padding:10px;border-radius:7px;background:#f6f0e8;min-width:0}.demo-stat-grid small{display:block;color:#8d7b70;font-size:10px;line-height:1.5}.demo-stat-grid b{display:block;color:#6a4936;font:700 20px Georgia,serif;margin:3px 0}.demo-stat-grid .good{color:var(--green)}.demo-bottom{font-size:12px;color:#79685d;line-height:1.9}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}.chips button{border:1px solid #dfd2c4;background:#fff9f2;color:#80624f;border-radius:8px;padding:6px 11px;font:650 12px var(--sans)}.chips button.active{background:#e8d5c6;border-color:#ba8a69;color:#75462f}.formula small{display:block}.codeish{font:13px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;color:#745039}.route-link{display:flex;justify-content:space-between;align-items:center;border:1px solid #d8e3d9;background:#f1f6f0;padding:16px 19px;border-radius:10px;margin:23px 0;color:#557562;gap:12px}.route-link strong{display:block;font-size:14px;color:#557562}.route-link small{display:block;font-size:11px;margin-top:4px;color:#81998a}.route-link:hover{background:#e9f1e8}.footlinks{display:flex;justify-content:space-between;gap:12px;margin:24px 0;flex-wrap:wrap}.footlinks a{font-size:12px;color:#8d684f;border-bottom:1px solid #d7c4b6}.footlinks a:hover{color:#663b29}.svg-pad{padding:10px 11px 0}.svg-pad svg{display:block;width:100%;height:auto;max-width:100%}.overview-anchor{font-weight:720;color:#9b664c;border-bottom:1px dotted #d8ae95}.chip-hint{font-size:11px;color:#948074;margin-top:6px} .wide-fig svg{max-height:440px}
+@media(max-width:610px){.learn-grid,.note-grid{grid-template-columns:1fr}.eqstack{grid-template-columns:1fr}.demo-control-grid{grid-template-columns:1fr}.demo-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.demo-stat-grid b{font-size:17px}.route-link{padding:12px 14px}.figure-title{font-size:12px}.wide-fig svg{min-width:0}}
+
+/* Page 02 additions; same visual system as Page 01 */
+.hero-layout{grid-template-columns:minmax(0,1fr) 275px}.hero-art{min-width:0}
+.lesson-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:19px 0}.lesson-map>div{border:1px solid var(--line);background:var(--white);border-radius:10px;padding:14px 13px}.lesson-map .k{font:italic 24px Georgia,serif;color:#b58c71}.lesson-map b{display:block;font-size:12.8px;color:var(--ink);margin:2px 0}.lesson-map small{display:block;font-size:11.3px;line-height:1.75;color:var(--muted)}
+.figure svg{max-height:480px}.figure-inner{overflow:hidden}.formulas-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0}.formulas-two .formula{margin:0}.formulas-two .equation{font-size:19px;white-space:normal}.formula .equation.small{font-size:18px;white-space:normal}.line-formula{font:500 17px/2 Georgia,"Noto Serif SC",serif;color:#554133;word-break:break-word}.line-formula.indent{padding-left:20px}.inline-math{font:16px Georgia,"Noto Serif SC",serif;color:#73533f}.step-table{width:100%;border-collapse:collapse}.step-table td:first-child{width:40%;font-weight:600}.step-table .val{font-family:ui-monospace,Consolas,monospace;color:#647c69;font-size:12px;white-space:nowrap}.step-table th,.step-table td{padding:9px 12px}.step-table th{font-size:11px}
+.minicall{background:#f1f5f0;border:1px solid #d9e4d9;border-radius:10px;padding:15px 17px;margin:16px 0;color:#54725e;font-size:13px;line-height:1.9}.minicall strong{color:#4b6b56}.key-question{font-weight:700;color:#845e49;font-size:13px;margin:12px 0 9px}.number-bridge{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:16px 0}.number-bridge div{border:1px solid #eadccf;background:#fffdf9;border-radius:8px;padding:10px 7px;text-align:center}.number-bridge small{display:block;color:#9d8674;font-size:10px}.number-bridge b{color:#765743;font-family:Georgia,serif;font-size:17px}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:15px 0}.demo-panel{border:1px solid #e4d9cc;background:#fffaf3;border-radius:9px;padding:12px 14px}.demo-panel small{display:block;font-size:10.5px;color:#977f70}.demo-panel b{display:block;font:700 23px Georgia,serif;color:#9c694a;margin-top:2px}.demo-panel.secondary{background:#f1f6f0;border-color:#d9e7db}.demo-panel.secondary b{color:#5f866e}.demo label.range{display:block;font-size:12px;font-weight:650;color:#6e594c;line-height:1.9}.demo label.range input{display:block;width:100%;accent-color:var(--accent);margin:6px 0}.demo output{color:#965e42;font-weight:750;font-family:Georgia,serif}.demo-graph{border:1px solid #e7ded6;border-radius:9px;background:#faf8f4;overflow:hidden}.demo-graph svg{border:0!important;border-radius:0!important}
+.monostat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.monostat div{padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fffefa}.monostat small{display:block;font-size:10px;color:#927f70}.monostat strong{display:block;font:750 19px Georgia,serif;color:#785741;margin-top:4px}
+.warn{border-left:3px solid #c29275;border-radius:0 8px 8px 0;background:#f9eee5;color:#815d48;padding:13px 15px;font-size:12.5px;margin:15px 0}.footer-link{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;margin:25px 0}.footer-link a{border-bottom:1px solid #d5beac;color:#8f6045;font-size:12.5px}.footer-link a:hover{color:#563b2d}.next-route{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0;padding:16px 18px;border:1px solid #d4e1d6;background:#f0f6ef;border-radius:10px;color:#547765}.next-route strong{display:block;color:#50725c;font-size:14px}.next-route small{display:block;color:#8b9c8c;font-size:11px;margin-top:3px}.next-route:hover{background:#e8f2e8}.small-note{line-height:1.9}.formula .explain{line-height:1.9}.figure-title{line-height:1.7}.extra-compact p{font-size:13px;line-height:1.85}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 225px}}
+@media(max-width:820px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}}
+@media(max-width:610px){.lesson-map,.formulas-two{grid-template-columns:1fr}.number-bridge{grid-template-columns:repeat(2,1fr)}.demo-grid{grid-template-columns:1fr}.formula .equation{font-size:18px;white-space:normal}.figure svg{max-height:none}.number-bridge b{font-size:16px}}
+
+/* 03 · training and optimization: same visual identity as chapters 01–02 */
+.hero-layout{grid-template-columns:minmax(0,1fr) 270px}
+.hero-art{margin:0;min-width:0}.hero-art svg{width:100%;height:auto}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.trio>div{padding:13px 14px;border:1px solid var(--line);background:var(--white);border-radius:10px;min-width:0}
+.trio b{display:block;font-size:13px;color:#695343;margin-bottom:3px}.trio small{display:block;color:var(--muted);font-size:11px;line-height:1.72}
+.trio .index{font:italic 22px Georgia,serif;color:#b58c71;line-height:1.4}
+.formula .equation{white-space:normal}.formula .equation.tight{font-size:18px;white-space:normal}
+.formula .explain{line-height:1.9}.labelled-chart{border:1px solid var(--line);background:var(--white);border-radius:12px;overflow:hidden;margin:18px 0}.labelled-chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:9px 16px;font-size:11px;color:#806e60;padding:0 15px 13px}.legend i{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:6px;background:#b8876d;border-radius:3px}.legend i.green{background:#659179}.legend i.blue{background:#7095ae}
+.math-lines{font:18px/2 Georgia,'Noto Serif SC',serif;text-align:center;color:#59473a;padding:3px}.math-lines small{display:block;font:12px/1.7 var(--sans);color:#8e8074;margin-top:6px}
+.callout-green{border:1px solid #d7e3d8;background:#f0f6ef;border-radius:10px;padding:13px 16px;margin:14px 0;color:#5d7967;font-size:12.8px;line-height:1.9}.callout-green strong{color:#52705b}
+.note-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.note-chips span{border-radius:50px;border:1px solid #e7d9cb;background:#fffdfa;color:#83644f;padding:4px 10px;font-size:11px}
+.demo-section{border:1px solid #dfd1c3;background:#fffdf9;border-radius:13px;padding:17px;margin:22px 0}.demo-section h4{margin:0 0 6px;color:#714b37;font-size:14px}.demo-section .subnote{font-size:11px;color:#927f6f;line-height:1.8;margin:2px 0 12px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}.field-row label{display:block;font-size:11.5px;font-weight:700;color:#745b48}.field-row select,.field-row input[type=range]{width:100%;margin:7px 0 0}.field-row select{border:1px solid #dbccbf;border-radius:8px;background:#fff;padding:8px 9px;color:#6a5546}.field-row input[type=range]{accent-color:#a56f52}
+.demosvg{display:block;max-width:100%;width:100%;background:#faf9f6;border:1px solid #e4ded5;border-radius:9px;margin:13px auto 8px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.stats div{border:1px solid #e8dfd5;background:#faf7f1;border-radius:8px;padding:10px 12px;min-width:0}.stats small{display:block;font-size:10px;color:#9b8879;line-height:1.5}.stats strong{display:block;font:700 19px Georgia,serif;color:#795c48;overflow-wrap:anywhere}
+.demo-message{font-size:12px;line-height:1.85;color:#765e50;background:#f6eee5;border-radius:8px;padding:11px 13px;margin-top:12px}
+.pill-switch{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.pill-switch button{border:1px solid #dfcfc0;background:#fffaf4;color:#846551;padding:6px 12px;border-radius:7px;font-size:11px}.pill-switch button[aria-pressed=true]{background:#a77053;border-color:#a77053;color:white}
+.batch-dots{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:5px;margin:14px 0 8px}.batch-dot{height:19px;border-radius:5px;background:#ece5dc;border:1px solid #dfd5c7;transition:background .15s}.batch-dot.selected{background:#8db2a2;border:1px solid #6c9784}.batch-dot.outlier.selected{background:#c8a080;border-color:#b9896d}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.95em}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}.qa-grid .plain-panel{margin:0}.qa-grid p{margin:4px 0 0;font-size:12.4px}
+.small-demo-caption{font-size:11px;line-height:1.8;color:#958475}
+.next-route{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0;padding:16px 18px;border:1px solid #d4e1d6;background:#f0f6ef;border-radius:10px;color:#547765}.next-route strong{display:block;color:#50725c;font-size:14px}.next-route small{display:block;color:#8b9c8c;font-size:11px;margin-top:3px}.next-route:hover{background:#e8f2e8}
+.footer-link{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;margin:25px 0}.footer-link a{border-bottom:1px solid #d5beac;color:#8f6045;font-size:12.5px}.footer-link a:hover{color:#563b2d}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 225px}}
+@media(max-width:820px){.hero-layout{grid-template-columns:1fr}.hero-art{display:none}}
+@media(max-width:610px){.trio,.stats{grid-template-columns:1fr}.field-row,.qa-grid{grid-template-columns:1fr}.batch-dots{grid-template-columns:repeat(8,minmax(0,1fr))}.stats strong{font-size:17px}.formula .equation{font-size:18px}.formula .equation.tight{font-size:16px}.math-lines{font-size:16px}}
+
+
+/* Chapter 05: progressive representations */
+.hero-layout{grid-template-columns:minmax(0,1fr) 282px}
+.hero-art{margin:0}.hero-art svg{display:block;width:100%;height:auto}
+.module{border:1px solid #e2d4c7;border-radius:13px;background:#fffdfa;padding:18px;margin:22px 0}
+.module-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#775039;font-weight:750}
+.module-note{font-size:11.5px;color:#8e7c6e;line-height:1.8;margin:8px 0 12px}
+.formula .equation{white-space:normal}.formula .equation.tight{font-size:18px}
+.field-select,.field-range{appearance:auto;margin-top:5px;background:#fff;border:1px solid #dfd1c2;border-radius:8px;padding:8px 10px;font-size:12px;color:#5d5046;width:100%}
+.field-range{accent-color:var(--accent);padding:0;border:0;background:transparent}
+.controls{display:flex;flex-wrap:wrap;align-items:end;gap:13px;margin:13px 0}
+.controls label{min-width:160px;flex:1;font-size:11px;font-weight:720;color:#786354;line-height:1.55}
+.controls .live-number{color:#935d40;font-size:13px;font-weight:700}
+.readout{padding:11px 14px;background:#f7f1e8;border:1px solid #eadecf;border-radius:8px;font-size:12px;line-height:1.8;color:#756053}
+.readout strong{color:#7d533e}
+.repr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:18px 0}
+.repr-grid>div{background:#fffdfa;border:1px solid var(--line);border-radius:10px;padding:13px 12px;min-width:0}
+.repr-grid b{display:block;font:750 17px Georgia,serif;color:#835a43;margin-bottom:5px}
+.repr-grid strong{font-size:13px}
+.repr-grid small{font-size:10px;color:#9c8c7f;display:block;margin-top:7px}
+.figure .diagram-note{font-size:11px;color:#8a7567;margin-top:5px}
+.stage-svg{display:block;width:100%;height:auto}
+.schema-svg{width:100%;height:auto;display:block}
+.qa-grid,.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:17px 0}
+.qa-grid .plain-panel,.compare-grid .plain-panel{margin:0}.qa-grid .plain-panel p,.compare-grid .plain-panel p{font-size:12px}
+.checklist{list-style:none;padding:0;margin:12px 0}.checklist li{padding:10px 4px 10px 27px;border-bottom:1px solid #eae1d8;position:relative;font-size:13px}.checklist li:before{content:'□';position:absolute;left:4px;top:10px;color:#a67b60}
+.next-link{display:flex;justify-content:space-between;align-items:center;gap:15px;background:#edf3ee;border:1px solid #d8e4da;border-radius:10px;padding:17px 19px;margin:25px 0;color:#587967}.next-link strong{display:block;color:#567661;font-size:14px}.next-link small{display:block;color:#829486;font-size:11px}.next-link:hover{background:#e4efe7}
+.foot-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin:25px 0}.foot-links a{color:#93664d;font-size:12px;border-bottom:1px solid #d9c6b6}
+.source-links{font-size:11px;color:#9b8b7d;line-height:1.75;margin:17px 0}.source-links a{color:#8c634d;border-bottom:1px solid #d9c6b6}
+.interactive-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 12px}.interactive-grid>div{min-width:0}
+.grid-heading{text-align:center;font-size:11px;font-weight:730;color:#796250;margin:4px 0 7px}
+.heat-map{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;max-width:290px;margin:auto;width:100%}
+.heat-map.big{grid-template-columns:repeat(4,minmax(0,1fr))}
+.heat-cell{aspect-ratio:1.1;display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;border:1px solid #dfd8cf;border-radius:4px;color:#5e5045;cursor:pointer;transition:transform .12s,outline .12s}
+.heat-cell:hover{transform:translateY(-1px)}.heat-cell.selected{outline:2px solid #995b3d;outline-offset:1px}
+.heat-cell:focus-visible{outline:3px solid #995b3d;outline-offset:1px}
+.fpn-equation{font-size:11px;line-height:1.9;color:#8c7565;text-align:center;margin:4px 0 9px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:10.5px;color:#917c6d;margin-top:12px}
+.legend .swatch{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.mini-data{font:700 12px ui-monospace,monospace;color:#805843;background:#f8f1e9;border:1px solid #e9dccf;border-radius:6px;padding:3px 7px}
+.tab-row{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}
+.tab-row button{background:#fffdfa;border:1px solid #ded1c4;color:#816a57;border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:690}
+.tab-row button[aria-pressed=true]{background:#f0e0d1;border-color:#cba88d;color:#794b34}
+.section-note{line-height:1.85}
+@media(max-width:1110px){.hero-layout{grid-template-columns:minmax(0,1fr) 212px}}
+@media(max-width:900px){.hero-art{display:none}.hero-layout{grid-template-columns:1fr}}
+@media(max-width:610px){.repr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.interactive-grid,.qa-grid,.compare-grid{grid-template-columns:1fr}.hero-art{display:none}.module{padding:13px}.formula .equation.tight{font-size:16px}.heat-map{max-width:340px}.interactive-grid>div+div{margin-top:10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style></head><body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="mobile-bar"><b>沿途手记 / 深层网络与多尺度</b><button id="menuButton" type="button" aria-controls="sidebar" aria-expanded="false">☰ 目录</button></div>
+<div class="overlay" id="overlay" aria-hidden="true"></div>
+<div class="shell"><aside class="sidebar" id="sidebar" aria-label="阅读目录">
+<a class="brand" href="/">沿途手记<small>RESEARCH NOTES · STAGE 01</small></a>
+<a class="back" href="../">← 返回 · 从神经网络到深度视觉</a>
+<div class="loc"><span class="eyebrow">当前位置 / CURRENT PAGE</span><strong>深层网络与多尺度</strong><p>学习式视觉定位 / 深度视觉基础 / 05</p></div>
+<nav class="side-nav" aria-label="本篇目录"><a href="#opening" class="active"><span class="num">·</span>从上一站的问题开始</a>
+<a href="#boundary" class=""><span class="num">00</span>问题与研究边界</a>
+<a href="#depth" class=""><span class="num">01</span>为什么需要更深的网络</a>
+<a href="#backbone" class=""><span class="num">02</span>Backbone 与分层特征</a>
+<a href="#residual" class=""><span class="num">03</span>ResNet 与残差连接</a>
+<a href="#multiscale" class=""><span class="num">04</span>尺度与分辨率矛盾</a>
+<a href="#fpn" class=""><span class="num">05</span>FPN 怎样融合多尺度</a>
+<a href="#tradeoffs" class=""><span class="num">06</span>扩展方案与局限</a>
+<a href="#check" class=""><span class="num">07</span>最小验证与下一站</a></nav>
+<div class="side-bottom">上一篇 · <a href="../04-convolution-features/" style="color:#91694e">卷积与空间特征 ↖</a><p style="margin:10px 0 0">下一篇 · <a href="../06-prediction-localization/" style="color:#91694e">预测头与位置输出 ↗</a></p></div>
+</aside><main class="main"><article class="article">
+<nav class="crumbs" aria-label="页面路径"><a href="/">沿途手记</a><span>/</span><a href="/research/stage-01/">Stage 01</a><span>/</span><a href="../">从神经网络到深度视觉</a><span>/</span><span>深层网络与多尺度</span></nav>
+<header class="hero" id="opening"><div class="kicker">05 · DEEP NETWORKS · MULTISCALE FEATURES</div>
+<div class="hero-layout"><div><h1>深层网络与多尺度</h1><div class="sub">Deep Networks &amp; Multi-scale Representation</div>
+<p>上一篇研究了卷积如何从局部像素得到特征图。现在有两个新的问题：<strong>只靠几层局部计算，怎样理解更复杂的目标？而随着网络不断下采样，目标的位置和小细节又该怎么办？</strong></p>
+<p>这篇从深层特征开始，先理解 Backbone 怎样形成不同层级的表示，再看 ResNet 为什么引入残差连接，最后用 FPN 说明怎样兼顾多尺度信息。</p>
+<div class="tags"><span>Feature Hierarchy</span><span>Backbone</span><span>ResNet</span><span>Skip Connection</span><span>FPN</span><span>Feature Fusion</span></div></div><figure class="hero-art"><svg viewBox="0 0 286 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="从高分辨率浅层特征到低分辨率深层特征，再通过金字塔连接融合">
+<rect x="5" y="7" width="276" height="240" rx="16" fill="#f6f0e8" stroke="#e8d9cb"/>
+<text x="22" y="34" font-size="12" fill="#835c44" font-family="sans-serif" font-weight="bold">一张图 · 多个尺度</text>
+<g fill="#c4d4d3" stroke="#87a9ab" stroke-width="1"><rect x="28" y="65" width="99" height="99" rx="5"/><rect x="155" y="80" width="73" height="73" rx="5"/><rect x="237" y="94" width="28" height="28" rx="4"/></g>
+<g fill="none" stroke="#92aaaa" stroke-width=".7" opacity=".7"><path d="M52 65V164M77 65V164M101 65V164M28 90H127M28 115H127M28 140H127"/><path d="M179 80V153M203 80V153M155 104H228M155 128H228"/></g>
+<g fill="none" stroke="#b28669" stroke-width="2" stroke-linecap="round"><path d="M132 116H149m-6-5 6 5-6 5"/><path d="M229 117H236"/><path d="M251 130V185H90V167" stroke-dasharray="4 4"/><path d="M95 174L90 167L85 174"/></g>
+<text x="79" y="180" font-size="10" fill="#8c7460" text-anchor="middle">较密的空间网格</text><text x="197" y="169" font-size="10" fill="#8c7460" text-anchor="middle">更大范围的信息</text><text x="180" y="206" font-size="11" fill="#805e45" text-anchor="middle">多层级信息互补</text>
+</svg></figure></div>
+</header>
+<section class="chapter" id="boundary"><div class="chapter-kicker"><b>00</b> PROBLEM &amp; SCOPE</div>
+<h2>这篇究竟研究什么？</h2>
+<p>一层卷积能在局部提取响应；多层网络能逐渐组合这些局部信息。但定位需要的不止是“看懂物体”，还要保留<strong>物体在图像中的位置和尺度</strong>。</p>
+<div class="three-col"><div class="plain-panel"><span class="mini-label">PROBLEM A</span><b>为什么要加深？</b><p>让网络逐层组合表示，获得更大的上下文范围。</p></div><div class="plain-panel"><span class="mini-label">PROBLEM B</span><b>加深为什么难？</b><p>网络更复杂，优化会出现新的困难；残差连接如何缓解？</p></div><div class="plain-panel"><span class="mini-label">PROBLEM C</span><b>不同尺度如何兼顾？</b><p>较高分辨率与较丰富的上下文信息如何融合？</p></div></div>
+<div class="section-note"><strong>本篇边界：</strong>学习 Backbone、残差连接和多尺度融合的机制。卷积与感受野的计算不重复；分类/检测 Head、Anchor、NMS 等放到后续笔记。这里展示常见 CNN 结构，而不是规定所有深度视觉模型都必须使用 ResNet 或 FPN。</div>
+</section>
+
+<section class="chapter" id="depth"><div class="chapter-kicker"><b>01</b> WHY DEPTH?</div>
+<h2>既然卷积能提取特征，为什么还要堆很多层？</h2>
+<p>一个 3×3 卷积主要汇总邻近信息。连续堆叠后，后层特征可以利用前层已经提取的局部模式，形成更大范围的组合表示。比如从局部边缘、纹理响应，逐渐组合成与部件或整体有关的模式。<strong>这是一种常见观察，而不是“第几层必然识别什么”的固定规则。</strong></p>
+<div class="figure"><div class="figure-title">机制图 · 局部证据怎样被逐层组合</div><div class="figure-inner"><svg class="schema-svg" viewBox="0 0 760 206" role="img" aria-label="原始像素、局部模式、部件相关模式、较大范围特征之间的层级组合">
+<rect x="9" y="12" width="742" height="184" rx="12" fill="#fcfaf7" stroke="#e9e0d6"/>
+<g font-family="sans-serif" text-anchor="middle"><rect x="29" y="49" width="130" height="100" rx="8" fill="#f2e8de" stroke="#dbc7b7"/><text x="94" y="90" font-size="15" fill="#8a6550" font-weight="bold">Pixels</text><text x="94" y="116" font-size="11" fill="#9b816e">局部颜色 / 亮度</text>
+<rect x="221" y="49" width="130" height="100" rx="8" fill="#e9efef" stroke="#acc6c5"/><text x="286" y="90" font-size="15" fill="#5c8383" font-weight="bold">Low-level</text><text x="286" y="116" font-size="11" fill="#6f8e8c">局部纹理 / 结构</text>
+<rect x="413" y="49" width="130" height="100" rx="8" fill="#e9efef" stroke="#acc6c5"/><text x="478" y="90" font-size="15" fill="#5c8383" font-weight="bold">Mid-level</text><text x="478" y="116" font-size="11" fill="#6f8e8c">更大范围组合</text>
+<rect x="605" y="49" width="124" height="100" rx="8" fill="#e7f0e8" stroke="#a7c1ad"/><text x="667" y="90" font-size="15" fill="#5f886b" font-weight="bold">High-level</text><text x="667" y="116" font-size="11" fill="#779b80">更多上下文</text>
+<g stroke="#af9680" stroke-width="2" fill="none"><path d="M161 100H216m-7-6 7 6-7 6"/><path d="M354 100H409m-7-6 7 6-7 6"/><path d="M546 100H601m-7-6 7 6-7 6"/></g></g></svg></div><div class="figcap">网络越深，可能融合的输入范围越大，但表征内容依赖训练任务、模型结构与数据，不能把这里画成严格固定的人工语义层级。</div></div>
+<h3>1.1 · 深层真的一定比浅层好吗？</h3>
+<p>不一定。加深网络提供了构建复杂函数的机会，也带来更多计算、内存开销以及优化困难。<strong>表达能力更强 ≠ 训练必然更好 ≠ 推理必然更准确。</strong></p>
+<p>这就引出两个独立问题：如何把许多层组织成可复用的特征提取器，以及深层网络该怎样更容易被优化。</p>
+</section>
+
+<section class="chapter" id="backbone"><div class="chapter-kicker"><b>02</b> BACKBONE &amp; STAGES</div>
+<h2>Backbone 究竟输出什么？为什么不只取最后一层？</h2>
+<p>Backbone 是承担主要特征提取的网络主体。对于常见 CNN Backbone，它往往由几个 <strong>Stage（阶段）</strong> 组成：同一阶段内重复若干计算块，进入下一阶段时通常减小空间尺寸、调整通道数。后续任务可以使用最后一层，也可以使用多个阶段的输出。</p>
+<div class="figure"><div class="figure-title">机制图 · 分层特征 C2、C3、C4、C5（以常见 4 倍起始下采样配置为例）</div><div class="figure-inner"><svg viewBox="0 0 780 264" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Backbone从640像素输入经多个阶段得到160、80、40、20的分层特征图">
+<rect x="8" y="9" width="764" height="246" rx="12" fill="#fcfaf7" stroke="#e9e0d6"/>
+<g font-family="sans-serif" text-anchor="middle">
+<rect x="34" y="59" width="109" height="116" rx="8" fill="#eee3d7" stroke="#dbcbb9"/><text x="89" y="95" font-size="14" font-weight="bold" fill="#765940">图像</text><text x="89" y="117" font-size="12" fill="#89705d">640 × 640</text><text x="89" y="146" font-size="11" fill="#998476">RGB</text>
+<rect x="180" y="67" width="108" height="102" rx="8" fill="#e5ebe9" stroke="#a8bfba"/><text x="234" y="96" font-size="14" font-weight="bold" fill="#4b797a">C2</text><text x="234" y="117" font-size="12" fill="#6c8b88">160 × 160</text><text x="234" y="145" font-size="11" fill="#809b97">1/4</text>
+<rect x="325" y="77" width="107" height="82" rx="8" fill="#e4edeb" stroke="#a8bfba"/><text x="378" y="105" font-size="14" font-weight="bold" fill="#4b797a">C3</text><text x="378" y="125" font-size="12" fill="#6c8b88">80 × 80</text><text x="378" y="147" font-size="11" fill="#809b97">1/8</text>
+<rect x="470" y="88" width="108" height="62" rx="8" fill="#e4edeb" stroke="#a8bfba"/><text x="524" y="109" font-size="14" font-weight="bold" fill="#4b797a">C4</text><text x="524" y="127" font-size="12" fill="#6c8b88">40 × 40</text>
+<rect x="616" y="96" width="108" height="45" rx="8" fill="#d7e6de" stroke="#96b59f"/><text x="670" y="115" font-size="14" font-weight="bold" fill="#4d7b68">C5</text><text x="670" y="132" font-size="11" fill="#69977e">20 × 20</text>
+<g stroke="#b3947b" stroke-width="2" fill="none"><path d="M145 115H174m-7-6 7 6-7 6"/><path d="M290 115H319m-7-6 7 6-7 6"/><path d="M434 115H463m-7-6 7 6-7 6"/><path d="M580 115H609m-7-6 7 6-7 6"/></g>
+<text x="234" y="192" fill="#836e5d" font-size="11">较高分辨率</text><text x="670" y="192" fill="#836e5d" font-size="11">较大上下文范围</text>
+<text x="388" y="227" font-size="11" fill="#998477">各层特征同时拥有空间尺寸 H×W 和通道维度 C；图中仅标出空间大小</text>
+</g></svg></div><div class="figcap">示例输入 640×640：C2=160×160，C3=80×80，C4=40×40，C5=20×20。数字仅描述空间尺寸，完整特征还包括通道数。不同 Backbone 的阶段命名、尺度及输出可能不同。</div></div>
+<h3>2.1 · VGG 与 ResNet 在这里分别代表什么思想？</h3>
+<div class="two-col"><div class="plain-panel"><span class="mini-label">VGG · STACKED CONVOLUTIONS</span><b>通过规则的卷积堆叠构建深层表示</b><p>理解重复卷积、非线性与分阶段下采样怎样形成分层特征。这里只学习结构思想，不背不同 VGG 配置的层数清单。</p></div><div class="plain-panel"><span class="mini-label">RESNET · RESIDUAL BLOCKS</span><b>让更深的网络更容易被优化</b><p>在卷积块周围增加 Shortcut，将输入与残差分支相加，改善深层网络训练困难。它仍然可以产生多个尺度的 Backbone 特征。</p></div></div>
+<h3>2.2 · “通道多”与“分辨率高”是一回事吗？</h3>
+<p>不是。每个特征张量通常可写作 <code>[N, C, H, W]</code>：<code>H、W</code> 决定网格密度，<code>C</code> 决定特征通道数量。深层阶段可能具有更小的 <code>H×W</code> 和更多通道，但并不意味着它能够恢复降采样时失去的全部细节。</p>
+<div class="formula"><div class="formula-name">给定位置信息时常用的总下采样比例</div><div class="equation tight">stride<sub>effective</sub> = H<sub>input</sub> / H<sub>feature</sub></div><div class="explain">仅在输入与特征图尺寸为整倍数、裁剪填充等对齐条件明确时，可作为便捷的空间尺度描述。具体位置映射仍需使用上一章讨论的步长和像素中心约定。</div></div>
+</section>
+
+<section class="chapter" id="residual"><div class="chapter-kicker"><b>03</b> RESIDUAL LEARNING</div>
+<h2>层数增加之后，为什么 ResNet 要让输入“绕过去”？</h2>
+<p>如果直接堆叠许多层，较深网络有时会出现<strong>训练误差反而增加</strong>的退化现象。这不只是“测试集过拟合”，而是深层网络可能更难优化。残差学习将某个块要学习的映射改写为“相对于输入的变化量”。</p>
+<div class="figure"><div class="figure-title">机制图 · 普通映射与残差块的核心差别</div><div class="figure-inner"><svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="普通映射使用卷积模块F(x)得到输出，残差块则在输出端将输入x与F(x)相加">
+<rect x="8" y="9" width="744" height="242" rx="11" fill="#fcfaf7" stroke="#e9e0d6"/>
+<g font-family="sans-serif" font-size="13" text-anchor="middle" fill="#795941">
+<text x="190" y="36" font-weight="bold">普通映射</text><text x="556" y="36" font-weight="bold">残差映射</text>
+<rect x="38" y="100" width="72" height="49" rx="7" fill="#eee4d8" stroke="#dac8b6"/><text x="74" y="129">x</text>
+<rect x="155" y="100" width="117" height="49" rx="7" fill="#e1ecf0" stroke="#a4c1ce"/><text x="214" y="129">H(x)</text>
+<rect x="338" y="100" width="72" height="49" rx="7" fill="#eee4d8" stroke="#dac8b6"/><text x="374" y="129">x</text>
+<rect x="467" y="100" width="119" height="49" rx="7" fill="#e0edf0" stroke="#a4c1ce"/><text x="527" y="129">F(x)</text>
+<circle cx="636" cy="124" r="24" fill="#e8f0e8" stroke="#91b099"/><text x="636" y="129" font-size="24" fill="#5e8d73">+</text>
+<text x="708" y="129">y</text>
+<g stroke="#a88b74" fill="none" stroke-width="2"><path d="M111 125H151m-8-6 8 6-8 6"/><path d="M411 125H464m-8-6 8 6-8 6"/><path d="M587 125H610m-7-6 7 6-7 6"/><path d="M662 125H688m-7-6 7 6-7 6"/></g>
+<path d="M374 100V63H636V99" stroke="#a78365" stroke-width="2.2" fill="none"/><path d="M630 91l6 8 6-8" stroke="#a78365" stroke-width="2.2" fill="none"/>
+<text x="500" y="54" fill="#9c765b" font-size="11">Identity / Shortcut</text>
+<text x="190" y="199" font-size="12" fill="#8e7a69">直接学习 H(x)</text><text x="546" y="199" font-size="12" fill="#658672">学习残差 F(x)，输出 F(x)+x</text>
+</g></svg></div><div class="figcap">示意一个维度匹配的基本残差块。实际 ResNet 还可能包含卷积、归一化、激活、通道投影和下采样；Shortcut 不总是无需参数的恒等映射。</div></div>
+<div class="formula"><div class="formula-name">残差块的基本表达</div><div class="equation">y = F(x; W) + x</div><div class="explain">x 是输入，F 为带参数 W 的残差分支；若目标映射是 H(x)，残差分支学习 F(x)=H(x)−x。输入与 F 的形状必须可相加，尺寸或通道不同通常需投影 Shortcut 或其他对齐方式。</div></div>
+<h3>3.1 · 为什么这种形式有助于优化？</h3>
+<p>当理想映射接近恒等映射时，残差分支只需学会接近零的修正。反向传播时，直接加法也提供了一条梯度通路：</p>
+<div class="formula"><div class="formula-name">一维简化示意：从输出到输入的导数</div><div class="equation tight">dy/dx = 1 + dF(x)/dx</div><div class="explain">真实网络使用 Jacobian、矩阵乘法和非线性，且可能存在投影 Shortcut；这个公式是说明“恒等路径提供一项直接贡献”，不是保证任意深度都不会出现梯度爆炸或消失。</div></div>
+<div class="module" id="resDemo"><div class="module-title"><span>交互实验 · 有无 Shortcut，输出会怎样改变？</span><span class="mini-data">F(x) = 0.2x + 0.6</span></div>
+<p class="module-note">这里用一个人为设置的一维残差分支作演示，不代表真实模型训练后的参数。调整输入 x，并切换 Shortcut，可直接看到残差映射 y=F(x)+x 与普通映射 y=F(x) 的差别。</p>
+<div class="controls"><label>输入 x <span class="live-number" id="resXLabel">1.0</span><input class="field-range" id="resX" type="range" min="-2" max="2" step="0.1" value="1"></label>
+<label>是否加入恒等 Shortcut<select class="field-select" id="shortcut"><option value="yes">开启：y = F(x) + x</option><option value="no">关闭：y = F(x)</option></select></label></div>
+<svg viewBox="0 0 760 208" role="img" aria-label="残差分支与恒等通路示意，数值随输入与开关变化" id="resVisual" class="schema-svg" style="background:#fcfaf7;border:1px solid #eae0d7;border-radius:9px">
+<g font-family="sans-serif" text-anchor="middle" fill="#745a48"><rect x="32" y="78" width="120" height="63" rx="9" fill="#f4e9df" stroke="#dec7b5"/><text x="92" y="105" font-size="12">输入 x</text><text x="92" y="124" font-size="16" font-weight="bold" id="resInputText">1.0</text>
+<rect x="246" y="78" width="170" height="63" rx="9" fill="#e5eff1" stroke="#acc6ca"/><text x="330" y="105" font-size="12">残差分支 F(x)</text><text x="330" y="124" font-size="16" font-weight="bold" id="resFText">0.8</text>
+<circle cx="499" cy="111" r="27" fill="#eaf2e9" stroke="#a5c0a9"/><text x="499" y="117" font-size="25" id="resPlus">+</text>
+<rect x="603" y="78" width="127" height="63" rx="9" fill="#e6efe9" stroke="#9bb7a4"/><text x="665" y="105" font-size="12">输出 y</text><text x="665" y="124" font-size="16" font-weight="bold" id="resOutputText">1.8</text></g>
+<g stroke="#ad907a" stroke-width="2.5" fill="none"><path d="M154 110H242m-7-6 7 6-7 6"/><path d="M418 110H471m-7-6 7 6-7 6"/><path d="M527 110H598m-7-6 7 6-7 6"/></g><path id="resSkipPath" d="M92 77V34H499V82" fill="none" stroke="#a87a59" stroke-width="2.5"/><text x="295" y="26" fill="#9b775d" font-size="11" text-anchor="middle" id="resSkipText">恒等 Shortcut：直接传递 x</text>
+</svg>
+<div class="readout" id="resReadout" aria-live="polite">F(1) = 0.8；开启 Shortcut 后 y = 0.8 + 1 = 1.8。</div>
+<p class="small-note">这里展示的是计算路径，不是性能对比。残差连接改善优化能力需要通过更完整的网络、训练目标和数据验证。</p></div>
+<div class="section-note green"><strong>本节记住的不是“ResNet 越深越好”。</strong> 残差连接主要提供一种更容易优化深层网络的参数化与信息路径；是否值得增加深度仍取决于任务与代价。</div>
+</section>
+
+<section class="chapter" id="multiscale"><div class="chapter-kicker"><b>04</b> SPATIAL RESOLUTION &amp; SCALE</div>
+<h2>深层特征能看更大范围，为什么还需要浅层特征？</h2>
+<p>深层特征通常能够整合更广的上下文，但经过多次下采样后，空间网格变稀。一个小物体如果在 640×640 的图像里宽 12 像素，到总步长 32 的特征图上，宽度只有约 <strong>0.375 个网格间距</strong>。这并不等于“小目标一定不可检测”，而是说明依赖单一低分辨率特征会更困难。</p>
+<div class="repr-grid"><div><b>C2</b><strong>160 × 160</strong><small>空间步长约 4</small></div><div><b>C3</b><strong>80 × 80</strong><small>空间步长约 8</small></div><div><b>C4</b><strong>40 × 40</strong><small>空间步长约 16</small></div><div><b>C5</b><strong>20 × 20</strong><small>空间步长约 32</small></div></div>
+<div class="formula"><div class="formula-name">仅作网格尺度的粗略换算</div><div class="equation tight">w<sub>feature</sub> ≈ w<sub>input</sub> / S</div><div class="explain">w 为物体宽度，S 为特征层相对输入的总步长。这个比例不表示实际特征包含多少“完整目标像素”，更不能单独预测检测成功率。</div></div>
+<h3>4.1 · 图像金字塔与特征金字塔，是同一件事吗？</h3>
+<div class="compare-grid"><div class="plain-panel"><span class="mini-label">IMAGE PYRAMID</span><b>先把输入图像缩放多次</b><p>在不同尺寸的图像上提取或比较特征；直观，但重复计算可能比较昂贵。</p></div><div class="plain-panel"><span class="mini-label">FEATURE PYRAMID</span><b>利用一个网络的多层特征</b><p>从不同 Stage 获取多种空间尺度的特征，再通过融合让它们更适合后续预测。</p></div></div>
+<p>直接使用 <code>C3 / C4 / C5</code> 这些层，已经是多尺度特征；但它们的信息质量和语义抽象层次不一致。<strong>FPN 的关键就是在不同尺度之间传递和融合信息。</strong></p>
+</section>
+
+<section class="chapter" id="fpn"><div class="chapter-kicker"><b>05</b> FEATURE PYRAMID NETWORK</div>
+<h2>FPN 怎么让不同尺度的特征彼此补充？</h2>
+<p>经典 FPN 利用 Backbone 自下而上的分层特征，在其上增加<strong>自顶向下路径（Top-down）</strong>与<strong>横向连接（Lateral Connection）</strong>。高层特征先上采样到较大的空间尺寸，再与对应阶段的特征融合，使多个输出层都能够利用高层信息。</p>
+<div class="figure"><div class="figure-title">机制图 · C3/C4/C5 经横向连接与自顶向下融合形成 P3/P4/P5</div><div class="figure-inner"><svg viewBox="0 0 780 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FPN示意：Backbone自下而上C3 C4 C5多尺度特征，通过侧向1x1卷积、上采样和逐元素相加得到P3 P4 P5">
+<defs><marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7" fill="none" stroke="#af8d74" stroke-width="1.4"/></marker></defs>
+<rect x="8" y="8" width="764" height="324" rx="12" fill="#fcfaf7" stroke="#e9e0d6"/>
+<g font-family="sans-serif" text-anchor="middle">
+<text x="124" y="32" font-size="12" fill="#9a7960" font-weight="bold">BACKBONE</text><text x="650" y="32" font-size="12" fill="#5a8e73" font-weight="bold">FPN</text>
+<g font-size="14" font-weight="bold" fill="#477a83">
+<rect x="62" y="252" width="140" height="52" rx="8" fill="#e5eff0" stroke="#a8c4c6"/><text x="132" y="283">C3 · 80×80</text>
+<rect x="62" y="160" width="140" height="52" rx="8" fill="#e5eff0" stroke="#a8c4c6"/><text x="132" y="191">C4 · 40×40</text>
+<rect x="62" y="68" width="140" height="52" rx="8" fill="#e5eff0" stroke="#a8c4c6"/><text x="132" y="99">C5 · 20×20</text>
+</g>
+<g font-size="11" fill="#92745d"><rect x="250" y="75" width="115" height="38" rx="7" fill="#f7efe7" stroke="#e1c9b7"/><text x="307" y="99">1×1 Conv</text><rect x="250" y="167" width="115" height="38" rx="7" fill="#f7efe7" stroke="#e1c9b7"/><text x="307" y="191">1×1 Conv</text><rect x="250" y="259" width="115" height="38" rx="7" fill="#f7efe7" stroke="#e1c9b7"/><text x="307" y="282">1×1 Conv</text></g>
+<g font-size="15" font-weight="bold" fill="#507d64"><rect x="582" y="69" width="125" height="49" rx="8" fill="#dfece2" stroke="#9cb9a3"/><text x="644" y="99">P5 · 20×20</text><rect x="582" y="161" width="125" height="49" rx="8" fill="#dfece2" stroke="#9cb9a3"/><text x="644" y="191">P4 · 40×40</text><rect x="582" y="253" width="125" height="49" rx="8" fill="#dfece2" stroke="#9cb9a3"/><text x="644" y="283">P3 · 80×80</text></g>
+<g stroke="#a58c78" stroke-width="2" fill="none" marker-end="url(#arr)"><path d="M202 94H245"/><path d="M365 94H576"/><path d="M202 186H245"/><path d="M365 186H445"/><path d="M202 278H245"/><path d="M365 278H445"/><path d="M645 120V145H469V166"/><path d="M645 212V237H469V258"/></g>
+<circle cx="469" cy="186" r="17" fill="#edf4ee" stroke="#9eb9a6"/><text x="469" y="192" font-size="20" fill="#6d987d">+</text>
+<circle cx="469" cy="278" r="17" fill="#edf4ee" stroke="#9eb9a6"/><text x="469" y="284" font-size="20" fill="#6d987d">+</text>
+<g stroke="#9cb69f" stroke-width="2.1" fill="none"><path d="M487 186H578M487 278H578"/></g>
+<text x="526" y="147" font-size="10.5" fill="#7f9987">↑ 2× 上采样</text><text x="523" y="238" font-size="10.5" fill="#7f9987">↑ 2× 上采样</text>
+<text x="391" y="318" font-size="10.5" fill="#958274">示意忽略平滑卷积、更多 pyramid levels；加法前须对齐空间尺寸和通道数</text>
+</g></svg></div><div class="figcap">简化的三层 FPN。经典论文通常还包含 P2 及输出平滑卷积等操作。图中展示的融合为常见的逐元素相加；前提是空间尺寸与通道数对齐。</div></div>
+<h3>5.1 · 为什么要先使用 1×1 Conv？</h3>
+<p>不同 Backbone Stage 的通道数往往不同，而逐元素相加要求通道一致。横向 <code>1×1 Conv</code> 可以把不同层的通道投影到同一个宽度；上采样则对齐 <code>H、W</code>。两者解决的是<strong>不同维度的对齐</strong>，不能互相替代。</p>
+<div class="formula"><div class="formula-name">简化的 FPN 融合公式</div><div class="equation tight">P<sub>4</sub> = Conv<sub>1×1</sub>(C<sub>4</sub>) + Up(P<sub>5</sub>)</div>
+<div class="equation tight">P<sub>3</sub> = Conv<sub>1×1</sub>(C<sub>3</sub>) + Up(P<sub>4</sub>)</div>
+<div class="explain">Up 表示空间上采样到目标层尺寸；这里把融合后的中间特征统一记为 P。经典 FPN 还会对融合结果使用 3×3 平滑卷积，精确命名可区分中间特征和最终 P 输出。</div></div>
+<h3>5.2 · 直接把两张特征图相加，实际发生了什么？</h3>
+<p>只看最小数值例子。设横向投影后的 <code>C3</code> 是 4×4，较深层的 <code>P4</code> 是 2×2，使用最近邻上采样放大到 4×4，再逐位置相加。现实网络会有更多通道和可学习权重，但<strong>空间尺寸对齐 → 相加融合</strong>这一机制是清楚的。</p>
+<div class="module" id="fpnDemo"><div class="module-title"><span>交互实验 · 一次简化 FPN 的逐元素融合</span><span class="mini-data">4×4 ← 2×2</span></div>
+<p class="module-note">数字是人为构造的单通道特征，用来理解上采样与相加，不是训练模型的真实特征响应。切换显示对象并点击方格，可查看每个位置的来源。</p>
+<div class="tab-row" role="group" aria-label="特征融合显示模式"><button type="button" data-mode="shallow" aria-pressed="false">只看 C3</button><button type="button" data-mode="deep" aria-pressed="false">上采样 P4</button><button type="button" data-mode="sum" aria-pressed="true">FPN 融合结果</button></div>
+<div class="interactive-grid"><div><div class="grid-heading">高分辨率横向特征 C3 · 4×4</div><div class="heat-map" id="fpnShallow"></div></div><div><div class="grid-heading">上采样后的高层特征 Up(P4) · 4×4</div><div class="heat-map" id="fpnDeep"></div></div></div>
+<div class="fpn-equation">同位置相加，得到 4×4 的融合结果 P3</div><div style="max-width:285px;margin:0 auto"><div class="grid-heading">P3 · 当前选择的显示模式</div><div class="heat-map big" id="fpnResult"></div></div>
+<div class="readout" id="fpnReadout" aria-live="polite">选择任意方格，查看具体计算。</div>
+<p class="small-note">真实 FPN 的特征不保证相加后数值更大就代表目标更明显；这种数值演示只解释信息来源和张量操作。</p></div>
+<h3>5.3 · FPN 解决了什么，没有解决什么？</h3>
+<div class="two-col"><div class="plain-panel"><span class="mini-label">解决的问题</span><b>让多个空间尺度都获得更丰富的上下文</b><p>在较高空间分辨率的层级上引入深层信息，便于后续模型利用不同尺度的特征。</p></div><div class="plain-panel"><span class="mini-label">仍然存在的问题</span><b>融合并不能凭空恢复已经丢失的信息</b><p>小物体可能在早期下采样时已损失关键细节；融合策略、对齐方式、计算代价仍影响结果。</p></div></div>
+</section>
+
+<section class="chapter" id="tradeoffs"><div class="chapter-kicker"><b>06</b> EXTENSIONS &amp; LIMITATIONS</div>
+<h2>FPN 之后，还值得知道哪些结构？</h2>
+<p>这里不按论文发展史逐个研究网络，而是认识后续改动通常在解决哪类问题。</p>
+<div class="table-wrap"><table><thead><tr><th>技术思路</th><th>关注的问题</th><th>当前需要学到哪里</th></tr></thead><tbody>
+<tr><td>ResNet / Bottleneck</td><td>深层网络的残差学习、参数和计算效率</td><td>理解 Shortcut、维度对齐；不需背全部层配置</td></tr>
+<tr><td>FPN</td><td>把深层信息传到多个不同分辨率的特征层</td><td>能看懂横向投影、上采样和相加</td></tr>
+<tr><td>PAN / PANet 类路径增强</td><td>进一步加强较低层到较高层的信息传播</td><td>理解它新增自下而上的融合路径即可</td></tr>
+<tr><td>BiFPN 等融合结构</td><td>跨尺度双向融合、权重与效率</td><td>认识为不同特征分配可学习融合权重的思路</td></tr>
+<tr><td>Transformer Backbone</td><td>不只依赖卷积来组织视觉表示</td><td>知道它是另一类表征架构，后续单独学习</td></tr>
+</tbody></table></div>
+<div class="qa-grid"><div class="plain-panel"><b>网络越深就越好吗？</b><p>不一定。需要在能力、数据、优化、推理时延和显存之间权衡。</p></div><div class="plain-panel"><b>FPN 就能保证小目标识别好吗？</b><p>不能。输入分辨率、标注、训练策略、目标实际像素尺度同样重要。</p></div><div class="plain-panel"><b>每个模型都有独立 Neck 吗？</b><p>不是。Backbone、Neck、Head 是便于理解的模块分工，不是必须存在的统一接口。</p></div><div class="plain-panel"><b>为什么不在这篇详细研究 YOLO 的 Neck？</b><p>这篇学习共性机制；具体检测结构、预测头和输出解码放在目标检测章节。</p></div></div>
+<div class="section-note"><strong>最重要的边界：</strong>ResNet 处理的是深层网络的表示与优化；FPN 处理的是跨尺度特征融合。<strong>两者可以组合，但不是必须依次选用的固定算法步骤。</strong></div>
+</section>
+
+<section class="chapter" id="check"><div class="chapter-kicker"><b>07</b> MINIMUM CHECK</div>
+<h2>学到什么程度，就可以进入预测头？</h2>
+<p>这篇不需要复现 ResNet-50 或完整 FPN。能够独立解释下面几个问题，就已经有足够基础：</p>
+<ul class="checklist"><li>为什么卷积层级加深后，可以组合更大范围的信息？深度增加为什么不保证性能提升？</li><li>给定 <code>C3=80×80</code>、<code>C4=40×40</code>、<code>C5=20×20</code>，知道它们通常来自哪里，空间步长分别是多少。</li><li>能画出并解释 <code>y = F(x) + x</code>，知道 Shortcut 在何时需要投影对齐。</li><li>能用两张小矩阵演示：1×1 通道投影的作用、上采样的空间对齐，以及 FPN 的逐元素加法。</li><li>能说清 FPN 与图像金字塔的区别，并解释为什么多尺度融合不等于恢复全部细节。</li></ul>
+<div class="final-line">深层 Backbone 让网络逐步形成不同尺度的视觉表示；ResNet 帮助深层网络优化，FPN 则把不同尺度的信息融合起来。它们准备好了可用于定位的特征，但<strong>特征怎样变成具体的坐标、目标框或区域</strong>，仍需下一篇回答。</div>
+<a class="next-link" href="../06-prediction-localization/"><span><strong>下一篇 · 06 预测头与位置输出</strong><small>有了多尺度特征图，网络究竟怎样产生类别、BBox、Mask 与关键点？</small></span><span style="font-size:23px" aria-hidden="true">↗</span></a>
+<div class="foot-links"><a href="../04-convolution-features/">← 上一篇 · 卷积与空间特征</a><a href="../">返回 · 从神经网络到深度视觉</a></div>
+<div class="source-links"><strong>进一步阅读（原始论文）：</strong> <a href="https://arxiv.org/abs/1512.03385" target="_blank" rel="noopener noreferrer">Deep Residual Learning for Image Recognition · 2015 / CVPR 2016</a> · <a href="https://openaccess.thecvf.com/content_cvpr_2017/html/Lin_Feature_Pyramid_Networks_CVPR_2017_paper.html" target="_blank" rel="noopener noreferrer">Feature Pyramid Networks for Object Detection · CVPR 2017</a></div>
+</section>
+<footer class="footer">沿途手记 · Stage 01 / 二维目标定位 / 学习式视觉定位 / 深度视觉基础 / 深层网络与多尺度<br>建议保存到 <code>03-learned-vision/02-deep-vision/05-deep-multiscale/index.html</code>，以使用相对路径导航。</footer>
+</article></main></div><script>
+(()=>{
+  const byId=id=>document.getElementById(id);
+  const sidebar=byId('sidebar'), menu=byId('menuButton'), overlay=byId('overlay');
+  function setMenu(open){sidebar.classList.toggle('open',open);overlay.classList.toggle('show',open);menu.setAttribute('aria-expanded',String(open));document.body.style.overflow=(open&&innerWidth<=820)?'hidden':'';}
+  menu.addEventListener('click',()=>setMenu(!sidebar.classList.contains('open')));
+  overlay.addEventListener('click',()=>setMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+  sidebar.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+  const anchors=[...document.querySelectorAll('.side-nav a[href^="#"]')];
+  const sections=anchors.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  let pending=false;
+  function onScroll(){pending=false;const y=scrollY+Math.min(innerHeight*.35,170);let active=0;sections.forEach((el,i)=>{if(el.offsetTop<=y)active=i});anchors.forEach((a,i)=>a.classList.toggle('active',i===active));const max=document.documentElement.scrollHeight-innerHeight;byId('progress').style.width=(max>0?Math.min(100,Math.max(0,scrollY/max*100)):0)+'%';}
+  addEventListener('scroll',()=>{if(!pending){pending=true;requestAnimationFrame(onScroll)}},{passive:true});onScroll();
+
+  function fmt(v){return Number(v.toFixed(2)).toString()}
+  function drawResidual(){
+    const x=+byId('resX').value, fx=0.2*x+0.6, enabled=byId('shortcut').value==='yes', y=fx+(enabled?x:0);
+    byId('resXLabel').textContent=fmt(x);byId('resInputText').textContent=fmt(x);byId('resFText').textContent=fmt(fx);byId('resOutputText').textContent=fmt(y);
+    byId('resPlus').textContent=enabled?'+':'→';
+    byId('resSkipPath').style.opacity=enabled?'1':'.08';byId('resSkipText').textContent=enabled?'恒等 Shortcut：直接传递 x':'Shortcut 已关闭';
+    byId('resReadout').innerHTML='F('+fmt(x)+') = '+fmt(fx)+'；'+(enabled?'开启 Shortcut：y = '+fmt(fx)+' + ('+fmt(x)+') = <strong>'+fmt(y)+'</strong>。':'关闭 Shortcut：y = F(x) = <strong>'+fmt(y)+'</strong>。');
+  }
+  byId('resX').addEventListener('input',drawResidual);byId('shortcut').addEventListener('change',drawResidual);drawResidual();
+
+  const shallow=[[1,2,1,0],[2,4,3,1],[1,3,5,2],[0,1,2,1]];
+  const deep2=[[3,5],[6,2]];
+  const up=Array.from({length:4},(_,r)=>Array.from({length:4},(_,c)=>deep2[Math.floor(r/2)][Math.floor(c/2)]));
+  const sum=shallow.map((row,r)=>row.map((v,c)=>v+up[r][c]));
+  let mode='sum',pick=[1,2];
+  function colorFor(v,max){const t=Math.min(1,Math.max(0,v/max));return 'hsl(144 25% '+(96-39*t)+'%)'}
+  function drawGrid(id, matrix, max){
+    byId(id).innerHTML=matrix.map((row,r)=>row.map((v,c)=>'<button type="button" class="heat-cell '+(r===pick[0]&&c===pick[1]?'selected':'')+'" data-r="'+r+'" data-c="'+c+'" style="background:'+colorFor(v,max)+'" aria-label="行'+(r+1)+' 列'+(c+1)+' 数值'+v+'">'+v+'</button>').join('')).join('');
+    byId(id).querySelectorAll('.heat-cell').forEach(b=>b.addEventListener('click',()=>{pick=[+b.dataset.r,+b.dataset.c];drawFPN()}));
+  }
+  function drawFPN(){
+    drawGrid('fpnShallow',shallow,11);drawGrid('fpnDeep',up,11);
+    drawGrid('fpnResult',mode==='sum'?sum:mode==='shallow'?shallow:up,11);
+    document.querySelectorAll('[data-mode]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.mode===mode)));
+    const [r,c]=pick,a=shallow[r][c],b=up[r][c],d=a+b;
+    byId('fpnReadout').innerHTML='选中位置 <strong>('+ (r+1) +', '+(c+1)+')</strong>：C3='+a+'，Up(P4)='+b+'，相加得到 P3=<strong>'+d+'</strong>。'+(mode==='sum'?' 当前展示融合结果。':mode==='deep'?' 当前只展示上采样的深层信息。':' 当前只展示横向特征。');
+  }
+  document.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{mode=btn.dataset.mode;drawFPN()}));drawFPN();
+})();
+</script></body></html>

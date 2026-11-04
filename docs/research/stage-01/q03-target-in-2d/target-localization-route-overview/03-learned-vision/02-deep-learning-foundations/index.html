@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f3">
+  <meta name="description" content="沿途手记｜从神经网络到深度视觉：六篇基础学习路线。">
+  <title>从神经网络到深度视觉｜沿途手记</title>
+  <style>
+    :root { color-scheme:light; --paper:#faf8f3;--sidebar:#f6f3ec;--paper2:#fffefa;--ink:#483d34;--body:#62584e;--muted:#928579;--line:#e7ddd1;--rust:#ae7356;--sage:#658575;--pale:#f7eee5;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif }
+    *{box-sizing:border-box} html{scroll-behavior:smooth;scroll-padding-top:25px} body{margin:0;background:var(--paper);color:var(--body);font:14px/1.85 var(--sans);-webkit-font-smoothing:antialiased} a{color:inherit;text-decoration:none} a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:4px} ::selection{background:#e9d3c3;color:#443429}
+    .layout{display:grid;grid-template-columns:267px minmax(0,1fr);min-height:100vh}.side{position:sticky;top:0;height:100dvh;overflow-y:auto;padding:30px 20px 22px;background:var(--sidebar);border-right:1px solid #e4dcd2;display:flex;flex-direction:column;scrollbar-width:thin;z-index:21}.brand{font:750 21px/1.4 var(--serif);color:var(--ink);padding:0 10px 23px;border-bottom:1px solid var(--line)}.brand small{display:block;color:#aa9b8c;font:11px/1.8 var(--sans);margin-top:4px}.back{display:block;margin:19px 3px 24px;background:#fffef9;border:1px solid #e4d7c8;border-radius:9px;padding:11px 13px;font-size:12px;color:#856c58}.back:hover{background:white;border-color:#cfae98}.small-label{font-size:10px;letter-spacing:.13em;color:#a59484;font-weight:800}.place{padding:0 10px 23px}.place h2{font:750 16px/1.6 var(--serif);color:var(--ink);margin:9px 0 1px}.place p{font-size:11px;color:#918479;line-height:1.8;margin:0}.nav{border-top:1px solid var(--line);padding-top:20px}.nav .small-label{padding-left:10px;display:block;margin-bottom:8px}.nav a{display:flex;gap:11px;align-items:center;padding:10px 11px;color:#74685f;font-size:12px;border-radius:8px;line-height:1.55}.nav a:hover{background:#efe8e0}.nav a.active{background:#f0e5db;color:#915d44;font-weight:750}.nav a .index{color:#a99a8b;font-size:10px;min-width:25px}.nav a.active .index{color:#ab7558}.side-foot{margin-top:auto;padding:17px 10px 0;border-top:1px solid var(--line);color:#a99c90;font-size:10px}.side-foot a{font-size:11px;color:#61816e;display:block;margin-top:8px}.side-foot a:hover{text-decoration:underline}
+    .main{min-width:0;padding:0 48px 70px}.inner{max-width:890px;margin:0 auto}.crumb{min-height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:11px;color:#97897c}.crumb a:hover{color:#a2694e}.crumb b{color:#77665a;font-weight:670}
+    .hero{padding:55px 0 43px;border-bottom:1px solid var(--line)}.eyebrow{font-size:11px;letter-spacing:.14em;color:var(--rust);font-weight:800}.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:35px;align-items:center;margin-top:12px}h1,h2,h3{font-family:var(--serif);color:var(--ink)}h1{font-size:clamp(29px,3.1vw,39px);line-height:1.45;letter-spacing:-.022em;margin:0 0 9px}.latin{font:italic 12px Georgia,serif;color:#a08f80;margin:0 0 25px}.hero p{font-size:14.5px;line-height:2.05;margin:0 0 13px}.hero p:last-child{margin-bottom:0} strong{color:#7a503e}.art{width:100%;margin:0}.art svg{display:block;width:100%;height:auto}.art figcaption{text-align:center;font-size:10px;color:#a09283;margin-top:9px}
+    .section{padding:47px 0 49px;border-bottom:1px solid var(--line);scroll-margin-top:20px}.sec-id{font-size:10.5px;letter-spacing:.1em;color:#a57d66;font-weight:760;margin-bottom:9px}.sec-id em{font:italic 17px Georgia;color:#ad795a;margin-right:10px}.section h2{font-size:clamp(23px,2.3vw,29px);line-height:1.5;margin:0 0 11px}.intro{color:#7a6c61;line-height:2;margin:0 0 23px}.outline{display:grid;grid-template-columns:1fr 42px 1fr;align-items:stretch;gap:11px;margin-top:22px}.outline .panel{background:#fffefa;border:1px solid #e7dacc;border-radius:11px;padding:18px 19px}.outline .panel b{font:750 16px var(--serif);color:#6d4e3d;display:block;margin-bottom:9px}.outline .panel p{margin:0;font-size:12.5px;line-height:1.83;color:#766b62}.outline .middle{display:grid;place-items:center;color:#bd9881;font-size:25px}.outline .panel:last-child{border-color:#dce6de}.outline .panel:last-child b{color:#587564}
+    .list{display:grid;gap:13px;margin-top:22px}.item{display:grid;grid-template-columns:51px minmax(0,1fr) 20px;align-items:start;gap:16px;border-radius:11px;border:1px solid #e3d8ca;background:var(--paper2);padding:20px 21px 19px;transition:background .18s,border-color .18s,transform .18s}.item:hover{background:#fffbf7;border-color:#cdb19d;transform:translateY(-1px)}.item .num{font:italic 28px/1.25 Georgia,serif;color:#b28065}.item h3{font-size:17px;margin:0 0 8px;line-height:1.55}.item .q{font-size:13.5px;font-weight:700;color:#735440;margin:0 0 5px;line-height:1.8}.item .desc{color:#766a60;font-size:12.6px;line-height:1.88;margin:0 0 8px}.item .tags{color:#a19082;font-size:11px;letter-spacing:.006em}.item .linkhint{font-size:11px;color:#658373;font-weight:730;margin-top:7px}.item .arr{font-size:21px;color:#b0866f;line-height:1.3}.visual .num,.visual .arr{color:#779784}.visual .item{border-top:2px solid #a6bba9}.foundation .item{border-top:2px solid #d0a993}
+    .divider-note{display:flex;gap:15px;align-items:center;padding:15px 19px;background:#f4eee6;border-radius:10px;margin-top:20px;color:#7b6554;font-size:12.5px;line-height:1.9}.divider-note .tiny-arrow{font-size:22px;color:#b48a72;flex:none}.diagram{background:#fffefa;border:1px solid #e6dace;border-radius:12px;padding:13px;margin:18px 0 14px}.diagram svg{display:block;width:100%;height:auto}.diagram-caption{font-size:11px;color:#948578;margin:0 0 22px}.bottom{padding:46px 0 14px}.bottom h2{font-size:25px;margin:0 0 15px}.bottom p{margin:0 0 18px;line-height:1.95}.end-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin:18px 0 20px}.end-grid a{display:flex;flex-direction:column;gap:7px;padding:16px;border:1px solid #dfe5dc;background:#f7faf5;border-radius:10px}.end-grid a:hover{background:#eff6ed;border-color:#b9cfb8}.end-grid a b{font-size:14px;color:#526d5c}.end-grid a span{font-size:11.5px;color:#758577;line-height:1.75}.footer{font-size:10.5px;color:#a99c90;border-top:1px solid var(--line);padding-top:18px;margin-top:37px}.mobile-top,.shade,.close{display:none}.progress{position:fixed;top:0;left:0;height:3px;background:#b57d60;width:0;z-index:40;pointer-events:none}
+    @media(max-width:1080px) and (min-width:861px){.layout{grid-template-columns:239px minmax(0,1fr)}.side{padding-left:13px;padding-right:13px}.main{padding:0 32px 65px}.hero-grid{grid-template-columns:minmax(0,1fr) 220px;gap:21px}}
+    @media(max-width:860px){html{scroll-padding-top:73px}.layout{display:block}.side{position:fixed;top:0;left:0;width:min(316px,85vw);height:100dvh;transform:translateX(-108%);visibility:hidden;transition:transform .2s,visibility .2s;z-index:52;box-shadow:12px 0 36px #2b1e1422}.side.open{transform:translateX(0);visibility:visible}.shade.open{display:block;position:fixed;inset:0;background:#291d1659;z-index:51}.mobile-top{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:0 19px;height:57px;background:#faf8f3ee;border-bottom:1px solid var(--line);backdrop-filter:blur(12px);z-index:42}.mobile-top a{font-size:12px;font-weight:750;color:#775b48}.mobile-top button,.close{background:#fffefa;color:#765f51;border:1px solid #e3d7ca;border-radius:8px;padding:6px 10px;font-size:12px}.close{display:block;position:absolute;top:24px;right:16px;font-size:19px;padding:2px 9px}.main{padding:0 23px 62px}.crumb{min-height:52px}.section{scroll-margin-top:75px}}
+    @media(max-width:570px){.hero{padding:38px 0 34px}.hero-grid{grid-template-columns:1fr;gap:22px}.art{max-width:290px;justify-self:center;order:-1}.hero h1{font-size:29px}.hero p{font-size:14px}.section{padding:40px 0}.outline{grid-template-columns:1fr;gap:8px}.outline .middle{transform:rotate(90deg);height:15px}.item{grid-template-columns:35px minmax(0,1fr) 14px;gap:10px;padding:17px 13px}.item .num{font-size:23px}.item h3{font-size:16px}.item .q{font-size:12.7px}.item .desc{font-size:12px}.end-grid{grid-template-columns:1fr}.end-grid a{padding:14px}.diagram{padding:6px}.divider-note{padding:13px}.bottom{padding-top:38px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.side,.item{transition:none}}@media print{.side,.mobile-top,.shade,.progress{display:none!important}.layout{display:block}.main{padding:0}.inner{max-width:none}}
+  </style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="mobile-top"><a href="../">← 学习式视觉定位</a><button type="button" id="menu" aria-controls="side" aria-expanded="false">☰ 目录</button></div>
+<div class="shade" id="shade"></div>
+<div class="layout">
+  <aside class="side" id="side" aria-label="阅读导航">
+    <a href="/" class="brand">沿途手记<small>一个持续生长的研究笔记</small></a>
+    <button class="close" type="button" id="close" aria-label="关闭目录">×</button>
+    <a class="back" href="../">← 返回「学习式视觉定位」</a>
+    <div class="place"><span class="small-label">CURRENT PAGE · 当前位置</span><h2>从神经网络到深度视觉</h2><p>Stage 01 / 二维目标定位 / 学习式视觉定位</p></div>
+    <nav class="nav" aria-label="本篇目录">
+      <span class="small-label">CONTENTS · 本篇目录</span>
+      <a href="#opening" class="active"><span class="index">·</span>为什么学习这一部分</a>
+      <a href="#scope"><span class="index">00</span>这篇大纲讲什么</a>
+      <a href="#foundation"><span class="index">01</span>神经网络基础</a>
+      <a href="#visual"><span class="index">02</span>深度视觉基础</a>
+      <a href="#next"><span class="index">↳</span>下一站</a>
+    </nav>
+    <div class="side-foot">STAGE 01 · LEARNED VISION<a href="../">返回上层研究地图 ↗</a></div>
+  </aside>
+  <main class="main"><div class="inner">
+    <nav class="crumb" aria-label="面包屑"><a href="/">沿途手记</a> / <a href="/research/stage-01/">Stage 01</a> / <a href="../../">二维目标定位</a> / <a href="../">学习式视觉定位</a> / <b>从神经网络到深度视觉</b></nav>
+    <header class="hero" id="opening">
+      <div class="eyebrow">02 · NEURAL NETWORKS TO DEEP VISION</div>
+      <div class="hero-grid">
+        <div>
+          <h1>从神经网络到深度视觉</h1>
+          <p class="latin">Neural Networks to Deep Vision</p>
+          <p>图像里只有像素，但要找到目标，我们需要从像素中获得有意义的特征。一个自然的问题是：<strong>能不能让网络通过数据，自己学出这些特征？</strong></p>
+          <p>先弄明白神经网络怎样表达、学习与训练，再看看它如何处理图像、组织空间特征，并产生预测结果。</p>
+          <p>这一页只整理学习顺序。具体机制、公式和例子，都在下面的六篇笔记里。</p>
+        </div>
+        <figure class="art">
+          <svg viewBox="0 0 292 245" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="hero-title hero-desc">
+            <title id="hero-title">从网络学习到图像预测</title><desc id="hero-desc">上方是神经网络中参数传递的示意，下方是图像、特征图到目标检测框的示意。</desc>
+            <rect x="1" y="1" width="290" height="243" rx="17" fill="#f5eee5" stroke="#e4d9ca"/>
+            <rect x="14" y="14" width="264" height="97" rx="11" fill="#fffefa" stroke="#e8ded2"/>
+            <text x="26" y="31" font-size="10" font-weight="bold" fill="#aa816b">01 · 学习一个映射</text>
+            <g stroke="#d8bdad" stroke-width="1.15" opacity=".9"><path d="M55 55L112 47M55 55L112 71M55 83L112 47M55 83L112 71M118 47L183 55M118 47L183 83M118 71L183 55M118 71L183 83"/></g>
+            <g fill="#d7aa92" stroke="#b58166"><circle cx="55" cy="55" r="7"/><circle cx="55" cy="83" r="7"/></g>
+            <g fill="#f0d8c7" stroke="#b58166"><circle cx="115" cy="47" r="7"/><circle cx="115" cy="71" r="7"/></g>
+            <g fill="#b6cbbf" stroke="#84a291"><circle cx="187" cy="55" r="7"/><circle cx="187" cy="83" r="7"/></g>
+            <path d="M198 69H225" stroke="#b18b75" stroke-width="1.5"/><path d="m220 64 5 5-5 5" fill="none" stroke="#b18b75" stroke-width="1.5"/>
+            <rect x="232" y="50" width="30" height="37" rx="5" fill="#f7eddf" stroke="#d8bd9f"/>
+            <path d="M239 76 246 67 251 71 257 60" stroke="#b07d5d" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <g fill="#9e8c7d" font-size="9.5" text-anchor="middle"><text x="55" y="101">输入</text><text x="115" y="90">参数</text><text x="187" y="102">表示</text><text x="247" y="101">输出</text></g>
+            <rect x="14" y="120" width="264" height="112" rx="11" fill="#fffefa" stroke="#e8ded2"/>
+            <text x="26" y="138" font-size="10" font-weight="bold" fill="#7f9b87">02 · 在图像中预测位置</text>
+            <rect x="26" y="152" width="61" height="54" rx="5" fill="#f3efe7" stroke="#d6cbbc"/>
+            <g stroke="#e1d7c7" stroke-width=".8"><path d="M41 152V206M56 152V206M71 152V206M26 166H87M26 179H87M26 192H87"/></g>
+            <path d="M46 158H65L70 167V198H41V170Z" fill="#afc8b5" stroke="#83a78a" stroke-width="1.2"/>
+            <path d="M92 178H110m-5-4 5 4-5 4" fill="none" stroke="#bd967f" stroke-width="1.5"/>
+            <rect x="118" y="157" width="51" height="45" rx="5" fill="#e9f0e8" stroke="#9db5a2"/>
+            <g stroke="#bed0c0" stroke-width=".7"><path d="M131 157V202M144 157V202M157 157V202M118 168H169M118 179H169M118 190H169"/></g>
+            <rect x="131" y="168" width="26" height="22" fill="#9eb5a0" opacity=".9"/>
+            <path d="M175 178H193m-5-4 5 4-5 4" fill="none" stroke="#bd967f" stroke-width="1.5"/>
+            <rect x="201" y="157" width="62" height="45" rx="5" fill="#f5f0e8" stroke="#d5c9b8"/>
+            <path d="M225 161H240L246 170V197H217V173Z" fill="#cab9a7"/>
+            <rect x="214" y="163" width="36" height="35" fill="none" stroke="#c58562" stroke-width="2"/>
+            <g fill="#988979" text-anchor="middle" font-size="9.5"><text x="57" y="220">图像</text><text x="143" y="216">空间特征</text><text x="232" y="216">预测结果</text></g>
+          </svg>
+          <figcaption>先学会怎样学习，再理解图像如何变成预测。</figcaption>
+        </figure>
+      </div>
+    </header>
+    <section class="section" id="scope">
+      <div class="sec-id"><em>00</em>WHAT WE WILL LEARN</div>
+      <h2>把问题分成两部分</h2>
+      <p class="intro">一部分研究<strong>网络为什么能学习</strong>，另一部分研究<strong>网络怎样利用图像的空间结构</strong>。六篇笔记围绕这两个问题展开。</p>
+      <div class="outline">
+        <div class="panel"><b>第一部分 · 神经网络基础</b><p>表达能力 → 反向传播 → 训练优化。先理解参数怎样参与计算，又怎样从数据中被更新。</p></div>
+        <span class="middle" aria-hidden="true">→</span>
+        <div class="panel"><b>第二部分 · 深度视觉基础</b><p>空间特征 → 深层与多尺度 → 预测输出。再理解图像信息怎样被提取、组织和使用。</p></div>
+      </div>
+    </section>
+    <section class="section foundation" id="foundation">
+      <div class="sec-id"><em>01</em>NEURAL NETWORK FOUNDATIONS</div>
+      <h2>先理解：网络是怎样学会的？</h2>
+      <p class="intro">从一个简单的神经网络开始。重点不是记住模型名字，而是能解释它如何计算结果、衡量误差并调整参数。</p>
+      <div class="list">
+        <a class="item" href="./01-neural-networks/" aria-label="进入神经网络与表达能力">
+          <span class="num">01</span><div><h3>神经网络与表达能力</h3><p class="q">为什么只靠线性层还不够？</p><p class="desc">从线性变换到激活函数和 MLP，建立前向计算的最小模型。</p><div class="tags">线性层 · 激活函数 · MLP · 前向传播</div><div class="linkhint">进入本篇笔记 ↗</div></div><span class="arr">↗</span>
+        </a>
+        <a class="item" href="./02-learning-mechanism/" aria-label="进入损失函数与反向传播">
+          <span class="num">02</span><div><h3>损失函数与反向传播</h3><p class="q">模型怎样知道哪里错了，又怎样修改参数？</p><p class="desc">理解预测误差、计算图、链式法则与梯度更新之间的关系。</p><div class="tags">Loss · 梯度 · 链式法则 · Backpropagation</div><div class="linkhint">进入本篇笔记 ↗</div></div><span class="arr">↗</span>
+        </a>
+        <a class="item" href="./03-training-optimization/" aria-label="进入训练与优化">
+          <span class="num">03</span><div><h3>训练与优化</h3><p class="q">为什么训练会震荡、变慢或者过拟合？</p><p class="desc">理解优化器、Batch、学习率和正则化等因素怎样影响训练。</p><div class="tags">SGD · Adam · Batch · Learning Rate · Regularization</div><div class="linkhint">进入本篇笔记 ↗</div></div><span class="arr">↗</span>
+        </a>
+      </div>
+      <div class="divider-note"><span class="tiny-arrow">↳</span><span>学完这三篇，至少要能说清：一次预测是怎样产生的、损失怎样计算、参数为什么会被更新。</span></div>
+    </section>
+    <section class="section visual" id="visual">
+      <div class="sec-id"><em>02</em>DEEP VISION FOUNDATIONS</div>
+      <h2>再理解：网络怎样处理图像？</h2>
+      <p class="intro">普通向量没有天然的二维位置关系，但图像有。接下来研究网络怎样提取具有空间位置的特征，并将它们用于预测。</p>
+      <div class="diagram">
+        <svg viewBox="0 0 790 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="图像进入网络生成空间特征，再通过预测头得到输出的机制图">
+          <defs><pattern id="pgrid" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M14 0H0V14" fill="none" stroke="#ded7cc" stroke-width=".8"/></pattern><pattern id="smallgrid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#c3d3c4" stroke-width=".8"/></pattern></defs>
+          <rect x="9" y="14" width="150" height="112" rx="12" fill="#f6f2ec" stroke="#ded4c8"/><rect x="28" y="29" width="111" height="72" rx="4" fill="url(#pgrid)" stroke="#d7caba"/><path d="M77 38H95L108 57V92H63V57Z" fill="#adc3ad" stroke="#8aa58d" stroke-width="1.5"/><text x="84" y="116" text-anchor="middle" fill="#8f7e72" font-size="12">输入图像</text>
+          <path d="M166 71H207m-8-7 8 7-8 7" fill="none" stroke="#b68c73" stroke-width="2" stroke-linecap="round"/>
+          <rect x="216" y="14" width="158" height="112" rx="12" fill="#f5f5ef" stroke="#dce3da"/><rect x="234" y="31" width="45" height="53" fill="#e4ece3" stroke="#a4baa9"/><rect x="245" y="39" width="45" height="53" fill="#d5e4d7" stroke="#9bb8a1"/><rect x="256" y="47" width="45" height="53" fill="url(#smallgrid)" stroke="#8caa91"/><rect x="267" y="58" width="22" height="25" fill="#8da88f" opacity=".75"/><text x="295" y="116" text-anchor="middle" fill="#7e927f" font-size="12">多层空间特征</text>
+          <path d="M380 71H421m-8-7 8 7-8 7" fill="none" stroke="#b68c73" stroke-width="2" stroke-linecap="round"/>
+          <rect x="430" y="14" width="136" height="112" rx="12" fill="#fcf8f2" stroke="#e5d8ca"/><g fill="#e3ceb9" stroke="#ad8469"><rect x="455" y="35" width="25" height="19" rx="3"/><rect x="492" y="35" width="25" height="19" rx="3"/><rect x="455" y="65" width="25" height="19" rx="3"/><rect x="492" y="65" width="25" height="19" rx="3"/></g><path d="M489 57V65" stroke="#c6a78f" stroke-width="1.3"/><text x="498" y="116" text-anchor="middle" fill="#987760" font-size="12">预测头</text>
+          <path d="M572 71H613m-8-7 8 7-8 7" fill="none" stroke="#b68c73" stroke-width="2" stroke-linecap="round"/>
+          <rect x="622" y="14" width="158" height="112" rx="12" fill="#f7f2ed" stroke="#e5d8ca"/><rect x="651" y="32" width="102" height="60" rx="4" fill="#e8e5df"/><path d="M689 39H710L721 52V85H676V55Z" fill="#c1caba"/><rect x="670" y="37" width="58" height="53" fill="none" stroke="#bf825f" stroke-width="2.4"/><text x="701" y="116" text-anchor="middle" fill="#987760" font-size="12">任务输出</text>
+        </svg>
+      </div>
+      <p class="diagram-caption">机制示意：表达从像素到特征，再到输出的关系，并非某个具体模型的固定架构。</p>
+      <div class="list">
+        <a class="item" href="./04-convolution-features/" aria-label="进入卷积与空间特征">
+          <span class="num">04</span><div><h3>卷积与空间特征</h3><p class="q">图像如何变成带有空间位置的特征图？</p><p class="desc">理解局部连接、权重共享、卷积核、通道、步长与感受野。</p><div class="tags">Convolution · Feature Map · Stride · Receptive Field</div><div class="linkhint">进入本篇笔记 ↗</div></div><span class="arr">↗</span>
+        </a>
+        <a class="item" href="./05-deep-multiscale/" aria-label="进入深层网络与多尺度">
+          <span class="num">05</span><div><h3>深层网络与多尺度</h3><p class="q">网络怎样兼顾丰富语义和精细位置？</p><p class="desc">理解层级特征、残差连接、不同分辨率的信息以及多尺度融合。</p><div class="tags">Backbone · Residual · ResNet · FPN</div><div class="linkhint">进入本篇笔记 ↗</div></div><span class="arr">↗</span>
+        </a>
+        <a class="item" href="./06-prediction-localization/" aria-label="进入预测头与位置输出">
+          <span class="num">06</span><div><h3>预测头与位置输出</h3><p class="q">学到的特征如何变成真正的预测结果？</p><p class="desc">区分分类与回归，理解 Head 的任务输出以及坐标与特征图的对应关系。</p><div class="tags">Head · Classification · Regression · Coordinates</div><div class="linkhint">进入本篇笔记 ↗</div></div><span class="arr">↗</span>
+        </a>
+      </div>
+      <div class="divider-note"><span class="tiny-arrow">↳</span><span>学完这三篇，至少要能沿着图像到预测的路径，说清特征怎样形成、怎样组织，以及最终怎样产生输出。</span></div>
+    </section>
+    <section class="bottom" id="next">
+      <div class="sec-id">NEXT · BACK TO THE TASK MAP</div>
+      <h2>基础学完，回到具体的视觉问题</h2>
+      <p>接下来不再沿着神经网络结构继续堆知识，而是回到上一级，分别研究目标检测、图像分割和关键点定位：每条路线解决什么问题，研究者提出过哪些代表性方法。</p>
+      <div class="end-grid">
+        <a href="../03-object-detection/"><b>目标检测 ↗</b><span>输出类别与 BBox</span></a>
+        <a href="../04-image-segmentation/"><b>图像分割 ↗</b><span>输出像素区域与实例 Mask</span></a>
+        <a href="../05-keypoint-localization/"><b>关键点定位 ↗</b><span>输出结构点位置</span></a>
+      </div>
+      <a class="back" href="../" style="display:inline-block;margin:0">← 返回「学习式视觉定位」</a>
+      <div class="footer">沿途手记 · Stage 01 / 学习式视觉定位 / 从神经网络到深度视觉。六篇链接沿用原有目录名称。</div>
+    </section>
+  </div></main>
+</div>
+<script>
+  (()=>{'use strict';
+    const side=document.getElementById('side'),shade=document.getElementById('shade'),menu=document.getElementById('menu'),close=document.getElementById('close'),progress=document.getElementById('progress');
+    function toggle(open){side.classList.toggle('open',open);shade.classList.toggle('open',open);menu.setAttribute('aria-expanded',String(open));document.body.style.overflow=open?'hidden':''}
+    menu.addEventListener('click',()=>toggle(!side.classList.contains('open')));close.addEventListener('click',()=>toggle(false));shade.addEventListener('click',()=>toggle(false));document.addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});
+    side.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggle(false)));
+    const nav=[...document.querySelectorAll('.nav a[href^="#"]')];const sec=nav.map(a=>document.getElementById(a.getAttribute('href').slice(1)));
+    let queued=false;function update(){queued=false;const pos=window.scrollY+(innerWidth<=860?120:95);let active=0;sec.forEach((s,i)=>{if(s&&s.offsetTop<=pos)active=i});nav.forEach((a,i)=>{a.classList.toggle('active',i===active);if(i===active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});const d=document.documentElement;progress.style.width=(d.scrollHeight>d.clientHeight?100*window.scrollY/(d.scrollHeight-d.clientHeight):0)+'%'}
+    function schedule(){if(queued)return;queued=true;requestAnimationFrame(update)}window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);update();
+  })();
+</script>
+</body></html>
