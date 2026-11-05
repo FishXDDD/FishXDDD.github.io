@@ -109,10 +109,12 @@ article strong{font-weight:700;color:#815843}.lead{font-size:16px;color:#54483e}
 .summary-art{margin:30px 0 23px;overflow:hidden;border:1px solid #e4d8c8;border-radius:13px;background:#fffaf3}
 .summary-heading{display:flex;gap:9px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:13px 17px;border-bottom:1px solid #e9e0d3}
 .summary-heading div{display:flex;align-items:center;gap:10px}.summary-heading strong{font:700 13px var(--serif);color:#725a47}.figure-hint{color:#a59181;font-size:10.5px}
-.summary-art>a{display:block;background:#fcf9f3}.summary-art img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain}
+/* All three overview images are 1672×941. Reserve their final boxes before
+   the image requests start, so hash positions never depend on load timing. */
+.summary-art>a{display:block;width:100%;aspect-ratio:1672/941;max-height:520px;background:#fcf9f3}.summary-art img{display:block;width:100%;height:100%;object-fit:contain}
 .summary-art figcaption{padding:12px 16px;border-top:1px solid #eae0d3;font-size:11px;color:#a19386;line-height:1.8}
 .asset-fallback{padding:37px 26px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;color:#a48d78;background:repeating-linear-gradient(135deg,#fbf6ef,#fbf6ef 12px,#faf4eb 12px,#faf4eb 24px);text-align:center}
-img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-fallback small{font-size:11px;line-height:1.75;max-width:430px}
+img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-fallback small{font-size:11px;line-height:1.75;max-width:430px}.summary-art>a>.asset-fallback,.figure-hole>a>.asset-fallback{width:100%;height:100%;min-height:0}
 .asset-fallback .fallback-icon{font-size:25px;font-weight:300;color:#b8997e}
 .map-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:22px 0}
 .takeaway{padding:15px 12px 6px;border-top:1px solid #ded1bf}.takeaway b{display:block;font-size:13px;color:#765a47;line-height:1.65}
@@ -135,7 +137,7 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
 .figure-hole{margin:17px 0 0;border:1px solid #e8dfd3;border-radius:11px;overflow:hidden;background:#faf5ed}
 .figure-head{display:flex;align-items:center;justify-content:space-between;gap:13px;flex-wrap:wrap;padding:11px 15px;border-bottom:1px solid #eae0d5;font-size:11px;color:#a18e7b}
 .figure-head b{font:italic 12px Georgia,serif;color:#a77454}.fig-tag{color:#b9987e;font-size:10px;border:1px dashed #dec7b2;border-radius:5px;padding:2px 7px}
-.figure-hole>a{display:block;background:#fffaf3}.figure-hole img{display:block;width:100%;height:auto;max-height:450px;object-fit:contain}
+.figure-hole>a{display:block;width:100%;aspect-ratio:1672/941;max-height:450px;background:#fffaf3}.figure-hole img{display:block;width:100%;height:100%;object-fit:contain}
 .figure-empty{min-height:145px;padding:23px;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 20% 20%,#f4e8d7,transparent 40%),#faf7f1}
 .placeholder-icon{display:grid;place-items:center;margin:0 auto 10px;width:35px;height:35px;border-radius:50%;border:1px solid #e3d3bf;font-size:19px;color:#c09873}
 .figure-empty b{display:block;margin-bottom:6px;color:#967861;font:700 14px var(--serif)}
@@ -167,10 +169,10 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
   .hero-footer{font-size:10px}.body-layout{margin-top:45px}.section-kicker{font-size:10.5px}h2{font-size:25px}article p{font-size:15px;line-height:1.88}
   article section{margin-bottom:60px}.obs-pair{grid-template-columns:1fr}.flow-join{height:22px}.system-map{padding:17px 14px}
   .solver-options{grid-template-columns:1fr;gap:7px}.solver-option{text-align:left;padding:10px 13px}.solver-option b{font-size:12.5px}.solver-option small{margin-top:2px}
-  .map-top-note{margin:0}.flow-overline>span:last-child{width:100%;padding-left:30px}.pose-output{gap:4px}.summary-art img{max-height:340px}
+  .map-top-note{margin:0}.flow-overline>span:last-child{width:100%;padding-left:30px}.pose-output{gap:4px}.summary-art>a{max-height:340px}
   .map-three{grid-template-columns:1fr;gap:0}.takeaway{padding:11px 1px 8px}.takeaway p{margin-top:3px}
   .final-row{grid-template-columns:1fr;gap:5px;padding:15px 0}.final-row p{font-size:14px}
-  .episode{padding:30px 0 37px}.figure-hole img{max-height:310px}.figure-head{gap:5px}
+  .episode{padding:30px 0 37px}.figure-hole>a{max-height:310px}.figure-head{gap:5px}
   .footer{padding-bottom:33px}
 }
 @media(max-width:420px){.hero h1{font-size:28px}.hero p{font-size:13px}.hero-tags span{font-size:10px}.deep-link strong{font-size:13px}.deep-link{padding:15px}.next-stop{padding:20px}}
@@ -283,7 +285,7 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
 </div>
 <div class="map-aux"><span class="map-aux-icon">↔</span><div><strong>补充关系 · 手眼标定与坐标变换</strong><p>若要把相机坐标下的结果用于机器人，需要知道相机与机器人之间的坐标关系。这是空间坐标衔接问题，不是寻找目标或测量深度的方法；这里只保留坐标衔接的提示，不展开执行控制。</p></div></div>
 <figcaption class="map-caption">这是一张问题与技术关系图，不是固定的软件流水线。“怎么量”和“怎么找”可以结合完成；不同 Pose 求解路线也可以互相借鉴。</figcaption>
-</figure><figure aria-label="Stage 01 技术总览插图" class="summary-art"><div class="summary-heading"><div><span class="fig-index">FIGURE · 01</span><strong>整理后的技术总览</strong></div><span class="figure-hint">点击图片查看原尺寸 ↗</span></div><a href="./stage-01-overview.png" rel="noopener noreferrer" target="_blank" title="查看原始技术总览插图"><img alt="Stage 01 总图" loading="lazy" src="./stage-01-overview.png"/></a><figcaption>这张总览图放在路线定义之后：先知道本页要解决什么，再对照整张地图看技术之间的关系。</figcaption></figure>
+</figure><figure aria-label="Stage 01 技术总览插图" class="summary-art"><div class="summary-heading"><div><span class="fig-index">FIGURE · 01</span><strong>整理后的技术总览</strong></div><span class="figure-hint">点击图片查看原尺寸 ↗</span></div><a href="./stage-01-overview.png" rel="noopener noreferrer" target="_blank" title="查看原始技术总览插图"><img alt="Stage 01 总图" decoding="async" height="941" loading="lazy" src="./stage-01-overview.png" width="1672"/></a><figcaption>这张总览图放在路线定义之后：先知道本页要解决什么，再对照整张地图看技术之间的关系。</figcaption></figure>
 <div class="map-three">
 <div class="takeaway"><b>约定，不等于可求。</b><p>知道想怎么抓，还需要观测或先验支持。</p></div>
 <div class="takeaway"><b>方法不同，依据也不同。</b><p>显式几何、参考关系和学习预测，各有条件与代价。</p></div>
@@ -308,7 +310,7 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
 
 <a class="deep-link" href="./q01-geometry/"><span><small>继续翻阅 · 几何探索</small><strong>只有一份点云，怎样得到 Grasp Pose？</strong></span><span aria-hidden="true" class="arrow">↗</span></a><figure class="figure-hole" data-figure="fig-01-visible-geometry">
 <div class="figure-head"><span><b>FIG 01</b>　可见点云与真实几何</span><span class="fig-tag">插图已补</span></div>
-<a aria-label="进入 Q01：只有一份点云，怎样得到 Grasp Pose？" href="./q01-geometry/"><img alt="Q01 总图" loading="lazy" src="./q01-geometry/q01-overview.png"/></a>
+<a aria-label="进入 Q01：只有一份点云，怎样得到 Grasp Pose？" href="./q01-geometry/"><img alt="Q01 总图" decoding="async" height="941" loading="lazy" src="./q01-geometry/q01-overview.png" width="1672"/></a>
 <figcaption>这一张图只解释为什么「点云中心」和「抓取需要的几何中心」可能不是同一个位置。</figcaption>
 </figure>
 </div>
@@ -322,7 +324,7 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
 <p>听起来似乎省事了不少。不过又冒出一个问题：<strong>眼前这个物体，和事先保存的参考，到底怎么对应上？</strong> 它可能转了个角度，也可能只露出一部分。如果我只有尺寸、几个点或者一张参考图，又能确定多少？</p>
 <p>于是，我开始试试另一条路：先找回物体和已知参考之间的关系，再得到约定的抓取姿态。具体怎么找、哪些情况下能找到，留给下一篇慢慢研究。</p>
 
-<a class="deep-link" href="./q02-known-reference/"><span><small>继续翻阅 · 已知参考</small><strong>已经知道物体的一些信息，怎样找回它的 Pose？</strong></span><span aria-hidden="true" class="arrow">↗</span></a><figure class="figure-hole"><a aria-label="进入 Q02：已经知道物体的一些信息，怎样找回它的 Pose？" href="./q02-known-reference/"><img alt="Q02 总图" loading="lazy" src="./q02-known-reference/q02-overview.png"/></a></figure>
+<a class="deep-link" href="./q02-known-reference/"><span><small>继续翻阅 · 已知参考</small><strong>已经知道物体的一些信息，怎样找回它的 Pose？</strong></span><span aria-hidden="true" class="arrow">↗</span></a><figure class="figure-hole"><a aria-label="进入 Q02：已经知道物体的一些信息，怎样找回它的 Pose？" href="./q02-known-reference/"><img alt="Q02 总图" decoding="async" height="941" loading="lazy" src="./q02-known-reference/q02-overview.png" width="1672"/></a></figure>
 </div>
 <div class="episode" id="camera">
 <div class="episode-mark"><b>03 / 04</b><span>回头补上曾经省略的前提</span></div>
@@ -339,6 +341,7 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
 <div class="figure-empty"><div><span aria-hidden="true" class="placeholder-icon">✎</span><b>看见了瓶子，就知道它在哪里吗？</b><p>同一个目标：RGB 找到了它，Depth 却可能缺失、错位或落到背景上。</p></div></div>
 <figcaption>这张图只关注一件事：从图像中的目标，到可信的目标三维数据，中间究竟需要哪些条件。</figcaption>
 </figure>
+<a class="deep-link" href="./q03-target-in-2d/target-localization-route-overview/03-learned-vision/backbone/"><span><small>专题索引 · 学习式视觉</small><strong>Backbone 为什么不断演进？沿发展史继续整理主干网络。</strong></span><span aria-hidden="true" class="arrow">↗</span></a>
 </div>
 <div class="episode" id="learning">
 <div class="episode-mark"><b>04 / 04</b><span>尝试另一种求解方式</span></div>
@@ -417,6 +420,7 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
   });
   links.forEach(a => a.addEventListener('click', () => {
     if (document.body.classList.contains('rn-drawer-open')) closeMenu(false);
+    requestAnimationFrame(stabilizeHashTarget);
   }));
   window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => {
     if (e.matches && document.body.classList.contains('rn-drawer-open')) closeMenu(false);
@@ -449,10 +453,32 @@ img[hidden]{display:none!important}.asset-fallback strong{font-size:13px}.asset-
   function queueUpdate() {
     if (!queued) {queued = true;window.requestAnimationFrame(updateActive);}
   }
+  function targetFromHash() {
+    if (!location.hash) return null;
+    let id;
+    try { id = decodeURIComponent(location.hash.slice(1)); }
+    catch (_) { id = location.hash.slice(1); }
+    return targets.find(item => item.target.id === id)?.target || null;
+  }
+  function stabilizeHashTarget() {
+    const target = targetFromHash();
+    if (!target) return;
+    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    const top = window.scrollY + target.getBoundingClientRect().top - margin;
+    window.scrollTo({top:Math.max(0, top), behavior:'auto'});
+    queueUpdate();
+  }
   window.addEventListener('scroll', queueUpdate, {passive:true});
   window.addEventListener('resize', queueUpdate, {passive:true});
-  window.addEventListener('hashchange', queueUpdate);
+  window.addEventListener('hashchange', () => {
+    queueUpdate();
+    stabilizeHashTarget();
+  });
   updateActive();
+  // The browser performs its native fragment jump after parsing. Re-apply the
+  // stable, pre-sized layout coordinate on the next painted frame; this does
+  // not wait for any image request to finish.
+  requestAnimationFrame(() => requestAnimationFrame(stabilizeHashTarget));
 })();
 
 
@@ -485,8 +511,20 @@ document.querySelectorAll('.summary-art img, .figure-hole img').forEach(img => {
     const label = img.getAttribute('alt') || '插图';
     note.innerHTML = '<span class="fallback-icon" aria-hidden="true">▧</span><strong></strong><small>图片沿用原网页的相对路径。单独打开此 HTML 时，请将配图保留在原站点对应目录中。</small>';
     note.querySelector('strong').textContent = label;
+    const mediaLink = img.closest('a');
     img.hidden = true;
-    img.parentNode.after(note);
+    if (mediaLink) {
+      // Keep the pre-sized 1672:941 media box in normal flow even when the
+      // asset fails. The fallback fills that same box, so later anchors never
+      // move upward.
+      mediaLink.removeAttribute('href');
+      mediaLink.removeAttribute('target');
+      mediaLink.removeAttribute('title');
+      mediaLink.setAttribute('aria-disabled', 'true');
+      mediaLink.append(note);
+    } else {
+      img.after(note);
+    }
   };
   img.addEventListener('error', fallback, {once:true});
   if (img.complete && img.naturalWidth === 0) fallback();
