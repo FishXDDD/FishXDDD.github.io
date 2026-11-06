@@ -355,19 +355,20 @@
       <section class="chapter" id="learned">
         <div class="section-kicker"><b>03</b>LEARNED KNOWLEDGE · 数据学习</div>
         <h2>学习式视觉定位</h2>
-        <div class="chapter-en">Learned Vision · 从样本中学习视觉规律</div>
-        <p>还有一类常见任务：目标的外观变化很大，而且很难提前列出所有可能出现的样子。</p>
-        <p>例如，让机器人识别各种瓶子。它们的颜色、尺寸、材质和形状各不相同，以后还可能出现新的款式。对于这样的任务，逐一编写外观规则或准备参考照片，不一定合适。</p>
-        <p>于是可以采用另一种信息来源：<strong>通过带有目标信息的样本，让模型学习哪些视觉特征能够帮助我们识别和定位目标。</strong></p>
-        <p>传统机器学习通常先设计图像特征，再通过样本学习判别或定位规则；深度学习则可以从数据中学习视觉特征，以及它们与目标位置之间的关系。</p>
+        <div class="chapter-en">Learned Vision · 从数据中学习视觉规律</div>
+        <p>当目标外观复杂多变，难以通过人工规则或参考模板稳定定位时，能否让模型<strong>从样本中学习识别目标的规律</strong>？</p>
+        <p>这就是学习式视觉定位要解决的问题。</p>
         <h3 class="minor-heading">这条路线研究什么？</h3>
-        <p>研究怎样通过数据和训练，让模型在新图像中找到符合目标条件的物体。</p>
-        <p>这一方向包含基于人工特征的传统机器学习，也包含常规深度学习中的目标检测、实例分割和关键点定位等任务。<strong>BBox、Mask、关键点描述的是不同的输出要求，而不是不同的学习原理。</strong></p>
-        <p>学习式方法也有局限：模型能识别什么、在什么场景下可靠，取决于训练数据，以及学到的规律能否适用于当前图像。</p>
+        <p>研究如何利用训练数据，让模型学习视觉特征与目标位置之间的关系，并在新图像中完成定位。</p>
+        <p>主要包含两个方向：</p>
+        <ul>
+          <li><strong>传统机器学习</strong>：人工设计特征，通过数据学习判别规则。</li>
+          <li><strong>深度学习</strong>：通过神经网络学习特征与定位规则。</li>
+        </ul>
+        <p>根据任务需要，模型可以输出 <strong>BBox、Mask 或关键点</strong>，它们代表不同的定位形式，而非不同的学习原理。</p>
         <div class="boundary">
-          <b>这条路线的研究边界</b>
-          <p>重点研究传统机器学习与常规深度视觉中的目标定位方法。</p>
-          <p>开放词汇 Grounding、VLM 与多模态推理暂时不在这一站深入展开。</p>
+          <b>研究边界</b>
+          <p>关注传统机器学习与常规深度视觉定位方法，暂不深入开放词汇 Grounding、VLM 和多模态推理。</p>
         </div>
         <a class="depth-link" href="./03-learned-vision/" aria-label="进入下层笔记：学习式视觉定位">
           <span><span class="small">进入下层笔记 · DEEP DIVE</span><span class="name">学习式视觉定位</span><span class="hint">从人工特征与统计学习，到常规深度视觉方法</span></span><span class="arr" aria-hidden="true">↗</span>
