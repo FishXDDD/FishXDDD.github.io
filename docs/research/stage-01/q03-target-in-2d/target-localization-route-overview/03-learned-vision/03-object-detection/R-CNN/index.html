@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="R-CNN 2013/2014 研究路线、网络结构、训练正负样本、SVM、框回归与推理机制完整研究笔记。"><title>R-CNN（2013–2014）｜算法原理研究笔记 · 沿途手记</title><style>
+:root{--bg:#f5f8fb;--paper:#fff;--ink:#1b3448;--sub:#4e6a7e;--mute:#748b9c;--blue:#126eaa;--blue2:#278ac7;--navy:#153b5b;--teal:#1b8b83;--amber:#c77b32;--border:#d9e5ed;--soft:#edf5fb;--green:#e8f6f2;--orange:#fff5eb;--shadow:0 10px 36px rgba(25,70,105,.045)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.88;font-size:15px;-webkit-font-smoothing:antialiased}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #8bc4e8;outline-offset:3px}
+.top{position:sticky;z-index:30;top:0;height:62px;background:rgba(255,255,255,.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 34px}.brand{font-size:15px;font-weight:850;letter-spacing:.07em;color:#154f7b}.brand small{font-size:10px;color:#829aab;margin-left:11px;letter-spacing:.15em;font-weight:650}.top a{font-size:12px;color:#57748a}.track{position:fixed;top:62px;left:0;width:0;height:3px;background:#238abf;z-index:40}
+.layout{max-width:1510px;margin:auto;display:grid;grid-template-columns:212px minmax(0,1fr);gap:32px;padding:34px 34px 90px}.side{position:sticky;top:94px;max-height:calc(100vh - 110px);overflow:auto;align-self:start;padding:10px 0}.side .eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#90a7b7;padding:0 12px 12px}.side a{display:block;border-left:3px solid transparent;border-radius:0 7px 7px 0;padding:10px 11px;font-size:12px;color:#587489;line-height:1.65}.side a:hover,.side a.current{background:#e4f1fa;border-color:#1b85bd;color:#135b87;text-decoration:none;font-weight:700}.side .foot{border-top:1px solid var(--border);padding:16px 12px;margin-top:16px;font-size:11px;color:#8099a7}.main{min-width:0;max-width:1120px}.hero{background:linear-gradient(113deg,#e9f4fc 0%,#fff 76%);border:1px solid #d1e5f1;border-radius:20px;padding:40px 46px 35px;position:relative;overflow:hidden}.hero:after{content:'2013';position:absolute;right:15px;top:-42px;font-size:160px;font-weight:900;color:#1d6f9e0c;pointer-events:none}.eyebrow{font-size:11px;font-weight:850;color:#367fa9;letter-spacing:.13em}.hero h1{font-size:clamp(34px,4.2vw,55px);line-height:1.28;margin:11px 0 5px;color:#113e63;letter-spacing:-.03em}.hero .en{font-size:14px;color:#708da1;margin:0 0 18px}.hero .pitch{font-size:20px;font-weight:760;color:#264b65;max-width:840px;margin:16px 0}.hero .meta{font-size:12px;color:#7290a1}.hero .meta span{display:inline-block;padding:2px 10px;margin:5px 7px 0 0;background:#fff;border:1px solid #d5e5ef;border-radius:40px}.chapter{margin-top:57px;scroll-margin-top:91px}.section-heading{display:flex;align-items:flex-start;gap:15px;border-bottom:1px solid #d4e3ec;padding-bottom:15px;margin-bottom:24px}.num{font-size:12px;background:#176e9f;color:white;border-radius:7px;padding:7px 10px;font-weight:800;min-width:42px;text-align:center;margin-top:5px}.section-heading h2{font-size:26px;line-height:1.45;margin:0;color:#183f60}.section-heading p{font-size:13px;color:#758c9e;margin:4px 0 0}.subsection{margin:36px 0 12px;scroll-margin-top:90px}.subsection h3{font-size:19px;line-height:1.5;color:#1a4f74;margin:0 0 9px}.subsection .question{color:#476e8a;font-size:15px;font-weight:700;margin:0 0 14px}.lead{font-size:16px;line-height:1.98;color:#365368;margin:0 0 20px}.textline{font-size:14px;color:#476479;margin:13px 0}.textline strong,.lead strong{color:#165d89}.fig{background:var(--paper);border:1px solid var(--border);border-radius:14px;margin:18px 0 22px;overflow:hidden;box-shadow:var(--shadow)}.fighead{background:#fbfdff;padding:13px 20px;border-bottom:1px solid #e5edf2;display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}.fighead strong{font-size:13px;color:#265b7c}.fighead small{font-size:11px;color:#849aa8}.figbody{padding:22px}.fig svg{width:100%;height:auto;display:block}.figcaption{padding:11px 20px;color:#788e9c;background:#fbfdff;font-size:12px;border-top:1px solid #eaf0f4;line-height:1.8}.cards{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:16px 0}.cards.three{grid-template-columns:repeat(3,1fr)}.card{border:1px solid #dce8ef;border-radius:12px;background:#fff;padding:17px 18px}.card .k{font-size:10px;letter-spacing:.10em;color:#3182b1;font-weight:850}.card h4{font-size:15px;color:#235778;margin:3px 0 6px}.card p{font-size:13px;color:#597286;margin:3px 0;line-height:1.8}.point{background:#eaf5fb;border-left:4px solid #2d86b9;border-radius:0 8px 8px 0;padding:13px 18px;margin:18px 0;font-size:14px;color:#375a70}.point.green{background:#eef8f4;border-color:#33a18f}.point.orange{background:#fff7ed;border-color:#d48b44}.point strong{color:#175b85}.math{border:1px solid #dceaf3;background:#f3f8fc;border-radius:9px;padding:13px 16px;color:#285f82;overflow:auto;line-height:1.85;font-size:14px;font-family:ui-monospace,Consolas,"Noto Sans CJK SC",monospace}.math small{font-family:inherit;color:#758b9d;font-size:12px}.flow{display:flex;align-items:stretch;gap:7px;flex-wrap:wrap;margin:12px 0}.flow .node{flex:1;min-width:118px;border:1px solid #b7d6e9;background:#eef7fc;border-radius:9px;padding:12px 8px;text-align:center;font-size:13px;color:#24638d;font-weight:750;line-height:1.6}.flow .node em{display:block;font-size:11px;font-weight:500;font-style:normal;color:#64869b}.flow .node.green{border-color:#abd5cb;background:#eaf7f3;color:#17746b}.flow .node.orange{border-color:#efcdac;background:#fff5e9;color:#9f652b}.flow .arr{align-self:center;color:#85a9be;font-size:20px}.tablewrap{overflow:auto;border-radius:10px;border:1px solid #dce8ef}.table{width:100%;border-collapse:collapse;font-size:13px;min-width:630px;background:white}.table th{padding:11px 13px;text-align:left;color:#2a617f;background:#eaf4fa;font-size:12px}.table td{padding:12px 13px;vertical-align:top;border-top:1px solid #e7eef3;color:#496779}.table strong{color:#255f82}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:17px;align-items:start}.steps{counter-reset:step;padding:0;list-style:none;margin:14px 0}.steps li{position:relative;padding:0 0 12px 38px;color:#466679;font-size:14px}.steps li:before{counter-increment:step;content:counter(step);position:absolute;left:0;top:3px;border-radius:99px;display:grid;place-items:center;width:23px;height:23px;background:#dff0fa;border:1px solid #aad1e8;color:#2373a1;font-size:12px;font-weight:800}.steps b{color:#1e577c}.control{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}.control label{font-size:12px;color:#4c7188}.control input[type=range]{flex:1;accent-color:#267faf;min-width:140px}.control output{width:65px;text-align:right;font-size:13px;color:#176e9e;font-weight:850}.buttonset{display:flex;gap:7px;flex-wrap:wrap}.pillbtn{border:1px solid #b9d7e8;background:white;border-radius:7px;color:#32769b;padding:7px 12px;font-size:12px;font-weight:750}.pillbtn.active{background:#257caa;color:white;border-color:#257caa}.studygrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.studygrid .item{padding:14px;border-radius:10px;background:#f4f9fc;border:1px solid #e2ecf2}.studygrid .item b{display:block;font-size:12px;color:#1c638e;margin-bottom:6px}.studygrid .item span{font-size:12px;color:#58778c}.minitag{font-size:11px;border-radius:40px;padding:2px 9px;background:#e5f3fb;color:#2373a0;display:inline-block}.divider{height:1px;background:#dfeaf1;margin:24px 0}.ref{margin-top:40px;padding:20px 24px;border:1px solid var(--border);background:#fff;border-radius:14px;font-size:12px;color:#718b9c}.ref a{overflow-wrap:anywhere}.footer{margin:45px 0 0;text-align:center;font-size:11px;color:#92a7b4}.small{font-size:12px;color:#718b9e}.labelrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.labelrow .minitag{background:#f0f6fa}.bar{background:#edf4f9;padding:3px;border-radius:30px;height:12px}.bar > i{display:block;background:#3291bd;height:6px;border-radius:30px}.visualgrid{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:center}.miniinput{display:flex;gap:5px;align-items:center;justify-content:center;padding:10px 0}.miniinput span{background:#eaf5fb;border:1px solid #b8d8ea;border-radius:6px;min-width:24px;text-align:center;padding:5px;font:600 12px ui-monospace,monospace;color:#266181}.stat{display:inline-block;padding:6px 10px;background:#fff;border:1px solid #d5e5ed;border-radius:8px;color:#416b84;font-size:12px}.stat b{color:#126d9c}.lbl{font-size:11px;color:#8da2b0;letter-spacing:.08em;font-weight:800}
+@media(max-width:1020px){.layout{grid-template-columns:170px minmax(0,1fr);gap:22px;padding:22px}.hero{padding:32px}.cards.three{grid-template-columns:1fr 1fr}.figbody{padding:17px}}
+@media(max-width:760px){.top{padding:0 15px}.brand small{display:none}.layout{display:block;padding:18px 12px 55px}.side{display:none}.hero{padding:28px 23px}.hero .pitch{font-size:17px}.cards,.cards.three,.twocol,.visualgrid{grid-template-columns:1fr}.studygrid{grid-template-columns:1fr 1fr}.section-heading h2{font-size:23px}.chapter{margin-top:43px}.figbody{padding:13px}.flow .node{min-width:90px}.fig svg{min-width:0}}
+@media print{.top,.side,.track,.control,.buttonset{display:none!important}.layout{display:block}.chapter,.fig,.card{break-inside:avoid-page}body{background:#fff}.hero{background:#fff}}
+
+.hero:after{content:'2014'}
+.figure-placeholder{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:13px;min-height:300px;background:linear-gradient(0deg,#f7fbfe,#fcfeff);border:2px dashed #afcfdf;border-radius:11px;text-align:center;color:#7e9bad;padding:26px}
+.figure-placeholder .fpi{width:66px;height:60px;display:grid;place-items:center;border:1px solid #c4deea;border-radius:13px;background:#eaf5fb;font-size:28px;color:#72a1bf}
+.figure-placeholder b{font-size:17px;color:#376a89}
+.figure-placeholder p{max-width:630px;color:#7898ac;font-size:13px;line-height:1.8;margin:0}
+.figure-placeholder code{font-size:12px;background:#edf5fa;padding:4px 9px;border-radius:5px}
+.overview-image{display:block;width:100%;height:auto;border-radius:8px}
+.stage-track{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:18px 0}
+.stage-step{padding:16px;border:1px solid #dce9f1;background:white;border-radius:11px;min-height:150px}
+.stage-step .n{display:inline-grid;place-items:center;border:1px solid #c6dfed;background:#eaf4fa;width:27px;height:27px;border-radius:8px;font-size:12px;font-weight:800;color:#25739a}
+.stage-step h4{margin:8px 0 4px;color:#205f83;font-size:14px;line-height:1.5}
+.stage-step p{margin:0;color:#648397;font-size:12px;line-height:1.78}
+.shape-demo{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:13px 0}
+.shape-box{border:1px solid #dceaf3;border-radius:12px;padding:14px;background:#fbfdff;text-align:center}
+.shape-box svg{max-height:190px}
+.shape-box b{display:block;color:#275f81;font-size:13px}
+.shape-box small{color:#7390a1;font-size:11px}
+.diagram-layout{display:grid;grid-template-columns:1fr;gap:12px}
+.diagram-section{padding:16px;background:#f9fcfe;border:1px solid #dce9f1;border-radius:10px}
+.diagram-section .subnote{font-size:12px;color:#68859a;margin-top:8px}
+.demo-status{padding:10px 13px;background:#edf6fb;border:1px solid #d4e8f3;border-radius:8px;color:#226588;font-size:13px;font-weight:730}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:7px;border:1px solid #dce9f0;background:#f8fbfd;font-size:12px;color:#4f7189}
+.chip .dot{height:9px;width:9px;border-radius:50%;background:#b1c0cc}
+.chip.blue .dot{background:#318bb6}.chip.green .dot{background:#3b9c88}.chip.orange .dot{background:#d79554}
+.value-stamp{font-size:31px;font-weight:850;line-height:1.15;color:#176c9c;letter-spacing:-.05em}
+.note-strong{font-weight:770;color:#1e688f}
+.footref{border-top:1px solid #dae5ec;padding-top:13px;margin-top:16px}
+.ltr{direction:ltr}.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+@media(max-width:1020px){.stage-track{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.stage-track,.shape-demo{grid-template-columns:1fr}.figure-placeholder{min-height:220px}.value-stamp{font-size:26px}.hero:after{font-size:110px}}
+</style></head><body>
+<div class="track" id="progress"></div>
+<header class="top"><div class="brand">沿途手记 <small>VISION RESEARCH NOTES</small></div><div><a href="../index.html">← 目标检测总览</a>　<a href="#outline">核心机制</a>　<a href="#training">训练</a>　<a href="#inference">推理</a></div></header>
+<div class="layout"><nav class="side" aria-label="章节导航"><div class="eyebrow">R-CNN · CONTENTS</div>
+<a href="#start">00 · 研究问题与路线</a><a href="#outline">01 · 核心算法</a>
+<a href="#proposal">1.1 · 候选区域</a><a href="#warp">1.2 · 裁剪与缩放</a><a href="#feature">1.3 · CNN 特征</a><a href="#svm">1.4 · SVM 分类</a><a href="#regress">1.5 · 边界框回归</a><a href="#nms">1.6 · NMS 去重</a>
+<a href="#training">02 · 完整训练</a><a href="#samples">2.1 · 两套正负样本</a><a href="#inference">03 · 完整推理</a><a href="#review">04 · 价值与边界</a>
+<div class="foot">依据 Girshick 等人 2013/2014 的 R-CNN 原论文。蓝框代表 CNN，绿框代表分类，橙框代表回归。交互使用标注的教学数值。</div></nav>
+<main class="main">
+<section class="hero" id="start"><div class="eyebrow">OBJECT DETECTION / MODEL STUDY 02 / 2013–2014</div>
+<h1>R-CNN <span style="font-size:.46em;font-weight:550;color:#6d8ca1">算法原理研究笔记</span></h1>
+<p class="en">Rich feature hierarchies for accurate object detection and semantic segmentation · Ross Girshick et al.</p>
+<p class="pitch">先找到可能存在物体的区域，再用预训练 CNN 判断其类别。将深度分类特征迁移到目标检测，是 R-CNN 最重要的研究突破。</p>
+<div class="meta"><span>Region Proposals</span><span>Selective Search</span><span>CNN Features</span><span>Linear SVM</span><span>Bounding-box Regression</span></div></section>
+
+<section class="chapter"><div class="section-heading"><div class="num">00</div><div><h2>2013 年：如何把分类 CNN 用于检测？</h2><p>先明确研究者已经有什么、遇到了什么困难、提出了什么回答。</p></div></div>
+<p class="lead">AlexNet 在图像分类任务上证明了 CNN 能学习强大的视觉特征，但分类只需回答<strong>“这张图是什么”</strong>。检测还要找到<strong>“哪些位置存在什么物体”</strong>，而物体的数量、尺度和位置都不固定。</p>
+<div class="cards"><div class="card"><div class="k">已有能力 A · 传统视觉</div><h4>可以提出候选位置</h4><p>Selective Search 根据颜色、纹理、区域结构等合并图像区域，得到大量可能包含物体的位置。但它不学习目标类别。</p></div>
+<div class="card"><div class="k">已有能力 B · 深度学习</div><h4>CNN 可以识别图像内容</h4><p>AlexNet 类网络能学出比 HOG/SIFT 等手工特征更强的语义表示，但最初被用于固定输入的整图分类。</p></div></div>
+<div class="point"><strong>R-CNN 的研究判断：</strong> 不必马上让 CNN 从整张图直接预测任意数量的目标框。先用现成的区域提议算法限定搜索范围，再把每个区域转换成一个分类 CNN 能处理的小图。</div>
+<div class="fig"><div class="fighead"><strong>图 1 · R-CNN 网络结构、训练与推理流程</strong><small>高分辨率科研总览图</small></div><div class="figbody">
+<img class="overview-image" src="./r-cnn-architecture-training-inference.png" alt="R-CNN 网络结构、分阶段训练与完整推理流程图" loading="lazy" decoding="async">
+</div><div class="figcaption">从候选区域、CNN 特征、分类与框回归，到分阶段训练和最终推理的完整关系。</div></div>
+<div class="flow"><div class="node">原图<em>RGB image</em></div><span class="arr">→</span><div class="node">候选区域<em>Selective Search</em></div><span class="arr">→</span><div class="node">逐区域 CNN<em>4096-D features</em></div><span class="arr">→</span><div class="node green">类别评分<em>Per-class SVM</em></div><span class="arr">→</span><div class="node orange">框修正 + 去重<em>Regression &amp; NMS</em></div></div>
+<div class="cards three"><div class="card"><div class="k">研究突破 1</div><h4>引入深度特征</h4><p>候选框方法不变，仅视觉特征的升级就带来巨大检测精度提升。</p></div><div class="card"><div class="k">研究突破 2</div><h4>搜索与识别分离</h4><p>区域算法解决“在哪儿看”，CNN 解决“看到了什么”。</p></div><div class="card"><div class="k">研究突破 3</div><h4>分类预训练 → 检测微调</h4><p>先在 ImageNet 学到视觉知识，再迁移到标注更少的检测任务。</p></div></div></section>
+
+<section class="chapter" id="outline"><div class="section-heading"><div class="num">01</div><div><h2>核心算法原理</h2><p>沿着一次推理的真实数据流，解释每一步的输入、计算、输出和必要性。</p></div></div>
+<section class="subsection" id="proposal"><h3>1.1 Selective Search：怎么知道该裁剪哪些区域？</h3><p class="question">一张图片有无限多个可能的矩形框，R-CNN 为什么只检查约 2000 个？</p>
+<p class="textline">原版 R-CNN 使用 <strong>Selective Search</strong>（并非 R-CNN 发明）生成类别无关的候选区域。它先对图像做过分割，得到许多小区域，再按颜色、纹理、尺寸、相邻关系等相似性逐步合并。不同合并策略和尺度会形成不同大小的区域，取这些区域的外接矩形作为候选框。</p>
+<div class="fig"><div class="fighead"><strong>图 2 · 从像素小区域到候选框</strong><small>概念性示意，不是 Selective Search 的完整实现</small></div><div class="figbody"><div class="shape-demo">
+<div class="shape-box"><b>初始过分割</b><svg viewBox="0 0 400 170" aria-label="很多小分割区域"><rect x="7" y="7" width="386" height="156" rx="10" fill="#e9f2f9" stroke="#bcd4e4"/><g stroke="#fff" stroke-width="3" opacity=".9"><path d="M8 40Q80 14 151 47T393 32M8 78Q76 106 151 77T393 91M8 125Q106 108 176 134T393 119M68 7Q51 87 74 163M145 7Q171 79 146 163M223 7Q205 87 241 163M317 7Q332 80 305 163"/></g><g opacity=".7"><ellipse cx="160" cy="87" rx="69" ry="45" fill="#94c6d8"/><rect x="246" y="56" width="100" height="67" rx="6" fill="#c2d8e8"/></g></svg><small>局部相似像素形成多个区域</small></div>
+<div class="shape-box"><b>层次合并 → 多尺度候选矩形</b><svg viewBox="0 0 400 170" aria-label="多个不同尺度的候选矩形"><rect x="7" y="7" width="386" height="156" rx="10" fill="#e9f2f9" stroke="#bcd4e4"/><g fill="none" stroke-width="3"><rect x="87" y="42" width="137" height="97" rx="3" stroke="#2b8bb8"/><rect x="114" y="58" width="91" height="67" rx="3" stroke="#64b29c"/><rect x="238" y="45" width="115" height="99" rx="3" stroke="#c99361"/><rect x="27" y="25" width="348" height="128" rx="3" stroke="#8db3c7" stroke-dasharray="6 6"/></g></svg><small>目标类别未知；主要目标是高召回的候选集合</small></div>
+</div></div><div class="figcaption">这些区域不是网络预测的 BBox，也没有 CNN 分类得分。真实 Selective Search 的不同策略会产生更多形态。</div></div>
+<div class="point"><strong>输出：</strong>一组候选矩形 <span class="mono">P₁ ... Pₙ</span>，典型约 2000 个。<strong>能力边界：</strong>后续只能检测候选集合覆盖到的物体；若真实目标在候选阶段被遗漏，SVM 再强也无法凭空找回来。</div>
+</section>
+<section class="subsection" id="warp"><h3>1.2 Warp：为什么所有候选框都被变成 227 × 227？</h3><p class="question">原图中长方形、正方形、大框、小框，怎样进入同一个固定输入 CNN？</p>
+<p class="textline">原论文使用简单的几何变换：先给候选外接矩形留少量上下文，再将其内部像素<strong>直接拉伸到 227 × 227</strong>。不同宽高比会被扭曲，这是一种精度与实现简单性之间的选择。</p>
+<div class="flow"><div class="node">原图候选矩形<em>如：宽 180 × 高 90</em></div><span class="arr">→</span><div class="node">加入上下文边缘<em>warped 后约 16 px padding</em></div><span class="arr">→</span><div class="node green">固定大小的 RGB 裁剪<em>227 × 227 × 3</em></div></div>
+<p class="textline">这里用的是<strong>候选框对应的图像像素</strong>，不是将框投影到某张共享 Feature Map 再池化——那是后来的 Fast R-CNN 方向。R-CNN 的每个候选都独立经过 CNN。</p></section>
+<section class="subsection" id="feature"><h3>1.3 CNN 特征：网络真正输出什么？</h3><p class="question">CNN 是直接输出“dog + bbox”，还是只负责生成一个更有用的特征？</p>
+<p class="textline">R-CNN 使用与 AlexNet 相近、经检测任务微调的 CNN。每个固定尺寸的候选 RGB 图独立前向传播，经过卷积层和全连接层，读取 <strong>fc7 的 4096 维特征向量</strong>。随后使用这些特征训练真正的检测分类器。</p>
+<div class="fig"><div class="fighead"><strong>图 3 · 网络输出与下游判定分开看</strong><small>同一张图约执行数千次 CNN 前向传播</small></div><div class="figbody"><div class="flow"><div class="node">候选区域<em>227 × 227 RGB</em></div><span class="arr">→</span><div class="node">Conv1–5 / pool5<em>分层视觉特征</em></div><span class="arr">→</span><div class="node">fc6 / fc7<em>4096 维 φ(P)</em></div></div><div class="flow"><div class="node green">线性 SVM<em>多类别的判别得分</em></div><span class="arr">＋</span><div class="node orange">回归器（从 pool5）<em>目标框几何修正</em></div></div>
+<p class="small">特别注意：原版分类 SVM 使用 fc7 特征；原论文描述的 BBox 回归器使用 pool5 特征。这不是现代检测头的统一分类/回归共享输出结构。</p></div></div>
+<div class="point orange"><strong>与 OverFeat 的重要差别：</strong> R-CNN 的所有候选框使用<strong>同一套 CNN 权重</strong>，但每个候选区域要重复执行网络；OverFeat 通过整图卷积复用相邻窗口的大量计算。<strong>参数共享 ≠ 特征图计算共享。</strong></div>
+</section>
+<section class="subsection" id="svm"><h3>1.4 SVM：既然 CNN 已经会分类，为什么还训练 SVM？</h3><p class="question">“分类 CNN”与“最终检测分类器”是同一个东西吗？</p>
+<p class="textline">不是。微调 CNN 时会临时使用 <strong>21 类 Softmax</strong>（PASCAL VOC 20 个物体类别 + 背景），让特征适应检测场景；而原版 R-CNN 的最终检测分数来自<strong>按类别训练的线性 SVM</strong>。它从 fc7 的 4096 维向量判断“这个区域是不是某一类目标”。</p>
+<div class="math">s<sub>c</sub>(P) = w<sub>c</sub><sup>T</sup> φ<sub>fc7</sub>(P) + b<sub>c</sub><br><small>P 是候选框，φ 是 CNN 的 4096 维特征，w<sub>c</sub> 是类别 c 的线性 SVM 权重；s 是判别得分，不应直接理解为校准的概率。</small></div>
+<div class="flow"><div class="node">一个候选框<em>4096-D 特征</em></div><span class="arr">→</span><div class="node green">dog SVM<em>dog score = 2.1</em></div><span class="arr">＋</span><div class="node green">bike SVM<em>bike score = −0.7</em></div><span class="arr">＋</span><div class="node green">其他类别 SVM<em>各自一个分数</em></div></div>
+<p class="textline">论文使用独立 SVM 与 Hard Negative Mining（困难负例挖掘），是为了对最终的检测判别边界做专门优化。它不是必须依赖 SVM 的数学定律；后来的 Fast R-CNN 就把分类与回归合并到统一网络训练中了。</p></section>
+<section class="subsection" id="regress"><h3>1.5 BBox 回归：候选区域不准确，怎样移动到真实目标？</h3><p class="question">Selective Search 找到“差不多是狗的区域”，但这个框不一定刚好贴合狗的边界。</p>
+<p class="textline">R-CNN 在获得候选框 <strong>P</strong> 之后，学习一个从候选到真实框 <strong>G</strong> 的几何变换：中心位置的偏移以候选宽高归一化，尺度变化使用对数比值。它的预测来自候选区域的 <strong>pool5 CNN 特征</strong>，再通过类别对应的线性回归器估计这四个量。</p>
+<div class="math">t<sub>x</sub> = (G<sub>x</sub> − P<sub>x</sub>) / P<sub>w</sub>　　t<sub>y</sub> = (G<sub>y</sub> − P<sub>y</sub>) / P<sub>h</sub><br>t<sub>w</sub> = ln(G<sub>w</sub> / P<sub>w</sub>)　　t<sub>h</sub> = ln(G<sub>h</sub> / P<sub>h</sub>)<br><small>P=(P<sub>x</sub>, P<sub>y</sub>, P<sub>w</sub>, P<sub>h</sub>)；G 是匹配 GT。坐标是中心点与宽高形式，非直接预测四条边。</small></div>
+<div class="fig"><div class="fighead"><strong>图 4 · 交互：候选框怎样被回归修正？</strong><small>示意性几何变换；滑块不是模型推理结果</small></div><div class="figbody"><div class="visualgrid"><div><svg viewBox="0 0 530 290" id="bboxsvg" aria-label="候选框与回归框几何示意"><rect x="6" y="6" width="518" height="278" rx="9" fill="#f1f7fb" stroke="#cddfea"/><g stroke="#e0edf5" stroke-width="1"><path d="M6 60H524M6 114H524M6 168H524M6 222H524M92 6V284M178 6V284M264 6V284M350 6V284M436 6V284"/></g><rect x="163" y="56" width="212" height="169" rx="4" fill="#89c8af" fill-opacity=".12" stroke="#26947a" stroke-width="3"/><text x="168" y="49" fill="#278776" font-size="13" font-weight="800">GT（固定）</text><rect x="140" y="81" width="186" height="155" rx="4" fill="#e7a25d" fill-opacity=".09" stroke="#d48a37" stroke-width="3" stroke-dasharray="8 5"/><text x="146" y="253" fill="#a87536" font-size="13" font-weight="700">原始候选 P</text><rect id="predbox" x="144" y="81" width="186" height="155" rx="4" fill="#65a2d6" fill-opacity=".07" stroke="#2f85b7" stroke-width="3"/><text id="predlabel" x="354" y="275" fill="#2778aa" font-size="13" font-weight="800">回归预测 P′</text></svg></div><div><div class="control"><label for="dx">中心偏移 Δx</label><input type="range" id="dx" min="-35" max="65" value="20"><output id="dxout">20</output></div><div class="control"><label for="dy">中心偏移 Δy</label><input type="range" id="dy" min="-35" max="45" value="-10"><output id="dyout">-10</output></div><div class="control"><label for="dw">宽度变化 Δw</label><input type="range" id="dw" min="-50" max="65" value="24"><output id="dwout">24</output></div><div class="control"><label for="dh">高度变化 Δh</label><input type="range" id="dh" min="-45" max="60" value="14"><output id="dhout">14</output></div><div class="demo-status" id="bboxstatus">框修正后与 GT 的重叠程度</div><p class="small">调节四个滑块，观察平移和缩放如何把初始候选框修正到目标框。这里用像素几何直接演示，不模拟经过训练的回归器参数。</p></div></div></div></div>
+<p class="textline">论文中的回归器以正则化最小二乘（Ridge Regression）学习四种变换参数，而不是把 CNN、SVM 和回归器端到端一起优化。使用<strong>类别相关回归</strong>是因为不同类型目标的框修正规律可能不同。</p></section>
+<section class="subsection" id="nms"><h3>1.6 NMS：为什么一只狗会产生几十个高分框？</h3><p class="question">不同候选区域可能都覆盖同一个目标，最后应保留哪个？</p>
+<p class="textline">R-CNN 对每个类别分别把候选按 SVM 分数排序，保留当前最高分框，删除与其 IoU 高于阈值的其他候选，然后继续处理剩余框。这是 <strong>Greedy NMS</strong>，不是将重复框坐标求平均。</p>
+<div class="flow"><div class="node green">按单类别得分降序<em>如：dog 2.7 / 2.4 / 1.9</em></div><span class="arr">→</span><div class="node green">保留最高分框<em>作为当前检测</em></div><span class="arr">→</span><div class="node">删除高度重叠候选<em>IoU &gt; 阈值</em></div><span class="arr">→</span><div class="node">剩余框重复<em>最终检测集合</em></div></div>
+<div class="math">IoU(A,B) = Area(A ∩ B) / Area(A ∪ B)<br><small>比如 A、B 的 IoU = 0.8，通常说明两个框大幅重叠；若高于该类别选定的 NMS 阈值，则低分框被抑制。原论文阈值从验证数据选择，而非所有类别统一固定某个值。</small></div></section></section>
+
+<section class="chapter" id="training"><div class="section-heading"><div class="num">02</div><div><h2>完整训练：这四步分别训练谁？</h2><p>理解原版 R-CNN，必须拆开“CNN 微调”“SVM 训练”“框回归训练”，否则容易误认为它是一个普通端到端检测器。</p></div></div>
+<div class="stage-track"><div class="stage-step"><span class="n">01</span><h4>ImageNet 预训练 CNN</h4><p>输入：整图裁剪与类别标签<br>监督：1000 类分类<br>损失：Softmax 交叉熵<br>更新：CNN + 分类层</p></div><div class="stage-step"><span class="n">02</span><h4>VOC 检测域微调 CNN</h4><p>输入：warped 候选框<br>监督：20 类 + 背景<br>损失：Softmax 交叉熵<br>更新：CNN + 新 21 类层</p></div><div class="stage-step"><span class="n">03</span><h4>训练各类别线性 SVM</h4><p>输入：固定 fc7 特征<br>监督：GT 正例、IoU 负例<br>损失：SVM 间隔目标<br>更新：SVM 权重</p></div><div class="stage-step"><span class="n">04</span><h4>训练 BBox 回归器</h4><p>输入：pool5 特征及候选框<br>监督：候选到 GT 的变换<br>损失：正则化最小二乘<br>更新：回归参数</p></div></div>
+<div class="point"><strong>理解训练顺序：</strong> 预训练使 CNN“学会看图”，检测微调让它“学会看候选区域及背景”；SVM 训练最终的类别判别边界，回归器单独学习修正几何位置。后两者使用已提取的 CNN 特征，不通过其损失反向更新 CNN。</div>
+<section class="subsection" id="samples"><h3>2.1 为什么同一个 R-CNN 有两套不同的正负样本定义？</h3><p class="question">CNN 的检测微调与 SVM 的最终分类，为什么不使用同一套 IoU 阈值？</p>
+<p class="textline"><strong>微调阶段</strong>需要大量带类别标签的候选框去适配 CNN：与某个 GT 最大 IoU ≥ 0.5 的候选为该类正例，其他候选为背景。<strong>SVM 阶段</strong>追求最终检测的高精度判别：只用真实 GT 框作为该类正例；与该类所有 GT 的 IoU 都低于 0.3 的候选才作为该类负例；中间有重叠的候选不纳入该类 SVM 训练。</p>
+<div class="fig"><div class="fighead"><strong>图 5 · 交互：同一候选的 IoU，两个训练环节怎样解释？</strong><small>以某一目标类别及其 GT 为例</small></div><div class="figbody"><div class="control"><label for="iou">候选框与该类 GT 的最大 IoU</label><input type="range" id="iou" min="0" max="100" value="42" step="1"><output id="iouout">0.42</output></div><div class="twocol"><div class="diagram-section"><strong style="color:#236b91">CNN 检测域微调（Softmax）</strong><div style="margin-top:12px" class="demo-status" id="finetunelabel"></div><p class="subnote">以 IoU 0.5 为边界；正例参与对应目标类 CE，其他候选按背景参与 CE。</p></div><div class="diagram-section"><strong style="color:#278878">最终检测 SVM（每类独立）</strong><div style="margin-top:12px" class="demo-status" id="svmlabel"></div><p class="subnote">SVM 正例只来自 GT 框本身；候选的 IoU 即使是 0.9，也不会自动成为 SVM 正例。</p></div></div>
+<div class="chips"><span class="chip green"><span class="dot"></span>微调：≥0.5 为正例</span><span class="chip blue"><span class="dot"></span>SVM：GT 框才是正例</span><span class="chip orange"><span class="dot"></span>SVM：候选 &lt;0.3 为负例</span></div></div><div class="figcaption">交互只演示“候选框”的判断。若训练样本本身就是该类别的 GT 框，它才是该类别 SVM 的正例，不能把 IoU=1 的普通候选与 GT 样本混为一谈。</div></div>
+<p class="textline"><strong>为什么区别这么大？</strong> 论文补充材料讨论过：微调用宽一些的正例条件使 CNN 见到更多目标外观与位置变化；SVM 使用更严格的正例避免把定位不准的候选直接作为标准正样本。两步解决的训练目标并不相同。</p>
+<div class="cards"><div class="card"><div class="k">CNN 微调：学习可迁移特征</div><h4>21 类 Softmax + 交叉熵</h4><p>论文一个 mini-batch 采样 32 个正例与 96 个背景，共 128 个候选框，以缓解背景极多造成的训练不均衡。</p><div class="math">L<sub>CE</sub> = −log p(y | P)</div></div><div class="card"><div class="k">SVM：学习最终检测间隔</div><h4>每类独立训练 + Hard Negative Mining</h4><p>在大量候选中，重点挖掘容易被错判为目标的负例；冻结 CNN 特征后训练线性分类器权重。</p><div class="math">s<sub>c</sub>(P) = w<sub>c</sub><sup>T</sup>φ(P) + b<sub>c</sub></div></div></div>
+</section>
+<section class="subsection"><h3>2.2 回归监督从哪里来？又更新了谁？</h3><p class="question">BBox 回归不是对所有背景框做 L2 学习，而是需要候选框与目标 GT 的对应。</p>
+<p class="textline">先把候选 P 与目标 GT G 匹配，构造四个归一化的变换目标 <span class="mono">t=(tₓ,tᵧ,tw,th)</span>。回归器以 pool5 特征预测这四个值，最小化预测与目标间的平方误差，并使用 L2 正则约束权重。</p>
+<div class="math">L<sub>reg</sub>(w) = Σᵢ (tᵢ − w<sup>T</sup>φ<sub>pool5</sub>(Pᵢ))² + λ‖w‖²<br><small>这里写的是某一个变换分量的 Ridge 目标，四个变换分量分别学习。φ 是已训练 CNN 提取的特征；优化发生在回归器参数上。</small></div>
+<p class="textline">回归的作用是<strong>降低定位误差</strong>；SVM 在语义上判断“这是不是狗”，并不意味着候选框已贴合狗的真实边界。</p></section>
+<div class="fig"><div class="fighead"><strong>训练全景 · 监督与被更新的参数</strong><small>原版 R-CNN 并非统一多任务 Loss</small></div><div class="figbody"><div class="tablewrap"><table class="table"><thead><tr><th>阶段</th><th>训练输入</th><th>监督 / Loss</th><th>更新参数</th><th>是否需要 GT</th></tr></thead><tbody>
+<tr><td><strong>ImageNet 预训练</strong></td><td>整图分类样本</td><td>1000 类标签 / CE</td><td>CNN + 分类层</td><td>分类标签</td></tr>
+<tr><td><strong>检测域微调</strong></td><td>warped 候选框</td><td>20 类 + 背景 / CE</td><td>CNN + 21 类层</td><td>目标类别和 GT 框</td></tr>
+<tr><td><strong>检测 SVM</strong></td><td>固定 fc7 特征</td><td>严格正负样本 / SVM 间隔</td><td>每类 SVM 权重</td><td>GT 框和 IoU</td></tr>
+<tr><td><strong>BBox 回归</strong></td><td>pool5 特征 + 候选框</td><td>候选→GT 几何变换 / Ridge</td><td>回归器权重</td><td>匹配后的 GT 框</td></tr>
+</tbody></table></div></div></div></section>
+
+<section class="chapter" id="inference"><div class="section-heading"><div class="num">03</div><div><h2>完整推理：一张新图如何得到最终检测框？</h2><p>无 GT、无梯度更新。训练好的 CNN、SVM、回归器按规定顺序处理新图像。</p></div></div>
+<div class="fig"><div class="fighead"><strong>图 6 · 完整推理算法</strong><small>实际模块关系与输出说明</small></div><div class="figbody"><div class="flow"><div class="node">① 原始图像<em>H × W × 3</em></div><span class="arr">→</span><div class="node">② Selective Search<em>约 2000 proposals</em></div><span class="arr">→</span><div class="node">③ Crop &amp; Warp<em>每个 227 × 227</em></div></div>
+<div class="flow"><div class="node">④ 各候选分别 CNN<em>fc7 / pool5 特征</em></div><span class="arr">→</span><div class="node green">⑤ 每类 SVM 得分<em>区域 × 类别矩阵</em></div><span class="arr">＋</span><div class="node orange">⑥ 框回归修正<em>候选 P → 预测框 P′</em></div></div>
+<div class="flow"><div class="node green">⑦ 每类排序与 NMS<em>删除重复高重叠框</em></div><span class="arr">→</span><div class="node">⑧ 最终检测结果<em>类别 + bbox + score</em></div></div></div></div>
+<div class="cards"><div class="card"><div class="k">一条候选如何流动</div><h4>框 P = [100, 80, 230, 210]</h4><p>其裁剪图进入 CNN；fc7 的特征被 dog-SVM 判为高分，pool5 特征引导回归器将框修正到更合理的区域；随后按 dog 类别参与 NMS。</p></div><div class="card"><div class="k">重要的执行事实</div><h4>每个候选都要执行 CNN</h4><p>原版 R-CNN 的 CNN 计算与物体类别数并不成正比，因为特征可供所有 SVM 复用；但与候选数量基本相关。这是其高延迟的核心原因。</p></div></div>
+<div class="point green"><strong>如何区分训练和推理：</strong> 测试图没有 GT，所以不存在根据 IoU 划分正负样本，也不存在训练损失的反向传播。候选从 Selective Search 来，类别分数从 SVM 来，边界框从回归器修正来。</div>
+</section>
+
+<section class="chapter" id="review"><div class="section-heading"><div class="num">04</div><div><h2>历史价值与代价：R-CNN 到底解决了什么？</h2><p>定义里程碑，不把实验现象误写成“某个组件第一次被发明”。</p></div></div>
+<div class="fig"><div class="fighead"><strong>图 7 · 为什么 R-CNN 被视为检测发展的重要转折？</strong><small>PASCAL VOC 2010 test，mAP</small></div><div class="figbody">
+<div class="cards three"><div class="card"><div class="k">HOG / DPM</div><div class="value-stamp">33.4%</div><p>代表性的传统特征检测基线。</p></div><div class="card"><div class="k">相同 Selective Search 候选 + 传统特征</div><div class="value-stamp">35.1%</div><p>空间金字塔 / 视觉词袋特征的传统区域式系统。</p></div><div class="card" style="border-color:#b4d4e5;background:#f1f9fe"><div class="k">R-CNN + BBox Regression</div><div class="value-stamp">53.7%</div><p>同样使用候选区域，但采用深度 CNN 特征，并进行定位修正。</p></div></div>
+<div class="point"><strong>实验中最关键的对照：</strong> 与采用同样 Selective Search 候选的传统区域检测方法相比，性能明显提高。即使候选区域不是神经网络生成的，深度特征仍然能够显著改善检测质量。完整 R-CNN 无回归版本为 50.2%，加入回归升至 53.7%。</div></div><div class="figcaption">数值取自论文 Table 1（VOC 2010 test）。不同传统方法的后续判别器、特征训练设置并不完全相同，不宜说成“只替换 CNN 且其他完全不变”的严格单变量实验。</div></div>
+<div class="twocol"><div class="card"><div class="k">OverFeat · 密集滑窗思路</div><h4>让 CNN 在整个图像上高效扫位置</h4><p>多尺度、空间密集预测、共享卷积；核心工程问题是扫描效率与精确定位。更强调共享计算。</p></div><div class="card"><div class="k">R-CNN · 候选区域思路</div><h4>把检测变成 CNN 擅长的区域识别</h4><p>先产生区域，再提取 CNN 特征、分类和修正；核心研究问题是深度特征在检测任务的有效迁移。更依赖候选质量。</p></div></div>
+<div class="tablewrap" style="margin-top:18px"><table class="table"><thead><tr><th>遇到的问题</th><th>R-CNN 的回答</th><th>后来暴露的局限</th><th>推动的研究</th></tr></thead><tbody>
+<tr><td>深度 CNN 主要擅长分类</td><td>先提区域 → 逐区域识别</td><td>类别无关的候选需另外计算</td><td>RPN / Faster R-CNN</td></tr>
+<tr><td>检测标注数据有限</td><td>ImageNet 预训练 + 检测微调</td><td>多个训练阶段割裂</td><td>Fast R-CNN 联合多任务训练</td></tr>
+<tr><td>区域数量多，CNN 前向成本高</td><td>所有区域共享权重与语义表示</td><td>仍重复进行 CNN 计算</td><td>SPPnet / Fast R-CNN 共享特征图</td></tr>
+<tr><td>候选框未必精确</td><td>学习候选框到 GT 的修正</td><td>回归器另训，不能端到端更新 CNN</td><td>统一框回归 Head 与多任务损失</td></tr>
+</tbody></table></div>
+<div class="point"><strong>适合记录在技术演进长图上的一句话：</strong> R-CNN 将类别无关的区域提议与强大的 CNN 特征结合，证明了在大规模分类数据上预训练、再在检测数据上微调的视觉表示，能够显著提升目标检测精度，确立了深度学习区域式检测的重要路线。</div>
+<div class="ref"><strong>论文依据</strong><div class="footref">Ross Girshick, Jeff Donahue, Trevor Darrell, Jitendra Malik. <em>Rich feature hierarchies for accurate object detection and semantic segmentation</em>. arXiv:1311.2524，初稿 2013，发表于 CVPR 2014。<br><a href="https://arxiv.org/abs/1311.2524" target="_blank" rel="noopener">arXiv 论文摘要</a> · <a href="https://openaccess.thecvf.com/content_cvpr_2014/html/Girshick_Rich_Feature_Hierarchies_2014_CVPR_paper.html" target="_blank" rel="noopener">CVF 正式论文</a> · <a href="https://courses.cs.washington.edu/courses/cse473/23wi/notes/Girshick.pdf" target="_blank" rel="noopener">论文全文 PDF（含补充材料）</a></div>
+<p>对应主要章节：论文 §2（区域提议、特征、检测训练及推理）、§3（消融与定位误差分析）、§3.4（框回归）；附录 / Supplementary Material（回归目标、两套正负样本定义）。为避免混淆，页面将论文原始实现与概念示意分开标注。</p></div></section>
+<div class="footer">沿途手记 · 深度视觉与目标检测 · R-CNN 算法原理研究笔记</div>
+</main></div>
+<script>
+(function(){
+  const progress = document.getElementById('progress');
+  const links = [...document.querySelectorAll('.side a[href^="#"]')];
+  const sections = links.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function updateScroll(){
+    const root=document.documentElement;
+    const max=Math.max(1,root.scrollHeight-innerHeight);
+    progress.style.width=(100*scrollY/max)+'%';
+    let current=sections[0];for(const s of sections){if(s.getBoundingClientRect().top<150)current=s;}
+    links.forEach(a=>a.classList.toggle('current',a.getAttribute('href')==='#'+current.id));
+  }
+  addEventListener('scroll',updateScroll,{passive:true});addEventListener('resize',updateScroll);updateScroll();
+
+  const iouSlider=document.getElementById('iou');
+  function updateIoU(){
+    const x=+iouSlider.value/100;
+    document.getElementById('iouout').textContent=x.toFixed(2);
+    const t=document.getElementById('finetunelabel'), s=document.getElementById('svmlabel');
+    if(x>=0.5){t.textContent='正样本：按匹配的目标类别训练';t.style.color='#167c6a';}
+    else{t.textContent='背景样本：按 background 训练';t.style.color='#9b7138';}
+    if(x<0.3){s.textContent='该类别的负样本：可用于训练 SVM';s.style.color='#9b7138';}
+    else{s.textContent='不纳入该类别的候选负样本集合；也不是正例';s.style.color='#237396';}
+  }
+  iouSlider.addEventListener('input',updateIoU);updateIoU();
+
+  function overlap(a,b){let ix=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x));let iy=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));let intersection=ix*iy;return intersection/(a.w*a.h+b.w*b.h-intersection);}
+  const P={x:140,y:81,w:186,h:155}, G={x:163,y:56,w:212,h:169};
+  const controls=['dx','dy','dw','dh'].map(k=>document.getElementById(k));
+  function updateBBox(){let [dx,dy,dw,dh]=controls.map(x=>+x.value);let w=P.w+dw,h=P.h+dh;
+    let x=P.x+dx-dw/2,y=P.y+dy-dh/2;let pr={x,y,w,h};let shape=document.getElementById('predbox');
+    for(const k of ['x','y','width','height'])shape.setAttribute(k,k==='width'?w:k==='height'?h:pr[k]);
+    controls.forEach(c=>document.getElementById(c.id+'out').textContent=c.value);
+    document.getElementById('bboxstatus').textContent='原候选 IoU = '+overlap(P,G).toFixed(3)+'　→　修正后 IoU = '+overlap(pr,G).toFixed(3);
+  }
+  controls.forEach(c=>c.addEventListener('input',updateBBox));updateBBox();
+})();
+</script>
+</body></html>
