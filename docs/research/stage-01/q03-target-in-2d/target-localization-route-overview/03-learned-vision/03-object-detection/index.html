@@ -22,43 +22,43 @@
   <div class="step-body"><div class="step-meta"><span class="date-tag">2013—2014</span><span class="branch-tag">起点 · 两条并行探索</span></div>
   <h3>从分类到检测：深度特征能否真正找到目标？</h3>
   <div class="step-layout"><div class="story-sentences"><div class="thought"><span class="thought-k">当时卡在哪里</span><p>CNN 已会识别“是什么”，但检测还必须回答“在哪里、多少个”。</p></div><div class="thought important"><span class="thought-k">研究改变了什么</span><p>将目标位置作为预测对象；R-CNN 用候选区域把检测分解为“先找可能位置，再识别”。</p></div></div><div class="mechanism"><div class="mechanism-title">机制对照 <span>示意图 · 非完整网络架构</span></div><div class="diagram-duo"><div class="d-scenario"><span class="d-title">早期尝试 · OverFeat</span><div class="d-flow"><span class="d-node ">整图</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node ">共享 CNN</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node em">密集定位</span></div></div><div class="d-scenario"><span class="d-title">关键范式 · R-CNN</span><div class="d-flow"><span class="d-node ">候选区域</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node ">逐区域 CNN</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node em">分类 + 修框</span></div></div></div></div></div>
-  <div class="related"><span>代表工作</span><a class="model-chip" href="OverFeat/index.html" title="打开 OverFeat 专题页">OverFeat<span>↗</span></a><a class="model-chip" href="R-CNN/index.html" title="打开 R-CNN 专题页">R-CNN<span>↗</span></a></div></div></section>
+  <div class="related"><span>代表工作</span><a class="model-chip" href="./OverFeat/" title="打开 OverFeat 专题页">OverFeat<span>↗</span></a><a class="model-chip" href="./R-CNN/" title="打开 R-CNN 专题页">R-CNN<span>↗</span></a></div></div></section>
 <section class="story-block" id="turn-2">
   <div class="step-num"><span>02</span></div>
   <div class="step-body"><div class="step-meta"><span class="date-tag">2014—2015</span><span class="branch-tag">效率与系统整合</span></div>
   <h3>从逐框卷积到共享计算：候选也能由网络学习吗？</h3>
   <div class="step-layout"><div class="story-sentences"><div class="thought"><span class="thought-k">当时卡在哪里</span><p>候选区域彼此重叠，却需要反复运行 CNN；候选生成还依赖外部算法。</p></div><div class="thought important"><span class="thought-k">研究改变了什么</span><p>先共享整图卷积特征，再让 RPN 学会产生候选。</p></div></div><div class="mechanism"><div class="mechanism-title">机制对照 <span>示意图 · 非完整网络架构</span></div><div class="diagram-duo"><div class="d-scenario"><span class="d-title">以前 · 重复计算</span><div class="stack-rows"><div><span class="d-node ">RoI</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node muted">CNN</span></div><div><span class="d-node ">RoI</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node muted">CNN</span></div><div><span class="d-node ">RoI</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node muted">CNN</span></div></div></div><div class="d-scenario"><span class="d-title">后来 · 共享并学习候选</span><div class="d-flow"><span class="d-node ">整图 CNN</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node em">共享特征</span></div><div class="d-fork"><span>↙ RoI 特征 → 检测头</span><span>↘ RPN → 可学习候选</span></div></div></div></div></div>
-  <div class="related"><span>代表工作</span><a class="model-chip" href="#model-sppnet">SPPNet<span>↗</span></a><a class="model-chip" href="#model-fastrcnn">Fast R-CNN<span>↗</span></a><a class="model-chip" href="#model-fasterrcnn">Faster R-CNN<span>↗</span></a></div></div></section>
+  <div class="related"><span>代表工作</span><a class="model-chip" href="./SPPNet/">SPPNet<span>↗</span></a><a class="model-chip" href="./Fast R-CNN/">Fast R-CNN<span>↗</span></a><a class="model-chip" href="./Faster R-CNN/">Faster R-CNN<span>↗</span></a></div></div></section>
 <section class="story-block" id="turn-3">
   <div class="step-num"><span>03</span></div>
   <div class="step-body"><div class="step-meta"><span class="date-tag">2016</span><span class="branch-tag">范式分叉 · 单阶段</span></div>
   <h3>从“先找再认”到直接预测：Proposal 是必需的吗？</h3>
   <div class="step-layout"><div class="story-sentences"><div class="thought"><span class="thought-k">当时卡在哪里</span><p>两阶段路线有效，但检测能否不依赖先产生候选框这一流程？</p></div><div class="thought important"><span class="thought-k">研究改变了什么</span><p>YOLOv1 将检测变成整图预测；SSD 在多个尺度上直接密集预测。</p></div></div><div class="mechanism"><div class="mechanism-title">机制对照 <span>示意图 · 非完整网络架构</span></div><div class="diagram-duo"><div class="d-scenario"><span class="d-title">两阶段</span><div class="d-flow"><span class="d-node ">特征</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node ">候选</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node muted">分类 / 修框</span></div><div class="d-small">先提出候选，再识别和回归</div></div><div class="d-scenario"><span class="d-title">单阶段 · YOLOv1 示意</span><div class="grid-visual"><span class="grid-cube"><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class="selected"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span><span class="grid-caption">7 × 7 网格 → 统一输出类别与框</span></div></div></div></div></div>
-  <div class="related"><span>代表工作</span><a class="model-chip" href="#model-yolov1">YOLOv1<span>↗</span></a><a class="model-chip" href="#model-ssd">SSD<span>↗</span></a><a class="model-chip" href="#model-yolov2">YOLOv2<span>↗</span></a></div></div></section>
+  <div class="related"><span>代表工作</span><a class="model-chip" href="./YOLOv1/">YOLOv1<span>↗</span></a><a class="model-chip" href="./SSD/">SSD<span>↗</span></a><a class="model-chip" href="./YOLOv2/">YOLOv2<span>↗</span></a></div></div></section>
 <section class="story-block" id="turn-4">
   <div class="step-num"><span>04</span></div>
   <div class="step-body"><div class="step-meta"><span class="date-tag">2017—2019</span><span class="branch-tag">并行分支 · 特征与监督</span></div>
   <h3>直接预测之后，性能瓶颈分成了不同问题</h3>
   <div class="step-layout"><div class="story-sentences"><div class="thought"><span class="thought-k">当时卡在哪里</span><p>小目标的细节与语义难兼顾；密集训练时简单负样本又太多。</p></div><div class="thought important"><span class="thought-k">研究改变了什么</span><p>FPN 解决多尺度特征表达；Focal Loss 调整困难样本的学习权重。这是不同的研究方向。</p></div></div><div class="mechanism"><div class="mechanism-title">机制对照 <span>示意图 · 非完整网络架构</span></div><div class="diagram-duo"><div class="d-scenario"><span class="d-title">方向 A · 多尺度</span><div class="pyramid"><i style="width:48%"></i><i style="width:66%"></i><i style="width:84%"></i><b class="vertical-arrows">⇅</b></div><div class="d-small">语义从高层传给高分辨率层</div></div><div class="d-scenario"><span class="d-title">方向 B · 训练不平衡</span><div class="dotmatrix"><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="doteasy"></i><i class="dothard"></i><i class="dothard"></i><i class="dothard"></i><i class="dothard"></i></div><div class="d-small">大量简单背景样本 → Focal Loss 降权</div></div></div></div></div>
-  <div class="related"><span>代表工作</span><a class="model-chip" href="#model-fpn">FPN<span>↗</span></a><a class="model-chip" href="#model-retinanet">RetinaNet<span>↗</span></a><a class="model-chip" href="#model-maskrcnn">Mask R-CNN<span>↗</span></a><a class="model-chip" href="#model-cascadercnn">Cascade R-CNN<span>↗</span></a><a class="model-chip" href="#model-panet">PANet<span>↗</span></a><a class="model-chip" href="#model-efficientdet">EfficientDet / BiFPN<span>↗</span></a></div></div></section>
+  <div class="related"><span>代表工作</span><a class="model-chip" href="./FPN/">FPN<span>↗</span></a><a class="model-chip" href="./RetinaNet/">RetinaNet<span>↗</span></a><a class="model-chip" href="./Mask R-CNN/">Mask R-CNN<span>↗</span></a><a class="model-chip" href="./Cascade R-CNN/">Cascade R-CNN<span>↗</span></a><a class="model-chip" href="./PANet/">PANet<span>↗</span></a><a class="model-chip" href="./EfficientDet-BiFPN/">EfficientDet / BiFPN<span>↗</span></a></div></div></section>
 <section class="story-block" id="turn-5">
   <div class="step-num"><span>05</span></div>
   <div class="step-body"><div class="step-meta"><span class="date-tag">2018—2020</span><span class="branch-tag">预测单元 · 样本分配</span></div>
   <h3>Anchor 真的是核心分歧吗？先弄清谁负责预测</h3>
   <div class="step-layout"><div class="story-sentences"><div class="thought"><span class="thought-k">当时卡在哪里</span><p>不同方法在“哪些位置预测框”和“哪些预测当正样本”上做了不同决定。</p></div><div class="thought important"><span class="thought-k">研究改变了什么</span><p>角点、中心点、特征点提供不同预测单元；ATSS 进一步揭示样本分配的重要性。</p></div></div><div class="mechanism"><div class="mechanism-title">机制对照 <span>示意图 · 非完整网络架构</span></div><div class="diagram-duo"><div class="d-scenario"><span class="d-title">定义预测单元</span><div class="forms"><div class="form-anchor"><i></i><i></i><i></i><small>Anchor 框</small></div><div class="form-center"><i></i><small>中心点</small></div><div class="form-ltrb"><b>·</b><small>点 → 四边</small></div></div></div><div class="d-scenario"><span class="d-title">ATSS · 训练责任</span><div class="positives"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="active"></i><i class="active"></i><i class=""></i><i class=""></i><i class="active"></i><i class="active"></i><i class=""></i><i class=""></i><i class="active"></i><i class="active"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div><div class="d-small">同一 GT 周围，哪些候选被选为正样本？</div></div></div></div></div>
-  <div class="related"><span>代表工作</span><a class="model-chip" href="#model-cornernet">CornerNet<span>↗</span></a><a class="model-chip" href="#model-centernet">CenterNet<span>↗</span></a><a class="model-chip" href="#model-fcos">FCOS<span>↗</span></a><a class="model-chip" href="#model-atss">ATSS<span>↗</span></a></div></div></section>
+  <div class="related"><span>代表工作</span><a class="model-chip" href="./CornerNet/">CornerNet<span>↗</span></a><a class="model-chip" href="./CenterNet/">CenterNet<span>↗</span></a><a class="model-chip" href="./FCOS/">FCOS<span>↗</span></a><a class="model-chip" href="./ATSS/">ATSS<span>↗</span></a></div></div></section>
 <section class="story-block" id="turn-6">
   <div class="step-num"><span>06</span></div>
   <div class="step-body"><div class="step-meta"><span class="date-tag">2020</span><span class="branch-tag">新表示 · 与 DETR 并行</span></div>
   <h3>边界与定位质量：检测结果是否只能是几个确定值？</h3>
   <div class="step-layout"><div class="story-sentences"><div class="thought"><span class="thought-k">当时卡在哪里</span><p>分类分数无法完整表达框的质量，单点回归也难表示边界位置的不确定性。</p></div><div class="thought important"><span class="thought-k">研究改变了什么</span><p>GFL 将质量信息融入分类预测，并用概率分布学习边界距离。</p></div></div><div class="mechanism"><div class="mechanism-title">机制对照 <span>示意图 · 非完整网络架构</span></div><div class="diagram-duo"><div class="d-scenario"><span class="d-title">传统边界表示</span><div class="single-point"><span>距离 d = 4.7</span><div class="line"><i></i></div></div><div class="d-small">单个确定数值</div></div><div class="d-scenario"><span class="d-title">GFL · 分布式边界</span><div class="prob-bars"><i style="height:12%"></i><i style="height:20%"></i><i style="height:38%"></i><i style="height:65%"></i><i style="height:100%"></i><i style="height:78%"></i><i style="height:43%"></i><i style="height:22%"></i><i style="height:12%"></i></div><div class="d-small">学习一组离散距离概率，再得到位置</div></div></div></div></div>
-  <div class="related"><span>代表工作</span><a class="model-chip" href="#model-gfl">GFL<span>↗</span></a></div></div></section>
+  <div class="related"><span>代表工作</span><a class="model-chip" href="./GFL/">GFL<span>↗</span></a></div></div></section>
 <section class="story-block" id="turn-7">
   <div class="step-num"><span>07</span></div>
   <div class="step-body"><div class="step-meta"><span class="date-tag">2020</span><span class="branch-tag">范式突破 · 集合预测</span></div>
   <h3>不再先生成大量重复预测：目标集合能否直接学出来？</h3>
   <div class="step-layout"><div class="story-sentences"><div class="thought"><span class="thought-k">当时卡在哪里</span><p>密集检测往往一个物体对应许多预测，推理阶段需要 NMS 去重。</p></div><div class="thought important"><span class="thought-k">研究改变了什么</span><p>DETR 使用 Object Queries 和一对一集合匹配，重新定义检测输出。</p></div></div><div class="mechanism"><div class="mechanism-title">机制对照 <span>示意图 · 非完整网络架构</span></div><div class="diagram-duo"><div class="d-scenario"><span class="d-title">传统 · 密集候选</span><div class="overlap-box"><i></i><i></i><i></i><i></i></div><div class="d-small">重复框 → NMS → 最终集合</div></div><div class="d-scenario"><span class="d-title">DETR · 集合预测</span><div class="d-flow"><span class="d-node ">Queries</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node ">Transformer</span><span class="d-arrow" aria-hidden="true">→</span><span class="d-node em">目标集合</span></div><div class="d-small">一对一匹配，使预测成为独立目标</div></div></div></div></div>
-  <div class="related"><span>代表工作</span><a class="model-chip" href="#model-detr">DETR<span>↗</span></a></div></div></section>
+  <div class="related"><span>代表工作</span><a class="model-chip" href="./DETR/">DETR<span>↗</span></a></div></div></section>
 <section class="story-block" id="turn-8">
   <div class="step-num"><span>08</span></div>
   <div class="step-body"><div class="step-meta"><span class="date-tag">2020—2023</span><span class="branch-tag">沿 DETR 路线继续</span></div>
@@ -76,81 +76,81 @@
 <div class="index-toolbar"><button class="filter active" data-filter="all">全部 40</button><button class="filter" data-filter="core">主篇重点</button><button class="filter" data-filter="aux">辅助节点</button><button class="filter" data-filter="family">YOLO 专章</button><input class="search" id="modelSearch" type="search" placeholder="搜索模型、年份或研究问题（例：FPN、样本分配、NMS）" aria-label="搜索模型"><span class="model-count" id="modelCount">40 个模型</span></div>
 <div class="index-grid" id="modelGrid"><article class="index-card" id="model-overfeat" data-name="overfeat" data-kind="aux" data-group="早期深度检测" data-search="overfeat 共享卷积特征上的密集定位：与 r-cnn 并行的早期探索 2013">
   <div class="index-top"><span class="paper-date">2013</span><span class="paper-kind aux">辅助节点</span></div>
-  <h4><a href="OverFeat/index.html" title="阅读 OverFeat 专题">OverFeat</a></h4><p>共享卷积特征上的密集定位：与 R-CNN 并行的早期探索</p>
+  <h4><a href="./OverFeat/" title="阅读 OverFeat 专题">OverFeat</a></h4><p>共享卷积特征上的密集定位：与 R-CNN 并行的早期探索</p>
   <div class="index-bottom"><span class="index-group">早期深度检测</span><a href="https://arxiv.org/abs/1312.6229" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link"><a href="OverFeat/index.html">进入 OverFeat 算法专题 →</a></div>
+  <div class="future-link"><a href="./OverFeat/">进入 OverFeat 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-rcnn" data-name="r-cnn" data-kind="core" data-group="候选与共享" data-search="r-cnn 候选区域 + cnn 深度特征，建立 region-based 检测范式 2014">
   <div class="index-top"><span class="paper-date">2014</span><span class="paper-kind core">主篇重点</span></div>
-  <h4><a href="R-CNN/index.html" title="阅读 R-CNN 专题">R-CNN</a></h4><p>候选区域 + CNN 深度特征，建立 Region-Based 检测范式</p>
+  <h4><a href="./R-CNN/" title="阅读 R-CNN 专题">R-CNN</a></h4><p>候选区域 + CNN 深度特征，建立 Region-Based 检测范式</p>
   <div class="index-bottom"><span class="index-group">候选与共享</span><a href="https://arxiv.org/abs/1311.2524" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link"><a href="R-CNN/index.html">进入 R-CNN 算法专题 →</a></div>
+  <div class="future-link"><a href="./R-CNN/">进入 R-CNN 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-sppnet" data-name="sppnet" data-kind="aux" data-group="候选与共享" data-search="sppnet 整图提特征、区域池化，避免逐候选重复卷积 2014">
   <div class="index-top"><span class="paper-date">2014</span><span class="paper-kind aux">辅助节点</span></div>
   <h4>SPPNet</h4><p>整图提特征、区域池化，避免逐候选重复卷积</p>
   <div class="index-bottom"><span class="index-group">候选与共享</span><a href="https://arxiv.org/abs/1406.4729" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/sppnet.html</code></div>
+  <div class="future-link"><a href="./SPPNet/">进入 SPPNet 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-fastrcnn" data-name="fast r-cnn" data-kind="core" data-group="候选与共享" data-search="fast r-cnn 共享特征图 + roi pooling，联合训练分类与框回归 2015">
   <div class="index-top"><span class="paper-date">2015</span><span class="paper-kind core">主篇重点</span></div>
   <h4>Fast R-CNN</h4><p>共享特征图 + RoI Pooling，联合训练分类与框回归</p>
   <div class="index-bottom"><span class="index-group">候选与共享</span><a href="https://arxiv.org/abs/1504.08083" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/fastrcnn.html</code></div>
+  <div class="future-link"><a href="./Fast R-CNN/">进入 Fast R-CNN 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-fasterrcnn" data-name="faster r-cnn" data-kind="core" data-group="候选与共享" data-search="faster r-cnn rpn 学习候选区域，候选生成融入网络 2015">
   <div class="index-top"><span class="paper-date">2015</span><span class="paper-kind core">主篇重点</span></div>
   <h4>Faster R-CNN</h4><p>RPN 学习候选区域，候选生成融入网络</p>
   <div class="index-bottom"><span class="index-group">候选与共享</span><a href="https://arxiv.org/abs/1506.01497" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/fasterrcnn.html</code></div>
+  <div class="future-link"><a href="./Faster R-CNN/">进入 Faster R-CNN 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-yolov1" data-name="yolov1" data-kind="core" data-group="YOLO 家族" data-search="yolov1 直接将整图映射为类别和框的预测，开启单阶段路线 2016">
   <div class="index-top"><span class="paper-date">2016</span><span class="paper-kind core">主篇重点</span></div>
   <h4>YOLOv1</h4><p>直接将整图映射为类别和框的预测，开启单阶段路线</p>
   <div class="index-bottom"><span class="index-group">YOLO 家族</span><a href="https://arxiv.org/abs/1506.02640" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/yolov1.html</code></div>
+  <div class="future-link"><a href="./YOLOv1/">进入 YOLOv1 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-ssd" data-name="ssd" data-kind="core" data-group="单阶段与尺度" data-search="ssd 在多层特征图上使用默认框进行密集检测 2016">
   <div class="index-top"><span class="paper-date">2016</span><span class="paper-kind core">主篇重点</span></div>
   <h4>SSD</h4><p>在多层特征图上使用默认框进行密集检测</p>
   <div class="index-bottom"><span class="index-group">单阶段与尺度</span><a href="https://arxiv.org/abs/1512.02325" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/ssd.html</code></div>
+  <div class="future-link"><a href="./SSD/">进入 SSD 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-yolov2" data-name="yolov2" data-kind="family" data-group="YOLO 家族" data-search="yolov2 吸收 anchor、尺寸聚类及多尺度训练等成熟设计 2016">
   <div class="index-top"><span class="paper-date">2016</span><span class="paper-kind family">YOLO 专章</span></div>
   <h4>YOLOv2</h4><p>吸收 Anchor、尺寸聚类及多尺度训练等成熟设计</p>
   <div class="index-bottom"><span class="index-group">YOLO 家族</span><a href="https://arxiv.org/abs/1612.08242" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/yolov2.html</code></div>
+  <div class="future-link"><a href="./YOLOv2/">进入 YOLOv2 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-fpn" data-name="fpn" data-kind="core" data-group="多尺度与训练" data-search="fpn 高层语义向下融合，使高分辨率层具备强语义 2017">
   <div class="index-top"><span class="paper-date">2017</span><span class="paper-kind core">主篇重点</span></div>
   <h4>FPN</h4><p>高层语义向下融合，使高分辨率层具备强语义</p>
   <div class="index-bottom"><span class="index-group">多尺度与训练</span><a href="https://arxiv.org/abs/1612.03144" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/fpn.html</code></div>
+  <div class="future-link"><a href="./FPN/">进入 FPN 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-maskrcnn" data-name="mask r-cnn" data-kind="aux" data-group="多尺度与训练" data-search="mask r-cnn roi align 减少对齐误差，并拓展到实例分割 2017">
   <div class="index-top"><span class="paper-date">2017</span><span class="paper-kind aux">辅助节点</span></div>
   <h4>Mask R-CNN</h4><p>RoI Align 减少对齐误差，并拓展到实例分割</p>
   <div class="index-bottom"><span class="index-group">多尺度与训练</span><a href="https://arxiv.org/abs/1703.06870" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/maskrcnn.html</code></div>
+  <div class="future-link"><a href="./Mask R-CNN/">进入 Mask R-CNN 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-retinanet" data-name="retinanet" data-kind="core" data-group="多尺度与训练" data-search="retinanet focal loss 减少大量容易负样本的训练主导 2017">
   <div class="index-top"><span class="paper-date">2017</span><span class="paper-kind core">主篇重点</span></div>
   <h4>RetinaNet</h4><p>Focal Loss 减少大量容易负样本的训练主导</p>
   <div class="index-bottom"><span class="index-group">多尺度与训练</span><a href="https://arxiv.org/abs/1708.02002" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/retinanet.html</code></div>
+  <div class="future-link"><a href="./RetinaNet/">进入 RetinaNet 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-cascadercnn" data-name="cascade r-cnn" data-kind="core" data-group="多尺度与训练" data-search="cascade r-cnn 级联检测头逐级提高 iou 质量要求 2018">
   <div class="index-top"><span class="paper-date">2018</span><span class="paper-kind core">主篇重点</span></div>
   <h4>Cascade R-CNN</h4><p>级联检测头逐级提高 IoU 质量要求</p>
   <div class="index-bottom"><span class="index-group">多尺度与训练</span><a href="https://arxiv.org/abs/1712.00726" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/cascadercnn.html</code></div>
+  <div class="future-link"><a href="./Cascade R-CNN/">进入 Cascade R-CNN 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-panet" data-name="panet" data-kind="aux" data-group="多尺度与训练" data-search="panet 加强自底向上的信息传播与多层特征融合 2018">
   <div class="index-top"><span class="paper-date">2018</span><span class="paper-kind aux">辅助节点</span></div>
   <h4>PANet</h4><p>加强自底向上的信息传播与多层特征融合</p>
   <div class="index-bottom"><span class="index-group">多尺度与训练</span><a href="https://arxiv.org/abs/1803.01534" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/panet.html</code></div>
+  <div class="future-link"><a href="./PANet/">进入 PANet 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-yolov3" data-name="yolov3" data-kind="family" data-group="YOLO 家族" data-search="yolov3 多尺度检测头与更强主干推动实时检测成熟 2018">
   <div class="index-top"><span class="paper-date">2018</span><span class="paper-kind family">YOLO 专章</span></div>
@@ -160,33 +160,33 @@
  </article>
 <article class="index-card" id="model-cornernet" data-name="cornernet" data-kind="aux" data-group="Anchor-Free 与分配" data-search="cornernet 通过角点预测和配对构建边界框 2018">
   <div class="index-top"><span class="paper-date">2018</span><span class="paper-kind aux">辅助节点</span></div>
-  <h4>CornerNet</h4><p>通过角点预测和配对构建边界框</p>
+  <h4><a href="./CornerNet/" title="阅读 CornerNet 专题">CornerNet</a></h4><p>通过角点预测和配对构建边界框</p>
   <div class="index-bottom"><span class="index-group">Anchor-Free 与分配</span><a href="https://arxiv.org/abs/1808.01244" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/cornernet.html</code></div>
+  <div class="future-link"><a href="./CornerNet/">进入 CornerNet 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-centernet" data-name="centernet" data-kind="aux" data-group="Anchor-Free 与分配" data-search="centernet 利用中心点热力图、尺寸与偏移表达目标 2019">
   <div class="index-top"><span class="paper-date">2019</span><span class="paper-kind aux">辅助节点</span></div>
-  <h4>CenterNet</h4><p>利用中心点热力图、尺寸与偏移表达目标</p>
+  <h4><a href="./CenterNet/" title="阅读 CenterNet 专题">CenterNet</a></h4><p>利用中心点热力图、尺寸与偏移表达目标</p>
   <div class="index-bottom"><span class="index-group">Anchor-Free 与分配</span><a href="https://arxiv.org/abs/1904.07850" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/centernet.html</code></div>
+  <div class="future-link"><a href="./CenterNet/">进入 CenterNet 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-fcos" data-name="fcos" data-kind="core" data-group="Anchor-Free 与分配" data-search="fcos 逐位置预测到四条边的距离，不用预设 anchor 形状 2019">
   <div class="index-top"><span class="paper-date">2019</span><span class="paper-kind core">主篇重点</span></div>
-  <h4>FCOS</h4><p>逐位置预测到四条边的距离，不用预设 Anchor 形状</p>
+  <h4><a href="./FCOS/" title="阅读 FCOS 专题">FCOS</a></h4><p>逐位置预测到四条边的距离，不用预设 Anchor 形状</p>
   <div class="index-bottom"><span class="index-group">Anchor-Free 与分配</span><a href="https://arxiv.org/abs/1904.01355" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/fcos.html</code></div>
+  <div class="future-link"><a href="./FCOS/">进入 FCOS 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-efficientdet" data-name="efficientdet / bifpn" data-kind="aux" data-group="多尺度与训练" data-search="efficientdet / bifpn 带权双向融合与复合缩放，权衡精度和效率 2019">
   <div class="index-top"><span class="paper-date">2019</span><span class="paper-kind aux">辅助节点</span></div>
   <h4>EfficientDet / BiFPN</h4><p>带权双向融合与复合缩放，权衡精度和效率</p>
   <div class="index-bottom"><span class="index-group">多尺度与训练</span><a href="https://arxiv.org/abs/1911.09070" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/efficientdet.html</code></div>
+  <div class="future-link"><a href="./EfficientDet-BiFPN/">进入 EfficientDet / BiFPN 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-atss" data-name="atss" data-kind="core" data-group="Anchor-Free 与分配" data-search="atss 揭示正负样本分配对 anchor 路线差异的重要影响 2020">
   <div class="index-top"><span class="paper-date">2020</span><span class="paper-kind core">主篇重点</span></div>
   <h4>ATSS</h4><p>揭示正负样本分配对 Anchor 路线差异的重要影响</p>
   <div class="index-bottom"><span class="index-group">Anchor-Free 与分配</span><a href="https://arxiv.org/abs/1912.02424" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/atss.html</code></div>
+  <div class="future-link"><a href="./ATSS/">进入 ATSS 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-yolov4" data-name="yolov4" data-kind="family" data-group="YOLO 家族" data-search="yolov4 结构、增强、训练策略与推理效率的工程组合 2020">
   <div class="index-top"><span class="paper-date">2020</span><span class="paper-kind family">YOLO 专章</span></div>
@@ -204,13 +204,13 @@
   <div class="index-top"><span class="paper-date">2020</span><span class="paper-kind core">主篇重点</span></div>
   <h4>DETR</h4><p>Object Queries + 一对一匹配，直接预测目标集合</p>
   <div class="index-bottom"><span class="index-group">集合预测与 DETR</span><a href="https://arxiv.org/abs/2005.12872" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/detr.html</code></div>
+  <div class="future-link"><a href="./DETR/">进入 DETR 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-gfl" data-name="gfl" data-kind="core" data-group="质量与边界表示" data-search="gfl 分类与质量联合表示，边界采用离散概率分布 2020">
   <div class="index-top"><span class="paper-date">2020</span><span class="paper-kind core">主篇重点</span></div>
   <h4>GFL</h4><p>分类与质量联合表示，边界采用离散概率分布</p>
   <div class="index-bottom"><span class="index-group">质量与边界表示</span><a href="https://arxiv.org/abs/2006.04388" target="_blank" rel="noopener noreferrer" title="阅读论文或项目主页">论文 / 官方资料 ↗</a></div>
-  <div class="future-link">预留专题路径：<code>models/gfl.html</code></div>
+  <div class="future-link"><a href="./GFL/">进入 GFL 算法专题 →</a></div>
  </article>
 <article class="index-card" id="model-deformabledetr" data-name="deformable detr" data-kind="core" data-group="集合预测与 DETR" data-search="deformable detr query 围绕参考点采样多尺度特征，缓解计算与收敛瓶颈 2020">
   <div class="index-top"><span class="paper-date">2020</span><span class="paper-kind core">主篇重点</span></div>

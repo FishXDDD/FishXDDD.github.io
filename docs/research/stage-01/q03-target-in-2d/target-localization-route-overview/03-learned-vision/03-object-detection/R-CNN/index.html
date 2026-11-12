@@ -39,7 +39,9 @@
 .ltr{direction:ltr}.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
 @media(max-width:1020px){.stage-track{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:650px){.stage-track,.shape-demo{grid-template-columns:1fr}.figure-placeholder{min-height:220px}.value-stamp{font-size:26px}.hero:after{font-size:110px}}
+.model-back-button{position:fixed;left:18px;bottom:18px;z-index:1000;display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid #c9dce7;border-radius:10px;background:rgba(255,255,255,.94);box-shadow:0 6px 20px rgba(23,53,74,.16);color:#245f82;font:700 12px/1 system-ui,-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;text-decoration:none;backdrop-filter:blur(10px);transition:transform .16s,background .16s,border-color .16s}.model-back-button:hover{transform:translateX(-2px);background:#edf6fb;border-color:#8dbbd1;color:#123f61}.model-back-button:focus-visible{outline:3px solid #8fc7e4;outline-offset:2px}(max-width:600px){.model-back-button{left:12px;bottom:12px;padding:9px 11px}}
 </style></head><body>
+<a class="model-back-button" href="../" aria-label="返回目标检测总览">← 返回目标检测总览</a>
 <div class="track" id="progress"></div>
 <header class="top"><div class="brand">沿途手记 <small>VISION RESEARCH NOTES</small></div><div><a href="../index.html">← 目标检测总览</a>　<a href="#outline">核心机制</a>　<a href="#training">训练</a>　<a href="#inference">推理</a></div></header>
 <div class="layout"><nav class="side" aria-label="章节导航"><div class="eyebrow">R-CNN · CONTENTS</div>
@@ -60,7 +62,7 @@
 <div class="card"><div class="k">已有能力 B · 深度学习</div><h4>CNN 可以识别图像内容</h4><p>AlexNet 类网络能学出比 HOG/SIFT 等手工特征更强的语义表示，但最初被用于固定输入的整图分类。</p></div></div>
 <div class="point"><strong>R-CNN 的研究判断：</strong> 不必马上让 CNN 从整张图直接预测任意数量的目标框。先用现成的区域提议算法限定搜索范围，再把每个区域转换成一个分类 CNN 能处理的小图。</div>
 <div class="fig"><div class="fighead"><strong>图 1 · R-CNN 网络结构、训练与推理流程</strong><small>高分辨率科研总览图</small></div><div class="figbody">
-<img class="overview-image" src="./r-cnn-architecture-training-inference.png" alt="R-CNN 网络结构、分阶段训练与完整推理流程图" loading="lazy" decoding="async">
+<img class="overview-image" src="./r-cnn-overview.png" alt="R-CNN 网络结构、分阶段训练与完整推理流程图" loading="lazy" decoding="async">
 </div><div class="figcaption">从候选区域、CNN 特征、分类与框回归，到分阶段训练和最终推理的完整关系。</div></div>
 <div class="flow"><div class="node">原图<em>RGB image</em></div><span class="arr">→</span><div class="node">候选区域<em>Selective Search</em></div><span class="arr">→</span><div class="node">逐区域 CNN<em>4096-D features</em></div><span class="arr">→</span><div class="node green">类别评分<em>Per-class SVM</em></div><span class="arr">→</span><div class="node orange">框修正 + 去重<em>Regression &amp; NMS</em></div></div>
 <div class="cards three"><div class="card"><div class="k">研究突破 1</div><h4>引入深度特征</h4><p>候选框方法不变，仅视觉特征的升级就带来巨大检测精度提升。</p></div><div class="card"><div class="k">研究突破 2</div><h4>搜索与识别分离</h4><p>区域算法解决“在哪儿看”，CNN 解决“看到了什么”。</p></div><div class="card"><div class="k">研究突破 3</div><h4>分类预训练 → 检测微调</h4><p>先在 ImageNet 学到视觉知识，再迁移到标注更少的检测任务。</p></div></div></section>
