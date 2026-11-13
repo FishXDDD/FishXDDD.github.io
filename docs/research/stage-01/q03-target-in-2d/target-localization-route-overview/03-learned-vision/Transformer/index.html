@@ -73,6 +73,76 @@
 @media(max-width:990px){#input .intro-metrics{grid-template-columns:repeat(2,1fr)}#input .position-scheme{grid-template-columns:1fr}#input .matrix-demo{grid-template-columns:1fr}}
 @media(max-width:760px){#input .input-stepper{grid-template-columns:repeat(2,minmax(0,1fr))}#input .input-diagram-grid{grid-template-columns:1fr}#input .input-figure .figure-content{padding:10px}#input .input-figure .figure-top{padding:9px 11px}#input .intro-metrics strong{font-size:19px}}
 
+
+/* CHAPTER 05 ONLY — QKV provenance, complete arithmetic, Mask. Other chapters retain existing styles. */
+#attention .attn-route{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:14px 0 21px;padding:13px;border:1px solid #d7eaf4;background:#f7fbff;border-radius:9px}
+#attention .attn-route span{padding:6px 9px;background:#eaf5fb;border:1px solid #d6eaf4;border-radius:5px;color:#39718c;font-size:11px;font-weight:720}
+#attention .attn-route b{font-size:15px;color:#8faab9}
+#attention .attn-explainer{background:#eaf7fd;border-left:4px solid #1d91bc;padding:16px 18px;border-radius:0 8px 8px 0;margin:14px 0;font-size:14px;line-height:1.95}
+#attention .attn-equations{border:1px solid #d9e8f1;background:#f8fcff;border-radius:10px;padding:16px 19px;margin:14px 0 17px}
+#attention .attn-eqtitle{font-size:12px;font-weight:830;color:#467891;margin-bottom:12px}
+#attention .attn-eqlarge{font-family:ui-monospace,Consolas,monospace;font-weight:650;color:#155f8b;font-size:17px;line-height:2.2;padding:4px 0;overflow-x:auto;white-space:nowrap}
+#attention .attn-eqsmall{font-size:12px;color:#577d92;line-height:1.9;border-top:1px solid #e3eef5;padding-top:8px;margin-top:6px}
+#attention .attn-dim{font-size:12px;color:#81a0b0;font-family:system-ui,sans-serif}
+#attention .attn-matrix-story{display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0 17px;flex-wrap:wrap}
+#attention .attn-matrix-card{border:1px solid #d5e9f3;background:#f8fcff;border-radius:9px;padding:11px 16px;min-width:150px;text-align:center;max-width:100%}
+#attention .attn-matrix-card small{font-size:10px;color:#809aa8;display:block}
+#attention .attn-matrix-result{background:#eaf7fc;border-color:#9fd2e5}
+#attention .attn-matrix-tag{font-size:12px;font-weight:800;color:#326f91;margin-bottom:5px}
+#attention .attn-mathmatrix{font:700 16px/1.65 ui-monospace,Consolas,monospace;color:#28688b;padding:2px 12px;display:flex;flex-direction:column;white-space:pre;position:relative;min-width:95px}
+#attention .attn-mathmatrix:before,#attention .attn-mathmatrix:after{content:'';position:absolute;width:7px;top:3px;bottom:3px;border-top:2px solid #789db1;border-bottom:2px solid #789db1}
+#attention .attn-mathmatrix:before{left:0;border-left:2px solid #789db1}#attention .attn-mathmatrix:after{right:0;border-right:2px solid #789db1}
+#attention .attn-times{font:bold 25px ui-monospace,monospace;color:#8aa9ba}
+#attention .attn-step-layout{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:stretch}
+#attention .attn-stage-description{font-size:12.8px;color:#476b80;line-height:1.85;min-height:52px}
+#attention .attn-step-formula{background:#fff;border:1px solid #d3e7f0;border-radius:7px;padding:13px 15px;font:600 13px/2 ui-monospace,Consolas,monospace;color:#175f85;min-height:115px;overflow-wrap:anywhere}
+#attention .attn-step-formula .equation-line{display:block;white-space:normal}
+#attention .attn-small-explain{padding:9px 11px;background:#eef7fc;color:#46758e;border-radius:6px;font-size:11.4px;margin-top:9px}
+#attention .attn-axis-labels{display:grid;grid-template-columns:71px repeat(3,1fr);gap:4px;margin-top:12px;max-width:470px;text-align:center;color:#7192a4;font-size:11px;font-weight:700}
+#attention .attn-grid-with-axis{display:flex;gap:4px;align-items:stretch;max-width:470px}
+#attention .attn-row-axes{width:67px;display:grid;grid-template-rows:repeat(3,1fr);gap:4px;text-align:right}
+#attention .attn-row-axes span{display:flex;justify-content:flex-end;align-items:center;color:#7192a4;font-size:11px;font-weight:720}
+#attention .attn-heat{flex:1;grid-template-columns:repeat(3,1fr);max-width:none}
+#attention .attn-heat .square{font-size:12px;min-height:42px;display:grid;place-items:center}
+#attention .attn-matrix-legend{font-size:10.6px;color:#7694a7;margin-top:9px}
+#attention .attn-matrix-legend i{display:inline-block;width:11px;height:11px;border-radius:2px;background:#268dbb;margin-right:4px;vertical-align:middle}
+#attention .attn-fullwidth-matrices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+#attention .attn-matrix-output{border:1px solid #d9eaf3;border-radius:8px;padding:11px 12px;background:#f9fcfe;min-width:0}
+#attention .attn-matrix-output.emph{background:#eaf8f1;border-color:#c8e6d6}
+#attention .attn-live-matrix{font:650 12.5px/1.8 ui-monospace,Consolas,monospace;margin-top:7px;white-space:pre;overflow-x:auto;color:#326a88}
+#attention .attn-live-matrix .live-row{display:block;padding:2px 5px;border-radius:3px}
+#attention .attn-live-matrix .live-row.current{background:#d9effb;color:#0c6496}
+#attention .attn-vector-result{font:800 19px/1.6 ui-monospace,Consolas,monospace;color:#238365;margin-top:9px;white-space:nowrap}
+#attention .attn-narration{margin-top:12px;border-left:3px solid #69aacc;background:#f2f9fd;padding:12px 15px;font-size:12.3px;line-height:1.86;color:#446f85;border-radius:0 6px 6px 0}
+#attention .attn-pedagogy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+#attention .attn-pedagogy{padding:13px 15px;border:1px solid #dceaf2;background:#fff;border-radius:8px;font-size:12.3px;line-height:1.9}
+#attention .attn-pedagogy span{display:block;font-weight:830;color:#236a8f;font-size:13px;margin-bottom:5px}
+#attention .attn-mask-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+#attention .attn-mask-minigrid{display:grid;grid-template-columns:repeat(3,32px);gap:5px;margin:13px 0}
+#attention .attn-mask-minigrid span{display:grid;place-items:center;width:32px;height:32px;background:#dceef9;border:1px solid #afd4e7;border-radius:4px;color:#297aa3;font-weight:830}
+#attention .attn-mask-minigrid span.off{background:#edf1f4;border-color:#dfe5e9;color:#a3afb7}
+#attention .attn-mask-demo{display:grid;grid-template-columns:minmax(130px,1fr) 100px minmax(130px,1fr) 100px minmax(130px,1fr);gap:10px;align-items:center}
+#attention .attn-mask-row{display:flex;gap:4px;justify-content:center;margin-top:12px}
+#attention .attn-mask-row b{flex:1;min-width:0;text-align:center;padding:10px 2px;background:#e4f3fb;border:1px solid #b8d9eb;border-radius:4px;color:#2a7297;font:700 12px ui-monospace,monospace}
+#attention .attn-mask-row b.blocked{background:#eef0f2;border-color:#e0e3e7;color:#9aa9b2}
+#attention .attn-mask-row b.ok{background:#e1f5ea;color:#267d61;border-color:#add9c2}
+#attention .attn-mask-operator{text-align:center;color:#8b9dab;font-size:13px;font-weight:800}
+#attention .attn-real-dims{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px}
+#attention .attn-dim-node{min-width:125px;flex:1;background:#eaf5fb;border:1px solid #c5e0ec;border-radius:7px;padding:12px 8px;text-align:center}
+#attention .attn-dim-node.good{background:#e7f7ee;border-color:#add6c0}
+#attention .attn-dim-node strong{display:block;font-size:12px;color:#226f95}
+#attention .attn-dim-node span{display:block;font-size:11px;color:#6d95a6;margin-top:5px}
+#attention .attn-dim-arrow{font-size:19px;color:#8aa3b4}
+#attention .attn-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:13px 0}
+@media(max-width:1050px){#attention .attn-fullwidth-matrices{grid-template-columns:repeat(2,minmax(0,1fr))}#attention .attn-mask-demo{grid-template-columns:1fr;gap:7px}#attention .attn-mask-operator{padding:6px 0}}
+@media(max-width:750px){#attention .attn-step-layout,#attention .attn-pedagogy-grid,#attention .attn-mask-types,#attention .attn-compare{grid-template-columns:1fr}#attention .attn-route{gap:5px;padding:9px}#attention .attn-route span{font-size:10px;padding:5px}#attention .attn-matrix-story{gap:5px}#attention .attn-matrix-card{padding:8px;min-width:70px}#attention .attn-mathmatrix{font-size:13px;padding:0 8px;min-width:62px}#attention .attn-times{font-size:17px}#attention .attn-matrix-tag{font-size:10px}#attention .attn-matrix-card small{font-size:9px}#attention .attn-eqlarge{font-size:13px}#attention .attn-axis-labels{grid-template-columns:50px repeat(3,1fr)}#attention .attn-row-axes{width:46px}#attention .attn-dim-node{min-width:110px}#attention .attn-dim-arrow{display:none}#attention .attn-matrix-output{padding:8px}#attention .attn-live-matrix{font-size:11px}}
+
+
+/* 2026-11 · Decoder + Cross-Entropy teaching expansion; all selectors namespaced */
+.dcl-unit{margin:22px 0 28px}.dcl-unit>h3{margin-bottom:9px}.dcl-lead{color:#456a80;font-size:14px;line-height:1.9}.dcl-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.dcl-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.dcl-card{border:1px solid #d9e8f0;background:#fff;border-radius:10px;padding:15px 16px;min-width:0}.dcl-card h4{margin:0 0 8px;font-size:15px;color:#245f81}.dcl-card p{margin:6px 0;font-size:12.5px;line-height:1.78}.dcl-card.t-purple{background:#faf8ff;border-color:#e7dff2}.dcl-card.t-gold{background:#fffaf2;border-color:#f1e4cd}.dcl-card.t-green{background:#f3fbf8;border-color:#d9e9e2}.dcl-card.t-blue{background:#f5faff;border-color:#dbeaf5}.dcl-eyebrow{display:inline-flex;align-items:center;gap:5px;font:800 10px system-ui;letter-spacing:.07em;color:#4e87a3;background:#eaf5fc;border-radius:5px;padding:4px 8px;margin-bottom:9px}.dcl-idea{border-left:3px solid #2689b7;background:#ecf7fd;border-radius:0 8px 8px 0;padding:13px 15px;margin:15px 0;font-size:13px;line-height:1.85}.dcl-idea.orange{border-color:#c58a3f;background:#fff7eb}.dcl-idea.green{border-color:#2b9980;background:#eefaf4}.dcl-math{background:#f5fafd;border:1px solid #d9eaf4;border-radius:9px;padding:13px 17px;color:#205f83;margin:12px 0;overflow-x:auto}.dcl-math .big{font:700 19px/1.75 'Cambria Math','STIX Two Math',Georgia,serif;white-space:normal}.dcl-math p{font-size:12.5px;margin:6px 0;color:#4b758c}.dcl-math code{white-space:nowrap}.dcl-note{font-size:11px;color:#738f9f;line-height:1.7}.dcl-splitline{display:grid;grid-template-columns:125px repeat(4,minmax(0,1fr));gap:6px;align-items:stretch;margin:8px 0}.dcl-splitline .dcl-rlabel{font-weight:750;font-size:12px;display:grid;align-items:center;padding:8px;color:#3c708d}.dcl-tile{border:1px solid #d6e5ee;padding:9px 6px;border-radius:7px;text-align:center;font-size:12px;font-weight:750;line-height:1.6;background:#f8fcff;min-width:0}.dcl-tile.p{background:#f0ebfa;color:#68539a;border-color:#dcd0f1}.dcl-tile.g{background:#eaf8f0;color:#26795b;border-color:#cee9da}.dcl-tile.warn{background:#fff3e5;color:#a8732c;border-color:#eacaa2}.dcl-tile .sub{display:block;font-size:10px;font-weight:500;color:#8695a3;margin-top:3px}.dcl-lab{border:1px solid #d6e6ef;border-radius:12px;background:white;margin:17px 0;padding:18px 19px;box-shadow:0 5px 16px rgba(20,77,115,.025)}.dcl-lab h4{font-size:16px;color:#1f648d;margin:0 0 5px}.dcl-lab .dcl-controls{display:flex;gap:12px;flex-wrap:wrap;margin:13px 0}.dcl-controls label{font-size:11px;font-weight:750;color:#6a8b9c;display:grid;gap:5px;min-width:145px;flex:1}.dcl-controls select,.dcl-controls input{border:1px solid #d3e4ef;background:#fbfeff;border-radius:6px;padding:7px;color:#275f81;width:100%}.dcl-controls input[type=range]{padding:0;accent-color:#2187b2}.dcl-heatwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,0.82fr);gap:16px;align-items:start}.dcl-heatbox{min-width:0;overflow-x:auto}.dcl-heat{display:grid;grid-template-columns:68px repeat(4,minmax(43px,1fr));gap:4px;min-width:280px}.dcl-heat .corner,.dcl-heat .axis{display:grid;align-items:center;justify-items:center;padding:7px 3px;color:#698ba0;font-weight:750;font-size:11px;min-height:33px}.dcl-heat .axis{font-weight:700}.dcl-heat .cell{border-radius:5px;border:1px solid #dae6ee;min-height:49px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:700 12px ui-monospace,Consolas,monospace;color:#245b7c;background:#f0f7fc}.dcl-heat .cell .sub{font:600 9px system-ui;color:#6f91a7}.dcl-heat .cell.blocked{background:#eef1f4!important;color:#a3b1bd}.dcl-heat .cell.active{outline:2px solid #167cae;outline-offset:-2px}.dcl-heat .cell.peek{background:#ffead3!important;border-color:#d6a466;color:#a16c2b}.dcl-measure{display:grid;grid-template-columns:105px minmax(0,1fr) 62px;gap:8px;align-items:center;margin:7px 0;font-size:12px}.dcl-meter{height:15px;background:#eaf2f7;border-radius:4px;overflow:hidden}.dcl-meter i{display:block;height:100%;background:#2e8cb9;border-radius:4px;transition:width .18s}.dcl-panel{background:#f3f9fc;border-radius:8px;padding:12px 14px;border:1px solid #dfebf2;font-size:12px;line-height:1.9;min-width:0}.dcl-stepflow{display:flex;align-items:stretch;flex-wrap:wrap;gap:6px;margin:14px 0}.dcl-step{flex:1;min-width:115px;background:#eff8fd;border:1px solid #d5e7f1;border-radius:7px;padding:11px 9px;text-align:center;color:#316d90;font-size:12px;font-weight:750}.dcl-step small{display:block;margin-top:5px;color:#7594a4;font-weight:500;font-size:10px}.dcl-arr{font-size:20px;align-self:center;color:#93b0c0}.dcl-num{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}.dcl-tag{background:#e7f5f9;padding:2px 6px;border-radius:4px;font:700 11px system-ui;color:#3684a4}.dcl-good{color:#23815e!important}.dcl-bad{color:#b3772e!important}.dcl-mid{color:#647f91}.dcl-table{width:100%;border-collapse:collapse;font-size:12px;min-width:540px}.dcl-table th{background:#f0f7fb;color:#477991}.dcl-table td,.dcl-table th{padding:9px 10px;border:1px solid #e1edf3;text-align:center}.dcl-table tbody td:first-child{font-weight:750;color:#396f8b;text-align:left}.dcl-scroll{max-width:100%;overflow-x:auto}.dcl-caption{font-size:11px;color:#708c9d;margin-top:8px;line-height:1.75}.dcl-gradient-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.dcl-grad{background:#f8fbff;border:1px solid #d9e9f4;border-radius:8px;padding:11px 12px;min-width:0}.dcl-grad small{display:block;color:#7390a2;margin-top:5px;font-size:10.5px}.dcl-grad b{color:#196f9b}.dcl-svg{display:block;max-width:100%;width:100%;height:auto}.dcl-grad-chart{display:grid;grid-template-columns:90px minmax(0,1fr) 63px;align-items:center;gap:8px;margin:7px 0;font-size:11px}.dcl-zeroline{position:relative;height:18px;background:linear-gradient(to right,#f5dfd8 0 50%,#e4f2fb 50% 100%);border-radius:4px;overflow:hidden}.dcl-zeroline:after{content:'';height:100%;width:1px;background:#58788d;position:absolute;left:50%;top:0}.dcl-zeroline i{display:block;position:absolute;top:3px;height:12px;background:#398ab4;border-radius:3px}.dcl-faint{opacity:.7}.dcl-check{border-left:2px solid #c1d7e5;padding:2px 0 2px 11px;margin:10px 0;font-size:12px}.dcl-source{font-size:11px;color:#728fa2;border-top:1px solid #e1edf4;margin-top:18px;padding-top:11px}
+@media(max-width:920px){.dcl-heatwrap,.dcl-grid3{grid-template-columns:1fr}.dcl-grid2{grid-template-columns:1fr}}
+@media(max-width:620px){.dcl-splitline{grid-template-columns:64px repeat(4,minmax(0,1fr));gap:3px}.dcl-tile{padding:7px 2px;font-size:10.5px}.dcl-tile .sub{font-size:9px}.dcl-splitline .dcl-rlabel{font-size:10px;padding:4px}.dcl-lab{padding:13px 11px}.dcl-heat{grid-template-columns:55px repeat(4,minmax(43px,1fr))}.dcl-stepflow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.dcl-arr{display:none}.dcl-gradient-grid{grid-template-columns:1fr}.dcl-math .big{font-size:16px}}
+
 </style></head>
 <body>
 <header class="topbar"><div class="logo">沿途手记 <small>DEEP VISION · FOUNDATION / TRANSFORMER</small></div><nav class="toplinks"><a href="#map">完整结构</a><a href="#attention">核心计算</a><a href="#training">训练</a><a href="#inference">推理</a></nav></header><div class="reading" id="reading"></div>
@@ -266,8 +336,13 @@ redraw();
 })();
 </script>
 </section>
-<section id="attention" class="section"><div class="section-title"><div class="num">05</div><div><h2>核心突破：Self-Attention 怎样真正计算？</h2><p>先从直观问题出发，再使用真实数字走完 Q → K → V → Softmax → 输出。</p></div></div>
-<h3 class="subhead">5.1 先不要看公式：为什么词与词之间需要交换信息？</h3>
+<section class="section" id="attention">
+<div class="section-title"><div class="num">05</div><div><h2>核心突破：Q、K、V 到底从哪里来？Attention 又怎样一步步算？</h2><p>延续上一章的 3 × 512 输入：先解释来源与目的，再用可手算的矩阵走完投影、评分、Mask、Softmax 和输出。</p></div></div>
+<div class="attn-route" aria-label="第五章学习路径">
+  <span>上一章 X：3×512</span><b>→</b><span>线性投影 Q / K / V</span><b>→</b><span>计算匹配</span><b>→</b><span>加 Mask</span><b>→</b><span>Softmax</span><b>→</b><span>加权 V</span><b>→</b><span>每个 Token 的新特征</span>
+</div>
+<h3 class="subhead">5.1 先看要解决什么：每个 Token 不能只知道自己</h3>
+<p>上一章已经把 <strong>I / love / cats</strong> 转成 3 行、每行 512 维的输入矩阵 <code>X</code>。但 Embedding + Position 只是给每个位置提供“自己的内容和位置”——<strong>它还没有主动读取整句话中其他位置的特征</strong>。现在的问题不是把 512 维降成一个类别，而是把每一行改造成“包含上下文”的特征。</p>
 <div class="figure"><div class="figtitle">图 05 · 从孤立特征到上下文特征：真正的新思想是“动态决定从哪里读取信息”</div><div class="figbody diagram-scroll"><svg viewBox="0 0 1030 300" role="img" aria-label="嵌入和上下文自注意力">
 <rect x="5" y="15" width="454" height="262" rx="11" fill="#f8fbfd" stroke="#dceaf1"/><rect x="481" y="15" width="544" height="262" rx="11" fill="#f4faff" stroke="#d4e9f4"/>
 <text x="25" y="44" fill="#426f85" font-weight="800" font-size="18">① 只有 Embedding</text><text x="500" y="44" fill="#24759d" font-weight="800" font-size="18">② 经过 Self-Attention</text>
@@ -275,26 +350,100 @@ redraw();
 <g text-anchor="middle" font-size="18" font-weight="780" fill="#246d92"><text x="93" y="113">I</text><text x="231" y="113">love</text><text x="368" y="113">cats</text><text x="583" y="113">z₁</text><text x="754" y="113">z₂</text><text x="925" y="113">z₃</text></g><g font-size="12" fill="#69899c" text-anchor="middle"><text x="93" y="135">x₁</text><text x="231" y="135">x₂</text><text x="368" y="135">x₃</text><text x="583" y="135">含上下文</text><text x="754" y="135">含上下文</text><text x="925" y="135">含上下文</text></g>
 <g stroke="#459bc0" stroke-width="2.5" fill="none"><path d="M583 159 Q760 239 925 159"/><path d="M583 79 Q756 4 925 79"/><path d="M583 159 Q672 195 754 159"/><path d="M754 79 Q833 36 925 79"/></g>
 <text x="25" y="198" font-size="14" fill="#798d9c">每个 x 主要来自自己对应 Token 的查表向量。</text><text x="500" y="203" font-size="14" fill="#396f8b">每个 z 都能选择性融合其他位置的 Value。</text><text x="25" y="235" font-size="12" fill="#9a7b51">“I”的向量本身并不能直接知道句中所有关系。</text><text x="500" y="239" font-size="12" fill="#326c8c">权重由输入特征计算，而不是固定的卷积核位置权重。</text></svg></div></div>
-<div class="grid2"><div class="card tone-orange"><h4>为什么简单取平均不够？</h4><p>如果三个位置永远各占 1/3，那么不同查询位置得到的上下文会趋于一致，无法表达“每个位置需要的信息不同”。</p></div><div class="card tone-blue"><h4>核心方法：按匹配程度加权</h4><p>每个位置产生一个查询向量，和所有位置的匹配向量比较；相似性高的 Value 权重较大，最后得到该查询位置的新向量。</p></div></div>
-<h3 class="subhead">5.2 为什么要分出 Q、K、V 三种向量？</h3>
-<div class="figure"><div class="figtitle">图 06 · Q/K 只决定“读谁”，V 决定“读回什么” <span class="src">核心机制</span></div><div class="figbody diagram-scroll"><svg viewBox="0 0 1040 235" aria-label="Q K V 三角色计算"><defs><marker id="aqkv" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7z" fill="#86a3b7"/></marker></defs>
-<rect x="20" y="68" width="125" height="80" rx="8" fill="#e6f1f9" stroke="#8ebfd5"/><text x="82" y="97" text-anchor="middle" font-size="19" fill="#216b94" font-weight="800">X</text><text x="82" y="122" text-anchor="middle" font-size="12" fill="#6b91a6">n × 512</text>
-<g fill="#e9f5fb" stroke="#99c4d8"><rect x="197" y="17" width="166" height="48" rx="7"/><rect x="197" y="94" width="166" height="48" rx="7"/><rect x="197" y="171" width="166" height="48" rx="7"/></g><g fill="#216b92" font-size="15" font-weight="780" text-anchor="middle"><text x="280" y="47">Q = XWQ</text><text x="280" y="124">K = XWK</text><text x="280" y="201">V = XWV</text></g>
-<rect x="423" y="44" width="170" height="119" rx="8" fill="#f1f8fd" stroke="#9fcde1"/><text x="508" y="76" font-size="17" font-weight="800" text-anchor="middle" fill="#216b91">QKᵀ / √dₖ</text><text x="508" y="99" font-size="13" text-anchor="middle" fill="#7294a4">n × n 分数</text><text x="508" y="125" font-size="14" text-anchor="middle" fill="#2f7294">Softmax</text><text x="508" y="145" font-size="12" text-anchor="middle" fill="#6a94a9">逐行归一化</text>
-<rect x="666" y="65" width="156" height="86" rx="8" fill="#e8f7ee" stroke="#a4d5ba"/><text x="744" y="98" font-size="18" text-anchor="middle" fill="#247b5d" font-weight="800">A × V</text><text x="744" y="124" font-size="12" text-anchor="middle" fill="#6b9b83">加权汇总内容</text>
-<rect x="894" y="65" width="125" height="86" rx="8" fill="#dceff9" stroke="#7ab8d7"/><text x="957" y="99" font-size="20" text-anchor="middle" fill="#1b6d94" font-weight="800">Z</text><text x="957" y="124" font-size="12" text-anchor="middle" fill="#608ca5">n × dᵥ</text>
-<g stroke="#8baab9" stroke-width="2" fill="none" marker-end="url(#aqkv)"><path d="M146 108 H173 V41 H191"/><path d="M173 108 V118 H191"/><path d="M173 118 V194 H191"/><path d="M365 41 H390 V73 H417"/><path d="M365 118 H417"/><path d="M366 195 H623 V132 H659"/><path d="M594 107 H660"/><path d="M826 108 H886"/></g>
-<text x="420" y="205" font-size="12" fill="#6c8c9d">匹配权重 A = softmax(QKᵀ / √dₖ + Mask)</text></svg></div><div class="figcap">实际 Self-Attention 的 Q、K、V 都来自同一层输入，但经过 <strong>三套不同、可训练</strong>的线性投影；不是从 X 里固定切出三段。每个头都独立学习自己的投影。</div></div>
-<div class="formula">Q = XW<sub>Q</sub>,　K = XW<sub>K</sub>,　V = XW<sub>V</sub><br>A = softmax((QK<sup>T</sup> / √d<sub>k</sub>) + M)　　Z = AV<small>Q/K 决定注意力权重；V 的加权和才形成输出特征。M 是可选 Mask；不屏蔽时 M=0。</small></div>
-<h3 class="subhead">5.3 把这条公式真的算一遍：不是随机图，也不是假装训练</h3>
-<div class="lab" id="attentionLab"><div class="labhead"><div><h4>交互实验 B · 同一套小矩阵，逐步追踪 Q、K、V、分数、Softmax 和 Z</h4><p class="tiny">真实进行二维矩阵运算。为容易检查，固定 X=[[1,0],[0,1],[1,1]]；WQ/WK 是单位矩阵，WV=[[1,2],[2,1]]。这只是解释前向计算的人工例子，并非实际训练出来的词语语义。</p></div><span class="chip new">可计算</span></div>
-<div class="controls"><div class="control"><label>当前 Query 行</label><select id="attnQuery"><option value="0">位置 1：I</option><option value="1" selected>位置 2：love</option><option value="2">位置 3：cats</option></select></div><div class="control"><label>缩放模式</label><select id="attnScale"><option value="yes">÷ √2（Scaled）</option><option value="no">不缩放（对照）</option></select></div><div class="control"><label>观察阶段</label><select id="attnStage"><option value="0">1 · 投影 Q / K / V</option><option value="1">2 · 相似性分数</option><option value="2" selected>3 · Softmax 权重</option><option value="3">4 · Value 加权输出</option></select></div></div>
-<div class="grid2"><div class="card tone-blue"><h4 id="attnStageTitle">第 3 步 · Softmax 权重</h4><p id="attnStageText"></p><div class="formula" id="attnCalc" style="margin:8px 0"></div><div class="bars" id="attnBars"></div></div><div class="card"><h4>整层 3 × 3 Attention 矩阵</h4><p class="tiny">行 = Query，列 = Key。选择不同 Query，就查看不同的一行；每行合计为 1。</p><div class="matrix" id="attnMatrix" style="grid-template-columns:repeat(3,1fr)"></div><div class="numbox" id="attnSum"></div></div></div>
-<div class="grid3" style="margin-top:12px"><div class="card"><span class="mini-label">Q / K 矩阵</span><div class="mono" style="font-size:12px">[[1, 0], [0, 1], [1, 1]]</div><p class="tiny">因为 WQ/WK 取单位矩阵，特意减少一次计算负担。</p></div><div class="card"><span class="mini-label">V 矩阵</span><div class="mono" style="font-size:12px">[[1, 2], [2, 1], [3, 3]]</div><p class="tiny">不同投影让“被传递内容”与匹配向量不同。</p></div><div class="card tone-green"><span class="mini-label">本行的最后输出</span><div id="attnVector" style="font-size:21px;font-weight:830;color:#247c60">[—, —]</div><p class="tiny">输出仍是向量，不是类别、不是真实词表预测。</p></div></div></div>
-<h3 class="subhead">5.4 两个看似微小、实际上有目的的设计</h3>
-<div class="grid2"><div class="card"><h4>为什么使用点积，而不是专门的复杂匹配网络？</h4><p>加性 Attention 已存在，点积注意力也已存在。点积能把所有 Query–Key 匹配变为 <code>QKᵀ</code>，天然适合高效矩阵乘法。选择点积是计算效率考虑，不代表只靠点积就能解决任何关系学习问题。</p></div><div class="card tone-blue"><h4>为什么还要除以 √dₖ？</h4><p>若 q、k 的各维独立、均值 0、方差 1，点积方差约为 dₖ。维度大时分数可能过大，Softmax 变得尖锐，梯度容易变小；除以 √dₖ 使分数尺度更稳定。这是简化假设下的动机，不是任意分布的严格定理。</p><div class="formula">Var(q·k) ≈ dₖ ⇒ Var((q·k)/√dₖ) ≈ 1</div></div></div>
-<div class="chapter-end"><strong>本章产物：</strong>给定 X，可以得到新的 Z；权重由 Q/K 匹配生成，输出由 V 加权汇总产生。2017 年的核心是让这种跨位置计算成为主要序列网络层。</div></section>
 
+<div class="grid2"><div class="card tone-orange"><h4>旧做法的局限在哪里？</h4><p>RNN 按时间步传状态；卷积主要汇集预先规定的邻域。早期 Attention 虽然能跨位置选择信息，却往往依附于循环模型。Transformer 希望让<strong>跨位置的内容交互本身成为主要网络计算</strong>。</p></div><div class="card tone-blue"><h4>先不管 QKV：最朴素的想法</h4><p>对于第 2 个词 <code>love</code>，从所有三个位置读取信息。如果固定平均，每个位置权重始终为 1/3；更合理的是：<strong>根据当前查询位置和各位置内容，动态算出三个权重</strong>。</p></div></div>
+<h3 class="subhead">5.2 Q 是哪里来的？是 MLP 吗？先把它的“生产过程”画出来</h3>
+<div class="attn-explainer"><strong>直接回答：</strong>在 Encoder 的 Self-Attention 中，Q、K、V 都来自<strong>同一个当前层输入 X</strong>，通过三组独立、可训练的 <strong>Linear 线性投影</strong>计算。它们不是文本中额外提供的“问题”，不是从 512 维向量随意切出的三段，也<strong>不是先运行一个两层 MLP</strong>。</div>
+<div class="figure"><div class="figtitle">图 05A · 输入 X 的三条计算分支：参数矩阵才是学习对象 <span class="src">从特征到 Q/K/V</span></div><div class="figbody diagram-scroll">
+<svg viewBox="0 0 1070 390" role="img" aria-label="三行512维输入矩阵经过三组可训练线性投影成为每个头的Q K V，分别是三行64维"><defs><marker id="qkvarr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#7d9aad"/></marker></defs>
+<rect x="12" y="128" width="185" height="124" rx="11" fill="#e8f4fb" stroke="#90c4dd" stroke-width="1.5"/><text x="104" y="156" text-anchor="middle" font-size="20" font-weight="800" fill="#216f99">X</text><text x="104" y="178" text-anchor="middle" font-size="14" fill="#477c98">3 × 512</text><text x="104" y="207" text-anchor="middle" font-size="12" fill="#678ca0">[I, love, cats]</text><text x="104" y="230" text-anchor="middle" font-size="12" fill="#678ca0">每一行是一个 Token</text>
+<g fill="none" stroke="#7d9aad" stroke-width="2" marker-end="url(#qkvarr)"><path d="M198 190 H235 V70 H288"/><path d="M235 190 H288"/><path d="M235 190 V310 H288"/><path d="M503 70 H570"/><path d="M503 190 H570"/><path d="M503 310 H570"/><path d="M749 70 H801"/><path d="M749 190 H801"/><path d="M749 310 H801"/></g>
+<g><rect x="295" y="22" width="207" height="96" rx="9" fill="#e5f2fb" stroke="#9cc8df"/><rect x="295" y="142" width="207" height="96" rx="9" fill="#eaf5fb" stroke="#9cc8df"/><rect x="295" y="262" width="207" height="96" rx="9" fill="#eef8f4" stroke="#9cd0b7"/></g>
+<g font-size="16" fill="#1a6c94" font-weight="800" text-anchor="middle"><text x="399" y="50">Linear Q</text><text x="399" y="170">Linear K</text><text x="399" y="290" fill="#277c62">Linear V</text></g>
+<g font-size="13" fill="#60899e" text-anchor="middle"><text x="399" y="73">Wᵠ : 512 × 64</text><text x="399" y="96">可训练参数</text><text x="399" y="193">Wᵏ : 512 × 64</text><text x="399" y="216">可训练参数</text><text x="399" y="313">Wᵛ : 512 × 64</text><text x="399" y="336">可训练参数</text></g>
+<g fill="#dceff9" stroke="#95c3db"><rect x="577" y="29" width="170" height="82" rx="9"/><rect x="577" y="149" width="170" height="82" rx="9"/><rect x="577" y="269" width="170" height="82" rx="9" fill="#e6f5ec" stroke="#a5cfb3"/></g>
+<g text-anchor="middle"><text x="662" y="63" font-size="22" font-weight="830" fill="#176c98">Q</text><text x="662" y="88" font-size="14" fill="#60899d">3 × 64</text><text x="662" y="183" font-size="22" font-weight="830" fill="#176c98">K</text><text x="662" y="208" font-size="14" fill="#60899d">3 × 64</text><text x="662" y="303" font-size="22" font-weight="830" fill="#238060">V</text><text x="662" y="328" font-size="14" fill="#60899d">3 × 64</text></g>
+<g><rect x="805" y="30" width="244" height="81" rx="9" fill="#f5fbfe" stroke="#cfe4f0"/><rect x="805" y="150" width="244" height="81" rx="9" fill="#f5fbfe" stroke="#cfe4f0"/><rect x="805" y="270" width="244" height="81" rx="9" fill="#f5fbf8" stroke="#cce8d7"/></g>
+<g fill="#3f718b" font-size="14"><text x="823" y="56" font-weight="780">Query：当前想匹配什么</text><text x="823" y="81" font-size="12">每个位置都有自己的 qᵢ</text><text x="823" y="176" font-weight="780">Key：提供什么匹配线索</text><text x="823" y="201" font-size="12">每个位置都有自己的 kⱼ</text><text x="823" y="296" font-weight="780">Value：真正拿走的信息</text><text x="823" y="321" font-size="12">每个位置都有自己的 vⱼ</text></g>
+<text x="16" y="376" font-size="12" fill="#7894a3">注意：这是 8 个 Head 里的某一个 Head；另 7 个 Head 也分别拥有自己的 Q/K/V 投影，全部结果在下一章汇合。</text></svg></div>
+<div class="figcap">在第一层，X 是上一章 Embedding 与位置编码相加的矩阵；第 2～6 层中，X 是上一层 Transformer Block 的输出。不同层、不同 Head 的投影权重独立训练。</div></div>
+<div class="attn-equations"><div class="attn-eqtitle">从输入到 Q/K/V：写全参数与维度</div>
+<div class="attn-eqlarge">Q = XW<sub>Q</sub>，　K = XW<sub>K</sub>，　V = XW<sub>V</sub></div>
+<div class="attn-eqsmall">本章默认行向量记法；单个 Head：<code>X ∈ ℝ<sup>3×512</sup></code>；<code>W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub> ∈ ℝ<sup>512×64</sup></code>；得到 <code>Q,K,V ∈ ℝ<sup>3×64</sup></code>。</div>
+<div class="attn-eqsmall">逐位置展开：<code>q<sub>i</sub> = x<sub>i</sub> W<sub>Q</sub></code>，其中 <code>x<sub>i</sub></code> 是第 i 个 Token 的 1×512 特征，<code>q<sub>i</sub></code> 是 1×64。K/V 完全类似。公式按论文记法省略可选 bias；工程实现可以使用带 bias 的 Linear。</div></div>
+<div class="grid2"><div class="card tone-blue"><h4>和 CNN 的 FC 层有什么关系？</h4><p>非常接近：Q/K/V 使用的是<strong>一次线性变换</strong>，可以用 <code>nn.Linear(512,64)</code> 来理解。它对每个 Token 使用同一组权重，但不同 Token 的输入特征不同，因此算出的 Q/K/V 也不同。</p></div><div class="card tone-orange"><h4>那 MLP / FFN 又在哪里？</h4><p>原始 Transformer 的位置 FFN 是 <code>512→2048→512</code> 的<strong>两层线性层 + ReLU</strong>，位于 Attention <strong>之后</strong>，在下文 Transformer Block 章节单独讲。早期<strong>加性 Attention</strong> 曾用小型前馈网络计算匹配分数，不能与这里的 QKV 投影混淆。</p></div></div>
+<h3 class="subhead">5.3 把整条公式拆成六次连续计算，Mask 先放到正确位置</h3>
+<div class="figure"><div class="figtitle">图 05B · 原论文 Figure 2 的计算顺序扩展：Mask 不是 QKV 的第四个投影 <span class="src">前向传播</span></div><div class="figbody diagram-scroll">
+<svg viewBox="0 0 1120 328" aria-label="Q K V 计算链依次 QK转置、除根号维度、按可见性Mask、Softmax、乘V；Mask由位置和PAD条件外部构造"><defs><marker id="attnarrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7z" fill="#749bb0"/></marker></defs>
+<text x="19" y="31" font-size="14" font-weight="780" fill="#275d7c">匹配路径（由 Q/K 决定关注谁）</text>
+<rect x="16" y="69" width="162" height="82" rx="9" fill="#e6f2fa" stroke="#96c9df"/><text x="97" y="101" text-anchor="middle" font-size="19" fill="#1e7197" font-weight="800">Q Kᵀ</text><text x="97" y="124" text-anchor="middle" font-size="12" fill="#698b9e">3×64 × 64×3</text>
+<rect x="220" y="69" width="162" height="82" rx="9" fill="#eef7fc" stroke="#b5d6e8"/><text x="301" y="101" text-anchor="middle" font-size="18" fill="#276f95" font-weight="780">÷ √dₖ</text><text x="301" y="124" text-anchor="middle" font-size="12" fill="#7596a8">缩放得分</text>
+<rect x="424" y="69" width="162" height="82" rx="9" fill="#fff5e5" stroke="#ddb783"/><text x="505" y="101" text-anchor="middle" font-size="18" fill="#aa732a" font-weight="780">+ M</text><text x="505" y="124" text-anchor="middle" font-size="12" fill="#9d825f">不允许的位置 = −∞</text>
+<rect x="628" y="69" width="162" height="82" rx="9" fill="#eaf7ed" stroke="#a6d2ba"/><text x="709" y="101" text-anchor="middle" font-size="19" fill="#277958" font-weight="800">Softmax</text><text x="709" y="124" text-anchor="middle" font-size="12" fill="#699780">每行权重和为 1</text>
+<rect x="832" y="69" width="135" height="82" rx="9" fill="#e6f1fa" stroke="#9dbfd8"/><text x="900" y="101" text-anchor="middle" font-size="19" fill="#206e97" font-weight="800">A V</text><text x="900" y="124" text-anchor="middle" font-size="12" fill="#6b91a8">3×3 × 3×64</text>
+<rect x="1010" y="69" width="96" height="82" rx="9" fill="#dff1f9" stroke="#7db5d3"/><text x="1058" y="101" text-anchor="middle" font-size="20" fill="#236f94" font-weight="830">Z</text><text x="1058" y="124" text-anchor="middle" font-size="12" fill="#7591a3">3×64</text>
+<g stroke="#789db0" stroke-width="2" marker-end="url(#attnarrow)" fill="none"><path d="M179 110 H214"/><path d="M383 110 H418"/><path d="M587 110 H622"/><path d="M791 110 H826"/><path d="M968 110 H1004"/><path d="M504 222 V154"/><path d="M899 225 V154"/></g>
+<rect x="383" y="226" width="245" height="77" rx="8" fill="#fff9ef" stroke="#e5cb9d"/><text x="505" y="252" text-anchor="middle" fill="#a57438" font-size="16" font-weight="780">Mask（规则构造）</text><text x="505" y="273" text-anchor="middle" fill="#967b55" font-size="12">位置先后 / PAD / 可见性</text><text x="505" y="291" text-anchor="middle" fill="#967b55" font-size="11">不是网络额外预测出的 Q/K/V</text>
+<rect x="825" y="227" width="150" height="75" rx="8" fill="#eef9f3" stroke="#b9dcca"/><text x="900" y="254" text-anchor="middle" fill="#287b5d" font-size="17" font-weight="780">Value V</text><text x="900" y="275" text-anchor="middle" fill="#719582" font-size="12">真实被读取的内容</text>
+<text x="15" y="192" font-size="13" fill="#588199">每行 Query 和所有列 Key 匹配：scores[i,j] = qᵢ · kⱼ / √dₖ。</text>
+<text x="15" y="212" font-size="13" fill="#588199">先对无效 Key 屏蔽，再按行归一化，最后才汇总 Value；不能把顺序反过来。</text>
+</svg></div></div>
+<div class="attn-equations"><div class="attn-eqtitle">把论文的主公式拆开，不再隐藏中间步骤</div>
+<div class="attn-eqlarge">S = QK<sup>T</sup> / √d<sub>k</sub> <span class="attn-dim">(3 × 3)</span></div>
+<div class="attn-eqlarge">L<sub>ij</sub> = S<sub>ij</sub> + M<sub>ij</sub>，　 M<sub>ij</sub> ∈ { 0, −∞ }</div>
+<div class="attn-eqlarge">A<sub>ij</sub> = exp(L<sub>ij</sub>) / ∑<sub>t∈可见Key</sub> exp(L<sub>it</sub>) <span class="attn-dim">（按 Query 行归一化）</span></div>
+<div class="attn-eqlarge">Z = AV，　 z<sub>i</sub> = ∑<sub>j=1</sub><sup>3</sup> A<sub>ij</sub>v<sub>j</sub></div>
+<div class="attn-eqsmall">完整写法：<strong>Attention(Q,K,V;M) = softmax(QK<sup>T</sup>/√d<sub>k</sub> + M) V</strong>。论文公式 (1) 未显式写 M，但其 Figure 2 将 Mask 标记为可选操作，Decoder 的因果限制在 §3.1 / §3.2.3 说明。</div></div>
+<h3 class="subhead">5.4 真实算一遍：不再把 W<sub>Q</sub> / W<sub>K</sub> 偷偷设为单位矩阵</h3>
+<p>为了能够亲手核对，以下把真实的 <code>3×512</code> 临时缩成 <code>3×2</code>，并取 <code>d<sub>k</sub>=d<sub>v</sub>=2</code>。<strong>计算机制完全相同，只有维度缩小</strong>。所有矩阵都给出具体数值，得到的 Q/K/V、Softmax 与输出都通过 JavaScript 实时计算。</p>
+<div class="figure"><div class="figtitle">图 05C · 不是“凭空给出 Q”：X 真的乘三组不同的 W</div><div class="figbody">
+<div class="attn-matrix-story">
+<div class="attn-matrix-card"><div class="attn-matrix-tag">输入 X · 3×2</div><div class="attn-mathmatrix"><span>1　0</span><span>0　1</span><span>1　1</span></div><small>行对应 I / love / cats</small></div>
+<div class="attn-times">×</div>
+<div class="attn-matrix-card"><div class="attn-matrix-tag">W<sub>Q</sub> · 2×2</div><div class="attn-mathmatrix"><span>1　0</span><span>1　1</span></div><small>查询投影权重</small></div>
+<div class="attn-times">=</div>
+<div class="attn-matrix-card attn-matrix-result"><div class="attn-matrix-tag">Q · 3×2</div><div class="attn-mathmatrix"><span>1　0</span><span>1　1</span><span>2　1</span></div><small>第 2 行 q₂=[1,1]</small></div>
+</div>
+<div class="attn-matrix-story">
+<div class="attn-matrix-card"><div class="attn-matrix-tag">输入 X · 3×2</div><div class="attn-mathmatrix"><span>1　0</span><span>0　1</span><span>1　1</span></div></div><div class="attn-times">×</div><div class="attn-matrix-card"><div class="attn-matrix-tag">W<sub>K</sub> · 2×2</div><div class="attn-mathmatrix"><span>1　1</span><span>0　1</span></div><small>匹配投影权重</small></div><div class="attn-times">=</div><div class="attn-matrix-card attn-matrix-result"><div class="attn-matrix-tag">K · 3×2</div><div class="attn-mathmatrix"><span>1　1</span><span>0　1</span><span>1　2</span></div><small>三个 Key 都参与匹配</small></div></div>
+<div class="attn-matrix-story">
+<div class="attn-matrix-card"><div class="attn-matrix-tag">输入 X · 3×2</div><div class="attn-mathmatrix"><span>1　0</span><span>0　1</span><span>1　1</span></div></div><div class="attn-times">×</div><div class="attn-matrix-card"><div class="attn-matrix-tag">W<sub>V</sub> · 2×2</div><div class="attn-mathmatrix"><span>1　2</span><span>2　1</span></div><small>传递内容投影权重</small></div><div class="attn-times">=</div><div class="attn-matrix-card attn-matrix-result"><div class="attn-matrix-tag">V · 3×2</div><div class="attn-mathmatrix"><span>1　2</span><span>2　1</span><span>3　3</span></div><small>真正被加权求和的向量</small></div></div>
+</div><div class="figcap">例如：<strong>q₂ = [0,1] × [[1,0],[1,1]] = [1,1]</strong>； <strong>k₂ = [0,1] × [[1,1],[0,1]] = [0,1]</strong>。这里 W 是人为指定用于教学的参数；实际训练中 W 经过初始化，并由最终 Loss 的梯度不断更新。</div></div>
+<div class="lab" id="attentionLab"><div class="labhead"><div><h4>交互实验 B · 真实矩阵运算逐步展开</h4><p class="tiny">观察同一组 X / WQ / WK / WV；改变 Query、缩放和 Mask，下面的分数、权重和输出会联动重算。默认 Encoder 无 Mask，查看第 2 行。</p></div><span class="chip new">实际运算 · 可核对</span></div>
+<div class="controls"><div class="control"><label for="attnQuery">选择当前 Query</label><select id="attnQuery"><option value="0">行 1 · I</option><option value="1" selected>行 2 · love</option><option value="2">行 3 · cats</option></select></div>
+<div class="control"><label for="attnMask">Mask 怎么处理？</label><select id="attnMask"><option value="none">Encoder：无 Mask</option><option value="causal">Decoder：因果 Mask</option><option value="pad">模拟 Padding：第 3 列为 PAD</option><option value="both">因果 + Padding（同时）</option></select></div>
+<div class="control"><label for="attnScale">缩放</label><select id="attnScale"><option value="yes">÷ √2（论文做法）</option><option value="no">不缩放（对比）</option></select></div>
+<div class="control"><label for="attnStage">展示哪一步？</label><select id="attnStage"><option value="0">① 生成 Q/K/V</option><option value="1">② QKᵀ 点积</option><option value="2">③ 缩放分数</option><option value="3">④ 加 Mask</option><option value="4" selected>⑤ Softmax 权重</option><option value="5">⑥ 乘 V 输出</option></select></div></div>
+<div class="attn-step-layout">
+<div class="card tone-blue"><div class="mini-label">当前计算步骤 · 具体展开</div><h4 id="attnStageTitle">当前步骤</h4><p id="attnStageText" class="attn-stage-description"></p><div class="attn-step-formula" id="attnCalc"></div><div class="attn-small-explain" id="attnMaskWhy"></div><div class="bars" id="attnBars" style="margin-top:12px"></div></div>
+<div class="card"><div class="mini-label">3×3 的全部分数 / 权重 · 行 Query，列 Key</div><h4 id="attnHeatTitle">Attention 权重</h4><div class="attn-axis-labels"><span>↘ 行 Query / 列 Key</span><span>I</span><span>love</span><span>cats</span></div><div class="attn-grid-with-axis"><div class="attn-row-axes"><span>I</span><span>love</span><span>cats</span></div><div id="attnMatrix" class="matrix attn-heat"></div></div><div class="attn-matrix-legend"><i></i> 可见位置按数值着色；灰色 × 为屏蔽</div><div class="numbox" id="attnSum"></div></div>
+</div>
+<div class="attn-fullwidth-matrices"><div class="attn-matrix-output"><div class="mini-label">Q = XWQ</div><div id="attnQMatrix" class="attn-live-matrix"></div></div><div class="attn-matrix-output"><div class="mini-label">K = XWK</div><div id="attnKMatrix" class="attn-live-matrix"></div></div><div class="attn-matrix-output"><div class="mini-label">V = XWV</div><div id="attnVMatrix" class="attn-live-matrix"></div></div><div class="attn-matrix-output emph"><div class="mini-label">当前行 zᵢ = Σⱼ aᵢⱼvⱼ</div><div id="attnVector" class="attn-vector-result"></div></div></div>
+<div class="attn-narration" id="attnNarration"></div>
+</div>
+<div class="attn-pedagogy-grid"><div class="attn-pedagogy"><span>① 点积怎么算？</span><div>例如 <strong>love</strong>：q₂=[1,1]；与 k₁=[1,1] 点积得到 1×1+1×1=2；与 k₂ 点积=1；与 k₃ 点积=3。所以该行原始分数为 <strong>[2,1,3]</strong>。</div></div><div class="attn-pedagogy"><span>② 缩放怎么算？</span><div>这里 d<sub>k</sub>=2，所以除以 √2≈1.4142。分数从 [2,1,3] 变成 [1.4142,0.7071,2.1213]。实际 Base 每头 d<sub>k</sub>=64，因而除以 8。</div></div><div class="attn-pedagogy"><span>③ Softmax 怎么算？</span><div>对同一 Query 行做指数归一化：a₂₃ = e<sup>2.1213</sup> / (e<sup>1.4142</sup>+e<sup>0.7071</sup>+e<sup>2.1213</sup>) ≈ <strong>0.5760</strong>（无 Mask 时）。</div></div><div class="attn-pedagogy"><span>④ Value 怎么返回？</span><div>该行权重约为 [0.2840, 0.1400, 0.5760]。把 [1,2]、[2,1]、[3,3] 分别乘权重再相加：<strong>z₂ ≈ [2.2920,2.4359]</strong>。不是预测词语，而是生成新的特征。</div></div></div>
+<h3 class="subhead">5.5 Mask 究竟从哪里来？它不是模型算出来的 Q、K、V</h3>
+<div class="insight"><strong>最关键的澄清：</strong>Mask 是由<strong>输入的 Padding 情况、序列位置和任务的可见性规则</strong>构造出来的约束矩阵。它通常不是神经网络学习出的一个语义特征，也不是第四个 Linear 分支。无约束时 <code>M=0</code>，可以完全省略这一步。</div>
+<div class="attn-mask-types">
+<div class="card"><h4>情况 A：Encoder 的普通 Self-Attention</h4><div class="attn-mask-minigrid"><span>✓</span><span>✓</span><span>✓</span><span>✓</span><span>✓</span><span>✓</span><span>✓</span><span>✓</span><span>✓</span></div><p>输入 <code>I love cats</code>，三个位置都真实存在：每个 Query 可以读取全部三个 Key，不需要因果 Mask。如果有补齐 Token，才需要额外隐藏 PAD Key。</p></div>
+<div class="card"><h4>情况 B：Decoder 因果 Mask（Causal）</h4><div class="attn-mask-minigrid"><span>✓</span><span class="off">×</span><span class="off">×</span><span>✓</span><span>✓</span><span class="off">×</span><span>✓</span><span>✓</span><span>✓</span></div><p>目标输入前缀如 <code>BOS / 我 / 爱</code>。构造规则是 <code>j ≤ i</code> 可见，<code>j ＞ i</code> 不可见。<strong>规则来自位置索引</strong>，而不是模型猜哪个词是答案。</p></div>
+<div class="card"><h4>情况 C：Padding Mask</h4><div class="attn-mask-minigrid"><span>✓</span><span>✓</span><span class="off">×</span><span>✓</span><span>✓</span><span class="off">×</span><span>✓</span><span>✓</span><span class="off">×</span></div><p>为了 batch 对齐，假设输入是 <code>I love PAD</code>。从 <code>token_id == PAD_ID</code> 得到第三列不可读。这个例子里只演示屏蔽 Key 列；PAD Query 对应的输出通常还需被忽略或另行处理。</p></div>
+</div>
+<div class="figure"><div class="figtitle">图 05D · Mask 在 Softmax 之前加：为什么是 −∞，不是乘 0？</div><div class="figbody"><div class="attn-mask-demo"><div><span class="mini-label">love 行原始缩放分数</span><div class="attn-mask-row"><b>1.414</b><b>0.707</b><b>2.121</b></div><p class="tiny">行 2 对列 1、2、3 的分数</p></div><div class="attn-mask-operator">+ 因果 Mask</div><div><span class="mini-label">加上 [0, 0, −∞]</span><div class="attn-mask-row"><b>1.414</b><b>0.707</b><b class="blocked">−∞</b></div><p class="tiny">第三列不允许看未来</p></div><div class="attn-mask-operator">Softmax →</div><div><span class="mini-label">最终权重</span><div class="attn-mask-row"><b class="ok">0.670</b><b class="ok">0.330</b><b class="blocked">0.000</b></div><p class="tiny">被屏蔽位置严格为 0 权重</p></div></div></div><div class="figcap">对同一行分数做 Softmax，<code>exp(−∞)=0</code>。若先 Softmax 再把权重乘 0，会破坏“有效位置重新归一化”的要求；如果只把分数设为 0，它仍可能分到非零注意力权重。</div></div>
+<div class="tablewrap"><table><thead><tr><th>Attention 类型</th><th>Q 从哪里来？</th><th>K / V 从哪里来？</th><th>主要 Mask</th><th>分数矩阵形状</th></tr></thead><tbody>
+<tr><td><strong>Encoder Self</strong></td><td>Encoder 当前层特征</td><td>Encoder 当前层特征</td><td>若有 PAD，屏蔽源端 PAD Key</td><td>n×n</td></tr>
+<tr><td><strong>Decoder Masked Self</strong></td><td>Decoder 当前层特征</td><td>Decoder 当前层特征</td><td>因果 Mask + 需要时的目标端 PAD</td><td>m×m</td></tr>
+<tr><td><strong>Encoder–Decoder Cross</strong></td><td>Decoder 特征</td><td>Encoder 最终输出 Z</td><td>若有 PAD，屏蔽源端 PAD Key；通常不做目标端因果矩阵</td><td>m×n</td></tr>
+</tbody></table></div>
+<div class="grid2"><div class="card tone-orange"><h4>训练时谁生成 Mask？</h4><p>通常由数据批处理 / 模型前向中的确定性规则构造：<code>key_keep = (token_ids != PAD_ID)</code>；目标自回归用 <code>causal_keep[i,j] = (j ≤ i)</code>；两个条件逐元素取 AND，再转换成加到分数上的 <code>0 / −∞</code>。</p></div><div class="card tone-green"><h4>形状怎么与多头对齐？</h4><p>带 batch 与多头时，分数通常形如 <code>[B, h, L<sub>q</sub>, L<sub>k</sub>]</code>。Padding Mask 可以先构造 <code>[B,1,1,L<sub>k</sub>]</code> 再广播；因果 Mask 可构造 <code>[1,1,L<sub>q</sub>,L<sub>k</sub>]</code>。屏蔽 PAD 的 Loss Mask 另有用途，不能混为一谈。</p></div></div>
+<div class="attn-equations"><div class="attn-eqtitle">用符号严谨地区分“可见性”和“实际权重”</div><div class="attn-eqlarge">C<sub>ij</sub> = 1（允许读取）或 0（禁止读取）</div><div class="attn-eqlarge">M<sub>ij</sub> = 0（若 C<sub>ij</sub>=1）；否则 M<sub>ij</sub>=−∞</div><div class="attn-eqsmall">C/M 是按规则生成的可见性限制；<strong>A = softmax(S+M)</strong> 才是模型根据 Q/K 计算出的注意力权重。两者既不是同一个矩阵，也不是同一个学习过程。</div></div>
+<h3 class="subhead">5.6 这套机制放回真实 Base：3×512 的输入最后如何回到 3×512？</h3>
+<div class="figure"><div class="figtitle">图 05E · 从单头 64 维回到模型宽度：连接下一章 Multi-Head</div><div class="figbody"><div class="attn-real-dims"><div class="attn-dim-node"><strong>输入 X</strong><span>3×512</span></div><div class="attn-dim-arrow">→</div><div class="attn-dim-node"><strong>8 组独立 WQ/WK/WV</strong><span>每头 Q/K/V = 3×64</span></div><div class="attn-dim-arrow">→</div><div class="attn-dim-node"><strong>8 个 Attention</strong><span>每头输出 3×64</span></div><div class="attn-dim-arrow">→</div><div class="attn-dim-node"><strong>Concat</strong><span>3×(8×64)=3×512</span></div><div class="attn-dim-arrow">→</div><div class="attn-dim-node good"><strong>W<sup>O</sup> 输出投影</strong><span>3×512</span></div></div></div></div>
+<p>本章小例子只计算<strong>一个 Attention Head</strong>；它输出 3×2 并没有错。真实 Base 用 8 个各 64 维的 Head，拼接后经 <code>W<sup>O</sup></code> 投影回 512 维，再进入残差和 LayerNorm。这样才能与主网络中的 3×512 特征对齐。</p>
+<h3 class="subhead">5.7 论文的思想究竟是什么：哪些是沿用，哪些才是改变？</h3>
+<div class="attn-compare"><div class="card"><span class="chip reuse">已有路线</span><h4>加性 Attention</h4><p>使用可学习的兼容性函数（常包含一层隐藏层的前馈网络）为 Query 和 Key 评分，已经能实现按内容读取信息；因此<strong>“使用 Attention”本身不是 2017 年的全新发明</strong>。</p></div><div class="card"><span class="chip reuse">已有路线</span><h4>点积 Attention</h4><p>通过 Q·K 得到匹配分数，易用高效矩阵运算实现；但 Key 维度较大时分数尺度可能使 Softmax 过尖锐。</p></div><div class="card tone-blue"><span class="chip new">2017 方案</span><h4>Scaled Dot-Product</h4><p>在点积之后除以 √d<sub>k</sub>，控制分数尺度；结合可训练线性投影与多头并行，在不同子空间里学习关联。</p></div><div class="card tone-green"><span class="chip new">架构级贡献</span><h4>用 Attention 主导整个序列网络</h4><p>最关键的不是多写一个公式，而是将 Self-Attention、FFN、残差、归一化组织为可堆叠模块，<strong>在序列表示构建中去掉逐时间步 RNN 依赖</strong>，实现更好的并行计算。</p></div></div>
+<div class="chapter-end"><strong>本章真正得到什么？</strong> 从上一章的 <code>X=3×512</code> 出发，每个 Head 都通过三套可训练 Linear 产生 Q/K/V；Q/K 在可见性约束下计算权重，权重对 V 加权汇总。Mask 来自任务规则与 Padding，而不是凭空生成。8 头结果经拼接、投影回 <code>3×512</code>，然后才进入 Transformer Block 的 FFN。<br/><span class="tiny">原论文依据：<a href="https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf" target="_blank" rel="noopener">Attention Is All You Need · §3.1–3.2 / Figure 2</a>；实现对照：<a href="https://nlp.seas.harvard.edu/2018/04/03/attention.html" target="_blank" rel="noopener">The Annotated Transformer · Attention & Mask</a>。</span></div>
+</section>
 <section id="heads" class="section"><div class="section-title"><div class="num">06</div><div><h2>为什么要 8 个 Head？不是重复做 8 次相同的事</h2><p>一个注意力头学一套关联；多个头在不同特征子空间中并行寻找关系。</p></div></div>
 <p>单个注意力头给每个 Query 产生一组权重。如果所有关系都挤在一个加权分布里，表达容易受限制。论文提出把 Q、K、V 通过不同的可学习投影映射到多个子空间；每个空间独立关注，再将结果拼接融合。</p>
 <div class="figure"><div class="figtitle">图 07 · 原论文 Base 的 8 个 Head：512 → 8 × 64 → 512 <span class="src">真实层内维度</span></div><div class="figbody diagram-scroll"><svg viewBox="0 0 1080 438" role="img" aria-label="八头注意力结构和维度"><defs><marker id="amult" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7z" fill="#8da9b9"/></marker></defs><rect x="17" y="154" width="148" height="118" rx="9" fill="#e2f2fb" stroke="#9ac9df"/><text x="91" y="189" font-size="24" font-weight="850" fill="#1e7198" text-anchor="middle">X</text><text x="91" y="218" font-size="14" fill="#608ea5" text-anchor="middle">n × 512</text><text x="91" y="242" font-size="12" fill="#608ea5" text-anchor="middle">同一层输入</text>
@@ -352,6 +501,71 @@ redraw();
 <div class="lab"><div class="labhead"><div><h4>交互实验 E · 点击不同信息流：哪些位置允许相互读取？</h4><p class="tiny">蓝色 = 可见位置，灰色 = 被 Mask 的位置。行是 Query，列是 Key。矩阵大小随来源而变化。</p></div><span class="chip">严格对应 Q / K 来源</span></div><div class="controls"><div class="control"><label>注意力类型</label><select id="maskType"><option value="encoder">Encoder Self-Attn</option><option value="decoder" selected>Decoder Masked Self-Attn</option><option value="cross">Cross-Attn</option></select></div><div class="control"><label>突出 Query 行</label><select id="maskRow"><option value="0">第 1 行</option><option value="1">第 2 行</option><option value="2" selected>第 3 行</option><option value="3">第 4 行</option></select></div></div><div class="grid2"><div><div id="maskGrid" class="matrix" style="max-width:480px"></div><p id="maskAxes" class="tiny"></p></div><div><div class="numbox" id="maskExplain"></div><div class="formula">Mᵢⱼ = 0（可读），−∞（屏蔽）<br>Aᵢⱼ = Softmaxⱼ(Scoreᵢⱼ + Mᵢⱼ)<small>将非法位置在 Softmax 前设为 −∞，概率就变成 0。这是信息约束，不是额外的可训练网络层。</small></div></div></div></div>
 <h3 class="subhead">9.3 为什么“右移目标”还不够，必须有 Mask？</h3>
 <div class="figure"><div class="figtitle">图 11 · 右移只对齐预测位置，因果 Mask 才阻止同一训练样本中的答案泄露</div><div class="figbody"><div class="displayrow" style="margin:11px 0"><span style="display:inline-block;width:124px;color:#678799;font-weight:760">Decoder 输入</span><span class="token purple">&lt;BOS&gt;</span><span class="token purple">我</span><span class="token purple">爱</span><span class="token purple">猫</span></div><div class="displayrow" style="margin:11px 0"><span style="display:inline-block;width:124px;color:#678799;font-weight:760">监督目标</span><span class="token green">我</span><span class="token green">爱</span><span class="token green">猫</span><span class="token green">&lt;EOS&gt;</span></div><p class="small">以第 1 个预测位置为例，输入处是 BOS，目标是“我”。如果没有因果 Mask，此位置仍可通过 Self-Attention 直接读取右边输入中的“我”，相当于偷看答案。右移与 Mask 必须配合。</p></div></div>
+
+<div class="dcl-unit" id="decoder-mask-deep">
+  <h3 class="subhead">9.4 从“预测下一个词”推导出下三角 Mask：不是先有矩阵，才有规则</h3>
+  <p class="dcl-lead">先问一个严格的问题：<strong>第 t 个输出应该依赖哪些信息？</strong> 对原始自回归翻译任务，我们希望模型学习 <code>p(下一个词 | 英文整句, 已知中文前缀)</code>。这条条件关系要求：预测“我”时不能读取“我”本身，更不能读取后面的“爱 / 猫”；预测“猫”时才允许读取历史中的“我 / 爱”。</p>
+  <div class="figure"><div class="figtitle">图 11A · 正确对齐是两条序列错开一格；Mask 的允许关系是第三件事</div><div class="figbody">
+    <div class="dcl-splitline"><div class="dcl-rlabel">位置 t</div><div class="dcl-tile">1</div><div class="dcl-tile">2</div><div class="dcl-tile">3</div><div class="dcl-tile">4</div></div>
+    <div class="dcl-splitline"><div class="dcl-rlabel">Decoder 输入</div><div class="dcl-tile p">BOS</div><div class="dcl-tile p">我</div><div class="dcl-tile p">爱</div><div class="dcl-tile p">猫</div></div>
+    <div class="dcl-splitline"><div class="dcl-rlabel">该行学着预测</div><div class="dcl-tile g">我<span class="sub">label₁</span></div><div class="dcl-tile g">爱<span class="sub">label₂</span></div><div class="dcl-tile g">猫<span class="sub">label₃</span></div><div class="dcl-tile g">EOS<span class="sub">label₄</span></div></div>
+    <div class="dcl-splitline"><div class="dcl-rlabel">允许看到</div><div class="dcl-tile">BOS</div><div class="dcl-tile">BOS、我</div><div class="dcl-tile">BOS～爱</div><div class="dcl-tile">BOS～猫</div></div>
+    <div class="dcl-idea orange"><strong>第 1 行为什么危险？</strong> 第 1 行的输入虽然只有 BOS，但训练时整段目标前缀都一起送进 Decoder。如果不限制 Self-Attention，第 1 行的 Query 可以读到第 2 行的输入“我”，而“我”恰好是第 1 行的标签。<strong>右移只完成输入与监督的对齐；Mask 才阻止答案沿注意力边进入特征。</strong></div>
+  </div></div>
+  <div class="dcl-grid2">
+    <div class="dcl-card t-blue"><div class="dcl-eyebrow">由目标推出规则</div><h4>可见性：j ≤ i</h4><p>当 Query 是第 i 行，允许 Key 来自第 1～i 行。这里采用 <strong>1 起始的行列索引</strong>。第 i 行对应的是预测标签 yᵢ，而其输入是上一 Token yᵢ₋₁（首行为 BOS），因此允许读当前输入行，不等于看到当前答案。</p><div class="dcl-math"><div class="big">C<sub>ij</sub> = 0 (j ≤ i)；−∞ (j &gt; i)</div><p>4 个目标输入位置 → <code>C ∈ ℝ<sup>4×4</sup></code>。</p></div></div>
+    <div class="dcl-card t-gold"><div class="dcl-eyebrow">为什么每层都要限制</div><h4>不是只在最后一层做一次 Mask</h4><p>原始 Decoder 有 <strong>6 个 Block</strong>，每个 Block 的 Self-Attention 都必须保持因果约束。否则前一层即使没读未来，后一层仍可能绕过限制。残差、逐位置 FFN、LayerNorm 都不直接把未来位置的信息混入当前位置。</p><p class="dcl-note">只要每层只聚合自身及过去位置，就可以逐层保持这一性质；Cross-Attention 读取的是完整源句，不属于目标答案泄露。</p></div>
+  </div>
+</div>
+
+<div class="dcl-unit">
+<h3 class="subhead">9.5 真正算一次：Mask 怎么改变 Softmax、Value，以及未来位置的梯度？</h3>
+<p class="dcl-lead">下面不是凭空把一个矩阵涂灰，而是给定四个目标位置的 <strong>已缩放 QKᵀ 分数</strong>，再真实计算 <code>S + C → Softmax → AV</code>。分数和 Value 是<strong>人为设置的教学数据</strong>，用来隔离 Mask 的作用，不代表真实训练好的翻译模型。</p>
+<div class="dcl-lab" id="dclMaskLab"><div class="dcl-labhead"><h4>交互实验 I · 切换因果 Mask，看见“答案泄露”是怎样发生的</h4><p class="dcl-note">选择 Query 行与是否启用 Mask；每行都会根据允许的 Key 重新计算 Softmax，而非直接隐藏某个显示方格。</p></div>
+  <div class="dcl-controls"><label>观察第几个目标 Query 行<select id="dclFocusRow"><option value="0">第 1 行：BOS → 预测「我」</option><option value="1">第 2 行：我 → 预测「爱」</option><option value="2" selected>第 3 行：爱 → 预测「猫」</option><option value="3">第 4 行：猫 → 预测 EOS</option></select></label>
+  <label>是否使用因果 Mask<select id="dclCausalMode"><option value="on" selected>开启：屏蔽未来 Key</option><option value="off">关闭：反例，允许偷看未来</option></select></label></div>
+  <div class="dcl-heatwrap"><div class="dcl-heatbox"><div class="dcl-heat" id="dclScoreHeat"></div><p class="dcl-caption">矩阵为 <code>S + C</code>。行 = Query，列 = Key；橙色提示被禁止但在无 Mask 时仍有较高匹配分数的危险路径。</p></div>
+  <div><div class="dcl-panel" id="dclMaskExplain"></div><div style="margin:11px 0" id="dclMaskBars"></div><div class="dcl-panel dcl-num" id="dclMaskMath"></div></div></div>
+</div>
+<div class="dcl-math"><div class="big">S<sub>ij</sub> = q<sub>i</sub> · k<sub>j</sub> / √d<sub>k</sub></div><div class="big">C<sub>ij</sub> = { 0, j≤i ; −∞, j&gt;i }</div><div class="big">A<sub>ij</sub> = exp(S<sub>ij</sub> + C<sub>ij</sub>) / ∑<sub>k</sub> exp(S<sub>ik</sub> + C<sub>ik</sub>)</div><div class="big">o<sub>i</sub> = ∑<sub>j</sub> A<sub>ij</sub> v<sub>j</sub></div><p>假设某行分数为 [0.3, 1.2, 0.5, 2.2]：若第 3 行只允许读取前 3 列，则输入 Softmax 的是 [0.3, 1.2, 0.5, −∞]，并且 <code>exp(−∞)=0</code>。右侧较大的 2.2 <strong>不能分走概率质量</strong>。用加 0 或“在 Softmax 前乘 0”都无法保证这一点。</p></div>
+<div class="dcl-grid2"><div class="dcl-card t-green"><h4>因果 Mask 是什么类型的量？</h4><p>由<strong>序列位置和任务规则</strong>构造，不是由 Q/K/V 额外学习出来的权重矩阵。它在一次前向传播中决定哪些边被允许。屏蔽位置对当前 Query 的 Attention 分数梯度为 0。</p></div><div class="dcl-card t-purple"><h4>它和 PAD Mask 有什么区别？</h4><p><strong>因果 Mask</strong> 不让目标端看未来；<strong>Padding Mask</strong> 不让任一 Query 读取无效的补齐 Key。前者按 i/j 的先后比较构造，后者按 Token 是否为 PAD 构造；目标 Self-Attention 中可组合使用。</p></div></div>
+</div>
+
+<div class="dcl-unit">
+<h3 class="subhead">9.6 为什么 Cross-Attention 不加“中文未来”的同一种 Mask？</h3>
+<div class="figure"><div class="figtitle">图 11B · 两套不同的注意力矩阵：目标内部 4×4，目标读取英文 4×3</div><div class="figbody">
+<svg class="dcl-svg" viewBox="0 0 1120 350" role="img" aria-label="Decoder 自注意力和跨注意力的数据来源比较">
+<defs><marker id="dcl-ar" viewBox="0 0 10 10" markerWidth="6" markerHeight="6" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#7f9eb1"/></marker></defs>
+<rect x="7" y="12" rx="10" width="528" height="326" fill="#faf8ff" stroke="#e6dff1"/><rect x="556" y="12" rx="10" width="557" height="326" fill="#f5fbfe" stroke="#d7e9f3"/>
+<text x="26" y="43" font-size="18" fill="#785aa1" font-weight="800">① Masked Self-Attention · 目标内部</text><text x="575" y="43" font-size="18" fill="#27769f" font-weight="800">② Cross-Attention · 查询源端记忆</text>
+<rect x="26" y="68" rx="8" width="177" height="75" fill="#ede8f9" stroke="#c9bce4"/><text x="114" y="95" font-size="15" text-anchor="middle" fill="#74589b" font-weight="750">目标端 U</text><text x="114" y="118" font-size="13" text-anchor="middle" fill="#907fae">4×512 · BOS 我 爱 猫</text>
+<rect x="263" y="68" rx="8" width="237" height="75" fill="#e4f0fa" stroke="#a7cbdf"/><text x="381" y="95" font-size="15" text-anchor="middle" fill="#226e97" font-weight="750">Q/K/V ← 同一套目标特征</text><text x="381" y="118" font-size="13" text-anchor="middle" fill="#678fa4">QKᵀ：4×4 · 需要因果 Mask</text>
+<path d="M205 105 H255" stroke="#86a4b6" stroke-width="2" marker-end="url(#dcl-ar)"/>
+<g font-size="11" fill="#71599c" font-weight="750"><text x="24" y="175">目标 Query 行 ↓</text><text x="202" y="175">目标 Key 列 →</text></g>
+<g transform="translate(201,192)"><rect x="0" y="0" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="42" y="0" width="37" height="31" rx="3" fill="#e8edf1"/><rect x="84" y="0" width="37" height="31" rx="3" fill="#e8edf1"/><rect x="126" y="0" width="37" height="31" rx="3" fill="#e8edf1"/><rect x="0" y="36" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="42" y="36" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="84" y="36" width="37" height="31" rx="3" fill="#e8edf1"/><rect x="126" y="36" width="37" height="31" rx="3" fill="#e8edf1"/><rect x="0" y="72" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="42" y="72" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="84" y="72" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="126" y="72" width="37" height="31" rx="3" fill="#e8edf1"/><rect x="0" y="108" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="42" y="108" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="84" y="108" width="37" height="31" rx="3" fill="#96c6e6"/><rect x="126" y="108" width="37" height="31" rx="3" fill="#96c6e6"/></g>
+<rect x="576" y="68" rx="8" width="218" height="75" fill="#efe9fb" stroke="#c7b7e4"/><text x="685" y="94" font-size="14" text-anchor="middle" fill="#72559b" font-weight="750">Q ← Decoder U</text><text x="685" y="116" font-size="13" text-anchor="middle" fill="#9581b3">4×64</text>
+<rect x="841" y="68" rx="8" width="246" height="75" fill="#e4f2fa" stroke="#a5cedf"/><text x="964" y="94" font-size="14" text-anchor="middle" fill="#23749a" font-weight="750">K、V ← Encoder Z</text><text x="964" y="116" font-size="13" text-anchor="middle" fill="#6799ab">3×64 · I love cats</text>
+<path d="M795 105 H833" stroke="#86a4b6" stroke-width="2" marker-end="url(#dcl-ar)"/>
+<g font-size="13" fill="#436f8c"><text x="575" y="176">每个中文 Query → 都能读 3 个有效英文 Key：</text></g>
+<g transform="translate(780,192)" fill="#a6d5ec" stroke="#83bdd9"><rect x="0" y="0" width="43" height="31" rx="3"/><rect x="48" y="0" width="43" height="31" rx="3"/><rect x="96" y="0" width="43" height="31" rx="3"/><rect x="0" y="36" width="43" height="31" rx="3"/><rect x="48" y="36" width="43" height="31" rx="3"/><rect x="96" y="36" width="43" height="31" rx="3"/><rect x="0" y="72" width="43" height="31" rx="3"/><rect x="48" y="72" width="43" height="31" rx="3"/><rect x="96" y="72" width="43" height="31" rx="3"/><rect x="0" y="108" width="43" height="31" rx="3"/><rect x="48" y="108" width="43" height="31" rx="3"/><rect x="96" y="108" width="43" height="31" rx="3"/></g>
+<text x="579" y="323" font-size="12" fill="#7a99ab">Cross-Attn 只需忽略源端 PAD；英语不是尚未生成的中文答案。</text>
+</svg>
+</div><div class="figcap">图中蓝色方块表示允许访问，不代表实际权重均等；真实权重仍由各个位置的 QK 匹配和 Softmax 决定。</div></div>
+<div class="dcl-math"><div class="big">Q<sub>cross</sub> = U W<sub>Q</sub> ∈ ℝ<sup>4×64</sup></div><div class="big">K<sub>cross</sub> = Z W<sub>K</sub> ∈ ℝ<sup>3×64</sup>；V<sub>cross</sub> = Z W<sub>V</sub> ∈ ℝ<sup>3×64</sup></div><div class="big">A<sub>cross</sub> = softmax(Q<sub>cross</sub>K<sub>cross</sub><sup>T</sup>/8 + M<sub>sourcePAD</sub>) ∈ ℝ<sup>4×3</sup></div><p>这里只展开 <strong>一个 Head</strong>，所以 64 维且 √64=8。实际还有其余 7 个 Head；经过 Concat 和 W<sup>O</sup> 后，输出恢复为 <code>4×512</code>。<code>U</code> 是当前 Decoder Block 在 Masked Self-Attention 与 Add &amp; Norm 之后的目标特征；<code>Z</code> 是 Encoder 第 6 层的输出。</p></div>
+<div class="dcl-idea"><strong>注意一个精确边界：</strong>Cross-Attention 并没有强制“中文第 1 个词只能读英文第 1 个词”。它允许每个目标 Query 查询整段有效英语输入；要读取哪里，由训练学出的匹配权重决定。也正因如此，Decoder 的某个输出位置能从 Encoder 收到梯度，而不需要另设一个独立的翻译 Loss。</div>
+</div>
+
+<div class="dcl-unit">
+<h3 class="subhead">9.7 Mask 在反向传播中是什么角色？“被挡住”具体意味着什么？</h3>
+<p class="dcl-lead">前向时，被屏蔽的 Key 的权重为 0；反向时，该 Query→Key <strong>分数连接的梯度也为 0</strong>。但这不意味着该 Token 的所有参数都不更新——它仍可能通过自身位置或其他合法位置得到梯度。</p>
+<div class="dcl-lab" id="dclBackwardLab"><h4>交互实验 II · 同一行的 Softmax 梯度，Mask 前后有什么变化？</h4><p class="dcl-note">把上一实验某行的 Attention 输出记为 <code>oᵢ</code>，取演示性的上游梯度 <code>g=∂L/∂oᵢ=[0.8, −0.4]</code>，展示梯度怎样传回 Attention 分数。上游梯度只是教学假设，不是翻译模型的真实 Loss 梯度。</p>
+<div class="dcl-grid2"><div><div class="dcl-panel" id="dclGradSummary"></div><div id="dclGradBars" style="margin-top:13px"></div></div><div class="dcl-math"><div class="big">g<sub>a,j</sub> = ∂L/∂a<sub>ij</sub> = g · v<sub>j</sub></div><div class="big">∂L/∂S<sub>ij</sub> = a<sub>ij</sub> ( g<sub>a,j</sub> − ∑<sub>k</sub>a<sub>ik</sub>g<sub>a,k</sub> )</div><p>这是 Softmax 的链式法则。若某列被 Mask，<code>aᵢⱼ=0</code>，该列通过这一行分数得到的梯度也为 0；允许的列通常仍有梯度。</p></div></div>
+</div>
+<div class="dcl-stepflow"><div class="dcl-step">Token CE<small>预测是否正确</small></div><span class="dcl-arr">←</span><div class="dcl-step">Vocabulary Head<small>∂L/∂H</small></div><span class="dcl-arr">←</span><div class="dcl-step">Decoder ×6<small>Cross / Masked / FFN</small></div><span class="dcl-arr">←</span><div class="dcl-step">Q、K、V 权重<small>链式法则</small></div><span class="dcl-arr">←</span><div class="dcl-step">Encoder ×6<small>经 Cross-Attn 反传</small></div></div>
+<div class="dcl-math"><div class="big">∂L/∂Q = (∂L/∂S)K / √d<sub>k</sub>　，　∂L/∂K = (∂L/∂S)<sup>T</sup>Q / √d<sub>k</sub></div><div class="big">∂L/∂W<sub>Q</sub> = X<sup>T</sup>(∂L/∂Q)</div><p>这里的 S 指 <code>QKᵀ/√dₖ</code>、<code>∂L/∂S</code> 是考虑 Mask 后的分数梯度。V 也由 <code>o=AV</code> 得到梯度 <code>∂L/∂V=Aᵀ(∂L/∂o)</code>。实际网络中还存在 Multi-Head、输出投影、残差和归一化，梯度会沿全部合法计算路径累加。</p></div>
+<div class="dcl-source">论文依据：Vaswani et al. (2017) §3.1、§3.2.3（Decoder 因果限制、输出右移、Softmax 前 −∞ Mask）；本节数值分数与梯度均为独立的教学构造。</div>
+</div>
+
 <div class="miniwarning">Cross-Attention 通常<strong>不做目标时间方向的因果遮挡</strong>：它读取的是源端输入 Z，英语整句话本来已知。需要屏蔽的是源序列中的 PAD 等无效位置。</div>
 <div class="chapter-end"><strong>本章产物：</strong>经过 6 个 Decoder Block，得到 <code>H ∈ ℝ^(m×512)</code>。其中每个位置包含合法目标前缀与整段英语输入的信息；接下来还需要 Head 转换为词表概率。</div></section>
 
@@ -367,9 +581,64 @@ redraw();
 
 <section id="loss" class="section"><div class="section-title"><div class="num">11</div><div><h2>Loss：这条翻译样本怎样告诉网络“你错在哪里”？</h2><p>从你熟悉的 CE 入手，唯一新增的是“序列上每个位置都有一份监督”。</p></div></div>
 <div class="figure"><div class="figtitle">图 13 · Teacher Forcing：训练时同时计算四个位置的下一 Token 预测</div><div class="figbody"><div class="tablewrap"><table style="min-width:570px"><thead><tr><th>位置 t</th><th>Decoder 该位置的输入</th><th>该位置监督标签</th><th>该位置允许读取的目标前缀</th><th>Loss</th></tr></thead><tbody><tr><td>1</td><td><code>&lt;BOS&gt;</code></td><td><strong>我</strong></td><td>BOS</td><td>CE₁</td></tr><tr><td>2</td><td><code>我</code></td><td><strong>爱</strong></td><td>BOS、我</td><td>CE₂</td></tr><tr><td>3</td><td><code>爱</code></td><td><strong>猫</strong></td><td>BOS、我、爱</td><td>CE₃</td></tr><tr><td>4</td><td><code>猫</code></td><td><strong>&lt;EOS&gt;</strong></td><td>BOS、我、爱、猫</td><td>CE₄</td></tr></tbody></table></div><p class="tiny">整个训练样本输入 Decoder 的是右移目标序列；因为因果 Mask，第 t 行无法访问其后真实输入位置。对有 PAD 的实际 batch，Loss 通常忽略 PAD 标签。</p></div></div>
+
+<div class="dcl-unit" id="dclCELesson">
+<h3 class="subhead">11.1 交叉熵为什么按这四个位置排布？先从“句子的联合概率”开始</h3>
+<div class="dcl-grid2"><div class="dcl-card t-purple"><h4>一条目标句子并不是一次预测一个整体类别</h4><p>如果目标序列是 <strong>我 / 爱 / 猫 / EOS</strong>，模型真正要学的是：先预测“我”，在已知“我”时预测“爱”，然后预测“猫”，最后预测结束符。</p><p>这来自自回归的<strong>条件概率分解</strong>，不是 Transformer 临时规定的 Loss 排列方式。</p></div><div class="dcl-card t-blue"><h4>为什么不让四个预测都看完整句？</h4><p>那样第 1 行就可以用“我、爱、猫”预测“我”，训练误差可能很低，但推理时这些后续中文词根本不存在。训练阶段必须模拟推理时真正能够获得的信息。</p><p><strong>右移输入 + Causal Mask + 下一个 Token 标签</strong> 是一套协同设计。</p></div></div>
+<div class="dcl-math"><div class="big">P(y₁,y₂,y₃,y₄ | x) = P(y₁|x) · P(y₂|y₁,x) · P(y₃|y₁,y₂,x) · P(y₄|y₁,y₂,y₃,x)</div><div class="big">P(y | x) = ∏<sub>t=1</sub><sup>4</sup> p<sub>θ</sub>(y<sub>t</sub> | y<sub>&lt;t</sub>, x)</div><div class="big">L<sub>NLL</sub> = −ln P(y|x) = −∑<sub>t=1</sub><sup>4</sup> ln p<sub>θ</sub>(y<sub>t</sub> | y<sub>&lt;t</sub>,x)</div><p>对数把乘积变成求和，方便数值计算与梯度优化。对真实标签为 one-hot 的分类问题，<strong>负对数似然（NLL）正好就是逐位置的交叉熵 CE</strong>。一个样本可以把四个位置相加，也可以除以有效 Token 数进行平均；两者只差缩放，不改变每个位置的监督对齐规则。</p></div>
+<div class="figure"><div class="figtitle">图 13A · 三个不同的矩阵，不能把 Mask、Logits、Loss 混成一件事</div><div class="figbody">
+<div class="dcl-grid3">
+<div class="dcl-card t-purple"><div class="dcl-eyebrow">在 Attention 内部</div><h4>可见性矩阵 · 4×4</h4><div class="dcl-heat" style="grid-template-columns:23px repeat(4,1fr);min-width:0;gap:3px"><div></div><div class="axis">K₁</div><div class="axis">K₂</div><div class="axis">K₃</div><div class="axis">K₄</div>
+<div class="axis">Q₁</div><div class="cell">✓</div><div class="cell blocked">×</div><div class="cell blocked">×</div><div class="cell blocked">×</div>
+<div class="axis">Q₂</div><div class="cell">✓</div><div class="cell">✓</div><div class="cell blocked">×</div><div class="cell blocked">×</div>
+<div class="axis">Q₃</div><div class="cell">✓</div><div class="cell">✓</div><div class="cell">✓</div><div class="cell blocked">×</div>
+<div class="axis">Q₄</div><div class="cell">✓</div><div class="cell">✓</div><div class="cell">✓</div><div class="cell">✓</div></div><p class="dcl-note">限制 Query 能读取哪些目标输入；与词表类别无关。</p></div>
+<div class="dcl-card t-blue"><div class="dcl-eyebrow">在输出 Head 后</div><h4>预测概率 · 4×|V|</h4><div class="dcl-scroll"><table class="dcl-table" style="min-width:0;font-size:10px"><thead><tr><th>位置</th><th>我</th><th>爱</th><th>猫</th><th>EOS</th></tr></thead><tbody><tr><td>t₁</td><td style="background:#c3e9d7">●</td><td>·</td><td>·</td><td>·</td></tr><tr><td>t₂</td><td>·</td><td style="background:#c3e9d7">●</td><td>·</td><td>·</td></tr><tr><td>t₃</td><td>·</td><td>·</td><td style="background:#c3e9d7">●</td><td>·</td></tr><tr><td>t₄</td><td>·</td><td>·</td><td>·</td><td style="background:#c3e9d7">●</td></tr></tbody></table></div><p class="dcl-note">绿色只是正确标签所在列；实际词表还包含大量其他 Token。</p></div>
+<div class="dcl-card t-green"><div class="dcl-eyebrow">在 Loss 端</div><h4>每行 CE → 一个总 Loss</h4><div class="dcl-stepflow" style="display:block"><div class="dcl-step">CE₁ = −ln p(我)</div><div class="dcl-step">CE₂ = −ln p(爱)</div><div class="dcl-step">CE₃ = −ln p(猫)</div><div class="dcl-step">CE₄ = −ln p(EOS)</div><div class="dcl-step" style="background:#e9f7ef;color:#207b5d">L = (CE₁+…+CE₄)/4</div></div><p class="dcl-note">Loss 不在 QK 的 4×4 矩阵上直接计算，而是在词表预测上计算。</p></div>
+</div></div></div>
+</div>
+
 <div class="formula">单位置：Lₜ = −log p<sub>θ</sub>(yₜ | y<sub>&lt;t</sub>, x)<br>单样本：L = (1 / m_valid) · Σₜ Lₜ<small>展示的是标准硬标签交叉熵。原论文训练还使用 label smoothing ε=0.1，其实际监督目标是被平滑后的类别分布；这一差异在下方单独解释。</small></div>
+
+<div class="dcl-unit">
+<h3 class="subhead">11.2 交叉熵的公式从哪里来？为什么是 −log，而不是“预测减标签”？</h3>
+<div class="dcl-stepflow"><div class="dcl-step">隐藏特征 hₜ<small>1×512</small></div><span class="dcl-arr">→</span><div class="dcl-step">Logits sₜ=hₜW+b<small>1×|V|</small></div><span class="dcl-arr">→</span><div class="dcl-step">pₜ=Softmax(sₜ)<small>所有词的概率和为 1</small></div><span class="dcl-arr">→</span><div class="dcl-step">正确类别 yₜ<small>如第 3 行是「猫」</small></div><span class="dcl-arr">→</span><div class="dcl-step">CEₜ=−ln pₜ[yₜ]<small>一个非负标量</small></div></div>
+<div class="dcl-math"><div class="big">p<sub>t,v</sub> = e<sup>s<sub>t,v</sub></sup> / ∑<sub>u∈V</sub>e<sup>s<sub>t,u</sub></sup></div><div class="big">CE<sub>t</sub> = −∑<sub>v∈V</sub> q<sub>t,v</sub> ln p<sub>t,v</sub></div><div class="big">q<sub>t,v</sub> = 1{v=y<sub>t</sub>} → CE<sub>t</sub> = −ln p<sub>t,y<sub>t</sub></sub></div><p><strong>q</strong> 是真实标签的目标分布，<strong>p</strong> 是模型预测。One-hot 只有正确词的 q=1，因此求和中其他项都为 0。正确词概率 0.9 的 CE≈0.105；概率 0.1 的 CE≈2.303。<strong>取负对数不是 Transformer 发明的</strong>，它来自用最大似然训练概率模型，并与分类交叉熵一致。</p></div>
+<div class="dcl-idea orange"><strong>为什么不是只计算 argmax 是否正确？</strong> argmax/准确率大部分时候不可导，无法描述“虽然猜对了但很不自信”和“猜错且极其自信”的差异。Softmax + CE 提供可微、对相对概率敏感的训练信号。注意：Loss 的减少并不等于每个 Token 都一定猜对。</div>
+</div>
+<div class="dcl-unit">
+<h3 class="subhead">11.3 真正对四个位置分别算 CE：梯度又是怎么来的？</h3>
+<div class="dcl-lab" id="dclCELab"><h4>交互实验 III · 同一条翻译样本的 4 行 Logits → Softmax → CE → 梯度</h4><p class="dcl-note">演示词表为 [我、爱、猫、EOS、你]，用五个类别简化真实的万级词表。可以选择预测位置，调整<strong>该行正确词的 Logit</strong> 与 label smoothing 强度；每次按完整 Softmax 重新计算。</p>
+<div class="dcl-controls"><label>当前观察哪一行预测？<select id="dclCERow"><option value="0">t=1，BOS → 我</option><option value="1">t=2，我 → 爱</option><option value="2" selected>t=3，爱 → 猫</option><option value="3">t=4，猫 → EOS</option></select></label><label>正确词 Logit 调整 <b id="dclCEOffsetLabel">+0.0</b><input id="dclCEOffset" type="range" min="-2.5" max="2.5" step="0.1" value="0" /></label><label>Label Smoothing ε <b id="dclCEpsilonLabel">0.0</b><input id="dclCEpsilon" type="range" min="0" max="0.2" step="0.1" value="0" /></label></div>
+<div class="dcl-scroll"><table class="dcl-table" id="dclCETable"><thead><tr><th>位置 / 输入</th><th>目标 yₜ</th><th>p(正确)</th><th>CEₜ</th><th>计算条件</th></tr></thead><tbody id="dclCEBody"></tbody></table></div>
+<div class="dcl-grid2" style="margin-top:14px"><div><div class="dcl-card t-green"><h4>选中行的词表预测概率</h4><div id="dclCEBars"></div></div><div class="dcl-panel" id="dclCETotal" style="margin-top:12px"></div></div><div><div class="dcl-card t-blue"><h4>选中行 ∂CE/∂Logit</h4><div id="dclCEGrads"></div></div><div class="dcl-panel dcl-num" id="dclCESteps" style="margin-top:12px"></div></div></div>
+</div>
+<div class="dcl-math"><div class="big">∂CE<sub>t</sub>/∂s<sub>t,v</sub> = p<sub>t,v</sub> − q<sub>t,v</sub></div><div class="big">∂L/∂W<sub>head</sub> = H<sup>T</sup>(∂L/∂S) ，　∂L/∂H = (∂L/∂S)W<sub>head</sub><sup>T</sup></div><p>第一行是 <strong>Softmax + 交叉熵联立求导</strong> 的结果；它的含义很直观：对正确类通常是负梯度，梯度下降会倾向提高其 Logit；对其他类通常是正梯度，会倾向压低它们的 Logit。上面公式先按“位置 CE 之和”写；若采用平均 Loss，梯度还要整体除以有效位置数。Label smoothing 时 q 不再是严格 one-hot，但梯度形式不变。</p></div>
+</div>
+<div class="dcl-unit">
+<h3 class="subhead">11.4 CE 怎样穿过输出 Head、Cross-Attention，最后更新 Encoder？</h3>
+<div class="figure"><div class="figtitle">图 13B · 同一张计算图：上方前向预测，下方反向梯度（并非分阶段训练）</div><div class="figbody">
+<svg class="dcl-svg" viewBox="0 0 1120 377" role="img" aria-label="Transformer 预测损失反向传播全网络">
+<defs><marker id="dcl-barr" viewBox="0 0 10 10" markerWidth="6" markerHeight="6" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#7a9aae"/></marker><marker id="dcl-bback" viewBox="0 0 10 10" markerWidth="6" markerHeight="6" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#c28740"/></marker></defs>
+<text x="18" y="35" fill="#276c93" font-weight="800" font-size="16">FORWARD · 同时处理全部目标位置</text>
+<g font-family="system-ui" font-size="13" text-anchor="middle" font-weight="750">
+<rect x="14" y="65" width="154" height="87" rx="9" fill="#e8f4fa" stroke="#b4d4e4"/><text x="91" y="98" fill="#286f96">英文输入 → Encoder</text><text x="91" y="120" font-size="11" fill="#6794ab">Z · 3×512</text>
+<rect x="223" y="65" width="160" height="87" rx="9" fill="#eee8fa" stroke="#ccb8e3"/><text x="303" y="98" fill="#73569c">目标右移 → Decoder</text><text x="303" y="120" font-size="11" fill="#9684b0">Causal Self ×6</text>
+<rect x="438" y="65" width="155" height="87" rx="9" fill="#e4f2fa" stroke="#a6cddd"/><text x="515" y="98" fill="#267199">Cross-Attention</text><text x="515" y="120" font-size="11" fill="#6998a9">Q 目标 · K/V 源端</text>
+<rect x="646" y="65" width="150" height="87" rx="9" fill="#e7f4fc" stroke="#b2d8eb"/><text x="721" y="98" fill="#266e92">Head + Softmax</text><text x="721" y="120" font-size="11" fill="#6e96a7">4×|V|</text>
+<rect x="846" y="65" width="255" height="87" rx="9" fill="#eaf8f0" stroke="#acd9c3"/><text x="974" y="96" fill="#217c5a">CE₁ + CE₂ + CE₃ + CE₄</text><text x="974" y="121" font-size="11" fill="#659a82">Loss · 一个可微标量</text></g>
+<g stroke="#819eae" stroke-width="2.2" fill="none" marker-end="url(#dcl-barr)"><path d="M169 109 H216"/><path d="M384 109 H430"/><path d="M596 109 H638"/><path d="M799 109 H838"/><path d="M168 140 V184 H513 V156" stroke="#3a98b9"/></g>
+<text x="326" y="176" font-size="11" fill="#4c8eaf">Encoder 的 Z 供 Cross-Attn K/V 读取</text>
+<path d="M974 160 V238 H721 H515 H303 H91" fill="none" stroke="#bd8748" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#dcl-bback)"/>
+<g font-size="12" fill="#986b38"><text x="849" y="221">∂L/∂logits</text><text x="621" y="221">∂L/∂H</text><text x="409" y="221">∂L/∂Q,K,V</text><text x="147" y="221">∂L/∂Z</text></g>
+<g text-anchor="middle" font-size="12" fill="#477387"><rect x="15" y="259" rx="8" width="1080" height="79" fill="#f5fafc" stroke="#daeaf1"/><text x="555" y="284" font-size="15" fill="#276c90" font-weight="800">反向更新的不是 Mask 本身，而是所有被 Loss 连接到的可训练参数</text><text x="555" y="308">Embedding · 每层 Q/K/V/Wᴼ · FFN · LayerNorm γ/β · Vocabulary Head（含可能共享的 Embedding 权重）</text><text x="555" y="327" font-size="11" fill="#6f91a2">图省略部分残差分支；实际梯度按所有合法路径累加。Masked 的单条边梯度为 0，不代表整层 Q/K/V 都没有梯度。</text></g>
+</svg></div></div>
+<div class="dcl-grid2"><div class="dcl-card t-blue"><h4>一条 CE 为什么能影响上游所有层？</h4><p>Loss 对每个 Logit 求梯度，经 Head 的权重矩阵传回 Decoder 隐藏特征；Decoder 里的 Cross-Attention 将梯度同时送向目标端 Query 和源端 K/V，源端梯度继续传过 Encoder 六层。<strong>梯度不是只更新最后的 Head。</strong></p></div><div class="dcl-card t-gold"><h4>Mask 的 0 梯度究竟意味着什么？</h4><p>假设目标第 1 行屏蔽目标第 2 行：第 1 行的这个 Attention 分数不传梯度；但“我”这个 Token 在自身所在的第 2 行仍可能被训练，并在后续合法行中作为 Key/Value 接收梯度。<strong>不要把“屏蔽连接”误解成“冻结 Token 或参数”。</strong></p></div></div>
+<div class="dcl-source">来源区分：自回归分解、Softmax/CE 及其梯度为概率建模和微分基础；原论文 §3.1 指出右移与掩码共同保证因果预测，§5.4 采用 label smoothing ε=0.1。这里的 5 词演算完全属于教学构造，不是论文实际使用的词表或预测结果。</div>
+</div>
+
 <div class="lab"><div class="labhead"><div><h4>交互实验 F · 一个 Token 的交叉熵为何能指导全部网络参数？</h4><p class="tiny">固定演示词表 [我, 你, 爱, 猫]，正确答案设为“我”。改变其 Logit，再计算 Softmax 与 CE；这是实算，不是原论文训练日志。</p></div><span class="chip new">可计算</span></div><div class="controls"><div class="control"><label>“我”的 Logit：<b id="correctLogitLabel">2.0</b></label><input type="range" id="correctLogit" min="-1" max="5" step="0.25" value="2"></div></div><div class="bars" id="lossBars"></div><div class="numbox" id="lossNumber"></div><p class="small">当正确类的概率升高，−log p 会下降。但真实训练是通过链式法则同时更新 Head、Decoder、Cross-Attention、Encoder、Embedding 等可学习参数，而不是只修改最后一个 Logit。</p></div>
-<div class="grid2"><div class="card tone-blue"><h4>11.1 梯度到底会更新谁？</h4><div class="pathflow"><div class="pathnode green">Token CE</div><span class="arrow">←</span><div class="pathnode">Head</div><span class="arrow">←</span><div class="pathnode">Decoder 6 层</div><span class="arrow">←</span><div class="pathnode">Encoder 6 层</div></div><p class="small">梯度从预测结果沿计算图反传。Encoder 通过 Decoder 的 Cross-Attention 收到梯度；所有被使用、需要梯度的参数都会按链式法则得到自己的梯度贡献。</p></div><div class="card tone-orange"><h4>11.2 为什么还要 Label Smoothing？</h4><p>只用 one-hot 监督容易鼓励模型对单一 Token 过度自信。原论文使用 ε<sub>ls</sub>=0.1，在词表分布上做标签平滑。它是训练目标的正则化策略，不是 Transformer 架构的发明。</p><div class="formula">q = (1−ε)·one_hot(y) + ε·u<br>L<sub>smooth</sub> = −Σ<sub>v</sub> q(v) log p(v)<small>u 表示均匀分布的常见教学形式；具体平滑实现可能对特殊 Token 作额外处理。</small></div></div></div>
+<div class="grid2"><div class="card tone-blue"><h4>11.5 梯度到底会更新谁？</h4><div class="pathflow"><div class="pathnode green">Token CE</div><span class="arrow">←</span><div class="pathnode">Head</div><span class="arrow">←</span><div class="pathnode">Decoder 6 层</div><span class="arrow">←</span><div class="pathnode">Encoder 6 层</div></div><p class="small">梯度从预测结果沿计算图反传。Encoder 通过 Decoder 的 Cross-Attention 收到梯度；所有被使用、需要梯度的参数都会按链式法则得到自己的梯度贡献。</p></div><div class="card tone-orange"><h4>11.6 为什么还要 Label Smoothing？</h4><p>只用 one-hot 监督容易鼓励模型对单一 Token 过度自信。原论文使用 ε<sub>ls</sub>=0.1，在词表分布上做标签平滑。它是训练目标的正则化策略，不是 Transformer 架构的发明。</p><div class="formula">q = (1−ε)·one_hot(y) + ε·u<br>L<sub>smooth</sub> = −Σ<sub>v</sub> q(v) log p(v)<small>u 表示均匀分布的常见教学形式；具体平滑实现可能对特殊 Token 作额外处理。</small></div></div></div>
 <div class="chapter-end"><strong>本章产物：</strong>四个位置的预测与正确标签组成监督误差。Encoder 和 Decoder 不是分开学两种任务，它们通过同一个端到端训练目标联合更新。</div></section>
 
 <section id="training" class="section"><div class="section-title"><div class="num">12</div><div><h2>训练：一次完整的前向和反向传播到底发生什么？</h2><p>把前面所有零件接成完整、可训练的神经网络，并核对论文真实训练设置。</p></div></div>
@@ -440,18 +709,48 @@ window.addEventListener('scroll',syncProgress,{passive:true});window.addEventLis
 // A 位置编码 d=16，位置 0..63
 function updatePE(){const pair=+$('pePair').value,pos=+$('pePos').value;const dim=2*pair;const denominator=Math.pow(10000,dim/16);const evalAt=(p,which)=>which==='sin'?Math.sin(p/denominator):Math.cos(p/denominator);const x=p=>42+p/63*786,y=v=>107-v*74;function path(which){let s='';for(let p=0;p<=63*5;p++){const q=p/5;s+=(p?' L':'M')+x(q).toFixed(2)+' '+y(evalAt(q,which)).toFixed(2);}return s;}$('peSin').setAttribute('d',path('sin'));$('peCos').setAttribute('d',path('cos'));$('peMark').setAttribute('x1',x(pos));$('peMark').setAttribute('x2',x(pos));for(const [id,w] of [['peDotSin','sin'],['peDotCos','cos']]){$(id).setAttribute('cx',x(pos));$(id).setAttribute('cy',y(evalAt(pos,w)));}$('pePairLabel').textContent=dim+' / '+(dim+1);$('pePosLabel').textContent=pos;$('peOut').textContent=`位置 pos=${pos}，通道 ${dim} (sin)=${evalAt(pos,'sin').toFixed(4)}；通道 ${dim+1} (cos)=${evalAt(pos,'cos').toFixed(4)}。频率分母 = ${denominator.toFixed(3)}。`;}
 $('pePair').addEventListener('input',updatePE);$('pePos').addEventListener('input',updatePE);updatePE();
-// B 数值真实计算的 QKV 演示
-const X=[[1,0],[0,1],[1,1]],WQ=[[1,0],[0,1]],WK=[[1,0],[0,1]],WV=[[1,2],[2,1]],names=['I','love','cats'];
+// B 数值真实计算的 QKV 演示 — CHAPTER 05 ONLY updated
+const X=[[1,0],[0,1],[1,1]],WQ=[[1,0],[1,1]],WK=[[1,1],[0,1]],WV=[[1,2],[2,1]],names=['I','love','cats'];
 function matmul(A,B){return A.map(row=>B[0].map((_,j)=>row.reduce((sum,a,k)=>sum+a*B[k][j],0)));}
 function trans(M){return M[0].map((_,j)=>M.map(row=>row[j]));}
 function sf(row){let m=Math.max(...row),v=row.map(a=>Math.exp(a-m)),s=v.reduce((a,b)=>a+b,0);return v.map(a=>a/s);}
 function fmt(v,d=3){return Number(v).toFixed(d);}
 const Q=matmul(X,WQ),K=matmul(X,WK),V=matmul(X,WV);
-function updateAttn(){const query=+$('attnQuery').value,scale=$('attnScale').value==='yes',stage=+$('attnStage').value,factor=scale?Math.sqrt(2):1;const scores=matmul(Q,trans(K)).map(r=>r.map(v=>v/factor));const weights=scores.map(sf),outputs=matmul(weights,V);const w=weights[query],sc=scores[query],v=outputs[query];
-const titles=['① 从输入投影出 Q、K、V','② 计算 Q·K 的匹配分数','③ 对当前行做 Softmax','④ 用权重对 V 求加权和'];const explain=[`当前查询位置：${names[query]}，Q${query+1}=[${Q[query]}]。K1~K3=[${K.map(r=>'['+r+']').join(', ')}]。V1~V3=[${V.map(r=>'['+r+']').join(', ')}]。注意 Q 与 K 在本例相同是因为我们人为取了单位投影，不是通用规则。`,`对当前位置 ${names[query]}，与每个 Key 做点积${scale?'并除以 √2':''}。得到三个分数，分别对应可读取三个位置的匹配度。`,`三个分数对当前 Query 行做 Softmax：权重均非负，总和为 1。不同 Query 行的权重通常不同。`,`Z${query+1} = ${w.map((a,i)=>`${fmt(a)}×V${i+1}`).join(' + ')}；输出是 2 维的新特征向量。`];
-$('attnStageTitle').textContent=titles[stage];$('attnStageText').textContent=explain[stage];$('attnCalc').textContent=stage===0?`Q${query+1}=${JSON.stringify(Q[query])}, K=Q, V=${JSON.stringify(V)}`:stage===1?`Scores = [${sc.map(x=>fmt(x)).join(', ')}]`:stage===2?`A${query+1}=Softmax(scores)=[${w.map(x=>fmt(x)).join(', ')}]`:`z${query+1}=[${fmt(v[0])}, ${fmt(v[1])}]`;
-$('attnBars').innerHTML=w.map((a,j)=>`<div class="barrow"><strong>${names[j]}</strong><div class="spark"><i style="width:${(a*100).toFixed(2)}%"></i></div><span class="mono">${fmt(a)}</span></div>`).join('');$('attnMatrix').innerHTML=weights.map((row,i)=>row.map((a,j)=>`<div class="square ${i===query?'highlight':''}" style="background:rgba(26,134,183,${(0.08+.65*a).toFixed(3)})" title="Query ${i+1}, Key ${j+1}">${fmt(a,2)}</div>`).join('')).join('');$('attnSum').textContent=`当前行总权重 = ${fmt(w.reduce((a,b)=>a+b,0))}；全部 3 行同步计算。最终 Z 矩阵形状 = 3 × 2。`;$('attnVector').textContent=`[${fmt(v[0])}, ${fmt(v[1])}]`;}
-['attnQuery','attnScale','attnStage'].forEach(id=>$(id).addEventListener('change',updateAttn));updateAttn();
+function matRows(M,query){return M.map((r,i)=>'<span class="live-row '+(i===query?'current':'')+'">[ '+r.map(x=>fmt(x,0).padStart(2,' ')).join(', ')+' ]</span>').join('');}
+function updateAttn(){
+ const query=+$('attnQuery').value, scale=$('attnScale').value==='yes', stage=+$('attnStage').value, mode=$('attnMask').value, factor=scale?Math.sqrt(2):1;
+ const raw=matmul(Q,trans(K)),scores=raw.map(r=>r.map(v=>v/factor));
+ const allowed=(i,j)=>((mode!=='causal'&&mode!=='both') || j<=i) && ((mode!=='pad'&&mode!=='both')||j!==2);
+ const visible=scores.map((r,i)=>r.map((v,j)=>allowed(i,j)?v:-Infinity));
+ const weights=visible.map(sf),outputs=matmul(weights,V);
+ const w=weights[query],r=raw[query],sc=scores[query],masked=visible[query],v=outputs[query],q=Q[query];
+ const kept=masked.map((x,j)=>Number.isFinite(x)?j:-1).filter(x=>x>=0);
+ const keepLabels=kept.map(j=>names[j]).join('、');
+ const dotline=(j)=>`${q[0]}×${K[j][0]} + ${q[1]}×${K[j][1]} = ${fmt(r[j],0)}`;
+ const sLine=`[${sc.map(x=>fmt(x,4)).join(', ')}]`;
+ const maskLine=`[${masked.map(x=>Number.isFinite(x)?fmt(x,4):'−∞').join(', ')}]`;
+ const titles=['① 线性投影：Q/K/V 从 X 来','② 逐个点积：QKᵀ 产生匹配分数','③ 除以 √dₖ：缩放分数','④ 按规则加 Mask：让禁用位置变 −∞','⑤ 对当前 Query 行做 Softmax','⑥ 对 Value 加权求和，得到新向量'];
+ const desc=[`X 的第 ${query+1} 行是 [${X[query]}]，分别乘 WQ/WK/WV。注意：Q 是当前 Token 的线性投影，不是来自另一个 MLP。`,`第 ${query+1} 行 Query 和全部三行 Key 分别做内积。矩阵乘法 QKᵀ 只是把这三个点积（以及其他 Query 行）并行完成。`,`原始点积是 ${r.map(x=>fmt(x,0)).join('、')}。当前 ${scale?'使用 √2 缩放':'关闭缩放作为对照'}；缩放是所有分数除以同一个正数，不改变它们的排序。`,`当前选择了「${{none:'Encoder 无 Mask',causal:'因果 Mask',pad:'第 3 列模拟 PAD',both:'因果 + Padding'}[mode]}」。可见 Key：${keepLabels}；被禁用列在 Softmax 前加 −∞。`,`只有允许读取的位置会得到非零权重。Softmax <strong>按 Query 行</strong>归一化，而不是对整个 3×3 矩阵一次归一化。`,`最终得到 z${query+1} = Σⱼ a${query+1},j·vⱼ，得到 2 维新特征；这不是预测 Token / 类别。`];
+ const rows=[
+ [`x${query+1} = [${X[query]}]`, `q${query+1} = x${query+1}WQ = [${Q[query]}]`, `k${query+1} = x${query+1}WK = [${K[query]}]`, `v${query+1} = x${query+1}WV = [${V[query]}]`],
+ [`q${query+1} = [${q.join(',')}]`,...K.map((x,j)=>`q${query+1}·k${j+1} = ${dotline(j)}`),`原始行 scores = [${r.join(', ')}]`],
+ [`dₖ = 2；√dₖ = 1.4142`, `${scale?'scores = 原始分数 ÷ 1.4142':'scores = 原始分数 ÷ 1'}`,`scores = ${sLine}`],
+ [`scores = ${sLine}`,`Mask = [${masked.map((x,j)=>Number.isFinite(x)?'0':'−∞').join(', ')}]`,`scores + Mask = ${maskLine}`],
+ [`Softmax(${maskLine})`,...w.map((x,j)=>`a${query+1},${j+1} = ${fmt(x,4)} ${Number.isFinite(masked[j])?'':'（屏蔽）'}`),`∑ⱼ a${query+1},j = ${fmt(w.reduce((a,b)=>a+b,0),4)}`],
+ [`z${query+1} = ${w.map((a,j)=>fmt(a,4)+'×['+V[j].join(',')+']').join(' + ')}`,`z${query+1}[0] = ${w.map((a,j)=>fmt(a,4)+'×'+V[j][0]).join(' + ')} ≈ ${fmt(v[0],4)}`,`z${query+1}[1] = ${w.map((a,j)=>fmt(a,4)+'×'+V[j][1]).join(' + ')} ≈ ${fmt(v[1],4)}`]
+ ];
+ $('attnStageTitle').textContent=titles[stage];$('attnStageText').innerHTML=desc[stage];
+ $('attnCalc').innerHTML=rows[stage].map(x=>`<span class="equation-line">${x}</span>`).join('');
+ $('attnMaskWhy').textContent=mode==='none'?'当前没有被屏蔽的 Key：M 全是 0；Encoder 无 Padding 时就是这种情况。':mode==='causal'?`因果规则：Query 行 i=${query+1} 只允许 j≤${query+1} 的列，防止看到未来。`:mode==='pad'?'演示性假设：把第 3 列视为 PAD Key；原句的 cats 在真实例子里并不是 PAD。':'同时屏蔽未来 Key 与第 3 个 PAD Key；两种规则都由数据/位置构造。';
+ $('attnBars').innerHTML=stage<4?'':w.map((a,j)=>`<div class="barrow"><strong>${names[j]}${!allowed(query,j)?' ×':''}</strong><div class="spark"><i style="width:${(a*100).toFixed(2)}%;background:${!allowed(query,j)?'#c7d0d6':'#268bb7'}"></i></div><span class="mono">${fmt(a,3)}</span></div>`).join('');
+ $('attnHeatTitle').textContent=stage===1?'QKᵀ 原始点积分数':stage===2?'缩放后的分数':stage===3?'加 Mask 后的分数':stage<1?'Q/K/V 即将匹配':'Softmax 后的权重';
+ $('attnMatrix').innerHTML=weights.map((row,i)=>row.map((a,j)=>{const on=allowed(i,j);const value=stage===0?'·':stage===1?fmt(raw[i][j],1):stage===2?fmt(scores[i][j],2):stage===3?(on?fmt(scores[i][j],2):'−∞'):fmt(a,3);const bg=stage>=4?`rgba(26,134,183,${(0.08+.60*a).toFixed(3)})`:(on?'#eaf5fb':'#edf1f4');return `<div class="square ${i===query?'highlight':''} ${stage>=3&&!on?'blocked':''}" style="background:${bg}" title="Query ${i+1} / Key ${j+1}">${stage>=3&&!on?'×':value}</div>`;}).join('')).join('');
+ $('attnSum').textContent=`第 ${query+1} 行权重和 = ${fmt(w.reduce((a,b)=>a+b,0),4)}；每一行独立归一化。整层输出 Z 形状是 3×2。`;
+ $('attnQMatrix').innerHTML=matRows(Q,query);$('attnKMatrix').innerHTML=matRows(K,query);$('attnVMatrix').innerHTML=matRows(V,query);
+ $('attnVector').textContent=`[${fmt(v[0],4)}, ${fmt(v[1],4)}]`;
+ $('attnNarration').innerHTML= `本行 ${names[query]} 的完整计算：<strong>q=[${q}]</strong> → 与三个 Key 的原始点积 <strong>[${r}]</strong> → 缩放 ${sLine} → 加 Mask ${maskLine} → 得到权重 <strong>[${w.map(x=>fmt(x,4)).join(', ')}]</strong> → 乘 V 得到 <strong>z=[${fmt(v[0],4)}, ${fmt(v[1],4)}]</strong>。`;
+}
+['attnQuery','attnScale','attnStage','attnMask'].forEach(id=>$(id).addEventListener('change',updateAttn));updateAttn();
 // C Head 示意
 function updateHeads(){let h=+$('headCount').value,d=512/h;$('headStripes').innerHTML=Array.from({length:h},(_,i)=>`<div title="Head ${i+1} : ${d} 维" style="flex:1;min-width:0;border:1px solid #a7cbdc;background:${i%2?'#c8e6f4':'#e4f3fa'};border-radius:4px;display:grid;place-items:center;font:700 11px monospace;color:#2c7596;padding:8px 0">${h<=16?d:''}</div>`).join('');$('headSummary').textContent=`d_model=512，h=${h}：每个 Head 的 d_k=d_v=${d}。${h} 个独立注意力子空间，Concat 后 ${h}×${d}=512，再经输出矩阵 Wᴼ 投影到 512 维。头数改变不自动增加最终通道总宽度。`;}
 $('headCount').addEventListener('change',updateHeads);updateHeads();
@@ -471,4 +770,59 @@ function updateLR(){const step=+$('lrStep').value,MAX=lr(4000),px=x=>48+x/20000*
 let inferIndex=0;const answer=['我','爱','猫','<EOS>'];
 function updateInfer(){inferIndex=Math.max(0,Math.min(3,inferIndex));const pref=['<BOS>',...answer.slice(0,inferIndex)];$('inferStep').textContent='DECODER · STEP '+(inferIndex+1);$('inferPrefix').innerHTML=pref.map(t=>`<span class="token purple">${t.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`).join('');$('inferShape').textContent=`Decoder 当前前缀长度 m=${pref.length}；当前计算时 m×512 → m×|V|，取最后一个有效位置的词表预测。`;$('inferOut').textContent=answer[inferIndex];$('inferText').textContent=inferIndex===3?'模型预测 EOS，停止翻译生成。':'选出当前 Token 后，把它追加进 Decoder 前缀；这个 Token 才成为下一轮可用的目标历史。';$('inferWhy').textContent=inferIndex===3?'已经输出结束符 EOS，本条序列的自回归生成终止。':'预测下一 Token 的条件已经变化，必须利用新前缀再次计算。源端 Encoder Memory 不需要因增加目标 Token 而重新编码。';$('inferProgress').textContent=`进度 ${inferIndex+1} / 4；本步完成后得到：${answer.slice(0,inferIndex+1).join(' ')}`;$('inferPrev').disabled=inferIndex===0;$('inferNext').disabled=inferIndex===3;}
 $('inferPrev').addEventListener('click',()=>{inferIndex--;updateInfer();});$('inferNext').addEventListener('click',()=>{inferIndex++;updateInfer();});$('inferReset').addEventListener('click',()=>{inferIndex=0;updateInfer();});updateInfer();
-</script></body></html>
+</script>
+<script>
+/* Decoder/CE supplemental numerical labs: no redefinition of existing globals. */
+(function(){'use strict';
+const e=id=>document.getElementById(id);
+const fmt=(n,k=4)=>Number(n).toFixed(k);
+const labels=['BOS','我','爱','猫'];
+const scores=[[0.4,2.0,0.0,-0.3],[0.8,0.2,1.5,0.0],[0.3,1.2,0.5,2.2],[0.0,0.6,1.7,0.5]];
+const v=[[1,0],[0,1],[1,1],[-1,1]];
+const upstream=[0.8,-0.4];
+const soft=(a)=>{const finite=a.filter(x=>Number.isFinite(x));if(!finite.length)return a.map(()=>0);const max=Math.max(...finite);const ex=a.map(x=>Number.isFinite(x)?Math.exp(x-max):0);const sum=ex.reduce((p,c)=>p+c,0);return ex.map(x=>x/sum)};
+let currentWeights=[];
+function renderMask(){
+ const row=Number(e('dclFocusRow').value),isOn=e('dclCausalMode').value==='on';
+ const masked=scores.map((r,i)=>r.map((x,j)=>(!isOn||j<=i)?x:-Infinity));
+ const probs=masked.map(soft),p=probs[row];currentWeights=p;
+ let out='<div class="corner">Query ↓ / Key →</div>'+labels.map(x=>'<div class="axis">'+x+'</div>').join('');
+ masked.forEach((r,i)=>{out+='<div class="axis">'+(i+1)+' · '+labels[i]+'</div>';r.forEach((s,j)=>{const block=!Number.isFinite(s);let cls='cell'+(block?' blocked':'')+(i===row?' active':'')+(!isOn&&j>i&&s>1?' peek':'');const bg=block?'':` style="background:rgba(46,144,192,${(0.09+0.65*probs[i][j]).toFixed(3)})"`;out+='<div class="'+cls+'"'+bg+'><div>'+(block?'−∞':fmt(s,1))+'</div><div class="sub">'+(block?'0':fmt(probs[i][j],3))+'</div></div>';})});
+ e('dclScoreHeat').innerHTML=out;
+ e('dclMaskBars').innerHTML=p.map((a,j)=>'<div class="dcl-measure"><strong>'+labels[j]+'</strong><div class="dcl-meter"><i style="width:'+fmt(100*a,2)+'%;background:'+(j>row?'#c68c41':'#288ebc')+'"></i></div><span class="dcl-num">'+fmt(a,3)+'</span></div>').join('');
+ const o=[0,1].map(k=>p.reduce((acc,a,j)=>acc+a*v[j][k],0));const illegal=p.slice(row+1).reduce((acc,a)=>acc+a,0);
+ e('dclMaskExplain').innerHTML='<strong>当前第 '+(row+1)+' 行输入「'+labels[row]+'」：目标是「'+['我','爱','猫','EOS'][row]+'」</strong>。<br>实际可读取：'+(isOn?labels.slice(0,row+1).join('、'):labels.join('、'))+'。'+(isOn?'由因果规则 j≤i 自动禁止未来列。':'<strong class="dcl-bad">反例：允许读取未来输入，训练标签可能被泄露。</strong>')+'<br>此行落在未来列的总概率：<strong>'+fmt(illegal,4)+'</strong>。';
+ e('dclMaskMath').innerHTML='S = ['+scores[row].map(x=>fmt(x,1)).join(', ')+']<br>S+C = ['+masked[row].map(x=>Number.isFinite(x)?fmt(x,1):'−∞').join(', ')+']<br>Softmax = ['+p.map(x=>fmt(x,4)).join(', ')+']<br>oᵢ = Σⱼ aᵢⱼvⱼ = <b>['+o.map(x=>fmt(x,4)).join(', ')+']</b>';
+ renderBackward();
+}
+function renderBackward(){
+ const row=Number(e('dclFocusRow').value),p=currentWeights;
+ const gA=v.map(x=>x[0]*upstream[0]+x[1]*upstream[1]);
+ const mean=gA.reduce((acc,x,j)=>acc+p[j]*x,0);const gScore=gA.map((x,j)=>p[j]*(x-mean));
+ e('dclGradSummary').innerHTML='选中 Query 第 '+(row+1)+' 行；上游梯度 <code>g=[0.8, −0.4]</code>。<br>各 Value 的 <code>g·vⱼ</code> = ['+gA.map(x=>fmt(x,3)).join(', ')+']。<br>加权基线 <code>Σ aⱼ(g·vⱼ)</code> = '+fmt(mean,4)+'。<br>各分数梯度之和 ≈ '+fmt(gScore.reduce((a,b)=>a+b,0),8)+'。';
+ e('dclGradBars').innerHTML=gScore.map((x,j)=>'<div class="dcl-grad-chart"><strong>'+labels[j]+'</strong><div class="dcl-zeroline"><i style="left:'+(x<0?(50-45*Math.min(1,Math.abs(x)/.7)):50)+'%;width:'+(45*Math.min(1,Math.abs(x)/.7))+'%;background:'+(x<0?'#d39863':'#238bb9')+'"></i></div><span class="dcl-num">'+fmt(x,4)+'</span></div>').join('');
+}
+[e('dclFocusRow'),e('dclCausalMode')].forEach(x=>x.addEventListener('change',renderMask));renderMask();
+
+const ceV=['我','爱','猫','EOS','你'];
+const ceInputs=['BOS','我','爱','猫'];
+const gt=[0,1,2,3];
+const init=[[2,0.8,0.1,-0.5,0.0],[0.2,1.8,0.6,-0.2,0.4],[0.1,0.7,1.6,0.1,0.0],[0.1,0.1,0.1,1.9,-0.1]];
+function ceUpdate(){
+ const chosen=Number(e('dclCERow').value),d=Number(e('dclCEOffset').value),eps=Number(e('dclCEpsilon').value),V=ceV.length;
+ const ps=init.map((r,i)=>soft(r.map((x,j)=>x+(i===chosen&&j===gt[i]?d:0))));
+ const target=(i,j)=>(1-eps)*(j===gt[i]?1:0)+eps/V;
+ const cels=ps.map((p,i)=>-p.reduce((sum,pv,j)=>sum+target(i,j)*Math.log(pv),0));
+ const mean=cels.reduce((p,c)=>p+c,0)/4;
+ e('dclCEOffsetLabel').textContent=(d>=0?'+':'')+fmt(d,1);e('dclCEpsilonLabel').textContent=fmt(eps,1);
+ e('dclCEBody').innerHTML=ps.map((p,i)=>'<tr style="'+(i===chosen?'background:#eaf5fb':'')+'"><td>t='+(i+1)+' · '+ceInputs[i]+'</td><td>'+ceV[gt[i]]+'</td><td class="dcl-num">'+fmt(p[gt[i]],4)+'</td><td class="dcl-num">'+fmt(cels[i],4)+'</td><td>'+ceInputs.slice(0,i+1).join('、')+'</td></tr>').join('');
+ const p=ps[chosen],q=ceV.map((_,j)=>target(chosen,j)),g=p.map((pv,j)=>pv-q[j]);
+ e('dclCEBars').innerHTML=p.map((pv,j)=>'<div class="dcl-measure"><strong '+(j===gt[chosen]?'class="dcl-good"':'')+'>'+ceV[j]+'</strong><div class="dcl-meter"><i style="width:'+fmt(100*pv,2)+'%;background:'+(j===gt[chosen]?'#2c9c79':'#80b1cc')+'"></i></div><span class="dcl-num">'+fmt(pv,3)+'</span></div>').join('');
+ e('dclCEGrads').innerHTML=g.map((grad,j)=>'<div class="dcl-grad-chart"><strong>'+ceV[j]+'</strong><div class="dcl-zeroline"><i style="left:'+(grad<0?50-45*Math.min(1,Math.abs(grad)):50)+'%;width:'+(45*Math.min(1,Math.abs(grad)))+'%;background:'+(grad<0?'#d39863':'#238bb9')+'"></i></div><span class="dcl-num">'+fmt(grad,4)+'</span></div>').join('');
+ e('dclCETotal').innerHTML='<strong>整条序列的 CE（'+(eps===0?'One-hot':'ε='+eps.toFixed(1)+' Label Smoothing')+'）</strong><br>L = ('+cels.map(x=>fmt(x,3)).join(' + ')+') / 4<br>= <strong>'+fmt(mean,4)+'</strong>；当前只修改第 '+(chosen+1)+' 行 Logit，其他行保持固定。';
+ e('dclCESteps').innerHTML='选中行：t='+(chosen+1)+'，正确词='+ceV[gt[chosen]]+'<br>正确词概率 p='+fmt(p[gt[chosen]],4)+'，目标 q='+fmt(q[gt[chosen]],4)+'。<br>CEₜ = −Σ q·ln(p) = '+fmt(cels[chosen],4)+'<br>正确词 Logit 梯度：p−q = <b>'+fmt(g[gt[chosen]],4)+'</b>。<br>整个序列取平均后的该 Logit 梯度 = <b>'+fmt(g[gt[chosen]]/4,4)+'</b>。';
+}
+[e('dclCERow'),e('dclCEOffset'),e('dclCEpsilon')].forEach(x=>x.addEventListener(x.tagName==='SELECT'?'change':'input',ceUpdate));ceUpdate();
+})();
+</script>
+</body></html>
